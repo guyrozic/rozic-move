@@ -744,7 +744,7 @@ img, svg { display: block; }
 /* ===== HOW IT WORKS ===== */
 .how-section {
   padding: 90px 0;
-  background: var(--bg);
+  background: linear-gradient(180deg, #D4EEDE 0%, #E8F5EE 60%, var(--bg) 100%);
 }
 
 .steps-wrap {
@@ -757,9 +757,9 @@ img, svg { display: block; }
   flex: 1;
   text-align: center;
   padding: 32px 24px;
-  background: var(--white);
+  background: linear-gradient(145deg, #FFFFFF 0%, #EEF9F3 100%);
   border-radius: var(--radius);
-  border: 1.5px solid var(--border);
+  border: 1.5px solid rgba(0,166,81,0.2);
   transition: transform var(--transition), box-shadow var(--transition);
 }
 
@@ -1085,7 +1085,7 @@ img, svg { display: block; }
 /* ===== TESTIMONIALS ===== */
 .testimonials-section {
   padding: 90px 0;
-  background: var(--white);
+  background: linear-gradient(180deg, var(--bg) 0%, #D8F0E4 100%);
 }
 
 .testimonials-grid {
