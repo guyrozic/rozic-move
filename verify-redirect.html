@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ROZIC MOVE — אימות מייל</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;600;700;900&display=swap" rel="stylesheet">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Heebo', sans-serif;
+      background: linear-gradient(160deg, #C8EDD8 0%, #E0F5E9 50%, #F0FAF5 100%);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+    }
+    .card {
+      background: #FFF;
+      border-radius: 24px;
+      padding: 40px 32px;
+      max-width: 400px;
+      width: 100%;
+      text-align: center;
+      box-shadow: 0 8px 40px rgba(0,166,81,0.15);
+    }
+    .logo { font-size: 42px; margin-bottom: 12px; }
+    .brand { font-size: 22px; font-weight: 900; color: #00A651; margin-bottom: 6px; }
+    .tagline { font-size: 15px; color: #888; margin-bottom: 28px; }
+    .divider { height: 1px; background: #E0F0E8; margin: 20px 0; }
+    .opening { font-size: 16px; color: #555; line-height: 26px; margin-bottom: 24px; }
+    .btn {
+      display: block;
+      width: 100%;
+      padding: 16px;
+      border-radius: 14px;
+      font-size: 16px;
+      font-weight: 700;
+      font-family: 'Heebo', sans-serif;
+      text-decoration: none;
+      margin-bottom: 12px;
+      cursor: pointer;
+      border: none;
+    }
+    .btn-primary { background: #00A651; color: #FFF; }
+    .btn-apple { background: #000; color: #FFF; }
+    .btn-android { background: #1D3557; color: #FFF; }
+    .btn:hover { opacity: 0.9; }
+    .note { font-size: 12px; color: #AAA; margin-top: 16px; }
+    #status { font-size: 14px; color: #00A651; font-weight: 600; margin-bottom: 16px; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div class="logo">✅</div>
+    <div class="brand">ROZIC MOVE</div>
+    <div class="tagline">מזיזים אותך קדימה</div>
+
+    <div id="status">המייל שלך אומת בהצלחה! פותח את האפליקציה...</div>
+
+    <div class="opening">
+      תוכל לחזור לאפליקציה כדי להמשיך.
+    </div>
+
+    <div class="divider"></div>
+
+    <button class="btn btn-primary" onclick="openApp()">פתח באפליקציה ←</button>
+    <a class="btn btn-apple" href="https://apps.apple.com/app/id6783814838">📱 הורד ל-iPhone</a>
+    <a class="btn btn-android" href="https://play.google.com/store/apps/details?id=com.rozicmove.app">🤖 הורד לאנדרואיד</a>
+
+    <div class="note">אין לך את האפליקציה? הורד בחינם ↑</div>
+  </div>
+
+  <script>
+    function openApp() {
+      window.location.href = 'rozicmove://verified';
+    }
+
+    setTimeout(openApp, 800);
+  </script>
+</body>
+</html>
