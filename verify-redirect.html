@@ -58,9 +58,9 @@
     <div class="brand">ROZIC MOVE</div>
     <div class="tagline">מזיזים אותך קדימה</div>
 
-    <div id="status">המייל שלך אומת בהצלחה! פותח את האפליקציה...</div>
+    <div id="status">מאמת את המייל שלך...</div>
 
-    <div class="opening">
+    <div class="opening" id="opening">
       תוכל לחזור לאפליקציה כדי להמשיך.
     </div>
 
@@ -74,11 +74,61 @@
   </div>
 
   <script>
+    var statusEl = document.getElementById('status');
+
+    function getParam(name) {
+      return new URLSearchParams(window.location.search).get(name);
+    }
+
     function openApp() {
       window.location.href = 'rozicmove://verified';
     }
 
-    setTimeout(openApp, 800);
+    function showError(message) {
+      statusEl.textContent = message;
+      statusEl.style.color = '#D64545';
+    }
+
+    function showSuccess(message) {
+      statusEl.textContent = message;
+      statusEl.style.color = '#00A651';
+      setTimeout(openApp, 800);
+    }
+
+    (function verifyEmail() {
+      var mode = getParam('mode');
+      var oobCode = getParam('oobCode');
+      var apiKey = getParam('apiKey');
+
+      if (mode !== 'verifyEmail' || !oobCode || !apiKey) {
+        showError('קישור לא תקין. בקש קישור אימות חדש מתוך האפליקציה.');
+        return;
+      }
+
+      fetch('https://identitytoolkit.googleapis.com/v1/accounts:update?key=' + encodeURIComponent(apiKey), {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ oobCode: oobCode })
+      })
+        .then(function (res) {
+          return res.json().then(function (data) {
+            if (!res.ok) throw new Error((data.error && data.error.message) || 'VERIFY_FAILED');
+            return data;
+          });
+        })
+        .then(function () {
+          showSuccess('המייל שלך אומת בהצלחה! פותח את האפליקציה...');
+        })
+        .catch(function (err) {
+          if (String(err.message).indexOf('EXPIRED_OOB_CODE') !== -1) {
+            showError('הקישור פג תוקף. בקש קישור אימות חדש מתוך האפליקציה.');
+          } else if (String(err.message).indexOf('INVALID_OOB_CODE') !== -1) {
+            showError('הקישור כבר נוצל, או שהמייל כבר מאומת. אפשר לחזור לאפליקציה.');
+          } else {
+            showError('אירעה שגיאה באימות המייל. נסה שוב מאוחר יותר.');
+          }
+        });
+    })();
   </script>
 </body>
 </html>
