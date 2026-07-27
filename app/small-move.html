@@ -18,7 +18,7 @@
 <body class="app-body">
   <script src="under-construction-banner.js"></script>
 
-  <div class="step-hero">
+  <div class="step-hero" id="step-hero">
     <div class="step-hero-inner">
       <a href="index.html" class="btn-text" style="padding:0; margin-bottom:10px; display:inline-block;">→ בחירת שירות</a>
       <div class="stepper">
@@ -644,6 +644,7 @@
       });
       document.getElementById('step-title').textContent = STEP_TITLES[step][0];
       document.getElementById('step-desc').textContent = STEP_TITLES[step][1];
+      document.getElementById('step-hero').className = 'step-hero step-' + step;
       document.getElementById('bottom-bar').style.display = step === 1 ? 'flex' : 'none';
       if (step === 2) renderPackingOffer();
       if (step === 3) { renderCraneItems(); updateCranePreview(); }

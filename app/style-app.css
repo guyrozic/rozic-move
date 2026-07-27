@@ -259,6 +259,37 @@
 .service-tile .tile-name { font-size: 1.02rem; font-weight: 800; letter-spacing: -0.2px; color: var(--text); margin-bottom: 4px; position: relative; }
 .service-tile .tile-desc { font-size: 0.8rem; color: var(--text-muted); position: relative; }
 
+/* Per-service color identity — each tile gets its own tint instead of four identical white cards. */
+.service-tile.tile-navy { background: linear-gradient(155deg, var(--white) 0%, #E7EFF7 130%); }
+.service-tile.tile-navy .tile-icon-wrap { background: linear-gradient(155deg, var(--white) 0%, #DCE7F3 100%); color: var(--navy); box-shadow: var(--shadow-1), inset 0 0 0 1px rgba(29,53,87,0.14); }
+.service-tile.tile-navy::before { background: radial-gradient(140px 140px at 85% -10%, rgba(29,53,87,0.12), transparent 70%); }
+.service-tile.tile-navy:hover { box-shadow: 0 4px 14px rgba(29,53,87,0.10), 0 28px 56px -16px rgba(29,53,87,0.26); border-color: rgba(29,53,87,0.25); }
+
+.service-tile.tile-orange { background: linear-gradient(155deg, var(--white) 0%, #FBEBDA 130%); }
+.service-tile.tile-orange .tile-icon-wrap { background: linear-gradient(155deg, var(--white) 0%, #F8DFC3 100%); color: var(--orange); box-shadow: var(--shadow-1), inset 0 0 0 1px rgba(245,106,0,0.16); }
+.service-tile.tile-orange::before { background: radial-gradient(140px 140px at 85% -10%, rgba(245,106,0,0.14), transparent 70%); }
+.service-tile.tile-orange:hover { box-shadow: 0 4px 14px rgba(245,106,0,0.10), 0 28px 56px -16px rgba(245,106,0,0.26); border-color: rgba(245,106,0,0.28); }
+
+.service-tile.tile-purple { background: linear-gradient(155deg, var(--white) 0%, #EEE9F9 130%); }
+.service-tile.tile-purple .tile-icon-wrap { background: linear-gradient(155deg, var(--white) 0%, #E1D8F3 100%); color: #6B4FA0; box-shadow: var(--shadow-1), inset 0 0 0 1px rgba(107,79,160,0.16); }
+.service-tile.tile-purple::before { background: radial-gradient(140px 140px at 85% -10%, rgba(107,79,160,0.14), transparent 70%); }
+.service-tile.tile-purple:hover { box-shadow: 0 4px 14px rgba(107,79,160,0.10), 0 28px 56px -16px rgba(107,79,160,0.26); border-color: rgba(107,79,160,0.28); }
+
+/* --- Trust strip (hub) — mirrors .hero-trust on the marketing page --- */
+.hub-trust {
+  display: flex;
+  align-items: center;
+  gap: 22px;
+  margin-top: 28px;
+  padding-top: 22px;
+  border-top: 1px solid var(--border);
+}
+.hub-trust .trust-item { display: flex; flex-direction: column; }
+.hub-trust .trust-item strong { font-size: 1.2rem; font-weight: 900; color: var(--text); }
+.hub-trust .trust-item span { font-size: 0.75rem; color: var(--text-muted); }
+.hub-trust .trust-sep { width: 1px; height: 30px; background: var(--border); }
+@media (max-width: 480px) { .hub-trust { gap: 14px; flex-wrap: wrap; } }
+
 /* --- Stepper --- */
 .stepper {
   display: flex;
@@ -444,6 +475,24 @@
 @media (prefers-reduced-motion: reduce) {
   .step-hero-inner, .question-card { animation: none; }
 }
+
+/* Each wizard step gets its own tint — a visual "journey" (items → packing →
+   delivery → confirm) instead of one flat background repeated four times,
+   echoing how the marketing page alternates section backgrounds (features
+   white → how-section green → movers navy → stats solid green). */
+.step-hero.step-2 { background: linear-gradient(160deg, #D8E4F5 0%, #E8EFF9 50%, #F3F6FB 100%); }
+.step-hero.step-2::before { background: radial-gradient(circle, rgba(29,53,87,0.12) 0%, transparent 70%); }
+.step-hero.step-3 { background: linear-gradient(160deg, #FBE7D2 0%, #FBF0E2 50%, #FBF6EE 100%); }
+.step-hero.step-3::before { background: radial-gradient(circle, rgba(245,106,0,0.14) 0%, transparent 70%); }
+.step-hero.step-4 {
+  background: linear-gradient(160deg, var(--navy) 0%, var(--navy-light) 100%);
+}
+.step-hero.step-4::before { background: radial-gradient(circle, rgba(0,166,81,0.20) 0%, transparent 70%); }
+.step-hero.step-4 h1, .step-hero.step-4 p { color: var(--white); }
+.step-hero.step-4 p { color: rgba(255,255,255,0.7); }
+.step-hero.step-4 .stepper .step-dot { background: rgba(255,255,255,0.18); }
+.step-hero.step-4 .btn-text { color: rgba(255,255,255,0.85); }
+.step-hero.step-4 .btn-text:hover { color: var(--white); }
 .step-hero .stepper { max-width: 420px; margin-bottom: 18px; }
 .step-hero h1 { font-size: clamp(1.5rem, 3vw, 1.9rem); font-weight: 900; color: var(--text); letter-spacing: -0.6px; margin-bottom: 6px; }
 .step-hero p { color: var(--text-mid); font-size: 0.93rem; }
