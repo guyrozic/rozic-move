@@ -66,11 +66,16 @@
 
     <div class="divider"></div>
 
-    <button class="btn btn-primary" onclick="openApp()">פתח באפליקציה ←</button>
-    <a class="btn btn-apple" href="https://apps.apple.com/app/id6783814838">📱 הורד ל-iPhone</a>
-    <a class="btn btn-android" href="https://play.google.com/store/apps/details?id=com.rozicmove.app">🤖 הורד לאנדרואיד</a>
+    <div id="app-buttons">
+      <button class="btn btn-primary" onclick="openApp()">פתח באפליקציה ←</button>
+      <a class="btn btn-apple" href="https://apps.apple.com/app/id6783814838">📱 הורד ל-iPhone</a>
+      <a class="btn btn-android" href="https://play.google.com/store/apps/details?id=com.rozicmove.app">🤖 הורד לאנדרואיד</a>
+    </div>
+    <div id="web-buttons" style="display:none;">
+      <a class="btn btn-primary" id="continue-link" href="#">להמשך בחשבון שלי ←</a>
+    </div>
 
-    <div class="note">אין לך את האפליקציה? הורד בחינם ↑</div>
+    <div class="note" id="note">אין לך את האפליקציה? הורד בחינם ↑</div>
   </div>
 
   <script>
@@ -80,7 +85,22 @@
       return new URLSearchParams(window.location.search).get(name);
     }
 
+    // The app's own verification flow sets continueUrl to this exact page (self-
+    // referential — not a useful signal). The website's flow (app/auth.js) points it
+    // at app/account.html instead, so any *other* continueUrl means "came from the
+    // website" and should land there instead of trying the rozicmove:// deep link.
+    function webContinueUrl() {
+      var raw = getParam('continueUrl');
+      if (!raw) return null;
+      try {
+        var decoded = decodeURIComponent(raw);
+        return /\/verify-redirect\.html(\?|$)/.test(decoded) ? null : decoded;
+      } catch { return null; }
+    }
+
     function openApp() {
+      var webUrl = webContinueUrl();
+      if (webUrl) { window.location.href = webUrl; return; }
       window.location.href = 'rozicmove://verified';
     }
 
@@ -95,13 +115,26 @@
       setTimeout(openApp, 800);
     }
 
+    var webUrl = webContinueUrl();
+    if (webUrl) {
+      document.getElementById('opening').textContent = 'תוכל לחזור לחשבון שלך כדי להמשיך.';
+      document.getElementById('app-buttons').style.display = 'none';
+      document.getElementById('web-buttons').style.display = 'block';
+      document.getElementById('note').style.display = 'none';
+      document.getElementById('continue-link').href = webUrl;
+    }
+
     (function verifyEmail() {
       var mode = getParam('mode');
       var oobCode = getParam('oobCode');
       var apiKey = getParam('apiKey');
 
+      var fromWeb = !!webUrl;
+      var restart = fromWeb ? 'בקש קישור אימות חדש מתוך החשבון שלך באתר.' : 'בקש קישור אימות חדש מתוך האפליקציה.';
+      var goBack = fromWeb ? 'אפשר לחזור לחשבון שלך באתר.' : 'אפשר לחזור לאפליקציה.';
+
       if (mode !== 'verifyEmail' || !oobCode || !apiKey) {
-        showError('קישור לא תקין. בקש קישור אימות חדש מתוך האפליקציה.');
+        showError('קישור לא תקין. ' + restart);
         return;
       }
 
@@ -117,13 +150,13 @@
           });
         })
         .then(function () {
-          showSuccess('המייל שלך אומת בהצלחה! פותח את האפליקציה...');
+          showSuccess('המייל שלך אומת בהצלחה! ' + (fromWeb ? 'עובר לחשבון שלך...' : 'פותח את האפליקציה...'));
         })
         .catch(function (err) {
           if (String(err.message).indexOf('EXPIRED_OOB_CODE') !== -1) {
-            showError('הקישור פג תוקף. בקש קישור אימות חדש מתוך האפליקציה.');
+            showError('הקישור פג תוקף. ' + restart);
           } else if (String(err.message).indexOf('INVALID_OOB_CODE') !== -1) {
-            showError('הקישור כבר נוצל, או שהמייל כבר מאומת. אפשר לחזור לאפליקציה.');
+            showError('הקישור כבר נוצל, או שהמייל כבר מאומת. ' + goBack);
           } else {
             showError('אירעה שגיאה באימות המייל. נסה שוב מאוחר יותר.');
           }

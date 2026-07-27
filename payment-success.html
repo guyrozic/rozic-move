@@ -60,17 +60,22 @@
 
     <div id="status">התשלום התקבל בהצלחה!</div>
 
-    <div class="opening">
+    <div class="opening" id="opening">
       פותחים את האפליקציה כדי להמשיך...
     </div>
 
     <div class="divider"></div>
 
-    <button class="btn btn-primary" onclick="openApp()">פתח באפליקציה ←</button>
-    <a class="btn btn-apple" href="https://apps.apple.com/app/id6783814838">📱 הורד ל-iPhone</a>
-    <a class="btn btn-android" href="https://play.google.com/store/apps/details?id=com.rozicmove.app">🤖 הורד לאנדרואיד</a>
+    <div id="app-buttons">
+      <button class="btn btn-primary" onclick="openApp()">פתח באפליקציה ←</button>
+      <a class="btn btn-apple" href="https://apps.apple.com/app/id6783814838">📱 הורד ל-iPhone</a>
+      <a class="btn btn-android" href="https://play.google.com/store/apps/details?id=com.rozicmove.app">🤖 הורד לאנדרואיד</a>
+    </div>
+    <div id="web-buttons" style="display:none;">
+      <a class="btn btn-primary" id="order-status-link" href="#">צפה בהזמנה שלך ←</a>
+    </div>
 
-    <div class="note">האפליקציה לא נפתחה אוטומטית? לחץ למעלה ↑</div>
+    <div class="note" id="note">האפליקציה לא נפתחה אוטומטית? לחץ למעלה ↑</div>
   </div>
 
   <script>
@@ -83,7 +88,20 @@
       window.location.href = 'rozicmove://payment-success' + (orderId ? ('?orderId=' + encodeURIComponent(orderId)) : '');
     }
 
-    setTimeout(openApp, 400);
+    // Orders placed from the website (app/apartment.html etc., via
+    // createGrowCheckout's `fromWeb` flag) land here in a plain browser tab —
+    // there's no app installed in this context, so skip the dead-end deep-link
+    // attempt and send the customer straight to their order status page instead.
+    if (getParam('web') === '1') {
+      var orderId = getParam('orderId');
+      document.getElementById('opening').textContent = 'ההזמנה שלך אושרה.';
+      document.getElementById('app-buttons').style.display = 'none';
+      document.getElementById('web-buttons').style.display = 'block';
+      document.getElementById('note').style.display = 'none';
+      document.getElementById('order-status-link').href = 'app/order-status.html' + (orderId ? ('?id=' + encodeURIComponent(orderId)) : '');
+    } else {
+      setTimeout(openApp, 400);
+    }
   </script>
 </body>
 </html>

@@ -355,6 +355,12 @@ img, svg { display: block; }
 }
 .btn-google:hover { transform: translateY(-2px); box-shadow: var(--shadow-md); border-color: #b0d4be; }
 
+.btn-web {
+  background: var(--green);
+  color: var(--white);
+}
+.btn-web:hover { background: var(--green-dark); transform: translateY(-2px); box-shadow: var(--shadow-green); }
+
 .btn-store.large { padding: 14px 24px; }
 .btn-store.large strong { font-size: 1.1rem; }
 

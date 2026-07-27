@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ROZIC MOVE — סטטוס הזמנה</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../style.css">
+  <link rel="stylesheet" href="style-app.css">
+</head>
+<body class="app-body">
+  <div class="app-topbar">
+    <a href="account.html" class="back-btn">→</a>
+    <div class="app-topbar-title">ההזמנה שלי</div>
+  </div>
+
+  <div class="app-container">
+    <div id="loading" class="center-loading"><span class="spinner"></span></div>
+    <div id="content" style="display:none;"></div>
+  </div>
+
+  <script type="module">
+    import { requireAuth } from './auth.js';
+    import { subscribeToOrder, cancelOrder, STATUS_LABELS } from './orders.js';
+    import { startGrowCheckout } from './payments.js';
+
+    const authState = await requireAuth();
+    const orderId = new URLSearchParams(location.search).get('id');
+    const loadingEl = document.getElementById('loading');
+    const contentEl = document.getElementById('content');
+
+    if (!orderId) {
+      loadingEl.style.display = 'none';
+      contentEl.style.display = 'block';
+      contentEl.innerHTML = '<div class="empty-state"><div class="empty-icon">❓</div>לא נמצא מזהה הזמנה.</div>';
+    } else {
+      subscribeToOrder(orderId, (order) => {
+        loadingEl.style.display = 'none';
+        contentEl.style.display = 'block';
+        if (!order) {
+          contentEl.innerHTML = '<div class="empty-state"><div class="empty-icon">🚫</div>ההזמנה לא נמצאה, או שאין לך הרשאה לצפות בה.</div>';
+          return;
+        }
+        render(order);
+      }, (err) => {
+        loadingEl.style.display = 'none';
+        contentEl.style.display = 'block';
+        contentEl.innerHTML = '<div class="empty-state"><div class="empty-icon">🚫</div>ההזמנה לא נמצאה, או שאין לך הרשאה לצפות בה.</div>';
+      });
+    }
+
+    function render(order) {
+      const isOwner = order.customerId === authState.authUser.uid;
+      if (!isOwner) {
+        contentEl.innerHTML = '<div class="empty-state"><div class="empty-icon">🚫</div>אין לך הרשאה לצפות בהזמנה זו.</div>';
+        return;
+      }
+
+      const cancellable = ['draft', 'pending_payment', 'pending', 'assigned'].includes(order.status);
+
+      contentEl.innerHTML = `
+        <div class="app-card">
+          <h2>${order.title || 'הזמנה'}</h2>
+          <p><span class="status-badge ${order.status}">${STATUS_LABELS[order.status] || order.status}</span></p>
+        </div>
+
+        ${order.status === 'pending_payment' ? `
+        <div class="app-card">
+          <div class="alert alert-info">ההזמנה נוצרה — נשאר רק לשלם כדי שמוביל יוכל לקחת אותה.</div>
+          <button class="btn btn-primary btn-block" id="pay-btn">שלם עכשיו — ₪${order.price ?? 0}</button>
+          <div id="pay-error"></div>
+        </div>` : ''}
+
+        <div class="app-card">
+          <h2>פרטי ההזמנה</h2>
+          ${order.fromAddress ? `<div class="price-line"><span>מוצא</span><span>${order.fromAddress}</span></div>` : ''}
+          ${order.toAddress ? `<div class="price-line"><span>יעד</span><span>${order.toAddress}</span></div>` : ''}
+          ${order.scheduledDate ? `<div class="price-line"><span>תאריך</span><span>${order.scheduledDate}${order.timeSlot ? ' · ' + order.timeSlot : ''}</span></div>` : ''}
+          ${order.itemsSummary ? `<div class="price-line"><span>פריטים</span><span>${order.itemsSummary}</span></div>` : ''}
+          ${order.notes ? `<div class="price-line"><span>הערות</span><span>${order.notes}</span></div>` : ''}
+          <div class="price-total"><span>סה"כ</span><strong>₪${order.price ?? 0}</strong></div>
+        </div>
+
+        ${cancellable ? `
+        <button class="btn btn-danger btn-block" id="cancel-btn">ביטול הזמנה</button>
+        <div id="cancel-error"></div>` : ''}
+      `;
+
+      document.getElementById('pay-btn')?.addEventListener('click', async (e) => {
+        const btn = e.target;
+        btn.disabled = true; btn.textContent = 'מעביר לתשלום...';
+        try {
+          await startGrowCheckout(order.id);
+        } catch (err) {
+          document.getElementById('pay-error').innerHTML = '<div class="alert alert-error">פתיחת התשלום נכשלה. נסה שוב.</div>';
+          btn.disabled = false; btn.textContent = `שלם עכשיו — ₪${order.price ?? 0}`;
+        }
+      });
+
+      document.getElementById('cancel-btn')?.addEventListener('click', async () => {
+        if (!confirm('לבטל את ההזמנה?')) return;
+        try {
+          await cancelOrder(order.id);
+        } catch (err) {
+          document.getElementById('cancel-error').innerHTML = '<div class="alert alert-error">ביטול ההזמנה נכשל.</div>';
+        }
+      });
+    }
+  </script>
+</body>
+</html>

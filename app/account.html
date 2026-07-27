@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ROZIC MOVE — החשבון שלי</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../style.css">
+  <link rel="stylesheet" href="style-app.css">
+</head>
+<body class="app-body">
+  <div class="app-topbar">
+    <a href="index.html" class="back-btn">→</a>
+    <div class="app-topbar-title">החשבון שלי</div>
+  </div>
+
+  <div class="app-container">
+    <div id="loading" class="center-loading"><span class="spinner"></span></div>
+
+    <div id="content" style="display:none;">
+      <div class="app-card">
+        <h2 id="profile-name">—</h2>
+        <p class="app-card-desc" id="profile-email">—</p>
+
+        <div id="email-status"></div>
+        <div id="phone-status"></div>
+      </div>
+
+      <div class="app-card" id="phone-verify-card" style="display:none;">
+        <h2>אימות טלפון</h2>
+        <p class="app-card-desc">אימות אחד לפחות (מייל או טלפון) נדרש לפני אישור הזמנה.</p>
+        <div id="phone-step-number">
+          <div class="form-group">
+            <label for="phone-input">מספר טלפון</label>
+            <input id="phone-input" type="tel" placeholder="050-1234567">
+          </div>
+          <button class="btn btn-primary" id="send-code-btn">שלח קוד אימות</button>
+        </div>
+        <div id="phone-step-code" style="display:none;">
+          <div class="form-group">
+            <label for="code-input">קוד שהתקבל ב-SMS</label>
+            <input id="code-input" type="text" inputmode="numeric" placeholder="123456">
+          </div>
+          <button class="btn btn-primary" id="confirm-code-btn">אשר קוד</button>
+        </div>
+        <div id="phone-error"></div>
+        <div id="recaptcha-container"></div>
+      </div>
+
+      <div class="app-card">
+        <h2>ההזמנות שלי</h2>
+        <div id="orders-list" class="order-list"></div>
+        <div id="orders-empty" class="empty-state" style="display:none;">
+          <div class="empty-icon">📦</div>
+          <div>עדיין אין הזמנות</div>
+        </div>
+      </div>
+
+      <button class="btn btn-danger btn-block" id="logout-btn">התנתק</button>
+    </div>
+  </div>
+
+  <script type="module">
+    import { requireAuth, resendVerificationEmail, refreshEmailVerified, sendPhoneVerificationCode, confirmPhoneVerificationCode, logout } from './auth.js';
+    import { subscribeToUserOrders, STATUS_LABELS } from './orders.js';
+
+    const state = await requireAuth();
+    document.getElementById('loading').style.display = 'none';
+    document.getElementById('content').style.display = 'block';
+    render(state.profile);
+
+    function render(profile) {
+      document.getElementById('profile-name').textContent = profile.name || 'ללא שם';
+      document.getElementById('profile-email').textContent = profile.email || '';
+
+      const emailBox = document.getElementById('email-status');
+      if (state.authUser.emailVerified) {
+        emailBox.innerHTML = '<div class="alert alert-success">✓ האימייל מאומת</div>';
+      } else {
+        emailBox.innerHTML = '<div class="alert alert-info">האימייל טרם אומת. <button class="btn-text" id="resend-email-btn">שלח שוב קישור אימות</button></div>';
+        document.getElementById('resend-email-btn')?.addEventListener('click', async (e) => {
+          e.target.textContent = 'נשלח...';
+          await resendVerificationEmail();
+          e.target.textContent = 'נשלח! בדוק את תיבת המייל';
+        });
+      }
+
+      const phoneBox = document.getElementById('phone-status');
+      const phoneCard = document.getElementById('phone-verify-card');
+      if (profile.phoneVerified) {
+        phoneBox.innerHTML = `<div class="alert alert-success">✓ טלפון מאומת (${profile.phone})</div>`;
+        phoneCard.style.display = 'none';
+      } else {
+        phoneBox.innerHTML = '<div class="alert alert-info">הטלפון עדיין לא אומת.</div>';
+        phoneCard.style.display = 'block';
+        document.getElementById('phone-input').value = profile.phone || '';
+      }
+    }
+
+    // Refresh emailVerified once on load (Firebase doesn't push this live).
+    refreshEmailVerified().then((verified) => {
+      if (verified !== state.authUser.emailVerified) { state.authUser.emailVerified = verified; render(state.profile); }
+    });
+
+    let verificationId = null;
+    const phoneError = document.getElementById('phone-error');
+
+    document.getElementById('send-code-btn').addEventListener('click', async () => {
+      phoneError.innerHTML = '';
+      const btn = document.getElementById('send-code-btn');
+      const phone = document.getElementById('phone-input').value.trim();
+      if (!phone) return;
+      btn.disabled = true; btn.textContent = 'שולח...';
+      try {
+        verificationId = await sendPhoneVerificationCode(phone, 'recaptcha-container');
+        document.getElementById('phone-step-number').style.display = 'none';
+        document.getElementById('phone-step-code').style.display = 'block';
+      } catch (err) {
+        phoneError.innerHTML = `<div class="alert alert-error">שליחת הקוד נכשלה. ודא שהמספר תקין ונסה שוב.</div>`;
+      } finally {
+        btn.disabled = false; btn.textContent = 'שלח קוד אימות';
+      }
+    });
+
+    document.getElementById('confirm-code-btn').addEventListener('click', async () => {
+      phoneError.innerHTML = '';
+      const btn = document.getElementById('confirm-code-btn');
+      const code = document.getElementById('code-input').value.trim();
+      const phone = document.getElementById('phone-input').value.trim();
+      if (!code || !verificationId) return;
+      btn.disabled = true; btn.textContent = 'מאמת...';
+      try {
+        await confirmPhoneVerificationCode(verificationId, code, phone);
+      } catch (err) {
+        phoneError.innerHTML = `<div class="alert alert-error">קוד שגוי או שפג תוקפו. נסה שוב.</div>`;
+        btn.disabled = false; btn.textContent = 'אשר קוד';
+      }
+    });
+
+    document.getElementById('logout-btn').addEventListener('click', async () => {
+      await logout();
+      location.href = '../index.html';
+    });
+
+    // Order history
+    subscribeToUserOrders(state.authUser.uid, (orders) => {
+      const list = document.getElementById('orders-list');
+      const empty = document.getElementById('orders-empty');
+      if (orders.length === 0) { list.innerHTML = ''; empty.style.display = 'block'; return; }
+      empty.style.display = 'none';
+      list.innerHTML = orders.map(o => `
+        <a class="order-row-card" href="order-status.html?id=${o.id}">
+          <div>
+            <div class="order-row-title">${o.title || 'הזמנה'}</div>
+            <div class="order-row-meta"><span class="status-badge ${o.status}">${STATUS_LABELS[o.status] || o.status}</span></div>
+          </div>
+          <div class="order-row-price">₪${o.price ?? 0}</div>
+        </a>
+      `).join('');
+    });
+  </script>
+</body>
+</html>

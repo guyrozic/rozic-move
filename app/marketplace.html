@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ROZIC MOVE — יד שנייה חינם</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../style.css">
+  <link rel="stylesheet" href="style-app.css">
+  <style>
+    .listing-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 12px; }
+    .listing-card { background: var(--white); border: 1.5px solid var(--border); border-radius: var(--radius-sm); overflow: hidden; cursor: pointer; text-align: right; transition: transform var(--transition), box-shadow var(--transition); }
+    .listing-card:hover { transform: translateY(-3px); box-shadow: var(--shadow-md); }
+    .listing-photo { width: 100%; aspect-ratio: 1; background: var(--bg); display: flex; align-items: center; justify-content: center; font-size: 2rem; object-fit: cover; }
+    .listing-info { padding: 10px 12px; }
+    .listing-title { font-size: 0.85rem; font-weight: 700; color: var(--text); margin-bottom: 3px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .listing-city { font-size: 0.74rem; color: var(--text-muted); }
+    .listing-free-badge { display: inline-block; margin-top: 4px; font-size: 0.7rem; font-weight: 800; color: var(--green-dark); background: var(--green-light); padding: 2px 8px; border-radius: 50px; }
+    .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 200; display: flex; align-items: center; justify-content: center; padding: 20px; }
+    .modal-box { background: var(--white); border-radius: var(--radius); max-width: 440px; width: 100%; max-height: 85vh; overflow-y: auto; padding: 24px; position: relative; }
+    .modal-close { position: absolute; top: 14px; left: 14px; background: var(--bg); border: none; width: 30px; height: 30px; border-radius: 50%; cursor: pointer; font-size: 1rem; }
+    .modal-photos { display: flex; gap: 6px; overflow-x: auto; margin-bottom: 14px; }
+    .modal-photos img { width: 100px; height: 100px; object-fit: cover; border-radius: 10px; flex-shrink: 0; }
+  </style>
+</head>
+<body class="app-body">
+  <div class="app-topbar">
+    <a href="index.html" class="back-btn">→</a>
+    <div class="app-topbar-title">יד שנייה חינם</div>
+  </div>
+
+  <div class="app-container wide">
+    <div style="display:flex; justify-content:space-between; align-items:center; gap:12px; margin-bottom:16px; flex-wrap:wrap;">
+      <p class="app-card-desc" style="margin:0;">תנו פריטים שאינכם צריכים, וקבלו בחינם ממי שגר קרוב.</p>
+      <a href="marketplace-create.html" class="btn btn-primary">＋ פרסם מודעה</a>
+    </div>
+
+    <div class="form-group">
+      <input type="text" id="search-input" placeholder="חיפוש לפי שם או עיר...">
+    </div>
+    <div class="room-tabs" id="category-tabs"></div>
+
+    <div id="loading" class="center-loading"><span class="spinner"></span></div>
+    <div class="listing-grid" id="listing-grid"></div>
+    <div id="empty-state" class="empty-state" style="display:none;">
+      <div class="empty-icon">🎁</div>
+      <div>אין עדיין מודעות בקטגוריה הזו</div>
+    </div>
+
+    <div class="app-card" id="my-listings-card" style="display:none; margin-top:32px;">
+      <h2>המודעות שלי</h2>
+      <div id="my-listings-list" class="order-list"></div>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="modal-overlay" style="display:none;">
+    <div class="modal-box">
+      <button class="modal-close" id="modal-close">✕</button>
+      <div id="modal-content"></div>
+    </div>
+  </div>
+
+  <script type="module">
+    import { requireAuth } from './auth.js';
+    import { subscribeToActiveListings, subscribeToUserListings, markListingSold, deleteListing, CATEGORY_INFO } from './listings.js';
+
+    const authState = await requireAuth();
+
+    let allListings = [];
+    let activeCategory = 'all';
+    let searchQuery = '';
+
+    const tabsEl = document.getElementById('category-tabs');
+    const categories = ['all', ...Object.keys(CATEGORY_INFO)];
+    categories.forEach(cat => {
+      const chip = document.createElement('div');
+      chip.className = 'room-tab' + (cat === 'all' ? ' active' : '');
+      chip.textContent = cat === 'all' ? '🎁 הכל' : `${CATEGORY_INFO[cat].icon} ${CATEGORY_INFO[cat].label}`;
+      chip.dataset.cat = cat;
+      chip.addEventListener('click', () => {
+        activeCategory = cat;
+        [...tabsEl.children].forEach(c => c.classList.toggle('active', c.dataset.cat === cat));
+        renderGrid();
+      });
+      tabsEl.appendChild(chip);
+    });
+
+    document.getElementById('search-input').addEventListener('input', (e) => {
+      searchQuery = e.target.value.trim().toLowerCase();
+      renderGrid();
+    });
+
+    subscribeToActiveListings((listings) => {
+      allListings = listings;
+      document.getElementById('loading').style.display = 'none';
+      renderGrid();
+    });
+
+    function renderGrid() {
+      let filtered = allListings;
+      if (activeCategory !== 'all') filtered = filtered.filter(l => l.category === activeCategory);
+      if (searchQuery) filtered = filtered.filter(l => l.title?.toLowerCase().includes(searchQuery) || l.city?.toLowerCase().includes(searchQuery));
+
+      const grid = document.getElementById('listing-grid');
+      document.getElementById('empty-state').style.display = filtered.length === 0 ? 'block' : 'none';
+      grid.innerHTML = filtered.map(l => `
+        <div class="listing-card" data-id="${l.id}">
+          ${l.photos?.[0] ? `<img class="listing-photo" src="${l.photos[0]}" alt="${l.title}">` : `<div class="listing-photo">${CATEGORY_INFO[l.category]?.icon || '📦'}</div>`}
+          <div class="listing-info">
+            <div class="listing-title">${l.title}</div>
+            <div class="listing-city">${l.city || ''}</div>
+            <span class="listing-free-badge">חינם</span>
+          </div>
+        </div>
+      `).join('');
+      grid.querySelectorAll('.listing-card').forEach(card => {
+        card.addEventListener('click', () => openModal(filtered.find(l => l.id === card.dataset.id)));
+      });
+    }
+
+    function openModal(listing) {
+      const overlay = document.getElementById('modal-overlay');
+      const isOwner = listing.userId === authState.authUser.uid;
+      const whatsapp = `https://wa.me/972${(listing.userPhone || '').replace(/^0/, '')}?text=${encodeURIComponent(`היי ${listing.userName}, ראיתי את "${listing.title}" ב-ROZIC MOVE ואשמח לקחת אותו. האם עדיין זמין?`)}`;
+      document.getElementById('modal-content').innerHTML = `
+        ${listing.photos?.length ? `<div class="modal-photos">${listing.photos.map(p => `<img src="${p}">`).join('')}</div>` : ''}
+        <h2>${listing.title}</h2>
+        <p class="app-card-desc">${listing.description || ''}</p>
+        <div class="price-line"><span>קטגוריה</span><span>${CATEGORY_INFO[listing.category]?.label || 'שונות'}</span></div>
+        <div class="price-line"><span>עיר</span><span>${listing.city || ''}</span></div>
+        <div class="price-line"><span>כתובת איסוף</span><span>${listing.fromAddress || ''}</span></div>
+        ${listing.status === 'sold' ? '<div class="alert alert-info">כבר נמסר</div>' :
+          isOwner ? '<div class="alert alert-info">זו המודעה שלך</div>' :
+          `<a class="btn btn-primary btn-block" href="${whatsapp}" target="_blank">💬 יצירת קשר בוואטסאפ</a>`}
+      `;
+      overlay.style.display = 'flex';
+    }
+    document.getElementById('modal-close').addEventListener('click', () => { document.getElementById('modal-overlay').style.display = 'none'; });
+    document.getElementById('modal-overlay').addEventListener('click', (e) => { if (e.target.id === 'modal-overlay') e.currentTarget.style.display = 'none'; });
+
+    // My listings management
+    subscribeToUserListings(authState.authUser.uid, (listings) => {
+      const card = document.getElementById('my-listings-card');
+      const list = document.getElementById('my-listings-list');
+      if (listings.length === 0) { card.style.display = 'none'; return; }
+      card.style.display = 'block';
+      list.innerHTML = listings.map(l => `
+        <div class="order-row-card" style="cursor:default;">
+          <div>
+            <div class="order-row-title">${l.title}</div>
+            <div class="order-row-meta">${l.status === 'sold' ? 'נמסר' : 'פעיל'}</div>
+          </div>
+          <div style="display:flex; gap:8px;">
+            ${l.status !== 'sold' ? `<button class="btn-text" data-action="sold" data-id="${l.id}">סמן כנמסר</button>` : ''}
+            <button class="btn-text" data-action="delete" data-id="${l.id}" style="color:#C0392B;">מחק</button>
+          </div>
+        </div>
+      `).join('');
+      list.querySelectorAll('[data-action="sold"]').forEach(btn => btn.addEventListener('click', () => markListingSold(btn.dataset.id)));
+      list.querySelectorAll('[data-action="delete"]').forEach(btn => btn.addEventListener('click', () => { if (confirm('למחוק את המודעה?')) deleteListing(btn.dataset.id); }));
+    });
+  </script>
+</body>
+</html>

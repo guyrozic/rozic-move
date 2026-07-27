@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ROZIC MOVE — התחברות</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../style.css">
+  <link rel="stylesheet" href="style-app.css">
+  <style>
+    .auth-shell {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      background: linear-gradient(160deg, #C8EDD8 0%, #E0F5E9 50%, #F0FAF5 100%);
+    }
+    .auth-card { max-width: 420px; width: 100%; }
+    .auth-logo { text-align: center; margin-bottom: 24px; font-size: 1.3rem; font-weight: 900; color: var(--text); }
+    .auth-logo a { text-decoration: none; color: inherit; display: inline-flex; align-items: center; gap: 8px; }
+    .auth-tabs { display: flex; background: var(--bg); border-radius: 50px; padding: 4px; margin-bottom: 22px; }
+    .auth-tab {
+      flex: 1; text-align: center; padding: 10px; border-radius: 50px; cursor: pointer;
+      font-size: 0.88rem; font-weight: 700; color: var(--text-muted); transition: background var(--transition), color var(--transition);
+      user-select: none;
+    }
+    .auth-tab.active { background: var(--white); color: var(--green-dark); box-shadow: var(--shadow-sm); }
+    .auth-form { display: none; }
+    .auth-form.active { display: block; }
+  </style>
+</head>
+<body class="app-body">
+  <div class="auth-shell">
+    <div class="auth-card app-card">
+      <div class="auth-logo">
+        <a href="../index.html">
+          <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M3 9h12M9 3l6 6-6 6" stroke="#00A651" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          ROZIC MOVE
+        </a>
+      </div>
+
+      <div class="auth-tabs">
+        <div class="auth-tab active" data-tab="login">התחברות</div>
+        <div class="auth-tab" data-tab="register">הרשמה</div>
+      </div>
+
+      <div id="error-box"></div>
+
+      <form id="login-form" class="auth-form active">
+        <div class="form-group">
+          <label for="login-email">אימייל</label>
+          <input id="login-email" type="email" required autocomplete="email">
+        </div>
+        <div class="form-group">
+          <label for="login-password">סיסמה</label>
+          <input id="login-password" type="password" required autocomplete="current-password">
+        </div>
+        <button type="submit" class="btn btn-primary btn-block" id="login-submit">התחבר</button>
+      </form>
+
+      <form id="register-form" class="auth-form">
+        <div class="form-group">
+          <label for="reg-name">שם מלא</label>
+          <input id="reg-name" type="text" required autocomplete="name">
+        </div>
+        <div class="form-group">
+          <label for="reg-phone">טלפון</label>
+          <input id="reg-phone" type="tel" placeholder="050-1234567" required autocomplete="tel">
+        </div>
+        <div class="form-group">
+          <label for="reg-email">אימייל</label>
+          <input id="reg-email" type="email" required autocomplete="email">
+        </div>
+        <div class="form-group">
+          <label for="reg-password">סיסמה</label>
+          <input id="reg-password" type="password" required minlength="6" autocomplete="new-password">
+          <div class="form-hint">לפחות 6 תווים</div>
+        </div>
+        <button type="submit" class="btn btn-primary btn-block" id="register-submit">הירשם</button>
+      </form>
+    </div>
+  </div>
+
+  <script type="module">
+    import { login, registerCustomer, subscribeToAuth } from './auth.js';
+
+    const tabs = document.querySelectorAll('.auth-tab');
+    const forms = { login: document.getElementById('login-form'), register: document.getElementById('register-form') };
+    tabs.forEach(tab => tab.addEventListener('click', () => {
+      tabs.forEach(t => t.classList.remove('active'));
+      tab.classList.add('active');
+      Object.values(forms).forEach(f => f.classList.remove('active'));
+      forms[tab.dataset.tab].classList.add('active');
+      showError(null);
+    }));
+
+    const errorBox = document.getElementById('error-box');
+    function showError(message) {
+      errorBox.innerHTML = message ? `<div class="alert alert-error">${message}</div>` : '';
+    }
+
+    function nextUrl() {
+      const params = new URLSearchParams(location.search);
+      return params.get('next') || 'index.html';
+    }
+
+    function friendlyError(err) {
+      const code = err && err.code;
+      if (code === 'auth/invalid-email') return 'כתובת אימייל לא תקינה.';
+      if (code === 'auth/invalid-credential' || code === 'auth/wrong-password' || code === 'auth/user-not-found') return 'אימייל או סיסמה שגויים.';
+      if (code === 'auth/email-already-in-use') return 'כתובת האימייל הזו כבר רשומה. נסה להתחבר.';
+      if (code === 'auth/weak-password') return 'הסיסמה חלשה מדי — לפחות 6 תווים.';
+      if (code === 'auth/account-suspended') return 'החשבון הזה הושעה. פנה לתמיכה.';
+      if (code === 'auth/too-many-requests') return 'יותר מדי ניסיונות. נסה שוב מאוחר יותר.';
+      return 'משהו השתבש. נסה שוב.';
+    }
+
+    document.getElementById('login-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      showError(null);
+      const btn = document.getElementById('login-submit');
+      btn.disabled = true; btn.textContent = 'מתחבר...';
+      try {
+        await login(document.getElementById('login-email').value.trim(), document.getElementById('login-password').value);
+        location.href = nextUrl();
+      } catch (err) {
+        showError(friendlyError(err));
+        btn.disabled = false; btn.textContent = 'התחבר';
+      }
+    });
+
+    document.getElementById('register-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      showError(null);
+      const btn = document.getElementById('register-submit');
+      btn.disabled = true; btn.textContent = 'נרשם...';
+      try {
+        await registerCustomer({
+          name: document.getElementById('reg-name').value.trim(),
+          phone: document.getElementById('reg-phone').value.trim(),
+          email: document.getElementById('reg-email').value.trim(),
+          password: document.getElementById('reg-password').value,
+        });
+        location.href = nextUrl();
+      } catch (err) {
+        showError(friendlyError(err));
+        btn.disabled = false; btn.textContent = 'הירשם';
+      }
+    });
+
+    // Already logged in? skip straight through.
+    subscribeToAuth((state) => { if (state) location.href = nextUrl(); });
+  </script>
+</body>
+</html>

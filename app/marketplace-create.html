@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ROZIC MOVE — פרסום מודעה</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../style.css">
+  <link rel="stylesheet" href="style-app.css">
+  <style>
+    .photo-grid { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 6px; }
+    .photo-thumb { position: relative; width: 84px; height: 84px; border-radius: 12px; overflow: hidden; }
+    .photo-thumb img { width: 100%; height: 100%; object-fit: cover; }
+    .photo-remove { position: absolute; top: 3px; left: 3px; width: 22px; height: 22px; border-radius: 50%; background: rgba(0,0,0,0.6); color: #fff; border: none; cursor: pointer; font-size: 0.8rem; }
+    .photo-add { width: 84px; height: 84px; border-radius: 12px; border: 1.5px dashed var(--border); background: var(--bg); display: flex; align-items: center; justify-content: center; font-size: 1.6rem; color: var(--text-muted); cursor: pointer; }
+  </style>
+</head>
+<body class="app-body">
+  <div class="app-topbar">
+    <a href="marketplace.html" class="back-btn">→</a>
+    <div class="app-topbar-title">פרסום מודעה</div>
+  </div>
+
+  <div class="app-container">
+    <div class="app-card">
+      <h2>תמונות</h2>
+      <p class="app-card-desc">עד 10 תמונות — תמונה ראשונה תוצג ברשימה.</p>
+      <div class="photo-grid" id="photo-grid">
+        <label class="photo-add">＋<input type="file" id="photo-input" accept="image/*" multiple style="display:none;"></label>
+      </div>
+    </div>
+
+    <div class="app-card">
+      <h2>פרטי הפריט</h2>
+      <div class="form-group">
+        <label for="title">כותרת</label>
+        <input id="title" type="text" maxlength="100" placeholder="לדוגמה: ספה תלת מושבית">
+      </div>
+      <div class="form-group">
+        <label for="description">תיאור</label>
+        <textarea id="description" rows="4" maxlength="2000" placeholder="מצב הפריט, מידות, כל פרט שיעזור..."></textarea>
+      </div>
+      <div class="form-group">
+        <label>קטגוריה</label>
+        <div class="room-tabs" id="category-tabs"></div>
+      </div>
+    </div>
+
+    <div class="app-card">
+      <h2>איסוף</h2>
+      <div class="form-group">
+        <label for="city">עיר</label>
+        <input id="city" type="text" placeholder="תל אביב">
+      </div>
+      <div class="form-group">
+        <label for="from-address">כתובת מלאה</label>
+        <input id="from-address" type="text" placeholder="רחוב ומספר">
+      </div>
+    </div>
+
+    <div id="submit-error"></div>
+    <button class="btn btn-primary btn-block" id="submit-btn">פרסם מודעה</button>
+  </div>
+
+  <script type="module">
+    import { requireAuth } from './auth.js';
+    import { createListing, CATEGORY_INFO } from './listings.js';
+    import { uploadListingPhoto } from './storage.js';
+
+    const authState = await requireAuth();
+    const MAX_PHOTOS = 10;
+    let photos = []; // File objects
+    let category = 'furniture';
+
+    const tabsEl = document.getElementById('category-tabs');
+    Object.entries(CATEGORY_INFO).forEach(([key, info]) => {
+      const chip = document.createElement('div');
+      chip.className = 'room-tab' + (key === category ? ' active' : '');
+      chip.textContent = `${info.icon} ${info.label}`;
+      chip.dataset.cat = key;
+      chip.addEventListener('click', () => {
+        category = key;
+        [...tabsEl.children].forEach(c => c.classList.toggle('active', c.dataset.cat === key));
+      });
+      tabsEl.appendChild(chip);
+    });
+
+    const photoGrid = document.getElementById('photo-grid');
+    const photoInput = document.getElementById('photo-input');
+    photoInput.addEventListener('change', () => {
+      const files = Array.from(photoInput.files || []).slice(0, MAX_PHOTOS - photos.length);
+      photos.push(...files);
+      photoInput.value = '';
+      renderPhotos();
+    });
+    function renderPhotos() {
+      photoGrid.querySelectorAll('.photo-thumb').forEach(el => el.remove());
+      photos.forEach((file, i) => {
+        const thumb = document.createElement('div');
+        thumb.className = 'photo-thumb';
+        thumb.innerHTML = `<img src="${URL.createObjectURL(file)}"><button class="photo-remove" data-i="${i}">✕</button>`;
+        thumb.querySelector('.photo-remove').addEventListener('click', () => { photos.splice(i, 1); renderPhotos(); });
+        photoGrid.insertBefore(thumb, photoGrid.querySelector('.photo-add'));
+      });
+      photoGrid.querySelector('.photo-add').style.display = photos.length >= MAX_PHOTOS ? 'none' : 'flex';
+    }
+
+    document.getElementById('submit-btn').addEventListener('click', async () => {
+      const errBox = document.getElementById('submit-error');
+      errBox.innerHTML = '';
+      const title = document.getElementById('title').value.trim();
+      const description = document.getElementById('description').value.trim();
+      const city = document.getElementById('city').value.trim();
+      const fromAddress = document.getElementById('from-address').value.trim();
+      if (!title) { errBox.innerHTML = '<div class="alert alert-error">יש להוסיף כותרת.</div>'; return; }
+      if (photos.length === 0) { errBox.innerHTML = '<div class="alert alert-error">יש להוסיף לפחות תמונה אחת.</div>'; return; }
+
+      const btn = document.getElementById('submit-btn');
+      btn.disabled = true; btn.textContent = 'מעלה תמונות...';
+      try {
+        const tmpId = `${authState.authUser.uid}_${Date.now()}`;
+        const photoUrls = [];
+        for (let i = 0; i < photos.length; i++) {
+          photoUrls.push(await uploadListingPhoto(tmpId, photos[i], i));
+        }
+        btn.textContent = 'מפרסם מודעה...';
+        const listingId = await createListing({
+          userId: authState.authUser.uid,
+          userName: authState.profile.name || '',
+          userPhone: authState.profile.phone || '',
+          title, description, price: 0, category, city, fromAddress,
+          photos: photoUrls,
+        });
+        location.href = 'marketplace.html';
+      } catch (err) {
+        errBox.innerHTML = '<div class="alert alert-error">פרסום המודעה נכשל. נסה שוב.</div>';
+        btn.disabled = false; btn.textContent = 'פרסם מודעה';
+      }
+    });
+  </script>
+</body>
+</html>
