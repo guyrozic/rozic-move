@@ -34,7 +34,7 @@
         <!-- Step 1: items -->
         <section class="wizard-step" data-step="1">
           <div class="ai-upload-card">
-            <div class="ai-upload-icon">📸</div>
+            <div class="ai-upload-icon-wrap"><div class="ai-upload-icon">📸</div></div>
             <h3>סריקת פריטים ב-AI</h3>
             <p>העלו תמונות מהמחשב או מהנייד — נזהה את הפריטים בעצמנו.</p>
             <div class="ai-photo-thumbs" id="ai-photo-thumbs"></div>
@@ -404,7 +404,7 @@
         const card = document.createElement('div');
         card.className = 'item-card' + (qty > 0 ? ' has-qty' : '');
         card.innerHTML = `
-          <div class="item-card-icon">${item.icon}</div>
+          <div class="item-card-icon-wrap"><span class="item-card-icon">${item.icon}</span></div>
           <div class="item-card-label">${item.label}</div>
           <div class="item-card-price">₪${getItemPriceAnyCategory(item.key)} ליחידה</div>
           <div class="qty-control">
