@@ -3,13 +3,18 @@
 // add items" path (chatAddItemsWithCatalog/buildChatPrompt) is intentionally not
 // ported — the existing manual +/- item picker already covers "AI missed
 // something, add it by hand," so this file only needs to carry photo analysis.
-import { GEMINI_API_KEY } from './ai-config.js';
+//
+// Unlike the mobile app (EXPO_PUBLIC_GEMINI_API_KEY, necessarily bundled
+// client-side — there's no alternative on-device), the web build routes every
+// call through a Cloud Function proxy (functions/src/geminiProxy.ts) so the
+// API key never reaches the browser at all — not in source, not in Network
+// tab traffic. See functions/src/geminiProxy.ts for why.
+import { auth } from './firebase.js';
 
-const GEMINI_MODEL = 'gemini-flash-latest';
-const GEMINI_URL = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent`;
+const PROXY_URL = 'https://us-central1-hovalot-6cf65.cloudfunctions.net/geminiProxy';
 
 export function isAIConfigured() {
-  return !!GEMINI_API_KEY;
+  return true;
 }
 
 function buildCatalogList(catalog) {
@@ -50,17 +55,13 @@ Task:
 }
 
 async function callGemini(parts) {
-  if (!GEMINI_API_KEY) {
-    throw new Error('AI_NOT_CONFIGURED');
-  }
+  if (!auth.currentUser) throw new Error('AI_NOT_CONFIGURED');
+  const token = await auth.currentUser.getIdToken();
 
-  const response = await fetch(`${GEMINI_URL}?key=${GEMINI_API_KEY}`, {
+  const response = await fetch(PROXY_URL, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      contents: [{ parts }],
-      generationConfig: { responseMimeType: 'application/json' },
-    }),
+    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+    body: JSON.stringify({ parts }),
   });
 
   if (!response.ok) {
@@ -71,15 +72,8 @@ async function callGemini(parts) {
     throw new Error(`AI_REQUEST_FAILED: ${response.status} ${errText}`);
   }
 
-  const data = await response.json();
-  const text = data?.candidates?.[0]?.content?.parts?.[0]?.text;
-  if (!text) throw new Error('AI_EMPTY_RESPONSE');
-
-  try {
-    return JSON.parse(text);
-  } catch {
-    throw new Error('AI_INVALID_JSON');
-  }
+  // The proxy already extracted+JSON.parse'd Gemini's text response server-side.
+  return response.json();
 }
 
 function parseItemsAndQuestions(parsed, validKeys) {
