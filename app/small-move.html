@@ -16,141 +16,177 @@
   </style>
 </head>
 <body class="app-body">
-  <div class="app-topbar">
-    <a href="index.html" class="back-btn">→</a>
-    <div class="app-topbar-title">מובילים בקטנה</div>
+  <script src="under-construction-banner.js"></script>
+
+  <div class="step-hero">
+    <div class="step-hero-inner">
+      <a href="index.html" class="btn-text" style="padding:0; margin-bottom:10px; display:inline-block;">→ בחירת שירות</a>
+      <div class="stepper">
+        <div class="step-dot active" data-step="1"></div>
+        <div class="step-dot" data-step="2"></div>
+        <div class="step-dot" data-step="3"></div>
+        <div class="step-dot" data-step="4"></div>
+      </div>
+      <h1 id="step-title">מובילים בקטנה — אילו פריטים?</h1>
+      <p id="step-desc">מתאים לפריטים בודדים או כמה ארגזים — טנדר אחד, קיבולת מוגבלת.</p>
+    </div>
   </div>
 
-  <div class="app-container">
-    <div class="stepper">
-      <div class="step-dot active" data-step="1"></div>
-      <div class="step-dot" data-step="2"></div>
-      <div class="step-dot" data-step="3"></div>
-      <div class="step-dot" data-step="4"></div>
+  <div class="app-shell-wide">
+    <div class="app-layout">
+      <div class="app-main">
+
+        <!-- Step 1: items -->
+        <section class="wizard-step" data-step="1">
+          <div class="ai-upload-card">
+            <div class="ai-upload-icon">📸</div>
+            <h3>סריקת פריטים ב-AI</h3>
+            <p>העלו תמונות מהמחשב או מהנייד — נזהה את הפריטים בעצמנו.</p>
+            <div class="ai-photo-thumbs" id="ai-photo-thumbs"></div>
+            <div class="ai-upload-progress" id="ai-progress-wrap" style="display:none;">
+              <div class="ai-upload-progress-fill" id="ai-progress-fill" style="width:0%"></div>
+            </div>
+            <div id="ai-progress-text" class="form-hint" style="display:none; margin-bottom:10px;"></div>
+            <div id="ai-error"></div>
+            <label class="btn btn-secondary" style="cursor:pointer;">
+              ＋ הוסיפו תמונות
+              <input type="file" id="ai-photo-input" accept="image/*" multiple style="display:none;">
+            </label>
+            <button class="btn btn-primary" id="ai-analyze-btn" style="margin-right:10px;" disabled>נתח עם AI ✨</button>
+          </div>
+
+          <div id="ai-questions"></div>
+
+          <div class="app-card">
+            <h2>או בחרו ידנית</h2>
+            <div class="van-gauge"><div class="van-gauge-fill" id="van-gauge-fill" style="width:0%"></div></div>
+            <div class="form-hint" id="van-gauge-label">0% מהטנדר</div>
+            <div class="room-tabs" id="room-tabs"></div>
+            <div class="item-card-grid" id="item-list"></div>
+          </div>
+        </section>
+
+        <!-- Step 2: packing offer -->
+        <section class="wizard-step" data-step="2" style="display:none;">
+          <div class="app-card">
+            <h2>📦 רוצים גם שירות אריזה?</h2>
+            <p class="app-card-desc">הצוות שלנו יארוז את כל הפריטים שנבחרו לפני ההובלה.</p>
+            <div id="packing-preview" class="alert alert-info"></div>
+            <button class="btn btn-primary btn-block" id="packing-add-btn" style="margin-bottom:10px;">הוסף שירות אריזה</button>
+            <button class="btn btn-secondary btn-block" id="packing-skip-btn">דלג, אני אארוז בעצמי</button>
+          </div>
+          <button class="btn-text" id="back-to-1">→ חזרה לפריטים</button>
+        </section>
+
+        <!-- Step 3: delivery details -->
+        <section class="wizard-step" data-step="3" style="display:none;">
+          <div class="app-card">
+            <h2>פרטי הובלה</h2>
+            <div class="form-group">
+              <label for="from-address">כתובת מוצא</label>
+              <input id="from-address" type="text" placeholder="רחוב, מספר, עיר">
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label for="from-floor">קומה</label>
+                <select id="from-floor"></select>
+              </div>
+              <div class="form-group">
+                <label for="from-elevator">מעלית</label>
+                <select id="from-elevator"><option value="1">יש מעלית</option><option value="0">אין מעלית</option></select>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label for="to-address">כתובת יעד</label>
+              <input id="to-address" type="text" placeholder="רחוב, מספר, עיר">
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label for="to-floor">קומה</label>
+                <select id="to-floor"></select>
+              </div>
+              <div class="form-group">
+                <label for="to-elevator">מעלית</label>
+                <select id="to-elevator"><option value="1">יש מעלית</option><option value="0">אין מעלית</option></select>
+              </div>
+            </div>
+            <div id="distance-note" class="form-hint"></div>
+          </div>
+
+          <div class="app-card">
+            <h2>🏗️ פריט שלא עובר במדרגות?</h2>
+            <div class="form-group">
+              <label><input type="checkbox" id="needs-crane"> נדרש מנוף הרמה</label>
+            </div>
+            <div id="crane-fields" style="display:none;">
+              <div class="form-group">
+                <label for="crane-floor">קומת הפריט</label>
+                <select id="crane-floor"></select>
+              </div>
+              <div class="form-group">
+                <label>אילו פריטים?</label>
+                <div id="crane-items"></div>
+              </div>
+              <div class="alert alert-info" id="crane-price-preview"></div>
+            </div>
+          </div>
+
+          <div class="app-card">
+            <h2>תזמון</h2>
+            <div class="form-group">
+              <label for="move-date">תאריך</label>
+              <input id="move-date" type="date">
+            </div>
+            <div class="form-group">
+              <label>שעה מועדפת (לא חובה)</label>
+              <div class="room-tabs" id="time-slots"></div>
+            </div>
+          </div>
+
+          <div id="delivery-error"></div>
+          <button class="btn btn-primary btn-block" id="delivery-continue-btn">המשך</button>
+          <button class="btn-text" id="back-to-2">→ חזרה</button>
+        </section>
+
+        <!-- Step 4: summary -->
+        <section class="wizard-step" data-step="4" style="display:none;">
+          <div class="app-card">
+            <h2>ביטוח ואריזה</h2>
+            <div class="form-group">
+              <label><input type="checkbox" id="has-insurance"> ביטוח פריטים — כיסוי נזק עד ₪2,000 (+₪49)</label>
+            </div>
+            <div class="form-group">
+              <label><input type="checkbox" id="has-packing"> שירות אריזה <span id="packing-price-label"></span></label>
+            </div>
+            <div class="form-group">
+              <label for="notes">הערות למוביל (לא חובה)</label>
+              <textarea id="notes" rows="3"></textarea>
+            </div>
+          </div>
+
+          <div class="app-card">
+            <h2>חישוב מחיר</h2>
+            <div class="price-lines" id="price-lines"></div>
+            <div class="price-total"><span>סה"כ לתשלום</span><strong id="price-total-value">₪0</strong></div>
+            <p class="form-hint">* המחיר עשוי להשתנות בהתאם לפרטים בפועל. דמי תפעול לאפליקציה (5%) כלולים בסכום.</p>
+          </div>
+
+          <div id="submit-error"></div>
+          <button class="btn btn-primary btn-block" id="submit-btn">מעבר לתשלום ←</button>
+          <button class="btn-text" id="back-to-3">→ חזרה</button>
+        </section>
+
+      </div>
+
+      <div class="app-side">
+        <div class="side-summary-card">
+          <h3>סיכום ההזמנה</h3>
+          <div class="price-lines" id="side-price-lines"></div>
+          <div class="price-total"><span>סה"כ</span><strong id="side-price-total">₪0</strong></div>
+        </div>
+      </div>
     </div>
-
-    <!-- Step 1: items -->
-    <section class="wizard-step" data-step="1">
-      <div class="app-card">
-        <h2>אילו פריטים מובילים?</h2>
-        <p class="app-card-desc">מתאים לפריטים בודדים או כמה ארגזים — טנדר אחד, קיבולת מוגבלת.</p>
-        <div class="van-gauge"><div class="van-gauge-fill" id="van-gauge-fill" style="width:0%"></div></div>
-        <div class="form-hint" id="van-gauge-label">0% מהטנדר</div>
-        <div class="room-tabs" id="room-tabs"></div>
-        <div id="item-list"></div>
-      </div>
-    </section>
-
-    <!-- Step 2: packing offer -->
-    <section class="wizard-step" data-step="2" style="display:none;">
-      <div class="app-card">
-        <h2>📦 רוצים גם שירות אריזה?</h2>
-        <p class="app-card-desc">הצוות שלנו יארוז את כל הפריטים שנבחרו לפני ההובלה.</p>
-        <div id="packing-preview" class="alert alert-info"></div>
-        <button class="btn btn-primary btn-block" id="packing-add-btn" style="margin-bottom:10px;">הוסף שירות אריזה</button>
-        <button class="btn btn-secondary btn-block" id="packing-skip-btn">דלג, אני אארוז בעצמי</button>
-      </div>
-      <button class="btn-text" id="back-to-1">→ חזרה לפריטים</button>
-    </section>
-
-    <!-- Step 3: delivery details -->
-    <section class="wizard-step" data-step="3" style="display:none;">
-      <div class="app-card">
-        <h2>פרטי הובלה</h2>
-        <div class="form-group">
-          <label for="from-address">כתובת מוצא</label>
-          <input id="from-address" type="text" placeholder="רחוב, מספר, עיר">
-        </div>
-        <div class="form-row">
-          <div class="form-group">
-            <label for="from-floor">קומה</label>
-            <select id="from-floor"></select>
-          </div>
-          <div class="form-group">
-            <label for="from-elevator">מעלית</label>
-            <select id="from-elevator"><option value="1">יש מעלית</option><option value="0">אין מעלית</option></select>
-          </div>
-        </div>
-
-        <div class="form-group">
-          <label for="to-address">כתובת יעד</label>
-          <input id="to-address" type="text" placeholder="רחוב, מספר, עיר">
-        </div>
-        <div class="form-row">
-          <div class="form-group">
-            <label for="to-floor">קומה</label>
-            <select id="to-floor"></select>
-          </div>
-          <div class="form-group">
-            <label for="to-elevator">מעלית</label>
-            <select id="to-elevator"><option value="1">יש מעלית</option><option value="0">אין מעלית</option></select>
-          </div>
-        </div>
-        <div id="distance-note" class="form-hint"></div>
-      </div>
-
-      <div class="app-card">
-        <h2>🏗️ פריט שלא עובר במדרגות?</h2>
-        <div class="form-group">
-          <label><input type="checkbox" id="needs-crane"> נדרש מנוף הרמה</label>
-        </div>
-        <div id="crane-fields" style="display:none;">
-          <div class="form-group">
-            <label for="crane-floor">קומת הפריט</label>
-            <select id="crane-floor"></select>
-          </div>
-          <div class="form-group">
-            <label>אילו פריטים?</label>
-            <div id="crane-items"></div>
-          </div>
-          <div class="alert alert-info" id="crane-price-preview"></div>
-        </div>
-      </div>
-
-      <div class="app-card">
-        <h2>תזמון</h2>
-        <div class="form-group">
-          <label for="move-date">תאריך</label>
-          <input id="move-date" type="date">
-        </div>
-        <div class="form-group">
-          <label>שעה מועדפת (לא חובה)</label>
-          <div class="room-tabs" id="time-slots"></div>
-        </div>
-      </div>
-
-      <div id="delivery-error"></div>
-      <button class="btn btn-primary btn-block" id="delivery-continue-btn">המשך</button>
-      <button class="btn-text" id="back-to-2">→ חזרה</button>
-    </section>
-
-    <!-- Step 4: summary -->
-    <section class="wizard-step" data-step="4" style="display:none;">
-      <div class="app-card">
-        <h2>ביטוח ואריזה</h2>
-        <div class="form-group">
-          <label><input type="checkbox" id="has-insurance"> ביטוח פריטים — כיסוי נזק עד ₪2,000 (+₪49)</label>
-        </div>
-        <div class="form-group">
-          <label><input type="checkbox" id="has-packing"> שירות אריזה <span id="packing-price-label"></span></label>
-        </div>
-        <div class="form-group">
-          <label for="notes">הערות למוביל (לא חובה)</label>
-          <textarea id="notes" rows="3"></textarea>
-        </div>
-      </div>
-
-      <div class="app-card">
-        <h2>חישוב מחיר</h2>
-        <div class="price-lines" id="price-lines"></div>
-        <div class="price-total"><span>סה"כ לתשלום</span><strong id="price-total-value">₪0</strong></div>
-        <p class="form-hint">* המחיר עשוי להשתנות בהתאם לפרטים בפועל. דמי תפעול לאפליקציה (5%) כלולים בסכום.</p>
-      </div>
-
-      <div id="submit-error"></div>
-      <button class="btn btn-primary btn-block" id="submit-btn">מעבר לתשלום ←</button>
-      <button class="btn-text" id="back-to-3">→ חזרה</button>
-    </section>
   </div>
 
   <div class="app-bottom-bar" id="bottom-bar" style="display:none;">
@@ -161,15 +197,19 @@
   <script type="module">
     import { requireAuth } from './auth.js';
     import { createOrder } from './orders.js';
-    import { ALL_ROOMS, findItemAnywhere, getItemPriceAnyCategory } from './data/items.js';
+    import { ALL_ROOMS, findItemAnywhere, getItemPriceAnyCategory, getFullAICatalog, getSizeSiblings } from './data/items.js';
     import { PRICE_PER_KM, FLOOR_SURCHARGE_PER_FLOOR, getSurgePricing, calculatePackingFromItems, CURRENT_COMMISSION_RATE } from './data/pricing.js';
     import { BOX_ITEMS, MAX_VOLUME, estimateVolume } from './data/smallMoveItems.js';
     import { FLOORS, craneCostFor, distanceBetween, formatDateApp, parseDateApp } from './geo.js';
+    import { analyzeImagesWithCatalog, isAIConfigured, friendlyAIError } from './ai-vision.js';
+    import { resizeImageToBase64 } from './image-resize.js';
 
     const authState = await requireAuth();
     const BASE = 100; // smallMove-only constant — NOT pricing.js's BASE_PRICE (150), confirmed distinct in the source app
     const INSURANCE_PRICE = 49;
     const BOXES_TAB = 'boxes';
+    // AI detection only knows the catalog + BOX_ITEMS keys (same AI_CATALOG shape the app builds for this flow).
+    const AI_CATALOG = [...getFullAICatalog(), ...BOX_ITEMS.map(b => ({ key: b.key, label: b.label }))];
 
     const state = {
       items: {},           // itemKey -> qty (catalog items + box_s/box_m/box_l)
@@ -183,6 +223,8 @@
       hasInsurance: false,
       notes: '',
     };
+
+    let step = 1;
 
     function itemVolume(key) {
       const box = BOX_ITEMS.find(b => b.key === key);
@@ -221,7 +263,6 @@
       const baseTotal = BASE + itemsTotal + travelCost + floorSurcharge;
       const surge = getSurgePricing(parseDateApp(state.date));
       const surgeAmount = surge ? Math.round(baseTotal * surge.rate) : 0;
-      // Only catalog items (not box_s/m/l) are packing-classified — matches calculatePackingFromItems's own findItemAnywhere lookup, which returns null for box keys.
       const packingCalc = calculatePackingFromItems(selected.filter(i => findItemAnywhere(i.key)).map(i => ({ itemKey: i.key, qty: i.qty })));
       const craneCost = state.needsCrane ? craneCostFor(state.craneFloor) : 0;
       const insuranceAmount = state.hasInsurance ? INSURANCE_PRICE : 0;
@@ -230,6 +271,136 @@
       const commissionAmount = Math.round(preCouponTotal * CURRENT_COMMISSION_RATE);
       const totalPrice = preCouponTotal + commissionAmount;
       return { selected, itemsTotal, travelCost, floorSurcharge, surge, surgeAmount, packingCalc, insuranceAmount, packingAmount, craneCost, commissionAmount, totalPrice };
+    }
+
+    function renderSidePrice() {
+      const p = computePrice();
+      const lines = [];
+      lines.push([`פריטים (${p.selected.length})`, `₪${p.itemsTotal}`]);
+      if (p.travelCost > 0) lines.push(['נסיעה', `₪${p.travelCost}`]);
+      if (p.floorSurcharge > 0) lines.push(['קומות', `₪${p.floorSurcharge}`]);
+      if (state.hasInsurance) lines.push(['ביטוח', `₪${p.insuranceAmount}`]);
+      if (state.hasPacking) lines.push(['אריזה', `₪${p.packingAmount}`]);
+      if (state.needsCrane) lines.push(['מנוף', `₪${p.craneCost}`]);
+      document.getElementById('side-price-lines').innerHTML = lines.map(([l, v]) => `<div class="price-line"><span>${l}</span><span>${v}</span></div>`).join('');
+      document.getElementById('side-price-total').textContent = `₪${p.totalPrice}`;
+      document.getElementById('bottom-price').textContent = step === 1 ? `₪${p.itemsTotal}` : `₪${p.totalPrice}`;
+      return p;
+    }
+
+    // ---------- AI photo scan ----------
+    let aiPhotos = [];
+    let pendingQuestions = [];
+
+    if (!isAIConfigured()) {
+      document.getElementById('ai-error').innerHTML = '<div class="alert alert-info">סריקת AI תהיה זמינה בקרוב.</div>';
+    }
+
+    document.getElementById('ai-photo-input').addEventListener('change', (e) => {
+      aiPhotos.push(...Array.from(e.target.files || []));
+      e.target.value = '';
+      renderAIPhotos();
+    });
+
+    function renderAIPhotos() {
+      const box = document.getElementById('ai-photo-thumbs');
+      box.innerHTML = aiPhotos.map((file, i) => `
+        <div class="ai-thumb">
+          <img src="${URL.createObjectURL(file)}">
+          <button class="ai-thumb-remove" data-i="${i}">✕</button>
+        </div>
+      `).join('');
+      box.querySelectorAll('.ai-thumb-remove').forEach(btn => btn.addEventListener('click', () => {
+        aiPhotos.splice(Number(btn.dataset.i), 1); renderAIPhotos();
+      }));
+      document.getElementById('ai-analyze-btn').disabled = aiPhotos.length === 0 || !isAIConfigured();
+    }
+
+    document.getElementById('ai-analyze-btn').addEventListener('click', async () => {
+      const btn = document.getElementById('ai-analyze-btn');
+      const errBox = document.getElementById('ai-error');
+      const progressWrap = document.getElementById('ai-progress-wrap');
+      const progressFill = document.getElementById('ai-progress-fill');
+      const progressText = document.getElementById('ai-progress-text');
+      errBox.innerHTML = '';
+      btn.disabled = true;
+      progressWrap.style.display = 'block';
+      progressText.style.display = 'block';
+      let progress = 2;
+      progressText.textContent = 'מוריד תמונות...';
+      progressFill.style.width = '2%';
+      const tick = setInterval(() => {
+        progress += (96 - progress) * 0.08;
+        progressFill.style.width = progress + '%';
+        progressText.textContent = progress < 30 ? 'מוריד תמונות...' : progress < 60 ? 'מנתח תוכן...' : progress < 85 ? 'מזהה פריטים...' : 'כמעט מוכן...';
+      }, 200);
+      try {
+        const images = [];
+        for (const file of aiPhotos) {
+          images.push({ base64: await resizeImageToBase64(file), mimeType: 'image/jpeg' });
+        }
+        const result = await analyzeImagesWithCatalog(AI_CATALOG, 'ההובלה', images);
+        result.items.forEach(it => { state.items[it.itemKey] = (state.items[it.itemKey] || 0) + it.qty; });
+        pendingQuestions = pendingQuestions.concat(result.questions);
+        aiPhotos = [];
+        renderAIPhotos();
+        renderQuestions();
+        renderItems();
+        updateItemsHeader();
+      } catch (err) {
+        errBox.innerHTML = `<div class="alert alert-error">${friendlyAIError(err)}</div>`;
+      } finally {
+        clearInterval(tick);
+        progressFill.style.width = '100%';
+        setTimeout(() => { progressWrap.style.display = 'none'; progressText.style.display = 'none'; progressFill.style.width = '0%'; }, 400);
+        btn.disabled = aiPhotos.length === 0 || !isAIConfigured();
+      }
+    });
+
+    function renderQuestions() {
+      const box = document.getElementById('ai-questions');
+      box.innerHTML = pendingQuestions.map(q => `
+        <div class="question-card">
+          <div class="question-text">${q.text}</div>
+          <div class="question-options">
+            ${q.options.map((o, i) => `<button class="question-option" data-qid="${q.id}" data-oi="${i}">${o.label}</button>`).join('')}
+          </div>
+        </div>
+      `).join('');
+      box.querySelectorAll('.question-option').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const q = pendingQuestions.find(qq => qq.id === btn.dataset.qid);
+          if (!q) return;
+          answerQuestion(q, q.options[Number(btn.dataset.oi)]);
+        });
+      });
+    }
+
+    function answerQuestion(question, option) {
+      pendingQuestions = pendingQuestions.filter(q => q.id !== question.id);
+      if (option.itemKey === null) { renderQuestions(); return; }
+      const siblings = getSizeSiblings(option.itemKey);
+      const questionItemKeys = new Set(question.options.map(o => o.itemKey));
+      const alreadyAskedSize = siblings.length > 0 && siblings.every(s => questionItemKeys.has(s.key));
+      if (siblings.length > 0 && !alreadyAskedSize) {
+        const pickedItem = findItemAnywhere(option.itemKey);
+        const baseLabel = pickedItem.label.replace(/\s*\(.*\)\s*$/, '');
+        pendingQuestions.push({
+          id: `size-${Date.now()}`,
+          text: `איזה גודל ${baseLabel}?`,
+          options: [
+            { label: pickedItem.label, itemKey: pickedItem.key, qty: option.qty },
+            ...siblings.map(s => ({ label: s.label, itemKey: s.key, qty: option.qty })),
+            { label: 'ביטול — לא רלוונטי', itemKey: null, qty: 0 },
+          ],
+        });
+        renderQuestions();
+        return;
+      }
+      state.items[option.itemKey] = (state.items[option.itemKey] || 0) + option.qty;
+      renderQuestions();
+      renderItems();
+      updateItemsHeader();
     }
 
     // ---------- Step 1: items ----------
@@ -256,30 +427,28 @@
       [...roomTabsEl.children].forEach(t => t.classList.toggle('active', t.dataset.room === activeRoom));
     }
 
-    function renderItemRow(key, label, icon, price) {
+    function renderItemCard(key, label, icon, price) {
       const qty = state.items[key] || 0;
       const full = currentVolume() + itemVolume(key) > MAX_VOLUME;
-      const row = document.createElement('div');
-      row.className = 'item-row';
-      row.innerHTML = `
-        <div class="item-icon">${icon}</div>
-        <div class="item-info">
-          <div class="item-label">${label}</div>
-          <div class="item-price">₪${price} ליחידה</div>
-        </div>
+      const card = document.createElement('div');
+      card.className = 'item-card' + (qty > 0 ? ' has-qty' : '');
+      card.innerHTML = `
+        <div class="item-card-icon">${icon}</div>
+        <div class="item-card-label">${label}</div>
+        <div class="item-card-price">₪${price} ליחידה</div>
         <div class="qty-control">
           <button data-action="dec" aria-label="הפחת">−</button>
           <span class="qty-value">${qty}</span>
           <button data-action="inc" aria-label="הוסף" ${full && qty === 0 ? 'disabled' : ''}>+</button>
         </div>`;
-      row.querySelector('[data-action="inc"]').addEventListener('click', () => {
+      card.querySelector('[data-action="inc"]').addEventListener('click', () => {
         if (currentVolume() + itemVolume(key) > MAX_VOLUME) return;
-        state.items[key] = (state.items[key] || 0) + 1; renderItems(); updateBottomBar();
+        state.items[key] = (state.items[key] || 0) + 1; renderItems(); updateItemsHeader();
       });
-      row.querySelector('[data-action="dec"]').addEventListener('click', () => {
-        state.items[key] = Math.max(0, (state.items[key] || 0) - 1); renderItems(); updateBottomBar();
+      card.querySelector('[data-action="dec"]').addEventListener('click', () => {
+        state.items[key] = Math.max(0, (state.items[key] || 0) - 1); renderItems(); updateItemsHeader();
       });
-      return row;
+      return card;
     }
 
     function renderItems() {
@@ -291,11 +460,11 @@
       document.getElementById('van-gauge-label').textContent = vol >= MAX_VOLUME ? '🚐 הטנדר מלא! הסר פריטים כדי להמשיך' : `${Math.round(pct)}% מהטנדר`;
 
       if (activeRoom === BOXES_TAB) {
-        BOX_ITEMS.forEach(b => itemListEl.appendChild(renderItemRow(b.key, b.label, b.icon, b.price)));
+        BOX_ITEMS.forEach(b => itemListEl.appendChild(renderItemCard(b.key, b.label, b.icon, b.price)));
         return;
       }
       const room = ALL_ROOMS.find(r => r.key === activeRoom);
-      room.items.forEach(item => itemListEl.appendChild(renderItemRow(item.key, item.label, item.icon, getItemPriceAnyCategory(item.key))));
+      room.items.forEach(item => itemListEl.appendChild(renderItemCard(item.key, item.label, item.icon, getItemPriceAnyCategory(item.key))));
     }
     renderItems();
 
@@ -359,6 +528,7 @@
     }
     function updateCranePreview() {
       document.getElementById('crane-price-preview').textContent = `🏗️ תוספת מנוף: ₪${craneCostFor(state.craneFloor)}`;
+      renderSidePrice();
     }
 
     document.getElementById('delivery-continue-btn').addEventListener('click', async () => {
@@ -414,7 +584,7 @@
         `<div class="price-line"><span>${label}</span><span>${val}</span></div>`
       ).join('');
       document.getElementById('price-total-value').textContent = `₪${p.totalPrice}`;
-      document.getElementById('bottom-price').textContent = `₪${p.totalPrice}`;
+      renderSidePrice();
     }
 
     document.getElementById('submit-btn').addEventListener('click', async () => {
@@ -457,7 +627,13 @@
     });
 
     // ---------- Step machine ----------
-    let step = 1;
+    const STEP_TITLES = {
+      1: ['מובילים בקטנה — אילו פריטים?', 'מתאים לפריטים בודדים או כמה ארגזים — טנדר אחד, קיבולת מוגבלת.'],
+      2: ['רוצים גם שירות אריזה?', 'נצא לדרך רגועים — הצוות יארוז הכול בזהירות.'],
+      3: ['פרטי ההובלה', 'כתובות, קומות, תזמון — הכול כאן.'],
+      4: ['סיכום ואישור', 'בדקו את הפירוט ואשרו את ההזמנה.'],
+    };
+
     function goToStep(n) {
       step = n;
       document.querySelectorAll('.wizard-step').forEach(el => { el.style.display = Number(el.dataset.step) === step ? 'block' : 'none'; });
@@ -466,21 +642,24 @@
         el.classList.toggle('active', s === step);
         el.classList.toggle('done', s < step);
       });
+      document.getElementById('step-title').textContent = STEP_TITLES[step][0];
+      document.getElementById('step-desc').textContent = STEP_TITLES[step][1];
       document.getElementById('bottom-bar').style.display = step === 1 ? 'flex' : 'none';
       if (step === 2) renderPackingOffer();
       if (step === 3) { renderCraneItems(); updateCranePreview(); }
       if (step === 4) renderSummary();
+      renderSidePrice();
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
-    function updateBottomBar() {
+    function updateItemsHeader() {
+      renderSidePrice();
       const totalItems = Object.values(state.items).reduce((s, q) => s + q, 0);
-      const { itemsTotal } = computePrice();
-      document.getElementById('bottom-price').textContent = `₪${itemsTotal}`;
       document.getElementById('next-btn').disabled = totalItems === 0;
     }
     document.getElementById('next-btn').addEventListener('click', () => goToStep(2));
-    updateBottomBar();
+    renderAIPhotos();
+    updateItemsHeader();
     goToStep(1);
   </script>
 </body>

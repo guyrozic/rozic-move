@@ -7,6 +7,18 @@
   padding-bottom: 60px;
 }
 
+/* --- Under-construction notice (see under-construction-banner.js) --- */
+.construction-banner {
+  width: 100%;
+  background: #F5A623;
+  color: #3A2400;
+  text-align: center;
+  font-weight: 800;
+  font-size: 0.82rem;
+  padding: 10px 16px;
+  line-height: 1.5;
+}
+
 /* --- Top bar --- */
 .app-topbar {
   height: var(--nav-h);
@@ -57,12 +69,12 @@
 
 /* --- Shell container --- */
 .app-container {
-  max-width: 560px;
+  max-width: 640px;
   margin: 0 auto;
   padding: 28px 20px 0;
 }
 
-.app-container.wide { max-width: 800px; }
+.app-container.wide { max-width: 980px; }
 
 /* --- Cards --- */
 .app-card {
@@ -172,8 +184,8 @@
 /* --- Service tiles (hub) --- */
 .service-tiles {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 14px;
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+  gap: 16px;
 }
 
 .service-tile {
@@ -343,3 +355,94 @@
   .app-container { padding: 20px 16px 0; }
   .form-row { flex-direction: column; gap: 0; }
 }
+
+/* ===== Wide wizard shell (apartment.html / small-move.html) ===== */
+.app-shell-wide { max-width: 1100px; margin: 0 auto; padding: 0 24px 60px; }
+
+.step-hero {
+  background: linear-gradient(160deg, #C8EDD8 0%, #E0F5E9 50%, #F0FAF5 100%);
+  padding: 28px 0 26px;
+  margin-bottom: 28px;
+}
+.step-hero-inner { max-width: 1100px; margin: 0 auto; padding: 0 24px; }
+.step-hero .stepper { max-width: 420px; margin-bottom: 18px; }
+.step-hero h1 { font-size: clamp(1.4rem, 3vw, 1.8rem); font-weight: 900; color: var(--text); letter-spacing: -0.5px; margin-bottom: 6px; }
+.step-hero p { color: var(--text-mid); font-size: 0.92rem; }
+
+.app-layout { display: grid; grid-template-columns: 1fr 320px; gap: 32px; align-items: start; }
+.app-main { min-width: 0; }
+.app-side { position: sticky; top: calc(var(--nav-h) + 20px); }
+
+.side-summary-card { background: var(--white); border: 1.5px solid var(--border); border-radius: var(--radius); padding: 22px; }
+.side-summary-card h3 { font-size: 0.95rem; font-weight: 800; color: var(--text); margin-bottom: 14px; }
+
+@media (max-width: 900px) {
+  .app-layout { grid-template-columns: 1fr; }
+  .app-side { display: none; }
+}
+
+/* --- Item picker as a card grid (replaces the narrow .item-row list on wide screens) --- */
+.item-card-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 14px; }
+.item-card {
+  background: var(--white);
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 16px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  transition: border-color var(--transition), background var(--transition);
+}
+.item-card.has-qty { border-color: rgba(0,166,81,0.4); background: var(--green-light); }
+.item-card .item-card-icon { font-size: 1.6rem; }
+.item-card .item-card-label { font-size: 0.85rem; font-weight: 700; color: var(--text); line-height: 1.35; min-height: 2.6em; }
+.item-card .item-card-price { font-size: 0.74rem; color: var(--text-muted); }
+.item-card .qty-control { margin-top: auto; justify-content: space-between; }
+
+/* --- AI photo-scan upload card --- */
+.ai-upload-card {
+  background: linear-gradient(145deg, var(--green-light) 0%, rgba(255,255,255,0.7) 100%);
+  border: 1.5px solid rgba(0,166,81,0.25);
+  border-radius: var(--radius);
+  padding: 24px;
+  margin-bottom: 24px;
+  text-align: center;
+}
+.ai-upload-card .ai-upload-icon { font-size: 2.1rem; margin-bottom: 8px; }
+.ai-upload-card h3 { font-size: 1.1rem; font-weight: 800; color: var(--text); margin-bottom: 6px; }
+.ai-upload-card p { font-size: 0.85rem; color: var(--text-mid); margin-bottom: 16px; }
+.ai-photo-thumbs { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; margin-bottom: 14px; }
+.ai-photo-thumbs .ai-thumb { position: relative; width: 64px; height: 64px; }
+.ai-photo-thumbs img { width: 64px; height: 64px; object-fit: cover; border-radius: 10px; display: block; }
+.ai-photo-thumbs .ai-thumb-remove {
+  position: absolute; top: -6px; left: -6px; width: 20px; height: 20px; border-radius: 50%;
+  background: rgba(0,0,0,0.6); color: #fff; border: none; font-size: 0.7rem; cursor: pointer;
+}
+.ai-upload-progress { max-width: 320px; margin: 0 auto 10px; height: 6px; background: var(--white); border-radius: 3px; overflow: hidden; }
+.ai-upload-progress-fill { height: 100%; background: var(--green); transition: width 0.2s ease; }
+
+/* --- AI clarification question cards --- */
+.question-card {
+  background: var(--white);
+  border: 2px solid rgba(0,166,81,0.35);
+  border-radius: var(--radius-sm);
+  padding: 16px;
+  margin-bottom: 12px;
+}
+.question-card .question-text { font-size: 0.92rem; font-weight: 700; color: var(--text); margin-bottom: 12px; }
+.question-card .question-options { display: flex; flex-direction: column; gap: 8px; }
+.question-card .question-option {
+  width: 100%;
+  text-align: right;
+  padding: 10px 14px;
+  border-radius: 10px;
+  border: 1.5px solid var(--border);
+  background: var(--bg);
+  font-family: inherit;
+  font-size: 0.86rem;
+  font-weight: 600;
+  color: var(--text-mid);
+  cursor: pointer;
+  transition: border-color var(--transition), background var(--transition), color var(--transition);
+}
+.question-card .question-option:hover { border-color: var(--green); background: var(--green-light); color: var(--green-dark); }
