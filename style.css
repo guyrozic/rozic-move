@@ -770,69 +770,66 @@ img, svg { display: block; }
   margin: 0 auto;
 }
 
-/* ===== FEATURES ===== */
-.features-section {
-  padding: 90px 0;
-  background: linear-gradient(180deg, var(--white) 0%, #E8F5EE 100%);
-}
+/* ===== FEATURES — alternating full-bleed color bands, not a card grid =====
+   Each service gets its own full-width row (paper/pine/paper/navy), icon
+   beside a statement-sized headline — the "blocks instead of a grid of
+   identical cards" structure, not just a recolor of the old bento grid. */
+.features-section { padding: 0; }
 
-.features-grid {
-  display: grid;
-  grid-template-columns: 1.5fr 1fr 1fr 1fr;
-  gap: 16px;
+.feature-row {
+  padding: 64px 0;
+  border-bottom: 1px solid var(--border);
 }
+.feature-row:last-child { border-bottom: none; }
 
-.feature-card {
-  background: var(--bg);
-  border: 1.5px solid var(--border);
-  border-radius: var(--radius);
-  padding: 28px 24px;
-  transition: transform var(--transition), box-shadow var(--transition), border-color var(--transition);
+.feature-row-inner {
+  display: flex;
+  align-items: center;
+  gap: 44px;
 }
+.feature-row-rev .feature-row-inner { flex-direction: row-reverse; }
 
-.feature-card:hover {
-  transform: translateY(-4px);
-  box-shadow: var(--shadow-green);
-  border-color: rgba(14,92,67,0.3);
-}
-
-.feature-large {
-  grid-row: span 2;
-  background: linear-gradient(145deg, var(--green-light) 0%, rgba(255,255,255,0.6) 100%);
-  border-color: rgba(14,92,67,0.2);
-}
+.feature-row-bold { border-bottom: none; }
+.feature-row-pine { background: var(--green); }
+.feature-row-navy { background: var(--navy); }
 
 .feature-icon-wrap {
-  width: 56px;
-  height: 56px;
-  background: white;
-  border-radius: 14px;
+  width: 84px;
+  height: 84px;
+  background: var(--white);
+  border-radius: 20px;
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-bottom: 18px;
   box-shadow: var(--shadow-sm);
   color: var(--green);
+  flex-shrink: 0;
+}
+.feature-row-bold .feature-icon-wrap {
+  background: rgba(255,255,255,0.14);
+  color: var(--white);
+  box-shadow: none;
 }
 
-.feature-large .feature-icon-wrap { width: 64px; height: 64px; }
+.feature-row-body { flex: 1; }
 
-.feature-card h3 {
-  font-size: 1.1rem;
-  font-weight: 800;
+.feature-row h3 {
+  font-size: 1.6rem;
+  font-weight: 900;
   color: var(--text);
   margin-bottom: 10px;
-  letter-spacing: -0.3px;
+  letter-spacing: -0.6px;
 }
+.feature-row-bold h3 { color: var(--white); }
 
-.feature-large h3 { font-size: 1.35rem; }
-
-.feature-card p {
-  font-size: 0.88rem;
+.feature-row p {
+  font-size: 1rem;
   color: var(--text-mid);
-  line-height: 1.7;
-  margin-bottom: 16px;
+  line-height: 1.75;
+  margin-bottom: 14px;
+  max-width: 620px;
 }
+.feature-row-bold p { color: rgba(255,255,255,0.82); }
 
 .feature-tag {
   display: inline-block;
@@ -843,6 +840,7 @@ img, svg { display: block; }
   padding: 4px 12px;
   border-radius: 50px;
 }
+.feature-row-bold .feature-tag { background: rgba(255,255,255,0.16); color: var(--white); }
 
 /* ===== HOW IT WORKS ===== */
 .how-section {
@@ -1504,10 +1502,11 @@ a.back {
 
 /* ===== RESPONSIVE ===== */
 @media (max-width: 1024px) {
-  .features-grid {
-    grid-template-columns: 1fr 1fr;
+  .feature-row-inner, .feature-row-rev .feature-row-inner {
+    flex-direction: column;
+    text-align: center;
   }
-  .feature-large { grid-row: span 1; }
+  .feature-row p { max-width: 100%; }
   .steps-wrap { flex-direction: column; }
   .step-connector { width: 100%; height: 40px; }
   .step-connector::before { width: 2px; height: 24px; }
@@ -1539,7 +1538,7 @@ a.back {
 @media (max-width: 680px) {
   .nav-links, .nav-cta { display: none; }
   .nav-toggle { display: flex; }
-  .features-grid { grid-template-columns: 1fr; }
+  .feature-row { padding: 48px 0; }
   .hero-phone { transform: scale(0.85); }
   .phone-float-badge { display: none; }
   .movers-text { text-align: center; }
