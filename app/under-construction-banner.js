@@ -4,7 +4,7 @@
 (function () {
   var banner = document.createElement('div');
   banner.className = 'construction-banner';
-  banner.textContent = '🚀 האתר בהרצה — הצטרפו לראשונים שמזמינים דרכו!';
+  banner.textContent = '🧪 האתר בשלב בדיקות פרטי — לא מיועד להזמנות מהציבור הרחב כרגע';
   document.body.insertBefore(banner, document.body.firstChild);
   // index.html's nav is position:fixed (unlike app/'s sticky topbar, which
   // already flows naturally below the banner) — without this it would sit
