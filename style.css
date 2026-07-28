@@ -254,11 +254,13 @@ img, svg { display: block; }
   background: var(--bg);
 }
 
+/* Toned down after feedback that the diagonal two-tone split + full-size
+   ghost letter read as too loud — a single smooth pine field with a quiet
+   sheen instead of a hard-contrast diagonal cut. */
 .hero-bold {
   background:
-    linear-gradient(115deg, rgba(255,255,255,0.08) 0%, transparent 42%),
-    radial-gradient(circle, rgba(255,255,255,0.16) 1px, transparent 1.6px) 0 0/26px 26px,
-    linear-gradient(128deg, var(--green-dark) 0%, var(--green-dark) 46%, var(--green) 56%, var(--green) 100%);
+    radial-gradient(circle, rgba(255,255,255,0.14) 1px, transparent 1.6px) 0 0/26px 26px,
+    linear-gradient(160deg, var(--green) 0%, var(--green-dark) 100%);
 }
 
 .hero-bg {
@@ -268,17 +270,57 @@ img, svg { display: block; }
   overflow: hidden;
 }
 
+/* A contained corner accent (like the reference banner's watermark), not a
+   shape that dominates the whole screen. */
 .hero-ghost-mark {
   position: absolute;
   top: 50%;
-  left: 4%;
+  right: -4%;
   transform: translateY(-50%);
-  font-size: min(56vw, 780px);
+  font-size: min(30vw, 380px);
   font-weight: 900;
   line-height: 1;
-  color: rgba(255,255,255,0.06);
-  letter-spacing: -20px;
+  color: rgba(255,255,255,0.07);
+  letter-spacing: 0;
   user-select: none;
+}
+
+/* Icon + wordmark lockup — mirrors the reference brand banner (icon tile,
+   bold wordmark, short accent underline) instead of plain text alone. */
+.hero-lockup {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 28px;
+}
+.hero-lockup-icon {
+  width: 52px;
+  height: 52px;
+  border-radius: 14px;
+  background: linear-gradient(155deg, var(--green-mid) 0%, var(--green-dark) 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--white);
+  font-size: 1.5rem;
+  font-weight: 900;
+  flex-shrink: 0;
+  box-shadow: 0 6px 16px rgba(0,0,0,0.18);
+}
+.hero-lockup-text { text-align: start; }
+.hero-lockup-word {
+  font-size: 1.3rem;
+  font-weight: 900;
+  color: var(--white);
+  letter-spacing: -0.2px;
+  line-height: 1;
+}
+.hero-lockup-rule {
+  width: 34px;
+  height: 3px;
+  background: rgba(255,255,255,0.55);
+  border-radius: 2px;
+  margin-top: 7px;
 }
 
 .hero-content {
