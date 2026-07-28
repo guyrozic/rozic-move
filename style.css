@@ -102,17 +102,22 @@ img, svg { display: block; }
   gap: 32px;
 }
 
+/* Unscrolled nav sits directly over the bold pine hero, so it defaults to
+   white — .scrolled (below) flips it back to dark-on-light once the page
+   background under it is paper again. */
 .nav-logo {
   font-size: 1.2rem;
   font-weight: 900;
-  color: var(--text);
+  color: var(--white);
   text-decoration: none;
   display: flex;
   align-items: center;
   gap: 8px;
   letter-spacing: -0.3px;
   flex-shrink: 0;
+  transition: color var(--transition);
 }
+.nav.scrolled .nav-logo { color: var(--text); }
 
 .nav-logo:hover .logo-arrow path { stroke: var(--green-mid); }
 
@@ -126,14 +131,19 @@ img, svg { display: block; }
 .nav-links a {
   font-size: 0.9rem;
   font-weight: 500;
-  color: var(--text-mid);
+  color: rgba(255,255,255,0.82);
   text-decoration: none;
   padding: 6px 14px;
   border-radius: 8px;
   transition: background var(--transition), color var(--transition);
 }
+.nav.scrolled .nav-links a { color: var(--text-mid); }
 
 .nav-links a:hover {
+  background: rgba(255,255,255,0.14);
+  color: var(--white);
+}
+.nav.scrolled .nav-links a:hover {
   background: var(--green-light);
   color: var(--green-dark);
 }
@@ -141,19 +151,23 @@ img, svg { display: block; }
 .nav-cta {
   font-size: 0.9rem;
   font-weight: 700;
-  color: var(--white);
-  background: var(--green);
+  color: var(--green);
+  background: var(--white);
   text-decoration: none;
   padding: 9px 22px;
   border-radius: 10px;
-  transition: background var(--transition), transform var(--transition), box-shadow var(--transition);
+  transition: background var(--transition), color var(--transition), transform var(--transition), box-shadow var(--transition);
   white-space: nowrap;
   flex-shrink: 0;
 }
+.nav.scrolled .nav-cta { color: var(--white); background: var(--green); }
 
 .nav-cta:hover {
-  background: var(--green-dark);
   transform: translateY(-1px);
+  box-shadow: 0 8px 20px rgba(0,0,0,0.18);
+}
+.nav.scrolled .nav-cta:hover {
+  background: var(--green-dark);
   box-shadow: var(--shadow-green);
 }
 
@@ -172,10 +186,11 @@ img, svg { display: block; }
   display: block;
   width: 22px;
   height: 2px;
-  background: var(--text);
+  background: var(--white);
   border-radius: 2px;
-  transition: transform var(--transition), opacity var(--transition);
+  transition: transform var(--transition), opacity var(--transition), background var(--transition);
 }
+.nav.scrolled .nav-toggle span { background: var(--text); }
 
 .nav-toggle.active span:nth-child(1) { transform: translateY(7px) rotate(45deg); }
 .nav-toggle.active span:nth-child(2) { opacity: 0; }
@@ -222,7 +237,13 @@ img, svg { display: block; }
 }
 .mobile-menu .mobile-cta:hover { background: var(--green-dark); }
 
-/* ===== HERO ===== */
+/* ===== HERO — full-bleed bold pine, not the old text+phone-mockup split ===== */
+/* Structural rebuild (2026-07-28): the earlier passes only recolored/reshaped
+   the same two-column "text left, app mockup right" template every SaaS
+   landing page uses. This is a different template — one giant headline
+   fills the whole first screen on a solid diagonal-split pine field, with a
+   huge ghost brand-letter and a dot-grid texture (per the reference banner),
+   instead of a card/blob competing for attention next to a phone graphic. */
 .hero {
   position: relative;
   min-height: 100vh;
@@ -233,6 +254,13 @@ img, svg { display: block; }
   background: var(--bg);
 }
 
+.hero-bold {
+  background:
+    linear-gradient(115deg, rgba(255,255,255,0.08) 0%, transparent 42%),
+    radial-gradient(circle, rgba(255,255,255,0.16) 1px, transparent 1.6px) 0 0/26px 26px,
+    linear-gradient(128deg, var(--green-dark) 0%, var(--green-dark) 46%, var(--green) 56%, var(--green) 100%);
+}
+
 .hero-bg {
   position: absolute;
   inset: 0;
@@ -240,21 +268,17 @@ img, svg { display: block; }
   overflow: hidden;
 }
 
-/* One bold geometric pine card behind the phone mockup — replaces the old
-   two soft organic-blob washes. A crisp rotated rounded-square reads as a
-   confident fintech "card" visual, not a soft SaaS blur — the shape itself
-   is the structural signal, not just the color underneath it. */
-.hero-blob-1 { display: none; }
-
-.hero-blob-2 {
+.hero-ghost-mark {
   position: absolute;
-  bottom: -40px;
-  left: -110px;
-  width: 520px;
-  height: 520px;
-  background: var(--green);
-  border-radius: 64px;
-  transform: rotate(-9deg);
+  top: 50%;
+  left: 4%;
+  transform: translateY(-50%);
+  font-size: min(56vw, 780px);
+  font-weight: 900;
+  line-height: 1;
+  color: rgba(255,255,255,0.06);
+  letter-spacing: -20px;
+  user-select: none;
 }
 
 .hero-content {
@@ -269,8 +293,18 @@ img, svg { display: block; }
   width: 100%;
 }
 
+.hero-content-solo { justify-content: center; }
+
 /* Hero Text */
 .hero-text { flex: 1; max-width: 520px; }
+
+.hero-text-solo {
+  max-width: 760px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
 
 .hero-badge {
   display: inline-block;
@@ -285,6 +319,14 @@ img, svg { display: block; }
   margin-bottom: 24px;
 }
 
+/* On the solid-pine hero a same-color badge would vanish — a translucent
+   white chip instead, consistent with the reference banner's white text. */
+.hero-bold .hero-badge {
+  background: rgba(255,255,255,0.14);
+  color: var(--white);
+  border: 1px solid rgba(255,255,255,0.22);
+}
+
 .hero-title {
   font-size: clamp(2.8rem, 5.4vw, 4.4rem);
   font-weight: 900;
@@ -293,6 +335,11 @@ img, svg { display: block; }
   color: var(--text);
   margin-bottom: 20px;
   transition-delay: 0.1s;
+}
+
+.hero-title-huge {
+  font-size: clamp(3.4rem, 7.2vw, 6.2rem);
+  color: var(--white);
 }
 
 .title-accent {
@@ -312,6 +359,9 @@ img, svg { display: block; }
   opacity: 0.35;
 }
 
+.hero-bold .title-accent { color: var(--white); }
+.hero-bold .title-accent::after { background: rgba(255,255,255,0.55); opacity: 1; }
+
 .hero-desc {
   font-size: 1.05rem;
   color: var(--text-mid);
@@ -321,6 +371,8 @@ img, svg { display: block; }
   transition-delay: 0.18s;
 }
 
+.hero-desc-solo { color: rgba(255,255,255,0.82); max-width: 560px; font-size: 1.15rem; }
+
 /* App Store Buttons */
 .hero-actions {
   display: flex;
@@ -329,6 +381,8 @@ img, svg { display: block; }
   margin-bottom: 36px;
   transition-delay: 0.26s;
 }
+
+.hero-actions-solo { justify-content: center; }
 
 .btn-store {
   display: inline-flex;
@@ -363,6 +417,11 @@ img, svg { display: block; }
 }
 .btn-web:hover { background: var(--green-dark); transform: translateY(-2px); box-shadow: var(--shadow-green); }
 
+/* On the pine hero, a pine button would vanish — flip to solid white so the
+   primary action (order on the web, no download) is the loudest thing there. */
+.hero-bold .btn-web { background: var(--white); color: var(--green); }
+.hero-bold .btn-web:hover { background: rgba(255,255,255,0.9); box-shadow: 0 10px 28px rgba(0,0,0,0.22); }
+
 .btn-store.large { padding: 14px 24px; }
 .btn-store.large strong { font-size: 1.1rem; }
 
@@ -373,6 +432,11 @@ img, svg { display: block; }
   gap: 20px;
   transition-delay: 0.34s;
 }
+
+.hero-trust-solo { justify-content: center; }
+.hero-bold .trust-item strong { color: var(--white); }
+.hero-bold .trust-item span { color: rgba(255,255,255,0.68); }
+.hero-bold .trust-sep { background: rgba(255,255,255,0.22); }
 
 .trust-item {
   display: flex;
@@ -625,6 +689,7 @@ img, svg { display: block; }
   color: var(--text-muted);
   animation: bounce 2s ease-in-out infinite;
 }
+.hero-bold .scroll-arrow { color: rgba(255,255,255,0.55); }
 @keyframes bounce {
   0%, 100% { transform: translateY(0); }
   50% { transform: translateY(8px); }
@@ -1420,6 +1485,7 @@ a.back {
   .hero-trust { justify-content: center; }
   .hero-phone { order: -1; }
   .phone-float-badge { left: -30px; }
+  .hero-ghost-mark { font-size: min(90vw, 480px); opacity: 0.6; }
   .movers-inner { flex-direction: column; gap: 40px; }
   .driver-card { width: 100%; }
   .testimonials-grid { grid-template-columns: 1fr; }
