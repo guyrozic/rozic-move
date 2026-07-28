@@ -53,12 +53,26 @@
         <div id="recaptcha-container"></div>
       </div>
 
-      <div class="app-card">
+      <div class="app-card" id="orders">
         <h2>ההזמנות שלי</h2>
         <div id="orders-list" class="order-list"></div>
         <div id="orders-empty" class="empty-state" style="display:none;">
           <div class="empty-icon">📦</div>
           <div>עדיין אין הזמנות</div>
+        </div>
+      </div>
+
+      <div class="app-card" id="support">
+        <h2>תמיכה טכנית</h2>
+        <p class="app-card-desc">כתבו לנו מה קורה — ניצור פנייה ונחזור אליכם.</p>
+        <div id="support-success" style="display:none;"></div>
+        <div id="support-form">
+          <div class="form-group">
+            <label for="support-message">ההודעה שלך</label>
+            <textarea id="support-message" rows="4" placeholder="למשל: לא הצלחתי לשלם על ההזמנה שלי..."></textarea>
+          </div>
+          <div id="support-error"></div>
+          <button class="btn btn-primary" id="support-submit-btn">שלח פנייה</button>
         </div>
       </div>
 
@@ -69,6 +83,7 @@
   <script type="module">
     import { requireAuth, resendVerificationEmail, refreshEmailVerified, sendPhoneVerificationCode, confirmPhoneVerificationCode, logout } from './auth.js';
     import { subscribeToUserOrders, STATUS_LABELS } from './orders.js';
+    import { createSupportTicket } from './support.js';
 
     const state = await requireAuth();
     document.getElementById('loading').style.display = 'none';
@@ -147,6 +162,28 @@
       await logout();
       location.href = '../index.html';
     });
+
+    document.getElementById('support-submit-btn').addEventListener('click', async () => {
+      const errBox = document.getElementById('support-error');
+      errBox.innerHTML = '';
+      const message = document.getElementById('support-message').value.trim();
+      if (!message) { errBox.innerHTML = '<div class="alert alert-error">כתבו קודם את ההודעה.</div>'; return; }
+      const btn = document.getElementById('support-submit-btn');
+      btn.disabled = true; btn.textContent = 'שולח...';
+      try {
+        await createSupportTicket(state.authUser.uid, state.profile.name || '', state.profile.phone || '', message);
+        document.getElementById('support-form').style.display = 'none';
+        document.getElementById('support-success').style.display = 'block';
+        document.getElementById('support-success').innerHTML = '<div class="alert alert-success">✓ הפנייה נשלחה. ניצור איתך קשר בהקדם.</div>';
+      } catch (err) {
+        errBox.innerHTML = '<div class="alert alert-error">שליחת הפנייה נכשלה. נסה שוב.</div>';
+        btn.disabled = false; btn.textContent = 'שלח פנייה';
+      }
+    });
+
+    if (location.hash === '#orders' || location.hash === '#support') {
+      document.querySelector(location.hash)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
 
     // Order history
     subscribeToUserOrders(state.authUser.uid, (orders) => {

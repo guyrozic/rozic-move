@@ -40,19 +40,21 @@
         <section class="wizard-step" data-step="1">
           <div class="ai-upload-card">
             <div class="ai-upload-icon-wrap"><div class="ai-upload-icon">📸</div></div>
-            <h3>סריקת פריטים ב-AI</h3>
-            <p>העלו תמונות מהמחשב או מהנייד — נזהה את הפריטים בעצמנו.</p>
-            <div class="ai-photo-thumbs" id="ai-photo-thumbs"></div>
-            <div class="ai-upload-progress" id="ai-progress-wrap" style="display:none;">
-              <div class="ai-upload-progress-fill" id="ai-progress-fill" style="width:0%"></div>
+            <div class="ai-upload-body">
+              <h3>סריקת פריטים ב-AI</h3>
+              <p>העלו תמונות מהמחשב או מהנייד — נזהה את הפריטים בעצמנו.</p>
+              <div class="ai-photo-thumbs" id="ai-photo-thumbs"></div>
+              <div class="ai-upload-progress" id="ai-progress-wrap" style="display:none;">
+                <div class="ai-upload-progress-fill" id="ai-progress-fill" style="width:0%"></div>
+              </div>
+              <div id="ai-progress-text" class="form-hint" style="display:none; margin-bottom:10px;"></div>
+              <div id="ai-error"></div>
+              <label class="btn btn-secondary" style="cursor:pointer;">
+                ＋ הוסיפו תמונות
+                <input type="file" id="ai-photo-input" accept="image/*" multiple style="display:none;">
+              </label>
+              <button class="btn btn-primary" id="ai-analyze-btn" style="margin-right:10px;" disabled>נתח עם AI ✨</button>
             </div>
-            <div id="ai-progress-text" class="form-hint" style="display:none; margin-bottom:10px;"></div>
-            <div id="ai-error"></div>
-            <label class="btn btn-secondary" style="cursor:pointer;">
-              ＋ הוסיפו תמונות
-              <input type="file" id="ai-photo-input" accept="image/*" multiple style="display:none;">
-            </label>
-            <button class="btn btn-primary" id="ai-analyze-btn" style="margin-right:10px;" disabled>נתח עם AI ✨</button>
           </div>
 
           <div id="ai-questions"></div>
@@ -427,14 +429,23 @@
       [...roomTabsEl.children].forEach(t => t.classList.toggle('active', t.dataset.room === activeRoom));
     }
 
+// Splits "מיטת יחיד (עד 90×200 ס"מ)" into a name line + a separate muted
+    // measurements line — a single dense string read as clutter.
+    function splitItemLabel(label) {
+      const m = label.match(/^(.+?)\s*\(([^)]+)\)\s*$/);
+      return m ? { name: m[1].trim(), size: m[2].trim() } : { name: label, size: null };
+    }
+
     function renderItemCard(key, label, icon, price) {
       const qty = state.items[key] || 0;
       const full = currentVolume() + itemVolume(key) > MAX_VOLUME;
+      const { name, size } = splitItemLabel(label);
       const card = document.createElement('div');
       card.className = 'item-card' + (qty > 0 ? ' has-qty' : '');
       card.innerHTML = `
         <div class="item-card-icon-wrap"><span class="item-card-icon">${icon}</span></div>
-        <div class="item-card-label">${label}</div>
+        <div class="item-card-name">${name}</div>
+        ${size ? `<div class="item-card-size">${size}</div>` : ''}
         <div class="item-card-price">₪${price} ליחידה</div>
         <div class="qty-control">
           <button data-action="dec" aria-label="הפחת">−</button>

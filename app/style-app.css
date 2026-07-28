@@ -275,6 +275,35 @@
 .service-tile.tile-purple::before { background: radial-gradient(140px 140px at 85% -10%, rgba(107,79,160,0.14), transparent 70%); }
 .service-tile.tile-purple:hover { box-shadow: 0 4px 14px rgba(107,79,160,0.10), 0 28px 56px -16px rgba(107,79,160,0.26); border-color: rgba(107,79,160,0.28); }
 
+/* --- Hub sections: "services" (primary, colorful tiles) vs "account" (secondary, compact links) — kept visually distinct so they don't read as one flat category. --- */
+.hub-section { margin-bottom: 36px; }
+.hub-section-title { font-size: 0.82rem; font-weight: 800; letter-spacing: 0.4px; color: var(--text-muted); text-transform: uppercase; margin-bottom: 14px; }
+
+.account-links { display: flex; flex-wrap: wrap; gap: 12px; }
+.account-link {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex: 1;
+  min-width: 200px;
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 14px 18px;
+  text-decoration: none;
+  box-shadow: var(--shadow-1);
+  transition: border-color 0.2s var(--ease), transform 0.2s var(--ease), box-shadow 0.2s var(--ease);
+}
+.account-link:hover { border-color: rgba(0,166,81,0.3); transform: translateY(-2px); box-shadow: var(--shadow-2); }
+.account-link .account-link-icon {
+  width: 34px; height: 34px; flex-shrink: 0;
+  border-radius: 10px;
+  background: var(--bg);
+  display: flex; align-items: center; justify-content: center;
+  color: var(--green-dark);
+}
+.account-link .account-link-name { font-size: 0.9rem; font-weight: 700; color: var(--text); }
+
 /* --- Trust strip (hub) — mirrors .hero-trust on the marketing page --- */
 .hub-trust {
   display: flex;
@@ -449,7 +478,7 @@
 }
 
 /* ===== Wide wizard shell (apartment.html / small-move.html) ===== */
-.app-shell-wide { max-width: 1100px; margin: 0 auto; padding: 0 24px 60px; }
+.app-shell-wide { max-width: 1320px; margin: 0 auto; padding: 0 24px 60px; }
 
 .step-hero {
   position: relative;
@@ -467,7 +496,7 @@
   border-radius: 50%;
   pointer-events: none;
 }
-.step-hero-inner { position: relative; max-width: 1100px; margin: 0 auto; padding: 0 24px; animation: fadeUp 0.5s var(--ease) both; }
+.step-hero-inner { position: relative; max-width: 1320px; margin: 0 auto; padding: 0 24px; animation: fadeUp 0.5s var(--ease) both; }
 @keyframes fadeUp {
   from { opacity: 0; transform: translateY(10px); }
   to { opacity: 1; transform: none; }
@@ -497,7 +526,7 @@
 .step-hero h1 { font-size: clamp(1.5rem, 3vw, 1.9rem); font-weight: 900; color: var(--text); letter-spacing: -0.6px; margin-bottom: 6px; }
 .step-hero p { color: var(--text-mid); font-size: 0.93rem; }
 
-.app-layout { display: grid; grid-template-columns: 1fr 320px; gap: 32px; align-items: start; }
+.app-layout { display: grid; grid-template-columns: minmax(0, 1fr) 300px; gap: 36px; align-items: start; }
 .app-main { min-width: 0; }
 .app-side { position: sticky; top: calc(var(--nav-h) + 20px); }
 
@@ -510,7 +539,7 @@
 }
 
 /* --- Item picker as a card grid (replaces the narrow .item-row list on wide screens) --- */
-.item-card-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 12px; }
+.item-card-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 14px; }
 .item-card {
   background: var(--white);
   border: 1px solid var(--border);
@@ -533,20 +562,27 @@
   transition: background 0.25s var(--ease);
 }
 .item-card.has-qty .item-card-icon-wrap { background: rgba(0,166,81,0.14); }
-.item-card .item-card-label { font-size: 0.84rem; font-weight: 700; color: var(--text); line-height: 1.35; min-height: 2.5em; letter-spacing: -0.1px; }
-.item-card .item-card-price { font-size: 0.73rem; color: var(--text-muted); }
+/* Item name and its size/measurements are visually separate — a dense combined
+   string like "מיטת יחיד (עד 90×200 ס"מ)" reads as clutter. Name is the primary,
+   larger line; the measurement is a distinct muted line underneath it. */
+.item-card .item-card-name { font-size: 1rem; font-weight: 800; color: var(--text); line-height: 1.3; letter-spacing: -0.2px; }
+.item-card .item-card-size { font-size: 0.76rem; color: var(--text-muted); margin-top: 2px; }
+.item-card .item-card-price { font-size: 0.73rem; color: var(--green-dark); font-weight: 700; margin-top: 6px; }
 .item-card .qty-control { margin-top: auto; justify-content: space-between; }
 
 /* --- AI photo-scan upload card --- */
 .ai-upload-card {
   position: relative;
   overflow: hidden;
+  display: flex;
+  align-items: flex-start;
+  gap: 26px;
   background: linear-gradient(145deg, var(--green-light) 0%, rgba(255,255,255,0.85) 100%);
   border: 1px solid rgba(0,166,81,0.22);
   border-radius: 20px;
-  padding: 30px 24px;
+  padding: 30px 32px;
   margin-bottom: 24px;
-  text-align: center;
+  text-align: right;
   box-shadow: var(--shadow-2);
 }
 .ai-upload-card::before {
@@ -560,24 +596,25 @@
 }
 .ai-upload-card > * { position: relative; }
 .ai-upload-card .ai-upload-icon-wrap {
-  width: 56px; height: 56px;
-  margin: 0 auto 12px;
+  width: 60px; height: 60px;
+  flex-shrink: 0;
   border-radius: 16px;
   background: var(--white);
   display: flex; align-items: center; justify-content: center;
   box-shadow: var(--shadow-2);
 }
-.ai-upload-card .ai-upload-icon { font-size: 1.7rem; }
-.ai-upload-card h3 { font-size: 1.15rem; font-weight: 800; letter-spacing: -0.3px; color: var(--text); margin-bottom: 6px; }
-.ai-upload-card p { font-size: 0.86rem; color: var(--text-mid); margin-bottom: 18px; }
-.ai-photo-thumbs { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; margin-bottom: 14px; }
+.ai-upload-card .ai-upload-icon { font-size: 1.8rem; }
+.ai-upload-card .ai-upload-body { flex: 1; min-width: 0; }
+.ai-upload-card h3 { font-size: 1.2rem; font-weight: 800; letter-spacing: -0.3px; color: var(--text); margin-bottom: 6px; }
+.ai-upload-card p { font-size: 0.88rem; color: var(--text-mid); margin-bottom: 18px; max-width: 620px; }
+.ai-photo-thumbs { display: flex; gap: 8px; flex-wrap: wrap; justify-content: flex-start; margin-bottom: 14px; }
 .ai-photo-thumbs .ai-thumb { position: relative; width: 64px; height: 64px; }
 .ai-photo-thumbs img { width: 64px; height: 64px; object-fit: cover; border-radius: 10px; display: block; }
 .ai-photo-thumbs .ai-thumb-remove {
   position: absolute; top: -6px; left: -6px; width: 20px; height: 20px; border-radius: 50%;
   background: rgba(0,0,0,0.6); color: #fff; border: none; font-size: 0.7rem; cursor: pointer;
 }
-.ai-upload-progress { max-width: 320px; margin: 0 auto 10px; height: 6px; background: var(--white); border-radius: 3px; overflow: hidden; }
+.ai-upload-progress { max-width: 360px; margin: 0 0 10px; height: 6px; background: var(--white); border-radius: 3px; overflow: hidden; }
 .ai-upload-progress-fill { height: 100%; background: var(--green); transition: width 0.2s ease; }
 
 /* --- AI clarification question cards --- */
