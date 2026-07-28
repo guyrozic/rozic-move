@@ -8,6 +8,10 @@ export async function uploadImageFile(path, file) {
   return getDownloadURL(storageRef);
 }
 
-export async function uploadListingPhoto(listingTmpId, file, index) {
-  return uploadImageFile(`listings/${listingTmpId}/${index}_${Date.now()}.jpg`, file);
+// storage.rules requires the path segment right after `listings/` to be
+// exactly request.auth.uid (`match /listings/{userId}/{fileName}` + `uid() ==
+// userId`) — the uniqueness has to live in the filename, not an extra path
+// segment, or every write here would be permission-denied.
+export async function uploadListingPhoto(uid, file, index) {
+  return uploadImageFile(`listings/${uid}/${Date.now()}_${index}.jpg`, file);
 }

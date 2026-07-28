@@ -124,10 +124,9 @@
       const btn = document.getElementById('submit-btn');
       btn.disabled = true; btn.textContent = 'מעלה תמונות...';
       try {
-        const tmpId = `${authState.authUser.uid}_${Date.now()}`;
         const photoUrls = [];
         for (let i = 0; i < photos.length; i++) {
-          photoUrls.push(await uploadListingPhoto(tmpId, photos[i], i));
+          photoUrls.push(await uploadListingPhoto(authState.authUser.uid, photos[i], i));
         }
         btn.textContent = 'מפרסם מודעה...';
         const listingId = await createListing({
