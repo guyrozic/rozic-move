@@ -54,6 +54,17 @@
 
           <div id="ai-questions"></div>
 
+          <div class="ai-chat-card">
+            <h3>💬 או כתבו לנו מה יש לכם</h3>
+            <p>למשל: "יש לי מיטה זוגית ושתי ספות" — נוסיף את זה בעצמנו.</p>
+            <div class="ai-chat-thread" id="ai-chat-thread"></div>
+            <div id="ai-free-items" class="ai-free-items"></div>
+            <div class="ai-chat-input-row">
+              <input type="text" id="ai-chat-input" placeholder="כתבו כאן...">
+              <button class="btn btn-primary" id="ai-chat-send-btn">שלח</button>
+            </div>
+          </div>
+
           <div class="app-card">
             <h2>או בחרו ידנית</h2>
             <p class="app-card-desc">בחרו כמות לכל פריט. אפשר לעבור בין הקטגוריות.</p>
@@ -196,7 +207,7 @@
     import { ALL_ROOMS, findItemAnywhere, getItemPriceAnyCategory, getFullAICatalog, getSizeSiblings } from './data/items.js';
     import { BASE_PRICE, PRICE_PER_KM, FLOOR_SURCHARGE_PER_FLOOR, getVolumeDiscount, getSurgePricing, calculatePackingFromItems, CURRENT_COMMISSION_RATE } from './data/pricing.js';
     import { FLOORS, craneCostFor, distanceBetween, formatDateApp, parseDateApp } from './geo.js';
-    import { analyzeImagesWithCatalog, isAIConfigured, friendlyAIError } from './ai-vision.js';
+    import { analyzeImagesWithCatalog, isAIConfigured, friendlyAIError, chatAddItemsWithCatalog } from './ai-vision.js';
     import { resizeImageToBase64 } from './image-resize.js';
 
     const authState = await requireAuth();
@@ -204,6 +215,7 @@
 
     const state = {
       items: {},           // itemKey -> qty
+      freeItems: [],        // [{label, qty}] — no catalog match, priced manually by the team
       hasPacking: false,
       fromAddress: '', toAddress: '',
       fromFloor: 'קרקע', toFloor: 'קרקע', fromElevator: true, toElevator: true,
@@ -380,6 +392,79 @@
       updateItemsHeader();
     }
 
+    // ---------- AI chat-to-add-items ----------
+    let chatHistory = []; // {role:'user'|'assistant', text}
+    let chatThinking = false;
+
+    function applyItemAction(item) {
+      const current = state.items[item.itemKey] || 0;
+      if (item.action === 'remove') state.items[item.itemKey] = Math.max(0, current - item.qty);
+      else if (item.action === 'set') state.items[item.itemKey] = Math.max(0, item.qty);
+      else state.items[item.itemKey] = current + item.qty;
+    }
+
+    function applyFreeItem(f) {
+      if (f.action === 'remove') {
+        const idx = state.freeItems.findIndex(x => x.label === f.label);
+        if (idx >= 0) state.freeItems.splice(idx, 1);
+      } else {
+        state.freeItems.push({ label: f.label, qty: f.qty });
+      }
+    }
+
+    function renderChatThread() {
+      const box = document.getElementById('ai-chat-thread');
+      box.innerHTML = chatHistory.map(m => `<div class="ai-chat-msg ${m.role === 'user' ? 'user' : 'ai'}">${m.text}</div>`).join('')
+        + (chatThinking ? '<div class="ai-chat-msg ai typing">חושב...</div>' : '');
+      box.scrollTop = box.scrollHeight;
+    }
+
+    function renderFreeItems() {
+      const box = document.getElementById('ai-free-items');
+      box.innerHTML = state.freeItems.map((f, i) => `
+        <div class="ai-free-item-row">
+          <span>${f.label} × ${f.qty} <span class="form-hint">(מחיר ייקבע ידנית)</span></span>
+          <button class="ai-free-item-remove" data-i="${i}">✕</button>
+        </div>
+      `).join('');
+      box.querySelectorAll('.ai-free-item-remove').forEach(btn => btn.addEventListener('click', () => {
+        state.freeItems.splice(Number(btn.dataset.i), 1); renderFreeItems(); updateItemsHeader();
+      }));
+    }
+
+    async function sendChatMessage() {
+      const input = document.getElementById('ai-chat-input');
+      const sendBtn = document.getElementById('ai-chat-send-btn');
+      const message = input.value.trim();
+      if (!message) return;
+      const historyForPrompt = chatHistory.slice();
+      chatHistory.push({ role: 'user', text: message });
+      input.value = '';
+      chatThinking = true;
+      input.disabled = true; sendBtn.disabled = true;
+      renderChatThread();
+      try {
+        const catalog = getFullAICatalog();
+        const currentQuantities = selectedItems().map(i => ({ key: i.key, label: i.label, qty: i.qty }));
+        const result = await chatAddItemsWithCatalog(catalog, 'הדירה', currentQuantities, message, historyForPrompt);
+        result.items.forEach(applyItemAction);
+        if (result.freeItems.length > 0) { result.freeItems.forEach(applyFreeItem); renderFreeItems(); }
+        pendingQuestions = pendingQuestions.concat(result.questions);
+        chatHistory.push({ role: 'assistant', text: result.reply || 'הוספתי ✓' });
+        renderQuestions();
+        renderItems();
+        updateItemsHeader();
+      } catch (err) {
+        chatHistory.push({ role: 'assistant', text: friendlyAIError(err) });
+      } finally {
+        chatThinking = false;
+        renderChatThread();
+        input.disabled = false; sendBtn.disabled = false; input.focus();
+      }
+    }
+    document.getElementById('ai-chat-send-btn').addEventListener('click', sendChatMessage);
+    document.getElementById('ai-chat-input').addEventListener('keydown', (e) => { if (e.key === 'Enter') sendChatMessage(); });
+
     // ---------- Step 1: items ----------
     const roomTabsEl = document.getElementById('room-tabs');
     const itemListEl = document.getElementById('item-list');
@@ -547,6 +632,10 @@
         `<div class="price-line ${cls || ''}"><span>${label}</span><span>${val}</span></div>`
       ).join('');
       document.getElementById('price-total-value').textContent = `₪${p.totalPrice}`;
+      if (state.freeItems.length > 0) {
+        const names = state.freeItems.map(f => `${f.label} ×${f.qty}`).join(', ');
+        document.getElementById('price-lines').innerHTML += `<div class="alert alert-info" style="margin-top:10px;">פריטים נוספים ללא תמחור אוטומטי: ${names}. הצוות שלנו יצור קשר עם הצעת מחיר.</div>`;
+      }
       renderSidePrice();
     }
 
@@ -581,6 +670,7 @@
           craneFloor: state.needsCrane ? state.craneFloor : null,
           craneCost: p.craneCost,
           craneItems: state.needsCrane ? state.craneItems : [],
+          manualPricingItems: state.freeItems.map(f => ({ label: f.label, qty: f.qty })),
         });
         location.href = `order-status.html?id=${orderId}`;
       } catch (err) {
@@ -618,11 +708,12 @@
 
     function updateItemsHeader() {
       renderSidePrice();
-      const totalItems = Object.values(state.items).reduce((s, q) => s + q, 0);
+      const totalItems = Object.values(state.items).reduce((s, q) => s + q, 0) + state.freeItems.reduce((s, f) => s + f.qty, 0);
       document.getElementById('next-btn').disabled = totalItems === 0;
     }
     document.getElementById('next-btn').addEventListener('click', () => goToStep(2));
     renderAIPhotos();
+    renderFreeItems();
     updateItemsHeader();
     goToStep(1);
   </script>

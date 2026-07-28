@@ -1,8 +1,6 @@
-// Faithful port of Hovalot's src/services/aiVision.ts — photo-scan path only
-// (analyzeImagesWithCatalog + its exact prompt/parsing). The free-text "chat to
-// add items" path (chatAddItemsWithCatalog/buildChatPrompt) is intentionally not
-// ported — the existing manual +/- item picker already covers "AI missed
-// something, add it by hand," so this file only needs to carry photo analysis.
+// Faithful port of Hovalot's src/services/aiVision.ts — both the photo-scan path
+// (analyzeImagesWithCatalog) and the free-text "chat to add items" path
+// (chatAddItemsWithCatalog/buildChatPrompt).
 //
 // Unlike the mobile app (EXPO_PUBLIC_GEMINI_API_KEY, necessarily bundled
 // client-side — there's no alternative on-device), the web build routes every
@@ -126,6 +124,101 @@ export async function analyzeImagesWithCatalog(catalog, label, images) {
   const result = parseItemsAndQuestions(parsed, validKeys);
   if (result.items.length === 0 && result.questions.length === 0) {
     console.log('[ai-vision] empty result', { label, rawParsed: parsed });
+  }
+  return result;
+}
+
+// Verbatim from aiVision.ts's buildChatPrompt — do not paraphrase when editing,
+// this wording has been tuned against real conversations.
+function buildChatPrompt(roomLabel, catalog, currentQuantities, message, history) {
+  const currentList = currentQuantities.length > 0
+    ? currentQuantities.map(c => `- "${c.label}" (key: "${c.key}") × ${c.qty}`).join('\n')
+    : '(עדיין לא נוספו פריטים)';
+
+  const historyText = history.length > 0
+    ? history.slice(-6).map(h => `${h.role === 'user' ? 'User' : 'Assistant'}: ${h.text}`).join('\n')
+    : '(no previous messages)';
+
+  return `You are a helpful assistant for a moving app. You MUST always reply in Hebrew in the "reply" field, regardless of what language the user wrote in.
+
+Current room/context: "${roomLabel}" — but the catalog below spans EVERY category in the entire app (not just this room), because people sometimes have items that don't belong to the "expected" room (e.g. a bed stored in the kitchen). Always search the FULL catalog, not just items that "belong" to this room.
+
+Full catalog of valid items (use ONLY these itemKey values, exactly as written). Each entry may list "שמות נוספים" (alternate names/synonyms real users type) — treat any of those as an exact match too, just like the main label:
+${buildCatalogList(catalog)}
+
+Items the user currently has in their list (for context only):
+${currentList}
+
+Recent conversation so far (oldest first, for context — e.g. if your previous reply asked a clarifying question and the user is now answering it):
+${historyText}
+
+NEW MESSAGE from the user (this is what you need to act on):
+"${message}"
+
+Task:
+1. Figure out which catalog item(s) the NEW MESSAGE refers to, and what the user wants to do with them.
+2. For each item, set "action" to one of:
+   - "add": the user wants to add units of this item (qty = how many to add, default 1).
+   - "remove": the user wants to remove this item, or reduce its quantity (qty = how many units to remove; if they want it removed entirely, use a large qty like 999).
+   - "set": the user is stating the exact total quantity they have for this item (qty = the exact total, can be 0).
+   For "remove", the itemKey you choose MUST be one that actually appears in the "Items the user currently has in their list" section above with qty > 0 — that list is ground truth for what's actually there, matched by itemKey, not just by wording. Never return a "remove" for an itemKey that isn't in that list (e.g. the user asks to remove something they never added, or a variant/size that isn't the one they actually have) — there is nothing there to remove, so silently making up a "removal" would be a false claim. If the user's wording could plausibly refer to more than one item that IS currently in their list (e.g. they say the generic name but two different specific variants of it are both present), pick the one that best matches their wording and remove exactly one unit of THAT item (by its real itemKey) — do not guess an itemKey that isn't actually in their list, and do not touch the other one.
+3. Matching confidence — this distinction matters a lot:
+   - "exact" match: the user's wording is (or clearly contains) the catalog item's exact label, or one of its listed synonyms, possibly with a quantity/size/color qualifier. Example: user wrote "שרפרף" and the catalog lists "שרפרף בר" as a synonym of bar_stool → exact.
+   - "inferred" match: you are matching based on reasoning/world-knowledge rather than a listed name — the user's words are NOT the label and NOT a listed synonym, you're guessing the closest catalog equivalent, AND that equivalent is a single unambiguous catalog entry (no sibling size/type variants to choose between — if it does, that's rule 6, not this rule). Example: user wrote "המכשיר שרצים עליו בבית" → you infer treadmill (הליכון), but they never said "הליכון" or its listed synonym "מסילת ריצה".
+4. For "exact" matches: return them directly in "items" with confidence "high" — do NOT ask for confirmation, just add it.
+5. For "inferred" matches: do NOT put them in "items". Instead, ask the user to confirm via "questions" — e.g. text: "התכוונת ל\\"הליכון\\"?" with options: [{ "label": "כן, זה נכון ✓", "itemKey": "treadmill", "qty": 1 }] (a "ביטול" option is added automatically, don't include it yourself).
+6. If there are several distinct possible catalog matches and you genuinely cannot decide between them, ask a clarification question in "questions" — but the way you phrase it depends on WHAT kind of ambiguity it is:
+   a. SAME physical item, different SIZES only (e.g. user wrote "מיטה" and the catalog has single/one-and-half/double/king bed — all just "a bed"). List EVERY size variant that exists in the catalog (not a subset). Each option's label MUST be the catalog item's "תווית" text copied EXACTLY as written above, including any measurements in parentheses (e.g. "מיטה זוגית (160×200 ס"מ)", not just "מיטה זוגית") — never shorten or paraphrase them.
+   b. DIFFERENT physical item TYPES that happen to share a colloquial name, where each type ALSO has its own size variants in the catalog (e.g. user wrote "שולחן" and the catalog has desk/dining table/coffee table, each itself split into small/medium/large; or user wrote "ארון" and the catalog has closet/kitchen cabinet/shoe cabinet/medicine cabinet — all colloquially "ארון"). This is a TYPE question, not a size question: each option's label must be the GENERIC type name WITHOUT any size word or measurement (e.g. "שולחן עבודה", not "שולחן עבודה בינוני (100–140 ס"מ)") — pick any one representative itemKey of that type (any size tier works, the app automatically asks a size follow-up afterward once the user picks a type, so do NOT reveal a size at this stage). List every distinct type that's plausible — INCLUDING any type that is itself a single catalog entry with NO size split at all (not every type has size variants — some are just one item). For a type with no size variants, use its full "תווית" AS-IS (with measurements, exactly like rule 6a) since there is no size follow-up coming for it. Example: user wrote "מראה" (mirror) — the catalog spans THREE distinct types: "מראת קיר" (wall mirror, has small/medium/large/giant sizes → generic label, no size), "מראת שירותים" (bathroom mirror, has small/large sizes → generic label, no size), AND "מראת גוף" / מראה עומדת (standalone floor mirror, a single catalog entry with no size variants at all → use its full label with measurements). Never drop a type just because it lacks size variants.
+   Either way, list every relevant option — not an arbitrary subset. A short, generic, single-word message like "ארון" או "שולחן" is normal and expected to hit this rule — treat it as a real request to classify via a question, never as something you failed to understand.
+7. Whenever a bed (any size/type — single/double/king/baby/bed_one_half/electric/bunk/kids) is added to "items" as a result of this message, ALSO add a clarification question asking whether a mattress should be added too — a mattress is a separate catalog item that the user may not think to mention on its own since it's normally just "part of the bed". Phrase it as a size-list question per rule 6a (list every mattress size, plus a "no mattress needed" skip option). For a bunk bed, account for TWO mattresses in how you phrase it.
+8. If the message implies swapping a previously-added item for a DIFFERENT variant instead of just removing it (e.g. "actually I meant a bigger one", "wrong size", "not that color") — this is NOT just a "remove". Your response must cover BOTH sides of the swap: include the "remove" action for the old item, AND either an "add" action for the specific replacement (if it's unambiguous — e.g. only one bigger size exists) or a clarification question in "questions" listing the plausible replacement variants (e.g. the other sizes/colors of that same item type). A reply that removes the old item but leaves the user with nothing and no question is wrong — check the current list and conversation history to recognize when this pattern applies.
+9. Use "freeItems" ONLY as a last resort — when the item is truly unique and has absolutely no catalog equivalent (e.g. a custom-built piece, a very specific machine, a pet). Common household/office items should ALWAYS match something in the catalog.
+10. Use only itemKey values that appear in the catalog above, exactly as written. Do not invent new keys.
+11. Returning "items", "freeItems" AND "questions" all empty is a LAST resort, reserved for messages that are genuinely unrelated to any item (small talk, thanks, an unrelated support question). If the message names or implies any household/office object at all — even a single vague word — you must either match it (rule 4), ask for confirmation (rule 5), or ask a classification/size question (rule 6). Do not give up just because a short message is ambiguous; ambiguity is exactly what rule 6 is for.
+12. Respond with JSON only, in this exact shape, no extra text and no markdown:
+
+{
+  "reply": "<short friendly reply IN HEBREW>",
+  "items": [{ "itemKey": "...", "qty": 1, "action": "add", "confidence": "high" }],
+  "freeItems": [{ "label": "מגהץ", "qty": 1, "action": "add" }],
+  "questions": [{ "id": "q1", "text": "...", "options": [{ "label": "...", "itemKey": "...", "qty": 1 }] }]
+}`;
+}
+
+function parseFreeItems(parsed) {
+  if (!Array.isArray(parsed.freeItems)) return [];
+  return parsed.freeItems
+    .filter((f) => f && typeof f.label === 'string' && f.label.trim().length > 0)
+    .map((f) => ({
+      label: f.label.trim(),
+      qty: Number(f.qty) > 0 ? Math.round(Number(f.qty)) : 1,
+      action: f.action === 'remove' || f.action === 'set' ? f.action : 'add',
+    }));
+}
+
+/**
+ * Free-text "add items by chat" — mirrors chatAddItemsWithCatalog in aiVision.ts.
+ * currentQuantities: [{key,label,qty}], history: [{role:'user'|'assistant', text}].
+ * Returns {reply, items, freeItems, questions}. One automatic retry only when the
+ * response is structurally valid but completely empty (items+freeItems+questions
+ * all empty) — not for HTTP/JSON errors, those just throw.
+ */
+export async function chatAddItemsWithCatalog(catalog, roomLabel, currentQuantities, message, history) {
+  const validKeys = new Set(catalog.map(c => c.key));
+  const prompt = buildChatPrompt(roomLabel, catalog, currentQuantities, message, history);
+
+  async function attempt() {
+    const parsed = await callGemini([{ text: prompt }]);
+    const { items, questions } = parseItemsAndQuestions(parsed, validKeys);
+    const freeItems = parseFreeItems(parsed);
+    const reply = typeof parsed.reply === 'string' ? parsed.reply : '';
+    return { reply, items, freeItems, questions };
+  }
+
+  let result = await attempt();
+  if (result.items.length === 0 && result.freeItems.length === 0 && result.questions.length === 0) {
+    result = await attempt();
   }
   return result;
 }

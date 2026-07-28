@@ -48,8 +48,8 @@ export async function createOrder(input) {
     craneFloor: input.craneFloor ?? null,
     craneCost: input.craneCost ?? 0,
     craneItems: input.craneItems ?? [],
-    manualPricingItems: [],
-    manualPricingTotal: 0,
+    manualPricingItems: input.manualPricingItems ?? [],
+    manualPricingTotal: input.manualPricingTotal ?? 0,
     orderSource: 'web',
   });
   return ref.id;
