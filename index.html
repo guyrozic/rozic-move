@@ -11,6 +11,7 @@
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
+  <script src="app/under-construction-banner.js"></script>
 
   <!-- Navigation -->
   <nav class="nav" id="nav">
@@ -92,22 +93,6 @@
               <strong>הזמינו באתר</strong>
             </div>
           </a>
-        </div>
-        <div class="hero-trust reveal">
-          <div class="trust-item">
-            <strong>10,000+</strong>
-            <span>הובלות</span>
-          </div>
-          <div class="trust-sep"></div>
-          <div class="trust-item">
-            <strong>500+</strong>
-            <span>מובילים</span>
-          </div>
-          <div class="trust-sep"></div>
-          <div class="trust-item">
-            <strong>4.9★</strong>
-            <span>דירוג</span>
-          </div>
         </div>
       </div>
 
@@ -378,42 +363,6 @@
     </div>
   </section>
 
-  <!-- Stats -->
-  <section class="stats-section">
-    <div class="container">
-      <div class="stats-grid">
-        <div class="stat-item reveal">
-          <div class="stat-number">
-            <span class="stat-count" data-target="10000">0</span>
-            <span class="stat-suffix">+</span>
-          </div>
-          <div class="stat-label">הובלות בוצעו</div>
-        </div>
-        <div class="stat-item reveal">
-          <div class="stat-number">
-            <span class="stat-count" data-target="500">0</span>
-            <span class="stat-suffix">+</span>
-          </div>
-          <div class="stat-label">מובילים פעילים</div>
-        </div>
-        <div class="stat-item reveal">
-          <div class="stat-number">
-            <span class="stat-fixed">4.9</span>
-            <span class="stat-suffix">★</span>
-          </div>
-          <div class="stat-label">דירוג ממוצע</div>
-        </div>
-        <div class="stat-item reveal">
-          <div class="stat-number">
-            <span class="stat-count" data-target="97">0</span>
-            <span class="stat-suffix">%</span>
-          </div>
-          <div class="stat-label">לקוחות מרוצים</div>
-        </div>
-      </div>
-    </div>
-  </section>
-
   <!-- FAQ -->
   <section class="faq-section" id="faq">
     <div class="container faq-container">
@@ -608,31 +557,6 @@
         }
       });
     });
-
-    // Counter animation
-    const counterObs = new IntersectionObserver((entries) => {
-      entries.forEach(entry => {
-        if (entry.isIntersecting) {
-          const el = entry.target;
-          const target = parseInt(el.dataset.target);
-          if (isNaN(target)) return;
-          let start = 0;
-          const duration = 1800;
-          const startTime = performance.now();
-          const tick = (now) => {
-            const elapsed = now - startTime;
-            const progress = Math.min(elapsed / duration, 1);
-            const eased = 1 - Math.pow(1 - progress, 3);
-            el.textContent = Math.floor(eased * target).toLocaleString('he-IL');
-            if (progress < 1) requestAnimationFrame(tick);
-          };
-          requestAnimationFrame(tick);
-          counterObs.unobserve(el);
-        }
-      });
-    }, { threshold: 0.5 });
-
-    document.querySelectorAll('.stat-count[data-target]').forEach(el => counterObs.observe(el));
 
     // Smooth scroll
     document.querySelectorAll('a[href^="#"]').forEach(anchor => {

@@ -79,7 +79,7 @@ img, svg { display: block; }
 /* ===== NAVIGATION ===== */
 .nav {
   position: fixed;
-  top: 0; left: 0; right: 0;
+  top: var(--banner-h, 0px); left: 0; right: 0;
   z-index: 100;
   height: var(--nav-h);
   transition: background var(--transition), box-shadow var(--transition);
@@ -226,7 +226,7 @@ img, svg { display: block; }
 .hero {
   position: relative;
   min-height: 100vh;
-  padding-top: var(--nav-h);
+  padding-top: calc(var(--nav-h) + var(--banner-h, 0px));
   display: flex;
   flex-direction: column;
   overflow: hidden;
@@ -366,33 +366,6 @@ img, svg { display: block; }
 .btn-store.large { padding: 14px 24px; }
 .btn-store.large strong { font-size: 1.1rem; }
 
-/* Trust strip */
-.hero-trust {
-  display: flex;
-  align-items: center;
-  gap: 20px;
-  transition-delay: 0.34s;
-}
-
-.trust-item {
-  display: flex;
-  flex-direction: column;
-}
-.trust-item strong {
-  font-size: 1.4rem;
-  font-weight: 900;
-  letter-spacing: -0.5px;
-  color: var(--text);
-}
-.trust-item span {
-  font-size: 0.78rem;
-  color: var(--text-muted);
-}
-.trust-sep {
-  width: 1px;
-  height: 32px;
-  background: var(--border);
-}
 
 /* ===== PHONE MOCKUP ===== */
 .hero-phone {
@@ -1025,58 +998,6 @@ img, svg { display: block; }
   padding: 1px 6px;
   border-radius: 4px;
   margin-right: 4px;
-}
-
-/* ===== STATS ===== */
-.stats-section {
-  padding: 72px 0;
-  background: var(--green);
-  position: relative;
-  overflow: hidden;
-}
-
-.stats-section::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background:
-    radial-gradient(ellipse at 10% 50%, rgba(255,255,255,0.08) 0%, transparent 50%),
-    radial-gradient(ellipse at 90% 50%, rgba(0,0,0,0.06) 0%, transparent 50%);
-}
-
-.stats-grid {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 24px;
-  position: relative;
-}
-
-.stat-item {
-  text-align: center;
-}
-
-.stat-number {
-  display: flex;
-  align-items: baseline;
-  justify-content: center;
-  gap: 2px;
-  color: white;
-  font-size: clamp(2.2rem, 4vw, 3rem);
-  font-weight: 900;
-  letter-spacing: -1px;
-  line-height: 1;
-  margin-bottom: 8px;
-}
-
-.stat-suffix {
-  font-size: clamp(1.4rem, 2.5vw, 1.9rem);
-  font-weight: 900;
-}
-
-.stat-label {
-  font-size: 0.85rem;
-  color: rgba(255,255,255,0.7);
-  font-weight: 500;
 }
 
 /* ===== FAQ ===== */
