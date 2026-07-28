@@ -34,10 +34,16 @@
       <div class="photo-grid" id="photo-grid">
         <label class="photo-add">＋<input type="file" id="photo-input" accept="image/*" multiple style="display:none;"></label>
       </div>
+      <div id="ai-listing-progress-wrap" class="ai-upload-progress" style="display:none; margin-top:10px;">
+        <div class="ai-upload-progress-fill" id="ai-listing-progress-fill" style="width:0%"></div>
+      </div>
+      <div id="ai-listing-error"></div>
+      <button class="btn btn-secondary" id="ai-analyze-listing-btn" style="margin-top:6px;" disabled>נתח תמונות עם AI ✨</button>
     </div>
 
     <div class="app-card">
       <h2>פרטי הפריט</h2>
+      <div id="ai-filled-badge" class="alert alert-success" style="display:none;">✓ AI מילא עבורך את הפרטים למטה — אפשר לערוך</div>
       <div class="form-group">
         <label for="title">כותרת</label>
         <input id="title" type="text" maxlength="100" placeholder="לדוגמה: ספה תלת מושבית">
@@ -49,6 +55,21 @@
       <div class="form-group">
         <label>קטגוריה</label>
         <div class="room-tabs" id="category-tabs"></div>
+      </div>
+      <div class="form-group">
+        <label>מצב הפריט (לא חובה)</label>
+        <div class="room-tabs" id="condition-tabs"></div>
+      </div>
+      <div id="guiding-questions"></div>
+    </div>
+
+    <div class="ai-chat-card">
+      <h3>💬 צריך עזרה בכתיבת המודעה?</h3>
+      <p>שאלו איך לכתוב כותרת טובה, לתאר מצב, ועוד.</p>
+      <div class="ai-chat-thread" id="listing-chat-thread"></div>
+      <div class="ai-chat-input-row">
+        <input type="text" id="listing-chat-input" placeholder="שאלו כאן...">
+        <button class="btn btn-primary" id="listing-chat-send-btn">שלח</button>
       </div>
     </div>
 
@@ -72,12 +93,21 @@
     import { requireAuth } from './auth.js';
     import { createListing, CATEGORY_INFO } from './listings.js';
     import { uploadListingPhoto } from './storage.js';
-    import { resizeImageToBlob } from './image-resize.js';
+    import { resizeImageToBlob, resizeImageToBase64 } from './image-resize.js';
+    import { analyzeListingPhoto, askListingAI, isAIConfigured, friendlyAIError } from './ai-vision.js';
 
     const authState = await requireAuth();
     const MAX_PHOTOS = 10;
     let photos = []; // File objects
     let category = 'furniture';
+    let condition = null;
+    let guidingQuestions = [];
+
+    const CONDITION_OPTIONS = [
+      { key: 'new', label: 'חדש / כמו חדש' },
+      { key: 'good', label: 'מצב טוב' },
+      { key: 'fair', label: 'מצב סביר' },
+    ];
 
     const tabsEl = document.getElementById('category-tabs');
     Object.entries(CATEGORY_INFO).forEach(([key, info]) => {
@@ -90,6 +120,19 @@
         [...tabsEl.children].forEach(c => c.classList.toggle('active', c.dataset.cat === key));
       });
       tabsEl.appendChild(chip);
+    });
+
+    const conditionTabsEl = document.getElementById('condition-tabs');
+    CONDITION_OPTIONS.forEach(opt => {
+      const chip = document.createElement('div');
+      chip.className = 'room-tab';
+      chip.textContent = opt.label;
+      chip.dataset.cond = opt.key;
+      chip.addEventListener('click', () => {
+        condition = condition === opt.key ? null : opt.key;
+        [...conditionTabsEl.children].forEach(c => c.classList.toggle('active', c.dataset.cond === condition));
+      });
+      conditionTabsEl.appendChild(chip);
     });
 
     const photoGrid = document.getElementById('photo-grid');
@@ -110,7 +153,101 @@
         photoGrid.insertBefore(thumb, photoGrid.querySelector('.photo-add'));
       });
       photoGrid.querySelector('.photo-add').style.display = photos.length >= MAX_PHOTOS ? 'none' : 'flex';
+      document.getElementById('ai-analyze-listing-btn').disabled = photos.length === 0 || !isAIConfigured();
     }
+
+    // ---------- AI photo analysis ----------
+    function mapAICondition(key) {
+      if (key === 'like_new') return 'new';
+      return CONDITION_OPTIONS.some(o => o.key === key) ? key : null;
+    }
+
+    function renderGuidingQuestions() {
+      const box = document.getElementById('guiding-questions');
+      if (guidingQuestions.length === 0) { box.innerHTML = ''; return; }
+      box.innerHTML = `<div class="question-card"><div class="question-text">עוד כמה פרטים שיעזרו לשכנים</div>` +
+        guidingQuestions.map((q, i) => `
+          <div class="form-group" style="margin-top:10px;">
+            <label>${q}</label>
+            <input type="text" class="guiding-answer-input" data-i="${i}" placeholder="התשובה שלך...">
+          </div>
+        `).join('') + `</div>`;
+    }
+
+    document.getElementById('ai-analyze-listing-btn').addEventListener('click', async () => {
+      if (photos.length === 0) return;
+      const btn = document.getElementById('ai-analyze-listing-btn');
+      const errBox = document.getElementById('ai-listing-error');
+      const progressWrap = document.getElementById('ai-listing-progress-wrap');
+      const progressFill = document.getElementById('ai-listing-progress-fill');
+      errBox.innerHTML = '';
+      btn.disabled = true; btn.textContent = 'מנתח...';
+      progressWrap.style.display = 'block';
+      let progress = 2; progressFill.style.width = '2%';
+      const tick = setInterval(() => { progress += (96 - progress) * 0.08; progressFill.style.width = progress + '%'; }, 200);
+      try {
+        const images = [];
+        for (const file of photos) images.push({ base64: await resizeImageToBase64(file), mimeType: 'image/jpeg' });
+        const result = await analyzeListingPhoto(images);
+        if (result.title) document.getElementById('title').value = result.title;
+        if (result.description) document.getElementById('description').value = result.description;
+        if (result.category) {
+          category = result.category;
+          [...tabsEl.children].forEach(c => c.classList.toggle('active', c.dataset.cat === category));
+        }
+        const mappedCond = mapAICondition(result.condition);
+        if (mappedCond) {
+          condition = mappedCond;
+          [...conditionTabsEl.children].forEach(c => c.classList.toggle('active', c.dataset.cond === condition));
+        }
+        guidingQuestions = result.guidingQuestions || [];
+        renderGuidingQuestions();
+        document.getElementById('ai-filled-badge').style.display = result.title ? 'block' : 'none';
+      } catch (err) {
+        errBox.innerHTML = `<div class="alert alert-error">${friendlyAIError(err)}</div>`;
+      } finally {
+        clearInterval(tick);
+        progressFill.style.width = '100%';
+        setTimeout(() => { progressWrap.style.display = 'none'; progressFill.style.width = '0%'; }, 400);
+        btn.disabled = photos.length === 0 || !isAIConfigured(); btn.textContent = 'נתח תמונות עם AI ✨';
+      }
+    });
+
+    // ---------- AI chat helper (listing-writing tips) ----------
+    let listingChatHistory = [];
+    let listingChatThinking = false;
+
+    function renderListingChat() {
+      const box = document.getElementById('listing-chat-thread');
+      box.innerHTML = listingChatHistory.map(m => `<div class="ai-chat-msg ${m.role === 'user' ? 'user' : 'ai'}">${m.text}</div>`).join('')
+        + (listingChatThinking ? '<div class="ai-chat-msg ai typing">חושב...</div>' : '');
+      box.scrollTop = box.scrollHeight;
+    }
+
+    async function sendListingChat() {
+      const input = document.getElementById('listing-chat-input');
+      const sendBtn = document.getElementById('listing-chat-send-btn');
+      const question = input.value.trim();
+      if (!question) return;
+      listingChatHistory.push({ role: 'user', text: question });
+      input.value = '';
+      listingChatThinking = true;
+      input.disabled = true; sendBtn.disabled = true;
+      renderListingChat();
+      try {
+        const context = document.getElementById('title').value.trim();
+        const reply = await askListingAI(question, context);
+        listingChatHistory.push({ role: 'assistant', text: reply });
+      } catch (err) {
+        listingChatHistory.push({ role: 'assistant', text: friendlyAIError(err) });
+      } finally {
+        listingChatThinking = false;
+        renderListingChat();
+        input.disabled = false; sendBtn.disabled = false; input.focus();
+      }
+    }
+    document.getElementById('listing-chat-send-btn').addEventListener('click', sendListingChat);
+    document.getElementById('listing-chat-input').addEventListener('keydown', (e) => { if (e.key === 'Enter') sendListingChat(); });
 
     document.getElementById('submit-btn').addEventListener('click', async () => {
       const errBox = document.getElementById('submit-error');
@@ -134,11 +271,17 @@
           photoUrls.push(await uploadListingPhoto(authState.authUser.uid, resized, i));
         }
         btn.textContent = 'מפרסם מודעה...';
+        const answeredQuestions = guidingQuestions
+          .map((q, i) => ({ q, a: document.querySelector(`.guiding-answer-input[data-i="${i}"]`)?.value.trim() }))
+          .filter(qa => qa.a);
+        const questionsText = answeredQuestions.length ? `\n\n${answeredQuestions.map(qa => `${qa.q} ${qa.a}`).join('\n')}` : '';
+        const conditionLabel = CONDITION_OPTIONS.find(c => c.key === condition)?.label;
+        const fullDescription = `${description}${questionsText}${conditionLabel ? `\n\nמצב: ${conditionLabel}` : ''}`;
         const listingId = await createListing({
           userId: authState.authUser.uid,
           userName: authState.profile.name || '',
           userPhone: authState.profile.phone || '',
-          title, description, price: 0, category, city, fromAddress,
+          title, description: fullDescription, price: 0, category, city, fromAddress,
           photos: photoUrls,
         });
         location.href = 'marketplace.html';
