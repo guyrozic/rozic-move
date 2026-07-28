@@ -72,6 +72,7 @@
     import { requireAuth } from './auth.js';
     import { createListing, CATEGORY_INFO } from './listings.js';
     import { uploadListingPhoto } from './storage.js';
+    import { resizeImageToBlob } from './image-resize.js';
 
     const authState = await requireAuth();
     const MAX_PHOTOS = 10;
@@ -122,11 +123,15 @@
       if (photos.length === 0) { errBox.innerHTML = '<div class="alert alert-error">יש להוסיף לפחות תמונה אחת.</div>'; return; }
 
       const btn = document.getElementById('submit-btn');
-      btn.disabled = true; btn.textContent = 'מעלה תמונות...';
+      btn.disabled = true; btn.textContent = 'מכין תמונות...';
       try {
         const photoUrls = [];
         for (let i = 0; i < photos.length; i++) {
-          photoUrls.push(await uploadListingPhoto(authState.authUser.uid, photos[i], i));
+          // Resized client-side first — an unmodified smartphone photo can easily
+          // exceed storage.rules' 10MB-per-photo cap and would fail to upload.
+          const resized = await resizeImageToBlob(photos[i]);
+          btn.textContent = `מעלה תמונות... (${i + 1}/${photos.length})`;
+          photoUrls.push(await uploadListingPhoto(authState.authUser.uid, resized, i));
         }
         btn.textContent = 'מפרסם מודעה...';
         const listingId = await createListing({
