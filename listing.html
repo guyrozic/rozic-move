@@ -50,6 +50,23 @@
     .btn:hover { opacity: 0.9; }
     .note { font-size: 12px; color: #AAA; margin-top: 16px; }
     #status { font-size: 14px; color: #0E5C43; font-weight: 600; margin-bottom: 16px; }
+
+    /* --- Listing --- */
+    .listing-photos { display: flex; gap: 6px; overflow-x: auto; margin-bottom: 14px; }
+    .listing-photos img { width: 96px; height: 96px; object-fit: cover; border-radius: 12px; flex-shrink: 0; }
+    .listing-title { font-size: 19px; font-weight: 900; color: #1A2E1A; margin-bottom: 4px; }
+    .listing-meta { font-size: 13px; color: #888; margin-bottom: 12px; }
+    .listing-desc { font-size: 14px; color: #555; line-height: 23px; white-space: pre-wrap; margin-bottom: 16px; }
+    .free-badge {
+      display: inline-block; font-size: 12px; font-weight: 800;
+      color: #0E5C43; background: #E0F5E9; padding: 3px 10px; border-radius: 50px; margin-bottom: 12px;
+    }
+    .info-box {
+      background: #F6FBF8; border: 1px solid #DCEFE5; border-radius: 14px;
+      padding: 14px 16px; font-size: 14px; color: #40604F; line-height: 22px; margin-bottom: 12px;
+    }
+    .contact-row { font-size: 14px; color: #555; margin-bottom: 8px; }
+    .contact-row strong { color: #1A2E1A; }
   </style>
 </head>
 <body>
@@ -60,9 +77,18 @@
 
     <div id="status">מנסה לפתוח את האפליקציה...</div>
 
-    <div class="opening">
+    <div class="opening" id="opening">
       שותפו איתך מוצר דרך ROZIC MOVE.<br>
       לצפייה במוצר — פתח את האפליקציה.
+    </div>
+
+    <div id="listing-body" style="display:none; text-align:right;">
+      <div class="listing-photos" id="listing-photos"></div>
+      <div class="free-badge">חינם</div>
+      <div class="listing-title" id="listing-title"></div>
+      <div class="listing-meta" id="listing-meta"></div>
+      <div class="listing-desc" id="listing-desc"></div>
+      <div id="contact-box"></div>
     </div>
 
     <div class="divider"></div>
@@ -96,6 +122,109 @@
       }, 800);
     } else {
       document.getElementById('status').textContent = '';
+    }
+  </script>
+
+  <script type="module">
+    // מי שאין לו את האפליקציה נשאר בדף הזה אחרי ניסיון ה-deep link שלמעלה,
+    // ועד היום לא היה לו שום דבר לראות — לא את המודעה ולא דרך ליצור קשר.
+    import { auth } from './app/firebase.js';
+    import { onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/12.16.0/firebase-auth.js';
+    import { getListing, getListingContact, CATEGORY_INFO } from './app/listings.js';
+
+    const listingId = new URLSearchParams(location.search).get('id') || '';
+    if (listingId) {
+      const openingEl = document.getElementById('opening');
+      const bodyEl    = document.getElementById('listing-body');
+      openingEl.textContent = 'טוען את המודעה...';
+
+      const listing = await getListing(listingId).catch(() => null);
+      if (!listing) {
+        openingEl.textContent = 'המודעה לא נמצאה — ייתכן שהיא הוסרה או שהקישור שגוי.';
+      } else {
+        openingEl.style.display = 'none';
+        bodyEl.style.display = 'block';
+
+        // textContent ולא innerHTML: כותרת/תיאור/עיר הם טקסט חופשי שמשתמש
+        // אחר הקליד, והדף הזה נפתח לכל אדם באינטרנט בלי התחברות.
+        document.getElementById('listing-title').textContent = listing.title || 'מוצר';
+        document.getElementById('listing-meta').textContent =
+          [CATEGORY_INFO[listing.category]?.label, listing.city].filter(Boolean).join(' · ');
+        document.getElementById('listing-desc').textContent = listing.description || '';
+
+        const photosEl = document.getElementById('listing-photos');
+        (listing.photos || []).forEach(url => {
+          const img = document.createElement('img');
+          img.src = url;              // property ולא תבנית מחרוזת — לא נסגר מ-src מזויף
+          img.alt = listing.title || '';
+          photosEl.appendChild(img);
+        });
+        if (!(listing.photos || []).length) photosEl.style.display = 'none';
+
+        renderContact(listing);
+      }
+    }
+
+    function renderContact(listing) {
+      const box = document.getElementById('contact-box');
+      if (listing.status === 'sold') {
+        box.innerHTML = '<div class="info-box">המוצר כבר נמסר.</div>';
+        return;
+      }
+      box.innerHTML = '<div class="info-box">בודק אם אתה מחובר...</div>';
+
+      onAuthStateChanged(auth, async (user) => {
+        if (!user) {
+          // מכוון (נקבע 21.8): הטלפון והכתובת יושבים בתת-מסמך שדורש התחברות,
+          // כדי שלא ייגרפו אנונימית. **גם** למודעה ישנה שעדיין נושאת
+          // userPhone על המסמך הציבורי לא מציגים אותו כאן — הצגה כזו הייתה
+          // פותחת מחדש בדיוק את הדליפה שנסגרה.
+          const next = encodeURIComponent(`../listing.html?id=${listing.id}`);
+          box.innerHTML = `
+            <div class="info-box">פרטי הקשר של המפרסם מוצגים למשתמשים מחוברים בלבד.</div>
+            <a class="btn btn-primary" href="app/login.html?next=${next}">התחבר כדי לראות טלפון ←</a>`;
+          return;
+        }
+
+        // ה-fallback לשדות שעל המודעה עצמה הוא עבור מודעות שנוצרו לפני מעבר
+        // פרטי הקשר — אותו fallback כמו ListingDetailsScreen באפליקציה.
+        const contact = await getListingContact(listing.id).catch(() => null);
+        const phone   = contact?.userPhone   ?? listing.userPhone   ?? '';
+        const address = contact?.fromAddress ?? listing.fromAddress ?? '';
+
+        if (!phone) {
+          box.innerHTML = '<div class="info-box">למודעה הזו לא נשמר טלפון ליצירת קשר. אפשר לפנות דרך האפליקציה.</div>';
+          return;
+        }
+
+        box.textContent = '';
+        if (address) {
+          const row = document.createElement('div');
+          row.className = 'contact-row';
+          row.append('כתובת איסוף: ');
+          const strong = document.createElement('strong');
+          strong.textContent = address;
+          row.appendChild(strong);
+          box.appendChild(row);
+        }
+        const row = document.createElement('div');
+        row.className = 'contact-row';
+        row.append('טלפון: ');
+        const strong = document.createElement('strong');
+        strong.textContent = phone;
+        row.appendChild(strong);
+        box.appendChild(row);
+
+        const text = `היי ${listing.userName || ''}, ראיתי את "${listing.title || ''}" ב-ROZIC MOVE ואשמח לקחת אותו. האם עדיין זמין?`;
+        const wa = document.createElement('a');
+        wa.className = 'btn btn-primary';
+        wa.style.marginTop = '12px';
+        wa.target = '_blank';
+        wa.rel = 'noopener';
+        wa.href = `https://wa.me/972${phone.replace(/\D/g, '').replace(/^0/, '')}?text=${encodeURIComponent(text)}`;
+        wa.textContent = '💬 יצירת קשר בוואטסאפ';
+        box.appendChild(wa);
+      });
     }
   </script>
 </body>
