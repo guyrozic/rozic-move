@@ -41,7 +41,11 @@ export async function registerCustomer({ name, email, phone, password }) {
   const profile = {
     uid: credential.user.uid, name, email, phone, userType: 'customer',
     referralCode: generateReferralCode(credential.user.uid),
-    walletBalance: 0,
+    // אין כאן walletBalance. firestore.rules (newUserFieldsSafe) אוסר על
+    // walletBalance/earningsBalance/cancellationStrikes/suspendedUntil/
+    // suspensionReason להופיע במסמך משתמש חדש — הם חיים ב-
+    // users/{uid}/private/financial ורק אדמין/Cloud Function כותב אותם.
+    // AuthContext.register באפליקציה כבר לא כותב אותם מאותה סיבה.
   };
   await setDoc(doc(db, 'users', credential.user.uid), { ...profile, termsAcceptedAt: serverTimestamp() });
   sendEmailVerification(credential.user, EMAIL_VERIFICATION_SETTINGS).catch(() => {});
