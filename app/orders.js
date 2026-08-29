@@ -10,6 +10,7 @@ import { db } from './firebase.js';
 
 export const STATUS_LABELS = {
   draft: 'טיוטה',
+  pending_pricing: 'ממתין לתמחור',
   pending_payment: 'ממתין לתשלום',
   pending: 'ממתין למוביל',
   assigned: 'מוביל שובץ',
@@ -18,6 +19,33 @@ export const STATUS_LABELS = {
   completed: 'הושלם',
   cancelled: 'בוטל',
 };
+
+/**
+ * הסכום שהלקוח רואה — פורט מ-customerTotalOf() ב-orders.ts.
+ *
+ * תוספת התמחור הידני נכנסת ל-`price` **בדיוק פעם אחת**, ברגע היציאה מ-
+ * 'pending_pricing'. לפני כן `price` הוא הסכום הקטלוגי בלבד ו-
+ * `manualPricingTotal` הוא תוספת שעוד לא נכנסה אליו, אחרי כן היא כבר בפנים
+ * והשדה נשאר כפירוט. חיבור עיוור של השניים מציג את התוספת פעמיים.
+ */
+export function customerTotalOf(order) {
+  const price = order.price ?? 0;
+  const folded = order.status !== 'draft' && order.status !== 'pending_pricing';
+  return folded ? price : price + (order.manualPricingTotal ?? 0);
+}
+
+/**
+ * מראה את computeInitialOrderStatus() ב-orders.ts. הזמנה שיש בה פריט לתמחור
+ * ידני שעוד לא תומחר **לא יכולה ללכת ל-Grow** — אין סכום נכון לחייב עדיין,
+ * ו-price מכיל רק את הסכום הקטלוגי בלי אותו פריט. בלי זה הלקוח משלם סכום
+ * שלא כולל את הפריט שהוסיף.
+ *
+ * אין כאן פיצול card/cash כמו באפליקציה — האתר מציע כרטיס בלבד.
+ */
+function computeInitialOrderStatus(manualPricingItems) {
+  if (manualPricingItems?.some(i => i.price === undefined)) return 'pending_pricing';
+  return 'pending_payment';
+}
 
 /** Creates a submitted order (not a draft) — mirrors createOrder() in orders.ts field-for-field. */
 export async function createOrder(input) {
@@ -36,7 +64,8 @@ export async function createOrder(input) {
     commissionAmount: input.commissionAmount ?? 0,
     // Card is the only payment method the site offers (matches the app) — orders
     // wait in 'pending_payment' until Grow's webhook (growNotify) confirms payment.
-    status: 'pending_payment',
+    // אלא אם יש פריט שממתין לתמחור ידני — ראו computeInitialOrderStatus.
+    status: computeInitialOrderStatus(input.manualPricingItems),
     createdAt: serverTimestamp(),
     hasInsurance: input.hasInsurance ?? false,
     insuranceAmount: input.insuranceAmount ?? 0,
@@ -135,7 +164,7 @@ export async function promoteDraftToOrder(orderId, finalFields) {
     itemsSummary: finalFields.itemsSummary ?? null,
     price: finalFields.price,
     commissionAmount: finalFields.commissionAmount ?? 0,
-    status: 'pending_payment',
+    status: computeInitialOrderStatus(finalFields.manualPricingItems),
     hasInsurance: finalFields.hasInsurance ?? false,
     insuranceAmount: finalFields.insuranceAmount ?? 0,
     paymentMethod: 'card',
@@ -146,7 +175,10 @@ export async function promoteDraftToOrder(orderId, finalFields) {
     craneFloor: finalFields.craneFloor ?? null,
     craneCost: finalFields.craneCost ?? 0,
     craneItems: finalFields.craneItems ?? [],
-    manualPricingItems: [],
+    // היה `[]` קשיח. זה מוחק פריטים שממתינים לתמחור בדיוק ברגע קידום הטיוטה,
+    // ובנוסף מפיל את הכתיבה מול firestore.rules: ענף 'pending_pricing' ב-
+    // orderShapeValid() דורש `manualPricingItems is list && size() > 0`.
+    manualPricingItems: finalFields.manualPricingItems ?? [],
     manualPricingTotal: 0,
     draftServiceType: null, draftPayload: null, draftStep: null,
     draftUpdatedAt: null, draftReminderSent: null,

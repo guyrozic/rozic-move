@@ -82,7 +82,7 @@
 
   <script type="module">
     import { requireAuth, resendVerificationEmail, refreshEmailVerified, sendPhoneVerificationCode, confirmPhoneVerificationCode, logout } from './auth.js';
-    import { subscribeToUserOrders, STATUS_LABELS } from './orders.js';
+    import { subscribeToUserOrders, customerTotalOf, STATUS_LABELS } from './orders.js';
     import { createSupportTicket } from './support.js';
 
     const state = await requireAuth();
@@ -197,7 +197,7 @@
             <div class="order-row-title">${o.title || 'הזמנה'}</div>
             <div class="order-row-meta"><span class="status-badge ${o.status}">${STATUS_LABELS[o.status] || o.status}</span></div>
           </div>
-          <div class="order-row-price">₪${o.price ?? 0}</div>
+          <div class="order-row-price">₪${customerTotalOf(o)}</div>
         </a>
       `).join('');
     });

@@ -27,7 +27,7 @@
 
   <script type="module">
     import { requireAuth } from './auth.js';
-    import { subscribeToOrder, cancelOrder, STATUS_LABELS } from './orders.js';
+    import { subscribeToOrder, cancelOrder, customerTotalOf, STATUS_LABELS } from './orders.js';
     import { startGrowCheckout } from './payments.js';
 
     const authState = await requireAuth();
@@ -62,7 +62,12 @@
         return;
       }
 
-      const cancellable = ['draft', 'pending_payment', 'pending', 'assigned'].includes(order.status);
+      // 'pending_pricing' נכלל כאן בדיוק כמו canCancel ב-OrderDetailsScreen
+      // באפליקציה — הזמנה שממתינה לתמחור עדיין לא שולמה, ואין שום סיבה
+      // לכלוא בה את הלקוח עד שהצוות יתמחר.
+      const cancellable = ['draft', 'pending_pricing', 'pending_payment', 'pending', 'assigned'].includes(order.status);
+      const total = customerTotalOf(order);
+      const manualItems = order.manualPricingItems ?? [];
 
       contentEl.innerHTML = `
         <div class="app-card">
@@ -70,10 +75,19 @@
           <p><span class="status-badge ${order.status}">${STATUS_LABELS[order.status] || order.status}</span></p>
         </div>
 
+        ${order.status === 'pending_pricing' ? `
+        <div class="app-card">
+          <div class="alert alert-info">
+            ההזמנה נשמרה. הוספת פריט שאין לו מחיר אוטומטי, ולכן עוד אין סכום סופי לחיוב —
+            הצוות שלנו יתמחר אותו בקרוב, וברגע שזה יקרה יופיע כאן כפתור תשלום עם הסכום המלא.
+            הסכום למטה הוא ביניים ואינו כולל את הפריט שממתין לתמחור.
+          </div>
+        </div>` : ''}
+
         ${order.status === 'pending_payment' ? `
         <div class="app-card">
           <div class="alert alert-info">ההזמנה נוצרה — נשאר רק לשלם כדי שמוביל יוכל לקחת אותה.</div>
-          <button class="btn btn-primary btn-block" id="pay-btn">שלם עכשיו — ₪${order.price ?? 0}</button>
+          <button class="btn btn-primary btn-block" id="pay-btn">שלם עכשיו — ₪${total}</button>
           <div id="pay-error"></div>
         </div>` : ''}
 
@@ -84,7 +98,11 @@
           ${order.scheduledDate ? `<div class="price-line"><span>תאריך</span><span>${order.scheduledDate}${order.timeSlot ? ' · ' + order.timeSlot : ''}</span></div>` : ''}
           ${order.itemsSummary ? `<div class="price-line"><span>פריטים</span><span>${order.itemsSummary}</span></div>` : ''}
           ${order.notes ? `<div class="price-line"><span>הערות</span><span>${order.notes}</span></div>` : ''}
-          <div class="price-total"><span>סה"כ</span><strong>₪${order.price ?? 0}</strong></div>
+          ${manualItems.length ? `
+          <div class="price-line"><span>פריטים לתמחור ידני</span><span>${
+            manualItems.map(mi => `${mi.label} ×${mi.qty}${mi.price !== undefined ? ` — ₪${mi.price}` : ' — ממתין לתמחור'}`).join('<br>')
+          }</span></div>` : ''}
+          <div class="price-total"><span>${order.status === 'pending_pricing' ? 'סה"כ עד כה' : 'סה"כ'}</span><strong>₪${total}</strong></div>
         </div>
 
         ${cancellable ? `
@@ -99,7 +117,7 @@
           await startGrowCheckout(order.id);
         } catch (err) {
           document.getElementById('pay-error').innerHTML = '<div class="alert alert-error">פתיחת התשלום נכשלה. נסה שוב.</div>';
-          btn.disabled = false; btn.textContent = `שלם עכשיו — ₪${order.price ?? 0}`;
+          btn.disabled = false; btn.textContent = `שלם עכשיו — ₪${total}`;
         }
       });
 

@@ -434,6 +434,9 @@
   font-size: 0.78rem;
   font-weight: 800;
 }
+/* ענבר, כמו colors.amber באפליקציה — בלי הכלל הזה התג רונדר בלי רקע בכלל
+   וההזמנה נראתה כאילו היא במצב לא מוכר. */
+.status-badge.pending_pricing  { background: #FBEFD9; color: #8A5A08; }
 .status-badge.pending_payment { background: #FFF3D6; color: #93690A; }
 .status-badge.pending         { background: #E3EEFB; color: #2A5B8C; }
 .status-badge.assigned,
