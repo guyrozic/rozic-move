@@ -3,12 +3,195 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>ROZIC MOVE — מזיזים אותך קדימה</title>
-  <meta name="description" content="הפלטפורמה המהירה ביותר להזמנת הובלות ומשלוחים בישראל. חברו למובילים מקצועיים בלחיצת כפתור.">
+  <title>ROZIC MOVE — הזמנת הובלה ומעבר דירה אונליין בישראל</title>
+  <meta name="description" content="פלטפורמה ישראלית להזמנת הובלות: מעבר דירה, מובילים בקטנה ושירות אריזה. בונים רשימת פריטים, מקבלים מחיר לפני אישור, ועוקבים אחרי המוביל בזמן אמת — באפליקציה או ישירות מהדפדפן.">
+  <link rel="canonical" href="https://rozicmove.com/">
+  <meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large">
+
+  <!-- Open Graph / social + AI crawlers -->
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="ROZIC MOVE">
+  <meta property="og:locale" content="he_IL">
+  <meta property="og:url" content="https://rozicmove.com/">
+  <meta property="og:title" content="ROZIC MOVE — הזמנת הובלה ומעבר דירה אונליין בישראל">
+  <meta property="og:description" content="פלטפורמה ישראלית להזמנת הובלות: מעבר דירה, מובילים בקטנה ושירות אריזה. מחיר לפני אישור ומעקב בזמן אמת.">
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="ROZIC MOVE — הזמנת הובלה ומעבר דירה אונליין בישראל">
+  <meta name="twitter:description" content="פלטפורמה ישראלית להזמנת הובלות: מעבר דירה, מובילים בקטנה ושירות אריזה. מחיר לפני אישור ומעקב בזמן אמת.">
+
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css">
+
+  <!--
+    Structured data (JSON-LD). Kept deliberately free of prices, ratings and review
+    counts: the site publishes no price list and has no collected ratings, so any
+    aggregateRating / offer price here would be fabricated. See llms.txt for the
+    plain-language version of the same facts.
+  -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "Organization",
+        "@id": "https://rozicmove.com/#organization",
+        "name": "ROZIC MOVE",
+        "alternateName": ["רוזיק", "רוזיק מוב"],
+        "url": "https://rozicmove.com/",
+        "slogan": "מזיזים אותך קדימה",
+        "description": "ROZIC MOVE היא פלטפורמה ישראלית להזמנת הובלות, שמחברת בין אנשים שצריכים להזיז דברים לבין מובילים עצמאיים מקצועיים. ההזמנה נעשית באפליקציה או ישירות מהדפדפן: בונים רשימת פריטים, ממלאים פרטי כתובות וקומות, ומקבלים מחיר לפני אישור ההזמנה. ROZIC MOVE אינה מפעילה בעצמה את ההובלה — היא מתווכת ומנהלת את ההזמנה, והביצוע בפועל הוא של המוביל העצמאי.",
+        "areaServed": {
+          "@type": "Country",
+          "name": "ישראל",
+          "alternateName": "Israel",
+          "identifier": "IL"
+        },
+        "knowsLanguage": ["he", "he-IL"],
+        "sameAs": [
+          "https://apps.apple.com/app/id6783814838",
+          "https://play.google.com/store/apps/details?id=com.rozicmove.app"
+        ]
+      },
+      {
+        "@type": "WebSite",
+        "@id": "https://rozicmove.com/#website",
+        "url": "https://rozicmove.com/",
+        "name": "ROZIC MOVE",
+        "inLanguage": "he-IL",
+        "publisher": { "@id": "https://rozicmove.com/#organization" }
+      },
+      {
+        "@type": ["WebPage", "FAQPage"],
+        "@id": "https://rozicmove.com/#webpage",
+        "url": "https://rozicmove.com/",
+        "name": "ROZIC MOVE — הזמנת הובלה ומעבר דירה אונליין בישראל",
+        "isPartOf": { "@id": "https://rozicmove.com/#website" },
+        "about": { "@id": "https://rozicmove.com/#organization" },
+        "inLanguage": "he-IL",
+        "mainEntity": [
+          {
+            "@type": "Question",
+            "name": "כמה עולה שירות ההובלה?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "המחיר מחושב אוטומטית לפי מרחק, סוג שירות, גודל הפריטים ועומס ביקוש. תקבלו מחיר ברור לפני אישור ההזמנה — ללא הפתעות."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "האם אפשר לעקוב אחרי המוביל?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "כן! לאחר אישור ההזמנה, תוכלו לעקוב אחרי המוביל בזמן אמת על המפה, להתכתב איתו ולראות עדכוני סטטוס לכל אורך ההובלה."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "מה קורה אם יש נזק לציוד?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "כל מוביל ברוזיק מחויב לביטוח תקין. במקרה של נזק, ניתן לדווח דרך האפליקציה ואנו נסייע בגישור בין הצדדים. מומלץ לצלם את הפריטים לפני ההובלה."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "כמה זמן לוקח למצוא מוביל?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "ברוב המקרים, מוביל מתאים נמצא תוך מספר דקות. בשעות עומס ייתכן שיהיה צורך להמתין מעט יותר, אך תקבלו עדכון על הזמינות בזמן אמת."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "אילו אמצעי תשלום מתקבלים?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "ניתן לשלם באשראי, ביט, ובמקרים מסוימים גם במזומן — ישירות למוביל. כל פרטי התשלום מאובטחים ומוצפנים."
+            }
+          }
+        ]
+      },
+      {
+        "@type": "MobileApplication",
+        "@id": "https://rozicmove.com/#mobileapp",
+        "name": "ROZIC MOVE",
+        "applicationCategory": "LifestyleApplication",
+        "operatingSystem": "iOS, Android",
+        "inLanguage": "he-IL",
+        "url": "https://rozicmove.com/",
+        "installUrl": [
+          "https://apps.apple.com/app/id6783814838",
+          "https://play.google.com/store/apps/details?id=com.rozicmove.app"
+        ],
+        "publisher": { "@id": "https://rozicmove.com/#organization" },
+        "description": "אפליקציית ROZIC MOVE ל-iOS ולאנדרואיד: הזמנת מעבר דירה, מובילים בקטנה ושירות אריזה, מעקב אחרי המוביל בזמן אמת וצ'אט ישיר איתו. אותה הזמנה אפשרית גם מהדפדפן, בלי הורדה."
+      },
+      {
+        "@type": "Service",
+        "@id": "https://rozicmove.com/#service-apartment-move",
+        "name": "מעבר דירה",
+        "serviceType": "הובלת דירה",
+        "provider": { "@id": "https://rozicmove.com/#organization" },
+        "areaServed": { "@type": "Country", "name": "ישראל", "identifier": "IL" },
+        "inLanguage": "he-IL",
+        "description": "הובלה מלאה לדירה החדשה. בונים רשימת פריטים לפי חדרים — ידנית, או בסריקת תמונות של החדר שמזהה את הרהיטים אוטומטית — ומוסיפים כתובות, קומות, מעלית ותאריך. המחיר נגזר מכמות וסוג הפריטים, המרחק בין הכתובות, הקומות והאם יש מעלית, ומתוספות שנבחרו כמו אריזה, פירוק והרכבה, או הרמה במנוף לפריט שלא עובר במדרגות. ההובלה עצמה מבוצעת על ידי מוביל עצמאי שמשובץ להזמנה.",
+        "availableChannel": {
+          "@type": "ServiceChannel",
+          "serviceUrl": "https://rozicmove.com/app/",
+          "availableLanguage": { "@type": "Language", "name": "Hebrew", "alternateName": "he" }
+        }
+      },
+      {
+        "@type": "Service",
+        "@id": "https://rozicmove.com/#service-small-move",
+        "name": "מובילים בקטנה",
+        "serviceType": "הובלת פריטים בודדים",
+        "provider": { "@id": "https://rozicmove.com/#organization" },
+        "areaServed": { "@type": "Country", "name": "ישראל", "identifier": "IL" },
+        "inLanguage": "he-IL",
+        "description": "הובלה של פריטים בודדים ולא של דירה שלמה — ספה, מקרר, מכונת כביסה, ארון, מיטה או כל פריט מהקטלוג. בוחרים פריטים מהרשימה או מצלמים אותם, ומוסיפים כתובות, קומות ומעלית. אותם גורמים משפיעים על המחיר: כמות וסוג הפריטים, המרחק, הקומות והמעלית, ותוספות שנבחרו. הביצוע הוא של מוביל עצמאי עם רכב מתאים.",
+        "availableChannel": {
+          "@type": "ServiceChannel",
+          "serviceUrl": "https://rozicmove.com/app/",
+          "availableLanguage": { "@type": "Language", "name": "Hebrew", "alternateName": "he" }
+        }
+      },
+      {
+        "@type": "Service",
+        "@id": "https://rozicmove.com/#service-packing",
+        "name": "שירות אריזה",
+        "serviceType": "אריזה לקראת הובלה",
+        "provider": { "@id": "https://rozicmove.com/#organization" },
+        "areaServed": { "@type": "Country", "name": "ישראל", "identifier": "IL" },
+        "inLanguage": "he-IL",
+        "description": "תוספת אריזה בתוך הזמנת מעבר דירה או מובילים בקטנה: הצוות אורז את הפריטים לפני ההובלה. התוספת מחושבת לפי הפריטים שנבחרו להזמנה — כמה יש ומה סוגם, ובפרט כמה מהם שבירים או דורשים אריזה מיוחדת. נבחרת בתוך זרימת ההזמנה, ולא כהזמנה נפרדת.",
+        "availableChannel": {
+          "@type": "ServiceChannel",
+          "serviceUrl": "https://rozicmove.com/app/",
+          "availableLanguage": { "@type": "Language", "name": "Hebrew", "alternateName": "he" }
+        }
+      },
+      {
+        "@type": "Service",
+        "@id": "https://rozicmove.com/#service-giveaway-board",
+        "name": "יד שנייה חינם",
+        "alternateName": "Give & Take",
+        "serviceType": "לוח מסירה בחינם",
+        "provider": { "@id": "https://rozicmove.com/#organization" },
+        "areaServed": { "@type": "Country", "name": "ישראל", "identifier": "IL" },
+        "inLanguage": "he-IL",
+        "description": "לוח מודעות למסירת פריטים בחינם בלבד: מפרסמים פריט שלא צריך יותר, ומי שגר קרוב לוקח אותו. הלוח מיועד למסירה ללא תמורה בלבד — לא עוברים בו כספים. אפשר להזמין הובלה לפריט שנלקח כהזמנת מובילים בקטנה רגילה.",
+        "availableChannel": {
+          "@type": "ServiceChannel",
+          "serviceUrl": "https://rozicmove.com/app/",
+          "availableLanguage": { "@type": "Language", "name": "Hebrew", "alternateName": "he" }
+        }
+      }
+    ]
+  }
+  </script>
 </head>
 <body>
   <script src="app/under-construction-banner.js"></script>

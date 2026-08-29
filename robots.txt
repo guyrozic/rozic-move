@@ -1,0 +1,39 @@
+# ROZIC MOVE — https://rozicmove.com
+#
+# /app/ is the logged-in ordering flow, not content: every page there is behind
+# requireAuth() and renders nothing useful to a crawler. Same for the standalone
+# listing / payment / verification shells, which only render from a query string.
+
+User-agent: *
+Allow: /
+Disallow: /app/
+Disallow: /listing.html
+Disallow: /payment-success.html
+Disallow: /verify-redirect.html
+
+# AI assistants and answer engines — explicitly welcome on the public pages.
+User-agent: GPTBot
+User-agent: OAI-SearchBot
+User-agent: ChatGPT-User
+User-agent: ClaudeBot
+User-agent: Claude-Web
+User-agent: Claude-User
+User-agent: Claude-SearchBot
+User-agent: anthropic-ai
+User-agent: PerplexityBot
+User-agent: Perplexity-User
+User-agent: Google-Extended
+User-agent: Applebot
+User-agent: Applebot-Extended
+User-agent: Bingbot
+User-agent: CCBot
+User-agent: Meta-ExternalAgent
+User-agent: cohere-ai
+Allow: /
+Allow: /llms.txt
+Disallow: /app/
+Disallow: /listing.html
+Disallow: /payment-success.html
+Disallow: /verify-redirect.html
+
+Sitemap: https://rozicmove.com/sitemap.xml

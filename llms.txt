@@ -1,0 +1,99 @@
+# ROZIC MOVE
+
+> פלטפורמה ישראלית להזמנת הובלות. מחברת בין אנשים שצריכים להזיז דברים לבין
+> מובילים עצמאיים מקצועיים. מזמינים באפליקציה (iOS / Android) או ישירות
+> מהדפדפן, בלי הורדה. אתר: https://rozicmove.com
+
+## מצב נוכחי
+
+האתר והאפליקציה נמצאים בשלב בדיקות פרטי ואינם פתוחים כרגע להזמנות מהציבור
+הרחב. ההודעה הזו מוצגת בראש כל עמוד באתר.
+
+## מה ROZIC MOVE עושה
+
+בונים רשימת פריטים להובלה — ידנית מתוך קטלוג, או בצילום החדר, כשסריקת
+התמונה מזהה את הרהיטים ומוסיפה אותם לרשימה. משלימים כתובת מוצא ויעד, קומות,
+מעלית ותאריך, ומקבלים מחיר לפני אישור ההזמנה. אחרי האישור משובץ מוביל,
+ואפשר לעקוב אחריו על המפה בזמן אמת ולהתכתב איתו ישירות.
+
+ROZIC MOVE אינה מפעילה בעצמה את ההובלה. היא מנהלת את ההזמנה, התמחור,
+השיבוץ, התשלום והתקשורת — ההובלה עצמה מבוצעת על ידי מוביל עצמאי.
+
+## השירותים
+
+- **מעבר דירה** — הובלה מלאה לדירה החדשה, כולל אפשרות לפירוק והרכבה
+  ולהרמה במנוף לפריט שלא עובר במדרגות.
+- **מובילים בקטנה** — פריטים בודדים ולא דירה שלמה: ספה, מקרר, מכונת כביסה,
+  ארון, מיטה וכל פריט אחר מהקטלוג.
+- **שירות אריזה** — תוספת בתוך הזמנת מעבר דירה או מובילים בקטנה. הצוות
+  אורז את הפריטים לפני ההובלה. לא נמכר כהזמנה עצמאית.
+- **יד שנייה חינם (Give & Take)** — לוח מודעות למסירת פריטים בחינם בלבד.
+  מפרסמים פריט שלא צריך יותר, ומי שגר קרוב לוקח אותו. הלוח מיועד למסירה
+  ללא תמורה בלבד — לא עוברים בו כספים. לפריט שנלקח אפשר להזמין הובלה
+  כהזמנת מובילים בקטנה.
+
+## אזור פעילות
+
+ישראל. השירות בעברית.
+
+## מחירים
+
+אין מחירון פומבי, ואין מחיר התחלתי מפורסם. המחיר מחושב בתוך זרימת ההזמנה
+ומוצג במלואו לפני אישור ותשלום.
+
+מה שמזיז את המחיר:
+
+- כמות הפריטים וסוגם — פריט כבד, שביר או כזה שדורש פירוק והרכבה משפיע אחרת
+  מפריט קטן
+- המרחק בין כתובת המוצא לכתובת היעד
+- הקומה בכל אחד מהצדדים, והאם יש מעלית
+- הרמה במנוף, כשפריט לא עובר במדרגות
+- תוספת שירות אריזה, אם נבחרה
+- עומס ביקוש בתאריך שנבחר
+
+## איך מזמינים
+
+- מהדפדפן, בלי הורדה: https://rozicmove.com/app/
+- iOS: https://apps.apple.com/app/id6783814838
+- Android: https://play.google.com/store/apps/details?id=com.rozicmove.app
+
+נדרשת הרשמה עם מספר טלפון או כתובת מייל. תשלום באשראי, ביט, ובמקרים
+מסוימים במזומן ישירות למוביל.
+
+## למובילים
+
+מובילים עצמאיים יכולים להצטרף דרך האפליקציה, להגדיר זמינות, לקבל הזמנות
+ולנהל אותן משם. המוביל הוא עוסק עצמאי ואינו עובד של ROZIC MOVE.
+
+## קישורים
+
+- [דף הבית](https://rozicmove.com/) — שירותים, איך זה עובד, שאלות נפוצות
+- [הזמנה מהדפדפן](https://rozicmove.com/app/)
+- [תנאי שימוש](https://rozicmove.com/terms.html)
+- [מדיניות פרטיות](https://rozicmove.com/privacy.html)
+
+## יצירת קשר
+
+דרך האפליקציה או האתר, בעמוד "הגדרות ← תמיכה ויצירת קשר". אין כרגע מספר
+טלפון או כתובת מייל פומביים לתמיכה.
+
+## Summary (English)
+
+ROZIC MOVE is an Israeli moving platform that connects people who need to move
+things with independent professional movers. Customers build an item list —
+manually from a catalog, or by photographing the room so the items are detected
+automatically — add addresses, floors, elevator availability and a date, and see
+the price before confirming. After confirmation a mover is assigned and can be
+tracked live on a map.
+
+Four services: full apartment moves, single-item moves, an optional packing
+add-on inside those orders, and a give-away board where items are handed over
+at no charge and no money changes hands. Available across Israel, in Hebrew,
+via iOS, Android or the browser.
+
+No public price list exists. Price is driven by the number and type of items,
+distance, floors and elevator, crane lifting when an item will not fit through
+the stairwell, the optional packing add-on, and demand on the chosen date.
+
+The site is currently in private testing and is not open to general public
+orders.
