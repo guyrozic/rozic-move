@@ -450,7 +450,7 @@ img, svg { display: block; }
 
 .app-services {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(2, 1fr);
   gap: 6px;
 }
 
@@ -501,8 +501,6 @@ img, svg { display: block; }
 
 .mover-info { flex: 1; }
 .mover-name { font-size: 0.65rem; font-weight: 700; color: var(--text); }
-.mover-meta { font-size: 0.58rem; color: var(--text-muted); }
-.mover-meta strong { color: var(--green-dark); }
 
 .mover-pick {
   font-size: 0.58rem;
@@ -644,8 +642,10 @@ img, svg { display: block; }
 
 .features-grid {
   display: grid;
-  grid-template-columns: 1.5fr 1fr 1fr 1fr;
+  grid-template-columns: repeat(2, 1fr);
   gap: 16px;
+  max-width: 840px;
+  margin: 0 auto;
 }
 
 .feature-card {
@@ -662,12 +662,6 @@ img, svg { display: block; }
   border-color: rgba(14,92,67,0.3);
 }
 
-.feature-large {
-  grid-row: span 2;
-  background: linear-gradient(145deg, var(--green-light) 0%, rgba(255,255,255,0.6) 100%);
-  border-color: rgba(14,92,67,0.2);
-}
-
 .feature-icon-wrap {
   width: 56px;
   height: 56px;
@@ -681,8 +675,6 @@ img, svg { display: block; }
   color: var(--green);
 }
 
-.feature-large .feature-icon-wrap { width: 64px; height: 64px; }
-
 .feature-card h3 {
   font-size: 1.1rem;
   font-weight: 800;
@@ -690,8 +682,6 @@ img, svg { display: block; }
   margin-bottom: 10px;
   letter-spacing: -0.3px;
 }
-
-.feature-large h3 { font-size: 1.35rem; }
 
 .feature-card p {
   font-size: 0.88rem;
@@ -913,8 +903,6 @@ img, svg { display: block; }
   color: rgba(255,255,255,0.55);
 }
 
-.stars-inline { color: #FBBF24; }
-
 .driver-badge-online {
   margin-right: auto;
   background: rgba(27,127,92,0.18);
@@ -924,27 +912,6 @@ img, svg { display: block; }
   padding: 3px 10px;
   border-radius: 50px;
   border: 1px solid rgba(27,127,92,0.3);
-}
-
-.driver-stats {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 8px;
-  margin-bottom: 20px;
-  background: rgba(255,255,255,0.05);
-  border-radius: 12px;
-  padding: 14px 10px;
-}
-
-.d-stat { text-align: center; }
-.d-val {
-  font-size: 1.1rem;
-  font-weight: 900;
-  color: white;
-}
-.d-lbl {
-  font-size: 0.67rem;
-  color: rgba(255,255,255,0.45);
 }
 
 .driver-orders-label {
@@ -981,12 +948,6 @@ img, svg { display: block; }
   flex: 1;
   font-size: 0.72rem;
   color: rgba(255,255,255,0.7);
-}
-
-.order-price {
-  font-size: 0.75rem;
-  font-weight: 800;
-  color: var(--green-mid);
 }
 
 .new-badge {
@@ -1252,10 +1213,6 @@ a.back {
 
 /* ===== RESPONSIVE ===== */
 @media (max-width: 1024px) {
-  .features-grid {
-    grid-template-columns: 1fr 1fr;
-  }
-  .feature-large { grid-row: span 1; }
   .steps-wrap { flex-direction: column; }
   .step-connector { width: 100%; height: 40px; }
   .step-connector::before { width: 2px; height: 24px; }
