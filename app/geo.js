@@ -1,11 +1,12 @@
-// Shared address/distance/floor helpers — ports of the identical logic duplicated in
-// Hovalot's DeliveryDetailsScreen.tsx and SmallMoveAddressScreen.tsx (byte-identical
-// in both screens, confirmed by direct code review). Web version geocodes via
-// Nominatim/OpenStreetMap only (no Google Places key available to this site) — the
-// app treats Nominatim as its own fallback path already, so the distance math itself
-// (haversine × 1.3 road-distance fudge factor) is unchanged, only the *lookup* source
-// is simplified from "Google Places autocomplete, Nominatim as fallback" down to
-// "Nominatim only, no autocomplete suggestions."
+// עזרי כתובת/מרחק/קומה משותפים — העתק של הלוגיקה הזהה שמשוכפלת באפליקציה
+// (Hovalot: DeliveryDetailsScreen.tsx ו-SmallMoveAddressScreen.tsx, זהה בית-לבית).
+// הגיאוקודינג נעשה מול Google Geocoding API — אותו מוצר ואותו פרויקט GCP (hovalot-6cf65)
+// שהאפליקציה משתמשת בו ב-AddressInput.tsx, כדי שכתובות של לקוחות לא יגיעו לצד שלישי
+// שאינו מכוסה במדיניות הפרטיות. באתר אין השלמה אוטומטית (Places Autocomplete) —
+// רק חיפוש כתובת חופשית → נ"צ. חישוב המרחק עצמו (haversine × 1.3 מקדם כביש) זהה לאפליקציה.
+
+const GEOCODE_TIMEOUT_MS = 6000;
+
 export const FLOORS = ['קרקע', '1', '2', '3', '4', '5', '6+'];
 
 export function getFloorNumber(floor) {
@@ -21,15 +22,45 @@ export function craneCostFor(floor) {
   return CRANE_PRICE_PER_FLOOR[floor] ?? 500;
 }
 
+/**
+ * כתובת חופשית → { lat, lon } דרך Google Geocoding API, או null בכל כשל.
+ * לא זורקת לעולם: ZERO_RESULTS / OVER_QUERY_LIMIT / REQUEST_DENIED / INVALID_REQUEST /
+ * UNKNOWN_ERROR, שגיאת רשת, JSON פגום או timeout — כולם מחזירים null (הקורא, distanceBetween,
+ * מתרגם null למרחק 0 ולא חוסם את ההמשך, כמו באפליקציה).
+ */
+/**
+ * גיאוקודינג דרך פרוקסי בשרת שלנו — לא ישירות מול Google.
+ *
+ * 10.9: הוחלף מ-Nominatim (OpenStreetMap) לפי הכרעת גיא. המפתח של Google
+ * יושב כסוד ב-Cloud Function `geocodeAddress` ולא בקוד הזה — כך שהוא לא
+ * חשוף, לא ניתן לגניבה מהדפדפן, ומוגן במגבלת קצב ובתקרה יומית. הפונקציה
+ * מקבלת רק בקשות שמקורן ב-rozicmove.com.
+ *
+ * החוזה נשמר בדיוק: `{ lat, lon }` או `null`. כל כשל — כולל timeout — מחזיר
+ * `null` ולא זורק, כך שהקוראים (`distanceBetween`) ממשיכים כמו היום.
+ */
+const GEOCODE_PROXY_URL = 'https://us-central1-hovalot-6cf65.cloudfunctions.net/geocodeAddress';
+
 export async function geocode(address) {
+  const query = String(address ?? '').trim();
+  if (!query) return null;
+  const ctrl = new AbortController();
+  const timer = setTimeout(() => ctrl.abort(), 6000);
   try {
-    const url = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(address + ' ישראל')}&format=json&limit=1`;
-    const res = await fetch(url, { headers: { 'Accept-Language': 'he' } });
+    const res = await fetch(GEOCODE_PROXY_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ address: query }),
+      signal: ctrl.signal,
+    });
+    if (!res.ok) return null;
     const data = await res.json();
-    if (data.length > 0) return { lat: parseFloat(data[0].lat), lon: parseFloat(data[0].lon) };
-    return null;
+    if (typeof data?.lat !== 'number' || typeof data?.lng !== 'number') return null;
+    return { lat: data.lat, lon: data.lng };
   } catch {
     return null;
+  } finally {
+    clearTimeout(timer);
   }
 }
 

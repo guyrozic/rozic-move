@@ -53,6 +53,29 @@
     .auth-tab.active { background: var(--white); color: var(--green-dark); box-shadow: var(--shadow-2); }
     .auth-form { display: none; }
     .auth-form.active { display: block; }
+    /* צ'ק-בוקס הסכמה לתנאים — אותו נוסח כמו RegisterScreen באפליקציה.
+       .form-group input מקבל width:100% ב-style-app.css, לכן כאן דריסה ממוקדת. */
+    .form-group .terms-label {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      font-weight: 500;
+      font-size: 0.85rem;
+      line-height: 1.5;
+      color: var(--text-mid);
+      cursor: pointer;
+      margin-bottom: 0;
+    }
+    .form-group .terms-label input[type="checkbox"] {
+      width: 18px; height: 18px;
+      flex-shrink: 0;
+      margin: 2px 0 0;
+      padding: 0;
+      box-shadow: none;
+      accent-color: var(--green);
+      cursor: pointer;
+    }
+    .form-group .terms-label a { color: var(--green-dark); font-weight: 700; }
   </style>
 </head>
 <body class="app-body">
@@ -61,7 +84,7 @@
     <div class="auth-card app-card">
       <div class="auth-logo">
         <a href="../index.html">
-          <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M3 9h12M9 3l6 6-6 6" stroke="#0E5C43" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          <svg aria-hidden="true" width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M3 9h12M9 3l6 6-6 6" stroke="#0E5C43" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
           ROZIC MOVE
         </a>
       </div>
@@ -103,6 +126,12 @@
           <input id="reg-password" type="password" required minlength="6" autocomplete="new-password">
           <div class="form-hint">לפחות 6 תווים</div>
         </div>
+        <div class="form-group">
+          <label class="terms-label">
+            <input type="checkbox" id="reg-terms" required>
+            <span>קראתי ואני מסכים/ה ל<a href="/terms.html" target="_blank" rel="noopener">תנאי השימוש</a> ול<a href="/privacy.html" target="_blank" rel="noopener">מדיניות הפרטיות</a></span>
+          </label>
+        </div>
         <button type="submit" class="btn btn-primary btn-block" id="register-submit">הירשם</button>
       </form>
     </div>
@@ -131,6 +160,8 @@
       return params.get('next') || 'index.html';
     }
 
+    const TERMS_REQUIRED_MSG = 'יש לאשר את תנאי השימוש כדי להמשיך';
+
     function friendlyError(err) {
       const code = err && err.code;
       if (code === 'auth/invalid-email') return 'כתובת אימייל לא תקינה.';
@@ -139,6 +170,7 @@
       if (code === 'auth/weak-password') return 'הסיסמה חלשה מדי — לפחות 6 תווים.';
       if (code === 'auth/account-suspended') return 'החשבון הזה הושעה. פנה לתמיכה.';
       if (code === 'auth/too-many-requests') return 'יותר מדי ניסיונות. נסה שוב מאוחר יותר.';
+      if (code === 'auth/terms-not-accepted') return TERMS_REQUIRED_MSG;
       return 'משהו השתבש. נסה שוב.';
     }
 
@@ -159,6 +191,12 @@
     document.getElementById('register-form').addEventListener('submit', async (e) => {
       e.preventDefault();
       showError(null);
+      const termsBox = document.getElementById('reg-terms');
+      if (!termsBox.checked) {
+        showError(TERMS_REQUIRED_MSG);
+        termsBox.focus();
+        return;
+      }
       const btn = document.getElementById('register-submit');
       btn.disabled = true; btn.textContent = 'נרשם...';
       try {
@@ -167,6 +205,7 @@
           phone: document.getElementById('reg-phone').value.trim(),
           email: document.getElementById('reg-email').value.trim(),
           password: document.getElementById('reg-password').value,
+          termsAccepted: termsBox.checked,
         });
         location.href = nextUrl();
       } catch (err) {

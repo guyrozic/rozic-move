@@ -35,7 +35,11 @@ function toLocalPhone(e164) {
 }
 
 /** Registers a new customer account — web ordering is customer-only, no driver signup here. */
-export async function registerCustomer({ name, email, phone, password }) {
+export async function registerCustomer({ name, email, phone, password, termsAccepted }) {
+  // הסכמה לתנאי השימוש ולמדיניות הפרטיות היא תנאי להרשמה (כמו באפליקציה).
+  // הטופס ב-login.html כבר חוסם, אבל termsAcceptedAt נכתב למסמך המשתמש למטה,
+  // ולא נכתוב אותו בלי הסכמה אמיתית — לכן גם כאן.
+  if (!termsAccepted) throw { code: 'auth/terms-not-accepted' };
   const credential = await createUserWithEmailAndPassword(auth, email, password);
   await fbUpdateProfile(credential.user, { displayName: name });
   const profile = {

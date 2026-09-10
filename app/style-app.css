@@ -154,6 +154,9 @@
 
 .form-hint { font-size: 0.76rem; color: var(--text-muted); margin-top: 5px; }
 
+/* טקסט שנקרא על ידי קורא מסך בלבד (למשל תווית לכפתור שמורכב מאייקון). */
+.sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }
+
 .form-row { display: flex; gap: 12px; }
 .form-row .form-group { flex: 1; }
 

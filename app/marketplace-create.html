@@ -32,7 +32,7 @@
       <h2>תמונות</h2>
       <p class="app-card-desc">עד 10 תמונות — תמונה ראשונה תוצג ברשימה.</p>
       <div class="photo-grid" id="photo-grid">
-        <label class="photo-add">＋<input type="file" id="photo-input" accept="image/*" multiple style="display:none;"></label>
+        <label class="photo-add" title="הוספת תמונות"><span aria-hidden="true">＋</span><span class="sr-only">הוספת תמונות</span><input type="file" id="photo-input" accept="image/*" multiple style="display:none;"></label>
       </div>
       <div id="ai-listing-progress-wrap" class="ai-upload-progress" style="display:none; margin-top:10px;">
         <div class="ai-upload-progress-fill" id="ai-listing-progress-fill" style="width:0%"></div>
@@ -68,7 +68,7 @@
       <p>שאלו איך לכתוב כותרת טובה, לתאר מצב, ועוד.</p>
       <div class="ai-chat-thread" id="listing-chat-thread"></div>
       <div class="ai-chat-input-row">
-        <input type="text" id="listing-chat-input" placeholder="שאלו כאן...">
+        <input type="text" id="listing-chat-input" placeholder="שאלו כאן..." aria-label="הודעה לעוזר ה-AI">
         <button class="btn btn-primary" id="listing-chat-send-btn">שלח</button>
       </div>
     </div>
@@ -148,7 +148,7 @@
       photos.forEach((file, i) => {
         const thumb = document.createElement('div');
         thumb.className = 'photo-thumb';
-        thumb.innerHTML = `<img src="${URL.createObjectURL(file)}"><button class="photo-remove" data-i="${i}">✕</button>`;
+        thumb.innerHTML = `<img src="${URL.createObjectURL(file)}" alt="תמונה ${i + 1} למודעה"><button class="photo-remove" data-i="${i}" aria-label="הסר תמונה ${i + 1}">✕</button>`;
         thumb.querySelector('.photo-remove').addEventListener('click', () => { photos.splice(i, 1); renderPhotos(); });
         photoGrid.insertBefore(thumb, photoGrid.querySelector('.photo-add'));
       });
@@ -168,8 +168,8 @@
       box.innerHTML = `<div class="question-card"><div class="question-text">עוד כמה פרטים שיעזרו לשכנים</div>` +
         guidingQuestions.map((q, i) => `
           <div class="form-group" style="margin-top:10px;">
-            <label>${q}</label>
-            <input type="text" class="guiding-answer-input" data-i="${i}" placeholder="התשובה שלך...">
+            <label for="guiding-answer-${i}">${q}</label>
+            <input type="text" id="guiding-answer-${i}" class="guiding-answer-input" data-i="${i}" placeholder="התשובה שלך...">
           </div>
         `).join('') + `</div>`;
     }

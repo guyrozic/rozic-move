@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>הצהרת נגישות — ROZIC MOVE</title>
+  <meta name="description" content="הצהרת הנגישות של אתר ROZIC MOVE: המחויבות שלנו, ההתאמות שבוצעו, הגבלות ידועות ודרכי פנייה בנושא נגישות.">
+  <link rel="canonical" href="https://rozicmove.com/accessibility.html">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+  <style>
+    .sub-hero {
+      background: linear-gradient(160deg, #E8F7EF 0%, #F4FBF7 100%);
+      padding: 120px 24px 48px;
+      text-align: center;
+      border-bottom: 1px solid var(--border);
+    }
+    .sub-hero h1 {
+      font-size: clamp(1.8rem, 3vw, 2.4rem);
+      font-weight: 900;
+      color: var(--text);
+      margin-bottom: 8px;
+    }
+    .sub-hero .updated {
+      color: var(--text-muted);
+      font-size: 0.85rem;
+    }
+    .sub-main {
+      max-width: 720px;
+      margin: 0 auto;
+      padding: 40px 24px 80px;
+    }
+    .back-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      color: var(--green-dark);
+      font-weight: 700;
+      font-size: 0.88rem;
+      text-decoration: none;
+      margin-bottom: 28px;
+      padding: 8px 16px;
+      background: var(--green-light);
+      border-radius: 50px;
+      transition: background var(--transition);
+    }
+    .back-link:hover { background: #c8edda; }
+    .card ul { padding-inline-start: 22px; margin-top: 8px; }
+    .card li { margin-bottom: 6px; }
+    .card p + p { margin-top: 10px; }
+    .contact-list { list-style: none; padding: 0; }
+    .contact-list li { margin-bottom: 6px; }
+    .placeholder {
+      display: inline-block;
+      background: #FFF4E5;
+      border: 1px dashed var(--orange);
+      border-radius: 6px;
+      padding: 0 8px;
+      color: var(--text);
+      font-weight: 700;
+    }
+  </style>
+</head>
+<body>
+
+  <nav class="nav scrolled" id="nav">
+    <div class="nav-inner">
+      <a href="index.html" class="nav-logo">
+        <svg class="logo-arrow" width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden="true">
+          <path d="M3 9h12M9 3l6 6-6 6" stroke="#0E5C43" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        ROZIC MOVE
+      </a>
+      <ul class="nav-links">
+        <li><a href="index.html#features">שירותים</a></li>
+        <li><a href="index.html#how-it-works">איך זה עובד</a></li>
+        <li><a href="index.html#for-movers">למובילים</a></li>
+      </ul>
+      <a href="index.html#download" class="nav-cta">הורד עכשיו</a>
+    </div>
+  </nav>
+
+  <div class="sub-hero">
+    <h1>הצהרת נגישות</h1>
+    <p class="updated">עודכן לאחרונה: ספטמבר 2026</p>
+  </div>
+
+  <main class="sub-main">
+    <a class="back-link" href="index.html">← חזרה לעמוד הבית</a>
+
+    <div class="card">
+      <h2>1. המחויבות שלנו</h2>
+      <p>
+        ROZIC MOVE רואה חשיבות רבה במתן שירות שוויוני, מכבד ונגיש לכל אדם, לרבות אנשים עם מוגבלות.
+        אנו פועלים כדי שהאתר <strong>rozicmove.com</strong> וממשק ההזמנה מהדפדפן יהיו שמישים ונוחים
+        למגוון רחב ככל האפשר של משתמשים, ללא תלות ביכולותיהם או בטכנולוגיה המסייעת שבה הם משתמשים.
+      </p>
+      <p>
+        הצהרה זו מתייחסת לאתר האינטרנט ולממשק ההזמנה מהדפדפן. השירות עצמו ניתן באופן מקוון — דרך האתר
+        ודרך האפליקציה לנייד.
+      </p>
+    </div>
+
+    <div class="card">
+      <h2>2. תקנים והנחיות</h2>
+      <p>
+        האתר נבנה בשאיפה לעמוד בדרישות תקנות שוויון זכויות לאנשים עם מוגבלות (התאמות נגישות לשירות),
+        התשע"ג-2013, ובהנחיות הנגישות לתכני אינטרנט WCAG 2.1 ברמה AA, שעליהן מתבסס התקן הישראלי ת"י 5568.
+        העבודה על נגישות האתר היא תהליך מתמשך, ואנו ממשיכים לשפר אותו.
+      </p>
+    </div>
+
+    <div class="card">
+      <h2>3. ההתאמות שבוצעו באתר</h2>
+      <ul>
+        <li>מבנה סמנטי: כל דף מוגדר בשפה העברית (<code>lang="he"</code>) ובכיווניות מימין לשמאל, עם היררכיית כותרות מסודרת.</li>
+        <li>תמיכה בקוראי מסך: לתמונות באתר ובממשק ההזמנה יש טקסט חלופי (alt) תיאורי, ולתמונות שמשתמשים מעלים נוצר טקסט חלופי אוטומטי; כפתורים שמורכבים מאייקון בלבד קיבלו תווית מילולית בעברית; אייקונים דקורטיביים מוסתרים מקוראי מסך.</li>
+        <li>טפסים: לכל שדה קלט יש תווית גלויה או תווית נגישה לקורא מסך; שגיאות בטפסים מוצגות בטקסט ברור בעברית.</li>
+        <li>ניווט במקלדת: ניתן לעבור בין הקישורים, הכפתורים והשדות באמצעות מקש Tab ולהפעילם באמצעות Enter או רווח. שאלות ותשובות נפתחות ונסגרות בכפתורים שמצבם (פתוח/סגור) מדווח לטכנולוגיה המסייעת.</li>
+        <li>סימון מיקוד (פוקוס): שדות הטופס מציגים מסגרת ירוקה בולטת כשהם בפוקוס, ויתר הרכיבים שומרים על סימון הפוקוס של הדפדפן.</li>
+        <li>ניגודיות: טקסט התוכן הראשי מוצג בניגודיות גבוהה (כהה על רקע בהיר), מעל היחס הנדרש 4.5:1.</li>
+        <li>תצוגה מותאמת: האתר רספונסיבי ומותאם למסכי נייד, טאבלט ומחשב, ומאפשר הגדלת תצוגה (זום) בדפדפן ללא פגיעה בתוכן.</li>
+        <li>קריאות: שימוש בגופן קריא (Heebo) עם תמיכה מלאה בעברית, ריווח שורות נוח וטקסט שאינו מוטמע בתוך תמונות.</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <h2>4. הגבלות ידועות</h2>
+      <p>למרות מאמצינו, ייתכן שחלקים מסוימים באתר עדיין אינם נגישים במלואם. בין ההגבלות שידועות לנו:</p>
+      <ul>
+        <li>חלק מטקסטי העזר והכיתובים המשניים (בגוון אפור-ירקרק) נמצאים סמוך ליחס הניגודיות המינימלי הנדרש, ואנו פועלים לשיפורם.</li>
+        <li>באתר השיווקי קיימות אנימציות גלילה קלות. בממשק ההזמנה חלק מהאנימציות מושבתות כאשר מופעלת במערכת ההפעלה ההעדפה "הפחתת תנועה", אך לא כולן.</li>
+        <li>אין כרגע קישור "דלג לתוכן המרכזי" בראש הדפים.</li>
+        <li>רכיבים של צדדים שלישיים — כגון אימות reCAPTCHA של Google, עמוד התשלום של ספק הסליקה וחנויות האפליקציות — אינם בשליטתנו, ונגישותם כפופה לספקים אלה.</li>
+        <li>התאמות הנגישות של האפליקציה לנייד (iOS ו-Android) מנוהלות בנפרד ואינן מכוסות בהצהרה זו.</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <h2>5. דפדפנים וטכנולוגיות מסייעות</h2>
+      <p>
+        האתר נבדק בגרסאות העדכניות של הדפדפנים הנפוצים (Chrome, Safari, Firefox ו-Edge) במחשב ובנייד.
+        ייתכנו הבדלים בהתנהגות בדפדפנים ישנים או בשילוב עם תוכנות עזר מסוימות.
+      </p>
+    </div>
+
+    <div class="card">
+      <h2>6. פנייה בנושא נגישות</h2>
+      <p>
+        נתקלתם בבעיית נגישות באתר, או שיש לכם הצעה לשיפור? נשמח לשמוע. ניתן לפנות אלינו באחת הדרכים הבאות:
+      </p>
+      <ul class="contact-list">
+        <li>דואר אלקטרוני: <span class="placeholder">[מייל רשמי]</span></li>
+        <li>טלפון: <span class="placeholder">[טלפון]</span></li>
+        <li>באפליקציה: "הגדרות ← תמיכה ויצירת קשר".</li>
+      </ul>
+      <p>
+        כדי שנוכל לטפל בפנייה במהירות, מומלץ לציין את כתובת הדף שבו נתקלתם בבעיה, תיאור קצר של הבעיה,
+        ואת הדפדפן והטכנולוגיה המסייעת שבהם השתמשתם. נשתדל להשיב לכל פנייה בהקדם האפשרי ולתקן את הטעון תיקון.
+      </p>
+    </div>
+
+    <div class="card">
+      <h2>7. עדכון ההצהרה</h2>
+      <p>
+        הצהרת הנגישות עודכנה לאחרונה בספטמבר 2026. ההצהרה תתעדכן מעת לעת בהתאם לשינויים באתר ולשיפורי נגישות נוספים.
+      </p>
+    </div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner container">
+      <div class="footer-brand">
+        <div class="footer-logo">ROZIC MOVE</div>
+        <p class="footer-tagline">מזיזים אותך קדימה</p>
+        <p class="footer-copy">ROZIC MOVE © 2026</p>
+      </div>
+      <div class="footer-links">
+        <div class="footer-col">
+          <div class="footer-col-title">משפטי</div>
+          <a href="privacy.html">מדיניות פרטיות</a>
+          <a href="terms.html">תנאי שימוש</a>
+          <a href="accessibility.html">הצהרת נגישות</a>
+        </div>
+      </div>
+    </div>
+    <div class="footer-divider"></div>
+    <div class="footer-bottom container">
+      <p>כל הזכויות שמורות · מדינת ישראל</p>
+    </div>
+  </footer>
+</body>
+</html>

@@ -65,7 +65,7 @@
             <div class="ai-chat-thread" id="ai-chat-thread"></div>
             <div id="ai-free-items" class="ai-free-items"></div>
             <div class="ai-chat-input-row">
-              <input type="text" id="ai-chat-input" placeholder="כתבו כאן...">
+              <input type="text" id="ai-chat-input" placeholder="כתבו כאן..." aria-label="הודעה לעוזר ה-AI">
               <button class="btn btn-primary" id="ai-chat-send-btn">שלח</button>
             </div>
           </div>
@@ -320,8 +320,8 @@
       const box = document.getElementById('ai-photo-thumbs');
       box.innerHTML = aiPhotos.map((file, i) => `
         <div class="ai-thumb">
-          <img src="${URL.createObjectURL(file)}">
-          <button class="ai-thumb-remove" data-i="${i}">✕</button>
+          <img src="${URL.createObjectURL(file)}" alt="תמונה ${i + 1} לניתוח">
+          <button class="ai-thumb-remove" data-i="${i}" aria-label="הסר תמונה ${i + 1}">✕</button>
         </div>
       `).join('');
       box.querySelectorAll('.ai-thumb-remove').forEach(btn => btn.addEventListener('click', () => {
@@ -449,7 +449,7 @@
       box.innerHTML = state.freeItems.map((f, i) => `
         <div class="ai-free-item-row">
           <span>${f.label} × ${f.qty} <span class="form-hint">(מחיר ייקבע ידנית)</span></span>
-          <button class="ai-free-item-remove" data-i="${i}">✕</button>
+          <button class="ai-free-item-remove" data-i="${i}" aria-label="הסר ${String(f.label).replace(/"/g, '&quot;')}">✕</button>
         </div>
       `).join('');
       box.querySelectorAll('.ai-free-item-remove').forEach(btn => btn.addEventListener('click', () => {
