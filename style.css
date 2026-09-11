@@ -1170,6 +1170,12 @@ img, svg { display: block; }
   color: rgba(255,255,255,0.55);
   text-decoration: none;
   transition: color var(--transition);
+  /* 11.9 — נמדד בפועל ב-Playwright על iPhone 13: גובה יעד הנגיעה היה
+     22.4px. WCAG 2.2 AA, קריטריון 2.5.8, דורש 24×24 — כלומר נפלנו
+     בפחות משני פיקסלים, וזה כלל גם את הקישור להצהרת הנגישות עצמה.
+     padding אנכי במקום min-height, כדי לא לשנות את הפריסה. */
+  display: inline-block;
+  padding-block: 3px;
 }
 
 .footer-col a:hover { color: var(--green-mid); }
