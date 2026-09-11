@@ -9,6 +9,7 @@ import {
 } from 'https://www.gstatic.com/firebasejs/12.16.0/firebase-auth.js';
 import { doc, setDoc, getDoc, updateDoc, onSnapshot, serverTimestamp } from 'https://www.gstatic.com/firebasejs/12.16.0/firebase-firestore.js';
 import { auth, db } from './firebase.js';
+import { TERMS_VERSION } from './legal.js';
 
 // NOTE on how this reaches verify-redirect.html: the Firebase Console has a custom
 // email-action URL configured to that page (confirmed by the app's own code — it reads
@@ -51,7 +52,10 @@ export async function registerCustomer({ name, email, phone, password, termsAcce
     // users/{uid}/private/financial ורק אדמין/Cloud Function כותב אותם.
     // AuthContext.register באפליקציה כבר לא כותב אותם מאותה סיבה.
   };
-  await setDoc(doc(db, 'users', credential.user.uid), { ...profile, termsAcceptedAt: serverTimestamp() });
+  // ראיית ההסכמה לתקנון: המועד (היה קיים) **וגם** הגרסה שאושרה (11.9) —
+  // בלי הגרסה, "אישר ב-3.2" לא אומר למה בדיוק הוא הסכים. אותם שני שדות
+  // בדיוק נכתבים ע"י AuthContext.register באפליקציה. ראו legal.js.
+  await setDoc(doc(db, 'users', credential.user.uid), { ...profile, termsAcceptedAt: serverTimestamp(), termsVersion: TERMS_VERSION });
   sendEmailVerification(credential.user, EMAIL_VERIFICATION_SETTINGS).catch(() => {});
   return profile;
 }

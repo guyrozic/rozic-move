@@ -79,6 +79,15 @@ export async function createOrder(input) {
     craneItems: input.craneItems ?? [],
     manualPricingItems: input.manualPricingItems ?? [],
     manualPricingTotal: input.manualPricingTotal ?? 0,
+    // ראיית ההסכמה לתקנון (11.9) — ארבעת השדות זהים בשמם ובמשמעותם לאלה
+    // ש-createOrder באפליקציה כותב (Hovalot/src/services/orders.ts), ולכן
+    // מסכי האדמין קוראים הזמנה מהאתר ומהאפליקציה באותו אופן בדיוק.
+    // ההסכמה עצמה נלקחת בצ'ק-בוקס החוסם שבטופס — ראו orderTermsConsent
+    // ב-legal.js; הקריאה כאן לא ממציאה הסכמה, היא רק כותבת את מה שהועבר.
+    termsAccepted: input.termsAccepted ?? false,
+    termsAcceptedAt: input.termsAcceptedAt ?? null,
+    termsVersion: input.termsVersion ?? null,
+    termsAcceptedVia: input.termsAcceptedVia ?? null,
     orderSource: 'web',
   });
   return ref.id;
@@ -180,6 +189,11 @@ export async function promoteDraftToOrder(orderId, finalFields) {
     // orderShapeValid() דורש `manualPricingItems is list && size() > 0`.
     manualPricingItems: finalFields.manualPricingItems ?? [],
     manualPricingTotal: 0,
+    // ראו createOrder למעלה — אותה ראיית הסכמה, גם במסלול קידום הטיוטה.
+    termsAccepted: finalFields.termsAccepted ?? false,
+    termsAcceptedAt: finalFields.termsAcceptedAt ?? null,
+    termsVersion: finalFields.termsVersion ?? null,
+    termsAcceptedVia: finalFields.termsAcceptedVia ?? null,
     draftServiceType: null, draftPayload: null, draftStep: null,
     draftUpdatedAt: null, draftReminderSent: null,
   });

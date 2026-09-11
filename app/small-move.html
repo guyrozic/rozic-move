@@ -239,6 +239,7 @@
   <script type="module">
     import { requireAuth } from './auth.js';
     import { createOrder } from './orders.js';
+    import { orderTermsConsent } from './legal.js';
     import { ALL_ROOMS, findItemAnywhere, getItemPriceAnyCategory, getFullAICatalog, getSizeSiblings } from './data/items.js';
     import { PRICE_PER_KM, FLOOR_SURCHARGE_PER_FLOOR, getSurgePricing, calculatePackingFromItems, CURRENT_COMMISSION_RATE } from './data/pricing.js';
     import { BOX_ITEMS, MAX_VOLUME, estimateVolume } from './data/smallMoveItems.js';
@@ -767,6 +768,10 @@
           craneCost: p.craneCost,
           craneItems: state.needsCrane ? state.craneItems : [],
           manualPricingItems: state.freeItems.map(f => ({ label: f.label, qty: f.qty })),
+          // ראיית ההסכמה לתקנון — נשמרת על ההזמנה עצמה, לא רק חוסמת בממשק.
+          // נקרא אחרי הבדיקה של termsBox למעלה, ולכן לעולם לא נכתבת הסכמה
+          // שלא ניתנה בפועל. ראו legal.js.
+          ...orderTermsConsent(),
         });
         location.href = `order-status.html?id=${orderId}`;
       } catch (err) {
