@@ -1189,6 +1189,13 @@ img, svg { display: block; }
   color: rgba(255,255,255,0.2);
 }
 
+/* גילוי פרטי העוסק בפוטר — נדרש בעסקת מכר מרחוק.
+   טקסט משני ועדין, אך בניגודיות קריאה ולא ברמת ההערה שמתחתיו. */
+.footer-bottom p.footer-business {
+  color: rgba(255,255,255,0.5);
+  margin-bottom: 6px;
+}
+
 /* Keep old page styles for privacy / terms */
 .card {
   background: #fff;

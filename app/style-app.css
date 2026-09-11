@@ -18,7 +18,9 @@
     radial-gradient(ellipse 900px 500px at 100% -10%, rgba(14,92,67,0.07), transparent 60%),
     radial-gradient(ellipse 700px 500px at -10% 20%, rgba(29,53,87,0.05), transparent 55%),
     var(--bg);
-  padding-bottom: 60px;
+  /* מרווח הנשימה שמתחת לתוכן עבר אל padding-top של הפוטר המשפטי שסוגר
+     כל דף כאן; בלי האיפוס הזה נותר פס בהיר מתחת לרקע הכהה של הפוטר. */
+  padding-bottom: 0;
 }
 
 /* --- Under-construction notice (see under-construction-banner.js) --- */
@@ -413,6 +415,9 @@
   margin-top: 24px;
 }
 .app-bottom-bar .bottom-price { font-size: 1.15rem; font-weight: 900; color: var(--text); }
+/* בדפי האשף הפוטר המשפטי יושב לפני הסרגל הדביק (אחרת הסרגל, שנדבק ל-bottom:0,
+   היה מכסה אותו בגלילה לתחתית). בלי איפוס המרווח נותר פס בהיר בין השניים. */
+.footer + .app-bottom-bar { margin-top: 0; }
 
 /* --- Order status --- */
 .status-badge {
