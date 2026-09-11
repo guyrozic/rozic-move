@@ -343,18 +343,16 @@ export const BASE_PRICE = 150;
 export const PRICE_PER_KM = 9;
 export const FLOOR_SURCHARGE_PER_FLOOR = 40;
 /**
- * Surcharge added on top of every order's total in calculatePrice() (customer-facing —
- * baked into the final price, not broken out as a separate line item on any screen).
- * Not the same as PLATFORM_FEE_RATE below, which is deducted from the driver's payout.
+ * העמלה שהפלטפורמה מנכה מתשלום הלקוח לפני העברת חלק המוביל.
+ *
+ * ⚠️ **לתצוגה ולהתמצאות בלבד — האתר אינו מחשב את החלוקה.**
+ * הפיצול בפועל נגזר תמיד בשרת (`functions/src/platformFee.ts`) ברגע
+ * שיבוץ המוביל, לפי `platformFeeRate` שב-Firestore.
+ *
+ * 11.9 — תוקן מ-0.05 ל-0.10. הערך השגוי סתר את האפליקציה ואת השרת
+ * בלי שאף אחד ראה את זה, כי איש לא קורא אותו.
  */
-export const CURRENT_COMMISSION_RATE = 0.05;
-/**
- * Cut the platform keeps from the customer's payment before paying out the
- * driver (escrow model: customer pays the platform in full, the platform
- * later pays the driver their share). Not the same as CURRENT_COMMISSION_RATE
- * above, which is a separate customer-side surcharge baked into calculatePrice().
- */
-export const PLATFORM_FEE_RATE = 0.05;
+export const PLATFORM_FEE_RATE = 0.10;
 // ── Crane pricing (based on Israeli market research 2024-2026) ──
 export const APARTMENT_CRANE_PRICE_PER_HOUR = {
     'floor_1_6': 500, // קומה 1-6

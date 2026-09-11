@@ -236,7 +236,7 @@
     import { createOrder } from './orders.js';
     import { orderTermsConsent } from './legal.js';
     import { ALL_ROOMS, findItemAnywhere, getItemPriceAnyCategory, getFullAICatalog, getSizeSiblings } from './data/items.js';
-    import { BASE_PRICE, PRICE_PER_KM, FLOOR_SURCHARGE_PER_FLOOR, getVolumeDiscount, getSurgePricing, calculatePackingFromItems, CURRENT_COMMISSION_RATE } from './data/pricing.js';
+    import { BASE_PRICE, PRICE_PER_KM, FLOOR_SURCHARGE_PER_FLOOR, getVolumeDiscount, getSurgePricing, calculatePackingFromItems } from './data/pricing.js';
     import { FLOORS, craneCostFor, distanceBetween, formatDateApp, parseDateApp } from './geo.js';
     import { analyzeImagesWithCatalog, isAIConfigured, friendlyAIError, chatAddItemsWithCatalog } from './ai-vision.js';
     import { resizeImageToBase64 } from './image-resize.js';
@@ -286,8 +286,13 @@
       const insuranceAmount = state.hasInsurance ? INSURANCE_PRICE : 0;
       const packingAmount = state.hasPacking ? packingCalc.total : 0;
       const baseTotal = roundedBase + surgeAmount + insuranceAmount + packingAmount + craneCost;
-      const commissionAmount = Math.round(baseTotal * CURRENT_COMMISSION_RATE);
-      const totalPrice = baseTotal + commissionAmount;
+      // 11.9 — התוספת הצרכנית של 5% הוסרה. היא בוטלה באפליקציה ב-2.8,
+      // הקבוע שם נמחק, וכל הזמנה חדשה נכתבת עם commissionAmount אפס —
+      // באתר היא נשארה שישה שבועות והמחיר כאן היה גבוה ב-5%.
+      // commissionAmount נשאר בגוף ההזמנה כאפס, בדיוק כמו באפליקציה,
+      // כדי ששתי הזרימות יכתבו מסמך זהה.
+      const commissionAmount = 0;
+      const totalPrice = baseTotal;
       return { selected, itemsSubtotal, volumeDiscountRate, volumeDiscount, travelCost, floorSurcharge, surge, surgeAmount, packingCalc, insuranceAmount, packingAmount, craneCost, commissionAmount, totalPrice };
     }
 
@@ -657,7 +662,6 @@
       if (state.hasInsurance) lines.push(['ביטוח פריטים', `₪${p.insuranceAmount}`]);
       if (state.hasPacking) lines.push(['שירות אריזה', `₪${p.packingAmount}`]);
       if (state.needsCrane) lines.push(['מנוף הרמה', `₪${p.craneCost}`]);
-      lines.push(['דמי תפעול לאפליקציה (5%)', `₪${p.commissionAmount}`]);
 
       document.getElementById('price-lines').innerHTML = lines.map(([label, val, cls]) =>
         `<div class="price-line ${cls || ''}"><span>${label}</span><span>${val}</span></div>`
