@@ -180,7 +180,14 @@
           </div>
 
           <div id="submit-error"></div>
-          <button class="btn btn-primary btn-block" id="submit-btn">מעבר לתשלום ←</button>
+          <div class="form-group">
+            <label class="terms-label" for="terms-accept">
+              <input type="checkbox" id="terms-accept" required aria-describedby="terms-error">
+              <span>קראתי ואני מאשר/ת את <a href="/terms.html" target="_blank" rel="noopener">תנאי השימוש</a> ו<a href="/privacy.html" target="_blank" rel="noopener">מדיניות הפרטיות</a></span>
+            </label>
+            <div class="terms-error" id="terms-error" role="alert"></div>
+          </div>
+          <button class="btn btn-primary btn-block" id="submit-btn" disabled>מעבר לתשלום ←</button>
           <button class="btn-text" id="back-to-3">→ חזרה</button>
         </section>
 
@@ -661,10 +668,30 @@
       renderSidePrice();
     }
 
+    // ---------- הסכמה לתנאי השימוש ----------
+    // הגנה כפולה: הכפתור מושבת עד שמסמנים, *וגם* השליחה עצמה בודקת — כי אפשר
+    // להסיר disabled מה-DevTools. אותו נוסח הודעה כמו בטופס ההרשמה ב-login.html.
+    const TERMS_REQUIRED_MSG = 'יש לאשר את תנאי השימוש כדי להמשיך';
+    const termsBox = document.getElementById('terms-accept');
+    const termsErrBox = document.getElementById('terms-error');
+    termsBox.addEventListener('change', () => {
+      document.getElementById('submit-btn').disabled = !termsBox.checked;
+      if (termsBox.checked) {
+        termsErrBox.innerHTML = '';
+        termsBox.removeAttribute('aria-invalid');
+      }
+    });
+
     document.getElementById('submit-btn').addEventListener('click', async () => {
       const btn = document.getElementById('submit-btn');
       const errBox = document.getElementById('submit-error');
       errBox.innerHTML = '';
+      if (!termsBox.checked) {
+        termsErrBox.innerHTML = `<div class="alert alert-error">${TERMS_REQUIRED_MSG}</div>`;
+        termsBox.setAttribute('aria-invalid', 'true');
+        termsBox.focus();
+        return;
+      }
       if (!authState.authUser.emailVerified && !authState.profile.phoneVerified) {
         errBox.innerHTML = '<div class="alert alert-error">נדרש אימות מייל או טלפון לפני אישור הזמנה. <a href="account.html">לאימות</a></div>';
         return;

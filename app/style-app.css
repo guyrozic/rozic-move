@@ -156,6 +156,44 @@
 
 .form-hint { font-size: 0.76rem; color: var(--text-muted); margin-top: 5px; }
 
+/* --- הסכמה לתנאי השימוש --- */
+/* צ'ק-בוקס הסכמה חוסם — אותו מראה ואותו נוסח כמו צ'ק-בוקס ההרשמה ב-login.html
+   וכמו RegisterScreen באפליקציה. `.form-group input` למעלה נותן width:100%,
+   לכן התיבה כאן צריכה דריסה ממוקדת; מאותה סיבה הסלקטור נשען על `.form-group`
+   ומנצח בסגוליות גם את `.form-group label` (display:block, font-weight:700). */
+.form-group .terms-label {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  font-weight: 500;
+  font-size: 0.85rem;
+  line-height: 1.5;
+  color: var(--text-mid);
+  cursor: pointer;
+  margin-bottom: 0;
+}
+.form-group .terms-label input[type="checkbox"] {
+  width: 18px; height: 18px;
+  flex-shrink: 0;
+  margin: 2px 0 0;
+  padding: 0;
+  box-shadow: none;
+  accent-color: var(--green);
+  cursor: pointer;
+}
+.form-group .terms-label a { color: var(--green-dark); font-weight: 700; }
+/* הודעת השגיאה יושבת צמוד לתיבה, ולכן מוותרת על ה-margin-bottom של .alert. */
+.terms-error .alert { margin: 8px 0 0; }
+
+/* שורת הסכמה עדינה מתחת לכפתור, בטפסים שאינם גובים תשלום. */
+.terms-note {
+  font-size: 0.76rem;
+  color: var(--text-muted);
+  line-height: 1.6;
+  margin-top: 10px;
+}
+.terms-note a { color: var(--green-dark); font-weight: 700; }
+
 /* טקסט שנקרא על ידי קורא מסך בלבד (למשל תווית לכפתור שמורכב מאייקון). */
 .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }
 
