@@ -23,6 +23,9 @@
     .modal-close { position: absolute; top: 14px; left: 14px; background: var(--bg); border: none; width: 30px; height: 30px; border-radius: 50%; cursor: pointer; font-size: 1rem; }
     .modal-photos { display: flex; gap: 6px; overflow-x: auto; margin-bottom: 14px; }
     .modal-photos img { width: 100px; height: 100px; object-fit: cover; border-radius: 10px; flex-shrink: 0; }
+    /* דיסקליימר — יושב בין פרטי המודעה לכפתור יצירת הקשר, כלומר בשורה
+       האחרונה שנקראת לפני הפנייה למפרסם. */
+    .listing-disclaimer { background: var(--bg); border: 1px solid var(--border); border-radius: 12px; padding: 12px 14px; margin: 14px 0 12px; font-size: 0.8rem; color: var(--text-muted); line-height: 1.75; }
   </style>
 </head>
 <body class="app-body">
@@ -164,6 +167,7 @@
         <div class="price-line"><span>קטגוריה</span><span>${CATEGORY_INFO[listing.category]?.label || 'שונות'}</span></div>
         <div class="price-line"><span>עיר</span><span>${listing.city || ''}</span></div>
         <div class="price-line"><span>כתובת איסוף</span><span id="modal-address">…</span></div>
+        ${(!isOwner && listing.status !== 'sold') ? `<div class="listing-disclaimer">ROZIC MOVE מפרסמת את המודעה בלבד ואינה צד לעסקה. איננו בודקים את הפריט, את מצבו, את בטיחותו או את זהות הצדדים. התיאום, המסירה וההובלה באחריות הצדדים בלבד. מומלץ להיפגש במקום ציבורי ולבדוק את הפריט לפני נטילתו.</div>` : ''}
         <div id="modal-contact">
           ${listing.status === 'sold' ? '<div class="alert alert-info">כבר נמסר</div>' :
             isOwner ? '<div class="alert alert-info">זו המודעה שלך</div>' :

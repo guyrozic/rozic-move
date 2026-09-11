@@ -80,6 +80,11 @@
     }
     .contact-row { font-size: 14px; color: #555; margin-bottom: 8px; }
     .contact-row strong { color: #1A2E1A; }
+    /* דיסקליימר — לפני פרטי הקשר, כלומר לפני שאפשר לפנות למפרסם. */
+    .listing-disclaimer {
+      background: #FAFCFB; border: 1px solid #E4EFE9; border-radius: 12px;
+      padding: 12px 14px; margin-bottom: 14px; font-size: 12.5px; color: #6B7B6B; line-height: 21px;
+    }
   </style>
 </head>
 <body>
@@ -101,6 +106,10 @@
       <div class="listing-title" id="listing-title"></div>
       <div class="listing-meta" id="listing-meta"></div>
       <div class="listing-desc" id="listing-desc"></div>
+      <div class="listing-disclaimer" id="listing-disclaimer">
+        ROZIC MOVE מפרסמת את המודעה בלבד ואינה צד לעסקה. איננו בודקים את הפריט, את מצבו, את בטיחותו או את זהות הצדדים.
+        התיאום, המסירה וההובלה באחריות הצדדים בלבד. מומלץ להיפגש במקום ציבורי ולבדוק את הפריט לפני נטילתו.
+      </div>
       <div id="contact-box"></div>
     </div>
 
@@ -188,6 +197,8 @@
     function renderContact(listing) {
       const box = document.getElementById('contact-box');
       if (listing.status === 'sold') {
+        // מודעה שנמסרה — אין יותר יצירת קשר, ולכן גם הדיסקליימר מיותר.
+        document.getElementById('listing-disclaimer').style.display = 'none';
         box.innerHTML = '<div class="info-box">המוצר כבר נמסר.</div>';
         return;
       }

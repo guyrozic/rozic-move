@@ -15,6 +15,21 @@
     .photo-thumb img { width: 100%; height: 100%; object-fit: cover; }
     .photo-remove { position: absolute; top: 3px; left: 3px; width: 22px; height: 22px; border-radius: 50%; background: rgba(0,0,0,0.6); color: #fff; border: none; cursor: pointer; font-size: 0.8rem; }
     .photo-add { width: 84px; height: 84px; border-radius: 12px; border: 1.5px dashed var(--border); background: var(--bg); display: flex; align-items: center; justify-content: center; font-size: 1.6rem; color: var(--text-muted); cursor: pointer; }
+
+    /* כללי הלוח. הרשימה הארוכה יושבת ב-details מקורי (בלי JS) כדי שהעמוד
+       לא יהפוך לקיר טקסט; התמצית נשארת גלויה גם כשהרשימה סגורה. */
+    .legal-text { font-size: 0.86rem; color: var(--text-muted); line-height: 1.75; margin-bottom: 8px; }
+    .banned-details { border-top: 1px solid var(--border); margin-top: 14px; padding-top: 12px; }
+    .banned-details summary { cursor: pointer; list-style: none; }
+    .banned-details summary::-webkit-details-marker { display: none; }
+    .banned-title { font-size: 0.92rem; font-weight: 700; color: var(--green-dark); }
+    .banned-title::after { content: ' \25BE'; }
+    .banned-details[open] .banned-title::after { content: ' \25B4'; }
+    .banned-teaser { display: block; font-size: 0.84rem; color: var(--text-muted); line-height: 1.7; margin-top: 5px; }
+    .banned-details[open] .banned-teaser { display: none; }
+    .banned-details ul { margin: 10px 0 0; padding-inline-start: 18px; font-size: 0.87rem; color: var(--text); line-height: 1.95; }
+    .banned-note { font-size: 0.82rem; color: var(--text-muted); line-height: 1.7; margin-top: 12px; }
+    .consent-note { font-size: 0.8rem; color: var(--text-muted); line-height: 1.7; margin-bottom: 10px; text-align: center; }
   </style>
 </head>
 <body class="app-body">
@@ -85,7 +100,36 @@
       </div>
     </div>
 
+    <!-- כללי הלוח — יושבים כאן, בכרטיס האחרון לפני הכפתור, כי הלוח חינמי
+         ואין בו תשלום: זו שכבת ההגנה החוזית היחידה שהמפרסם רואה. -->
+    <div class="app-card">
+      <h2>לפני הפרסום — חשוב לדעת</h2>
+      <p class="legal-text">ROZIC MOVE מפרסמת מודעות בלבד ואינה צד לעסקה. איננו בודקים את הפריטים, את מצבם, את בטיחותם או את זהות הצדדים.</p>
+      <p class="legal-text">המסירה, התיאום וההובלה הם באחריות הצדדים בלבד. מומלץ להיפגש במקום ציבורי ולאפשר למקבל לבדוק את הפריט לפני נטילתו.</p>
+
+      <details class="banned-details">
+        <summary>
+          <span class="banned-title">פריטים אסורים לפרסום</span>
+          <span class="banned-teaser">בעלי חיים · נשק · חומרים מסוכנים · תרופות · טבק ואלכוהול · מוצרים מזויפים או גנובים · ועוד</span>
+        </summary>
+        <ul>
+          <li>בעלי חיים</li>
+          <li>נשק, תחמושת וחלקיהם</li>
+          <li>חומרים מסוכנים, דליקים או רעילים</li>
+          <li>תרופות ותוספי תזונה</li>
+          <li>מוצרי טבק ואלכוהול</li>
+          <li>מוצרים מזויפים או גנובים</li>
+          <li>פריטים הדורשים רישוי</li>
+          <li>תוכן פוגעני, מיני או מסית</li>
+          <li>כל פריט שהחוק אוסר את מכירתו או העברתו</li>
+        </ul>
+      </details>
+
+      <p class="banned-note">ROZIC MOVE רשאית להסיר כל מודעה ולחסום כל משתמש לפי שיקול דעתה.</p>
+    </div>
+
     <div id="submit-error"></div>
+    <p class="consent-note">בפרסום המודעה אני מאשר/ת שהפריט אינו מהפריטים האסורים, שהפרטים שמסרתי נכונים, ושהמסירה היא באחריותי ובאחריות מקבל הפריט בלבד.</p>
     <button class="btn btn-primary btn-block" id="submit-btn">פרסם מודעה</button>
     <p class="terms-note">בלחיצה על הכפתור אתם מאשרים את <a href="/terms.html" target="_blank" rel="noopener">תנאי השימוש</a> ו<a href="/privacy.html" target="_blank" rel="noopener">מדיניות הפרטיות</a></p>
   </div>
