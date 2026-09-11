@@ -329,7 +329,7 @@
       lines.push([`פריטים (${p.selected.length})`, `₪${p.itemsTotal}`]);
       if (p.travelCost > 0) lines.push(['נסיעה', `₪${p.travelCost}`]);
       if (p.floorSurcharge > 0) lines.push(['קומות', `₪${p.floorSurcharge}`]);
-      if (state.hasInsurance) lines.push(['ביטוח', `₪${p.insuranceAmount}`]);
+      if (state.hasInsurance) lines.push(['ביטוח תכולה', `₪${p.insuranceAmount}`]);
       if (state.hasPacking) lines.push(['אריזה', `₪${p.packingAmount}`]);
       if (state.needsCrane) lines.push(['מנוף', `₪${p.craneCost}`]);
       document.getElementById('side-price-lines').innerHTML = lines.map(([l, v]) => `<div class="price-line"><span>${l}</span><span>${v}</span></div>`).join('');
