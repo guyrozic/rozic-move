@@ -44,6 +44,32 @@
     }
     .auth-logo { text-align: center; margin-bottom: 26px; font-size: 1.35rem; font-weight: 900; letter-spacing: -0.3px; color: var(--text); }
     .auth-logo a { text-decoration: none; color: inherit; display: inline-flex; align-items: center; gap: 8px; }
+    .oauth-row { display: flex; flex-direction: column; gap: 10px; margin-bottom: 18px; }
+    .oauth-btn {
+      display: flex; align-items: center; justify-content: center; gap: 10px;
+      width: 100%; padding: 13px 16px; border-radius: 12px; cursor: pointer;
+      background: var(--white); border: 1px solid #DCE4E0;
+      font-family: inherit; font-size: 1rem; font-weight: 700; color: var(--green-dark);
+      transition: border-color var(--transition), box-shadow var(--transition);
+    }
+    /* ⚠️ `.oauth-btn { display:flex }` הוא כלל author, והוא גובר על
+       `[hidden]{display:none}` של הדפדפן — כך שהכפתור המוסתר הופיע
+       בכל זאת. נתפס בצילום מסך בלבד: הבדיקה התכנותית קראה את התכונה
+       `hidden` (שאכן הייתה שם) ולא את התצוגה בפועל.
+       כל כלל display על אלמנט שמוסתר ב-hidden חייב את הזוג הזה. */
+    .oauth-btn[hidden] { display: none; }
+    .oauth-btn:hover { border-color: #B9C9C2; box-shadow: var(--shadow-2); }
+    .oauth-btn:focus-visible { outline: 2px solid var(--green-dark); outline-offset: 2px; }
+    .oauth-btn[disabled] { opacity: .6; cursor: default; }
+    .oauth-apple { background: #000; border-color: #000; color: #fff; }
+    .oauth-apple:hover { border-color: #000; }
+    .oauth-divider {
+      display: flex; align-items: center; gap: 12px; margin-bottom: 18px;
+      color: var(--text-light); font-size: 0.82rem;
+    }
+    .oauth-divider::before, .oauth-divider::after {
+      content: ''; flex: 1; height: 1px; background: #E3EAE6;
+    }
     .auth-tabs { display: flex; background: var(--bg); border-radius: 50px; padding: 4px; margin-bottom: 24px; }
     .auth-tab {
       flex: 1; text-align: center; padding: 10px; border-radius: 50px; cursor: pointer;
@@ -89,9 +115,47 @@
         </a>
       </div>
 
+      <!-- 15.9 — כניסה בלחיצה אחת, מעל הטפסים ולא מתחתם. גיא: "לקוחות
+           לא אוהבים למלא פרטים - זה מבריח אותם". מי שבכל זאת מעדיף
+           מייל וסיסמה ממשיך לטפסים שמתחת, בלי שינוי. -->
+      <div class="oauth-row" id="oauth-row">
+        <button type="button" class="oauth-btn" id="btn-google">
+          <svg viewBox="0 0 24 24" aria-hidden="true" width="20" height="20">
+            <path fill="#4285F4" d="M23 12.3c0-.8-.1-1.6-.2-2.3H12v4.5h6.2a5.3 5.3 0 01-2.3 3.5v2.9h3.7c2.2-2 3.4-5 3.4-8.6z"/>
+            <path fill="#34A853" d="M12 24c3.1 0 5.7-1 7.6-2.8l-3.7-2.9c-1 .7-2.3 1.1-3.9 1.1-3 0-5.5-2-6.4-4.7H1.8v3C3.7 21.4 7.6 24 12 24z"/>
+            <path fill="#FBBC05" d="M5.6 14.7a7.2 7.2 0 010-4.6v-3H1.8a12 12 0 000 10.6l3.8-3z"/>
+            <path fill="#EA4335" d="M12 4.8c1.7 0 3.2.6 4.4 1.7l3.2-3.2C17.7 1.5 15.1.4 12 .4 7.6.4 3.7 3 1.8 6.8l3.8 3C6.5 7 9 4.8 12 4.8z"/>
+          </svg>
+          <span>המשך עם Google</span>
+        </button>
+        <button type="button" class="oauth-btn oauth-apple" id="btn-apple" hidden>
+          <svg viewBox="0 0 24 24" aria-hidden="true" width="20" height="20" fill="currentColor">
+            <path d="M16.4 12.8c0-2.4 2-3.6 2.1-3.6-1.1-1.7-2.9-1.9-3.5-1.9-1.5-.2-2.9.9-3.6.9-.8 0-1.9-.9-3.1-.8-1.6 0-3 .9-3.8 2.4-1.6 2.8-.4 7 1.2 9.3.8 1.1 1.7 2.4 2.9 2.3 1.2 0 1.6-.7 3-.7s1.8.7 3 .7c1.3 0 2.1-1.1 2.9-2.3.9-1.3 1.3-2.6 1.3-2.7-.1 0-2.4-1-2.4-3.6zM14 5.4c.6-.8 1.1-1.9 1-3-1 0-2.1.6-2.8 1.4-.6.7-1.2 1.8-1 2.9 1.1.1 2.2-.6 2.8-1.3z"/>
+          </svg>
+          <span>המשך עם Apple</span>
+        </button>
+        <p class="terms-note" style="margin-top:10px">
+          בהמשך אתם מאשרים את
+          <a href="/terms.html" target="_blank" rel="noopener">תנאי השימוש</a>
+          ו<a href="/privacy.html" target="_blank" rel="noopener">מדיניות הפרטיות</a>
+        </p>
+      </div>
+
+      <div class="oauth-divider"><span>או בעזרת אימייל</span></div>
+
       <div class="auth-tabs">
         <div class="auth-tab active" data-tab="login">התחברות</div>
         <div class="auth-tab" data-tab="register">הרשמה</div>
+      </div>
+
+      <!-- נפתח רק אחרי התחברות עם ספק שלא מסר טלפון. מוביל חייב דרך
+           ליצור קשר, ולכן זה חוסם את ההמשך ולא מוצע כאופציה. -->
+      <div id="phone-step" hidden>
+        <div class="form-group">
+          <label for="oauth-phone">מספר טלפון</label>
+          <input id="oauth-phone" type="tel" inputmode="tel" placeholder="050-0000000" autocomplete="tel">
+        </div>
+        <button type="button" class="btn btn-primary btn-block" id="phone-save">שמור והמשך</button>
       </div>
 
       <div id="error-box"></div>
@@ -162,7 +226,20 @@
   </footer>
 
   <script type="module">
-    import { login, registerCustomer, subscribeToAuth } from './auth.js';
+    import { login, registerCustomer, subscribeToAuth,
+             signInWithProvider, setProfilePhone } from './auth.js';
+
+    /**
+     * ⚠️ Sign in with Apple **באתר** אינו עובד מעצם היותו מופעל באפליקציה —
+     * הוא דורש Service ID נפרד ב-Apple Developer, עם Return URL אל
+     * hovalot-6cf65.firebaseapp.com/__/auth/handler, ואת אותו Service ID
+     * מוזן ב-Firebase Console תחת ספק Apple.
+     *
+     * עד שזה נעשה הכפתור נשאר מוסתר: כפתור שנשבר גרוע מכפתור שאינו קיים,
+     * והשגיאה שהמשתמש היה מקבל (auth/operation-not-allowed) אינה אומרת לו כלום.
+     * **להפוך ל-true ברגע שהספק מוגדר.**
+     */
+    const APPLE_WEB_ENABLED = false;
 
     const tabs = document.querySelectorAll('.auth-tab');
     const forms = { login: document.getElementById('login-form'), register: document.getElementById('register-form') };
@@ -239,7 +316,74 @@
     });
 
     // Already logged in? skip straight through.
-    subscribeToAuth((state) => { if (state) location.href = nextUrl(); });
+    /**
+     * ⚠️ הדגל הזה הוא מה שמונע התנגשות אמיתית: ההאזנה למטה מפנה החוצה
+     * ברגע שיש משתמש מחובר — וזה בדיוק מה שקורה שנייה אחרי OAuth, בזמן
+     * ששלב הטלפון אמור להיות על המסך. בלעדיו הדף היה קופץ ל-next
+     * והטלפון לא היה נאסף לעולם.
+     */
+    let holdRedirect = false;
+
+    const oauthRow = document.getElementById('oauth-row');
+    const phoneStep = document.getElementById('phone-step');
+    const appleBtn = document.getElementById('btn-apple');
+    if (APPLE_WEB_ENABLED) appleBtn.hidden = false;
+
+    function friendlyOAuthError(err) {
+      const code = err && err.code;
+      // סגירת החלונית בידי המשתמש אינה תקלה — אין מה להציג לו.
+      if (code === 'auth/popup-closed-by-user' || code === 'auth/cancelled-popup-request') return null;
+      if (code === 'auth/popup-blocked') return 'הדפדפן חסם את חלון ההתחברות. אפשרו חלונות קופצים ונסו שוב.';
+      if (code === 'auth/operation-not-allowed') return 'שיטת ההתחברות הזו עדיין לא פעילה. נסו עם אימייל.';
+      if (code === 'auth/account-exists-with-different-credential')
+        return 'כבר קיים חשבון עם האימייל הזה. התחברו עם אימייל וסיסמה.';
+      if (code === 'auth/unauthorized-domain') return 'הדומיין הזה אינו מאושר להתחברות. פנו לתמיכה.';
+      return 'ההתחברות נכשלה. נסו שוב.';
+    }
+
+    async function runProvider(kind, btn) {
+      showError(null);
+      const label = btn.querySelector('span').textContent;
+      btn.disabled = true; btn.querySelector('span').textContent = 'מתחבר...';
+      holdRedirect = true;
+      try {
+        const { profile, needsPhone } = await signInWithProvider(kind);
+        if (needsPhone) {
+          // מסתירים את הכפתורים ואת הטפסים — נשאר שדה אחד בלבד.
+          oauthRow.hidden = true;
+          document.querySelector('.oauth-divider').hidden = true;
+          document.querySelector('.auth-tabs').hidden = true;
+          Object.values(forms).forEach(f => f.classList.remove('active'));
+          phoneStep.hidden = false;
+          document.getElementById('oauth-phone').focus();
+          document.getElementById('phone-save').onclick = async () => {
+            const val = document.getElementById('oauth-phone').value.trim();
+            if (!/^0\d{1,2}-?\d{7}$/.test(val.replace(/\s/g, ''))) {
+              showError('מספר טלפון לא תקין.');
+              return;
+            }
+            try {
+              await setProfilePhone(profile.uid, val.replace(/[\s-]/g, ''));
+              holdRedirect = false;
+              location.href = nextUrl();
+            } catch { showError('שמירת הטלפון נכשלה. נסו שוב.'); }
+          };
+          return;
+        }
+        holdRedirect = false;
+        location.href = nextUrl();
+      } catch (err) {
+        holdRedirect = false;
+        const msg = friendlyOAuthError(err);
+        if (msg) showError(msg);
+        btn.disabled = false; btn.querySelector('span').textContent = label;
+      }
+    }
+
+    document.getElementById('btn-google').addEventListener('click', (e) => runProvider('google', e.currentTarget));
+    appleBtn.addEventListener('click', (e) => runProvider('apple', e.currentTarget));
+
+    subscribeToAuth((state) => { if (state && !holdRedirect) location.href = nextUrl(); });
   </script>
 </body>
 </html>

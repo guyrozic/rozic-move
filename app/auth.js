@@ -6,6 +6,7 @@ import {
   createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut,
   onAuthStateChanged, updateProfile as fbUpdateProfile, sendEmailVerification,
   RecaptchaVerifier, PhoneAuthProvider, updatePhoneNumber,
+  GoogleAuthProvider, OAuthProvider, signInWithPopup,
 } from 'https://www.gstatic.com/firebasejs/12.16.0/firebase-auth.js';
 import { doc, setDoc, getDoc, updateDoc, onSnapshot, serverTimestamp } from 'https://www.gstatic.com/firebasejs/12.16.0/firebase-firestore.js';
 import { auth, db } from './firebase.js';
@@ -141,4 +142,83 @@ export async function confirmPhoneVerificationCode(verificationId, code, localPh
   const credential = PhoneAuthProvider.credential(verificationId, code);
   await updatePhoneNumber(auth.currentUser, credential);
   await updateDoc(doc(db, 'users', auth.currentUser.uid), { phone: toLocalPhone(toE164(localPhone)), phoneVerified: true });
+}
+
+
+/* ══════════════════════════════════════════════════════════════════
+   התחברות עם Google / Apple
+   ══════════════════════════════════════════════════════════════════
+
+   ## למה זה נוסף (15.9)
+   גיא פתח את זרימת ההזמנה לאורחים, וההרשמה עברה לנקודה שלפני התשלום.
+   אבל הוא זיהה בעצמו שהגבול האמיתי אינו **מתי** מבקשים אלא **כמה
+   עבודה** זה:
+
+   > *"באפליקציה זה שונה ואין להם בעיה ללחוץ על הכפתור התחבר עם אפל
+   > או גוגל... אולי אם זה היה באתר זה היה יותר בסדר."*
+
+   טופס עם שם, מייל, טלפון וסיסמה מבריח; כפתור אחד לא. שני הנתיבים
+   מגיעים לאותו `users/{uid}` בדיוק, כך שמסכי האדמין והמוביל
+   באפליקציה קוראים חשבון שנוצר כאן בלי שום שינוי אצלם.
+
+   ## ⚠️ הטלפון — הפער שנוצר, ולמה הוא לא נסגר כאן
+   `registerCustomer` מקבל טלפון כשדה חובה; Google ו-Apple **אינם
+   מוסרים אותו**. הפרופיל נוצר עם `phone: ''`, וזה תקין רק כל עוד
+   משהו אוסף אותו לפני שמוביל צריך להתקשר. `needsPhone` למטה הוא
+   הדגל שאומר את זה למי שקורא — **הוא חייב להיבדק לפני התשלום.**
+   פרופיל בלי טלפון שמגיע להזמנה פעילה הוא הזמנה שאי אפשר לבצע.
+
+   ## ⚠️ Apple דורש הגדרה שאינה בקוד
+   בניגוד לאפליקציה, Sign in with Apple **באתר** עובד דרך Service ID
+   נפרד ב-Apple Developer, עם Return URL שמצביע ל-
+   `hovalot-6cf65.firebaseapp.com/__/auth/handler`. בלי זה הקריאה
+   נכשלת ב-`auth/operation-not-allowed` — כלומר הכפתור יופיע ולא
+   יעבוד. הכפתור מוסתר עד שהספק מופעל, ולא מוצג ונשבר.
+*/
+
+/** ההסכמה נלכדת בלחיצה עצמה — ראו `terms-note` מתחת לכפתורים ב-login.html. */
+async function upsertOAuthProfile(user) {
+  const ref = doc(db, 'users', user.uid);
+  const snap = await getDoc(ref);
+  if (snap.exists()) return { profile: { uid: snap.id, ...snap.data() }, isNew: false };
+
+  const profile = {
+    uid: user.uid,
+    name: user.displayName || '',
+    email: user.email || '',
+    // ⚠️ ריק במכוון. ראו ההערה למעלה — `needsPhone` הוא מה שמסמן את זה.
+    phone: '',
+    userType: 'customer',
+    referralCode: generateReferralCode(user.uid),
+    // walletBalance ואחיו אסורים במסמך חדש לפי firestore.rules — ראו
+    // registerCustomer, אותה מגבלה בדיוק.
+  };
+  await setDoc(ref, { ...profile, termsAcceptedAt: serverTimestamp(), termsVersion: TERMS_VERSION });
+  return { profile, isNew: true };
+}
+
+/**
+ * @param {'google'|'apple'} kind
+ * @returns {Promise<{profile: object, isNew: boolean, needsPhone: boolean}>}
+ */
+export async function signInWithProvider(kind) {
+  let provider;
+  if (kind === 'google') {
+    provider = new GoogleAuthProvider();
+    // בלי זה, משתמש שכבר בחר חשבון פעם אחת מדלג על הבחירה בשקט —
+    // מטריד במיוחד במכשיר משותף.
+    provider.setCustomParameters({ prompt: 'select_account' });
+  } else {
+    provider = new OAuthProvider('apple.com');
+    provider.addScope('email');
+    provider.addScope('name');
+  }
+  const { user } = await signInWithPopup(auth, provider);
+  const { profile, isNew } = await upsertOAuthProfile(user);
+  return { profile, isNew, needsPhone: !profile.phone };
+}
+
+/** משלימה את הטלפון שחסר אחרי התחברות עם ספק. ראו `needsPhone`. */
+export async function setProfilePhone(uid, localPhone) {
+  await updateDoc(doc(db, 'users', uid), { phone: toE164(localPhone) });
 }
