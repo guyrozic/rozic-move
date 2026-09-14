@@ -238,7 +238,9 @@
   </div>
 
   <script type="module">
-    import { requireAuth } from './auth.js';
+    import { getAuthOptional, isDriverAccount, showDriverBlockAndHalt,
+             loadOrderDraft, clearOrderDraft, goRegister,
+             applyDraftToForm } from './guest-checkout.js';
     import { createOrder } from './orders.js';
     import { orderTermsConsent } from './legal.js';
     import { ALL_ROOMS, findItemAnywhere, getItemPriceAnyCategory, getFullAICatalog, getSizeSiblings } from './data/items.js';
@@ -248,7 +250,10 @@
     import { analyzeImagesWithCatalog, isAIConfigured, friendlyAIError, chatAddItemsWithCatalog } from './ai-vision.js';
     import { resizeImageToBase64 } from './image-resize.js';
 
-    const authState = await requireAuth();
+    // 14.9 — אורח רשאי לבנות הזמנה ולראות מחיר בלי חשבון. ההרשמה
+    // נדרשת רק לפני התשלום. ראו guest-checkout.js לנימוק המלא.
+    const authState = await getAuthOptional();
+    if (isDriverAccount(authState)) showDriverBlockAndHalt();
     const BASE = 100; // smallMove-only constant — NOT pricing.js's BASE_PRICE (150), confirmed distinct in the source app
     // 12.9 — נגזר מ-data/pricing.js, שם הוא מסונכרן מול האפליקציה.
     const BOXES_TAB = 'boxes';
@@ -268,6 +273,11 @@
       hasInsurance: false,
       notes: '',
     };
+
+    // ⚠️ הטיוטה נטענת כאן, אבל ה**טופס** ממולא רק בסוף הסקריפט — השדות
+    // עוד לא קיימים בשלב הזה. שני החצאים חייבים לרוץ, ראו guest-checkout.js.
+    const restoredDraft = loadOrderDraft('smallMove');
+    if (restoredDraft) Object.assign(state, restoredDraft);
 
     let step = 1;
 
@@ -745,6 +755,9 @@
         termsBox.focus();
         return;
       }
+      // ⚠️ כאן, ורק כאן, ההרשמה נדרשת. goRegister שומרת את הטיוטה
+      // לפני ההפניה — בלי זה הלקוח חוזר מההרשמה לדף ריק.
+      if (!authState) { goRegister('smallMove', state); return; }
       if (!authState.authUser.emailVerified && !authState.profile.phoneVerified) {
         errBox.innerHTML = '<div class="alert alert-error">נדרש אימות מייל או טלפון לפני אישור הזמנה. <a href="account.html">לאימות</a></div>';
         return;
@@ -778,6 +791,7 @@
           // שלא ניתנה בפועל. ראו legal.js.
           ...orderTermsConsent(),
         });
+        clearOrderDraft('smallMove');
         location.href = `order-status.html?id=${orderId}`;
       } catch (err) {
         errBox.innerHTML = '<div class="alert alert-error">יצירת ההזמנה נכשלה. נסה שוב.</div>';
@@ -821,6 +835,7 @@
     renderAIPhotos();
     renderFreeItems();
     updateItemsHeader();
+    if (restoredDraft) applyDraftToForm(state);
     goToStep(1);
   </script>
 </body>

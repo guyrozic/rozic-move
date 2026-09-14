@@ -133,8 +133,12 @@
   </footer>
 
   <script type="module">
-    import { requireAuth } from './auth.js';
-    await requireAuth();
+    // 14.9 — מסך בחירת השירות פתוח לאורחים. גיא: "לקוח יוכל לשוטט
+    // באתר בלבד לפני הרשמה, הוא יוכל לקבל מחיר לפני הרשמה, אבל עוד
+    // לפני שלב התשלום תהיה הרשמה". החסימה היחידה כאן היא מוביל —
+    // הזמנת הובלה אינה מסך שלו. ראו guest-checkout.js.
+    import { getAuthOptional, isDriverAccount, showDriverBlockAndHalt } from './guest-checkout.js';
+    if (isDriverAccount(await getAuthOptional())) showDriverBlockAndHalt();
   </script>
 </body>
 </html>
