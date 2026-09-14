@@ -56,6 +56,12 @@ export async function createOrder(input) {
     title: input.title,
     fromAddress: input.fromAddress ?? null,
     toAddress: input.toAddress ?? null,
+    // ⚠️ בלי ארבעת אלה `flagSuspiciousOrderPrice` יוצאת מיד ולא בודקת
+    // כלום. ראו `distanceAndCoords` ב-geo.js לנימוק המלא.
+    fromLat: input.fromLat ?? null,
+    fromLng: input.fromLng ?? null,
+    toLat: input.toLat ?? null,
+    toLng: input.toLng ?? null,
     scheduledDate: input.scheduledDate ?? null,
     timeSlot: input.timeSlot ?? null,
     notes: input.notes ?? null,

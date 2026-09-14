@@ -246,7 +246,7 @@
     import { ALL_ROOMS, findItemAnywhere, getItemPriceAnyCategory, getFullAICatalog, getSizeSiblings } from './data/items.js';
     import { PRICE_PER_KM, FLOOR_SURCHARGE_PER_FLOOR, getSurgePricing, calculatePackingFromItems, INSURANCE_PRICE_SMALL_MOVE } from './data/pricing.js';
     import { BOX_ITEMS, MAX_VOLUME, estimateVolume } from './data/smallMoveItems.js';
-    import { FLOORS, craneCostFor, distanceBetween, formatDateApp, parseDateApp } from './geo.js';
+    import { FLOORS, craneCostFor, distanceAndCoords, formatDateApp, parseDateApp } from './geo.js';
     import { analyzeImagesWithCatalog, isAIConfigured, friendlyAIError, chatAddItemsWithCatalog } from './ai-vision.js';
     import { resizeImageToBase64 } from './image-resize.js';
 
@@ -268,6 +268,8 @@
       fromFloor: 'קרקע', toFloor: 'קרקע', fromElevator: true, toElevator: true,
       needsCrane: false, craneFloor: 'קרקע', craneItems: [],
       distance: 0,
+      // ⚠️ נשמרים כדי להישלח ל-createOrder. ראו distanceAndCoords ב-geo.js.
+      fromLat: null, fromLng: null, toLat: null, toLng: null,
       date: formatDateApp(new Date()),
       timeSlot: '',
       hasInsurance: false,
@@ -691,7 +693,10 @@
 
       const btn = document.getElementById('delivery-continue-btn');
       btn.disabled = true; btn.textContent = 'מחשב מרחק...';
-      state.distance = await distanceBetween(state.fromAddress, state.toAddress);
+      const geo = await distanceAndCoords(state.fromAddress, state.toAddress);
+      state.distance = geo.km;
+      state.fromLat = geo.fromLat; state.fromLng = geo.fromLng;
+      state.toLat = geo.toLat;     state.toLng = geo.toLng;
       document.getElementById('distance-note').textContent = state.distance > 0 ? `מרחק משוער: ${state.distance} ק"מ` : 'לא הצלחנו לחשב מרחק — נמשיך בלי עלות נסיעה.';
       btn.disabled = false; btn.textContent = 'המשך';
       goToStep(4);
@@ -771,6 +776,8 @@
           title: 'מובילים בקטנה',
           fromAddress: state.fromAddress,
           toAddress: state.toAddress,
+          fromLat: state.fromLat, fromLng: state.fromLng,
+          toLat: state.toLat,     toLng: state.toLng,
           scheduledDate: state.date,
           timeSlot: state.timeSlot || null,
           notes: state.notes.trim() || null,

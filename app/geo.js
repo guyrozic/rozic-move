@@ -75,9 +75,40 @@ export function calcDistanceKm(a, b) {
 
 /** Geocodes two free-text addresses and returns the km distance, or 0 if either lookup fails (mirrors the app: distance stays 0, never blocks continuing). */
 export async function distanceBetween(fromFullAddress, toFullAddress) {
+  const { km } = await distanceAndCoords(fromFullAddress, toFullAddress);
+  return km;
+}
+
+/**
+ * כמו `distanceBetween`, אבל מחזירה גם את הנקודות עצמן.
+ *
+ * ## ⚠️ למה זה נוסף (15.9)
+ * `flagSuspiciousOrderPrice` בשרת היא **ההגנה היחידה** מפני הזמנה
+ * שנוצרת במחיר מזויף — חוקי Firestore תוחמים את `price` רק ל-
+ * `0 < price <= 100000`, כלומר הזמנת דירה שלמה ב-₪1 עוברת אותם.
+ *
+ * והפונקציה הזאת **יוצאת מיד** אם חסר `fromLat/fromLng/toLat/toLng`.
+ * האתר גאוקד את שתי הכתובות, החזיר ק"מ, **וזרק את הנקודות** — ולכן
+ * רשת הביטחון מעולם לא רצה על אף הזמנה שנוצרה באתר. האפליקציה כן
+ * מעבירה אותן, כך שההגנה כיסתה צד אחד בלבד.
+ *
+ * הנתון כבר היה בידינו. זה לא חישוב חדש — רק הפסקת זריקה שלו.
+ * (בונוס: `TrackOrderScreen` באפליקציה לא הציג סמני מוצא/יעד להזמנות
+ * מהאתר, מאותה סיבה בדיוק.)
+ */
+export async function distanceAndCoords(fromFullAddress, toFullAddress) {
   const [a, b] = await Promise.all([geocode(fromFullAddress), geocode(toFullAddress)]);
-  if (!a || !b) return 0;
-  return calcDistanceKm(a, b);
+  if (!a || !b) return { km: 0, fromLat: null, fromLng: null, toLat: null, toLng: null };
+  // ⚠️ `geocode` מחזירה `{lat, lon}` — **`lon`, לא `lng`** — בעוד ששם
+  // השדה ב-Firestore ובאפליקציה הוא `lng`. הגרסה הראשונה של הפונקציה
+  // הזאת קראה `a.lng` וקיבלה `undefined`, שהפך ל-`null` ב-`?? null`
+  // בדרך ל-Firestore. התוצאה הייתה נראית בדיוק כמו המצב שהיא באה
+  // לתקן — ארבעה שדות ריקים ורשת ביטחון שממשיכה לא לרוץ.
+  return {
+    km: calcDistanceKm(a, b),
+    fromLat: a.lat, fromLng: a.lon,
+    toLat: b.lat, toLng: b.lon,
+  };
 }
 
 export function formatDateApp(d) {
