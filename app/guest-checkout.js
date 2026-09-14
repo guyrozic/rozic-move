@@ -78,18 +78,52 @@ export function saveOrderDraft(serviceType, state) {
   }
 }
 
-/** מחזירה את הטיוטה אם היא קיימת וטרייה, אחרת `null` (ומנקה את מה שפג). */
+/**
+ * ⚠️ הטיוטה נמזגת ל-`state` ב-`Object.assign`, כלומר **כל שדה בה דורס
+ * את המקור בלי בדיקת טיפוס**. שדה במבנה שגוי אינו נשאר בעיה מקומית:
+ * `renderFreeItems` קורא `state.freeItems.map`, וטיוטה שבה `freeItems`
+ * הוא מחרוזת מפילה את הסקריפט כולו — **הדף מת ואי אפשר להזמין בו**.
+ *
+ * נתפס בבדיקה עוינת (15.9), אבל התרחיש המסוכן אינו זדוני אלא שגרתי:
+ * **טיוטה שנשמרה בגרסת קוד קודמת.** שינוי מבנה של `state` בעתיד יהפוך
+ * כל טיוטה קיימת לפצצה אצל מי שיש לו אחת — ואין לו דרך לנקות אותה.
+ *
+ * לכן: טיוטה שלא עומדת בצורה הצפויה **נזרקת** ולא מתוקנת חלקית.
+ * טיוטה חצי-תקינה שמשוחזרת היא בדיוק הסוג של באג שנראה אקראי.
+ */
+const DRAFT_SHAPE = {
+  items: 'object', freeItems: 'array', craneItems: 'array',
+  fromAddress: 'string', toAddress: 'string', fromFloor: 'string', toFloor: 'string',
+  notes: 'string', date: 'string', timeSlot: 'string',
+  hasPacking: 'boolean', hasInsurance: 'boolean', needsCrane: 'boolean',
+  fromElevator: 'boolean', toElevator: 'boolean', distance: 'number',
+};
+
+function shapeOk(state) {
+  if (!state || typeof state !== 'object' || Array.isArray(state)) return false;
+  for (const [key, kind] of Object.entries(DRAFT_SHAPE)) {
+    if (!(key in state)) continue;              // שדה חסר — ברירת המחדל תופסת
+    const v = state[key];
+    const actual = Array.isArray(v) ? 'array' : typeof v;
+    if (actual !== kind) return false;
+  }
+  return true;
+}
+
+/** מחזירה את הטיוטה אם היא קיימת, טרייה ובמבנה תקין; אחרת `null` (ומנקה). */
 export function loadOrderDraft(serviceType) {
   try {
     const raw = localStorage.getItem(draftKey(serviceType));
     if (!raw) return null;
     const { savedAt, state } = JSON.parse(raw);
-    if (!savedAt || Date.now() - savedAt > DRAFT_TTL_MS) {
+    if (!savedAt || Date.now() - savedAt > DRAFT_TTL_MS || !shapeOk(state)) {
       localStorage.removeItem(draftKey(serviceType));
       return null;
     }
-    return state ?? null;
+    return state;
   } catch {
+    // JSON פגום — לנקות, אחרת הוא ייקרא שוב בכל טעינה.
+    try { localStorage.removeItem(draftKey(serviceType)); } catch { /* ראו למעלה */ }
     return null;
   }
 }
