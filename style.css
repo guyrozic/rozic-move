@@ -1151,15 +1151,20 @@ img, svg { display: block; }
 
 /* ===== FOOTER ===== */
 .footer {
-  background: #0F1F0F;
-  padding-top: 60px;
+  /* 15.9 — גיא: "פס ירוק כהה מאוד מאוד גבוה — חייב להוריד מטה,
+     להבהיר, ולצמצם את הגובה שלו." נמדד לפני התיקון: הפוטר תפס
+     31%–33% מגובה הדף במסך בחירת השירות. הסיבה שזה הוחמר עכשיו
+     היא הגדלת בסיס הגופן — כל הריווח כאן ב-rem וגדל איתו.
+     #0F1F0F היה כהה עד שנקרא כשחור; הגוון החדש נוטה ל-pine. */
+  background: #1C4035;
+  padding-top: 28px;
 }
 
 .footer-inner {
   display: flex;
   gap: 64px;
   align-items: flex-start;
-  padding-bottom: 48px;
+  padding-bottom: 26px;
 }
 
 .footer-brand { flex-shrink: 0; }
@@ -1179,13 +1184,14 @@ img, svg { display: block; }
 
 .footer-tagline {
   font-size: 0.8rem;
-  color: rgba(255,255,255,0.4);
-  margin-bottom: 20px;
+  color: rgba(255,255,255,0.55);
+  margin-bottom: 12px;
 }
 
 .footer-copy {
   font-size: 0.78rem;
-  color: rgba(255,255,255,0.25);
+  /* 0.45 נמדד 4.02:1 על הרקע החדש — מתחת ל-AA לטקסט קטן. */
+  color: rgba(255,255,255,0.62);
 }
 
 .footer-links {
@@ -1198,13 +1204,13 @@ img, svg { display: block; }
 .footer-col {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 6px;
 }
 
 .footer-col-title {
   font-size: 0.75rem;
   font-weight: 700;
-  color: rgba(255,255,255,0.35);
+  color: rgba(255,255,255,0.5);
   text-transform: uppercase;
   letter-spacing: 1px;
   margin-bottom: 4px;
@@ -1212,7 +1218,7 @@ img, svg { display: block; }
 
 .footer-col a {
   font-size: 0.85rem;
-  color: rgba(255,255,255,0.55);
+  color: rgba(255,255,255,0.72);
   text-decoration: none;
   transition: color var(--transition);
   /* 11.9 — נמדד בפועל ב-Playwright על iPhone 13: גובה יעד הנגיעה היה
@@ -1231,19 +1237,20 @@ img, svg { display: block; }
 }
 
 .footer-bottom {
-  padding: 20px 24px;
+  padding: 13px 24px;
   text-align: center;
 }
 
 .footer-bottom p {
   font-size: 0.78rem;
-  color: rgba(255,255,255,0.2);
+  /* ראו ההערה ב-.footer-copy — אותה מדידה. */
+  color: rgba(255,255,255,0.62);
 }
 
 /* גילוי פרטי העוסק בפוטר — נדרש בעסקת מכר מרחוק.
    טקסט משני ועדין, אך בניגודיות קריאה ולא ברמת ההערה שמתחתיו. */
 .footer-bottom p.footer-business {
-  color: rgba(255,255,255,0.5);
+  color: rgba(255,255,255,0.72);
   margin-bottom: 6px;
 }
 
@@ -1306,8 +1313,15 @@ a.back {
   .movers-inner { flex-direction: column; gap: 40px; }
   .driver-card { width: 100%; }
   .stats-grid { grid-template-columns: repeat(2, 1fr); gap: 32px; }
-  .footer-inner { flex-direction: column; gap: 32px; }
-  .footer-links { justify-content: flex-start; flex-wrap: wrap; gap: 32px; }
+  /* 15.9 — בטלפון ה-inner נערם, ושני ה-gap של 32px היו מה שהשאיר את
+     הפוטר גבוה גם אחרי צמצום ה-padding. ראו ההערה ב-.footer. */
+  .footer-inner { flex-direction: column; gap: 16px; }
+  .footer-links { justify-content: flex-start; flex-wrap: wrap; gap: 24px; }
+  /* הקישורים המשפטיים עוברים לשורה זורמת. ארבע שורות הופכות לשתיים,
+     וזה מה שבאמת הוריד את הפוטר — לא ה-padding. */
+  .footer-col { flex-direction: row; flex-wrap: wrap; gap: 4px 20px; align-items: baseline; }
+  .footer-col-title { width: 100%; margin-bottom: 0; }
+  .footer-tagline { margin-bottom: 6px; }
 }
 
 /* בטווח שבין קריסת ה-hero לעמודה אחת לבין מצב הטלפון, לשלישייה יש
