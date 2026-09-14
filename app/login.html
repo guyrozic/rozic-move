@@ -172,7 +172,9 @@
         <button type="button" class="btn btn-primary btn-block" id="phone-save">שמור והמשך</button>
       </div>
 
-      <div id="error-box"></div>
+      <!-- role=alert: הודעת שגיאת ההתחברות נכתבה ל-innerHTML בלי אזור חי, ולכן
+           קורא מסך לא הכריז עליה כלל (WCAG 2.1 AA, 4.1.3). -->
+      <div id="error-box" role="alert"></div>
 
       <form id="login-form" class="auth-form active">
         <div class="form-group">
@@ -241,7 +243,7 @@
 
   <script type="module">
     import { login, registerCustomer, subscribeToAuth,
-             signInWithProvider, setProfilePhone } from './auth.js';
+             signInWithProvider, setProfilePhone, normalizePhone } from './auth.js';
 
     /**
      * ⚠️ Sign in with Apple **באתר** אינו עובד מעצם היותו מופעל באפליקציה —
@@ -335,12 +337,23 @@
         termsBox.focus();
         return;
       }
+      // ⚠️ השדה הוא type="tel" בלי pattern, והדפדפן לא חוסם כלום.
+      // בבדיקה נרשם בפועל חשבון עם הטלפון "abcdefg". normalizePhone
+      // הופך קלט כזה למחרוזת ריקה — ומי שחוסם על ריק הוא הקוד הזה.
+      // ראו ההערה ב-normalizePhone לנזק במורד הזרם.
+      // הבדיקה רצה **לפני** נעילת הכפתור, כדי שלא יישאר נעול על כשל.
+      const regPhone = normalizePhone(document.getElementById('reg-phone').value);
+      if (!/^05\d{8}$/.test(regPhone)) {
+        showError('מספר טלפון לא תקין. לדוגמה: 050-1234567');
+        document.getElementById('reg-phone').focus();
+        return;
+      }
       const btn = document.getElementById('register-submit');
       btn.disabled = true; btn.textContent = 'נרשם...';
       try {
         await registerCustomer({
           name: document.getElementById('reg-name').value.trim(),
-          phone: document.getElementById('reg-phone').value.trim(),
+          phone: regPhone,
           email: document.getElementById('reg-email').value.trim(),
           password: document.getElementById('reg-password').value,
           termsAccepted: termsBox.checked,

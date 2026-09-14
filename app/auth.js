@@ -36,6 +36,30 @@ function toLocalPhone(e164) {
   return e164.startsWith('+972') ? '0' + e164.slice(4) : e164;
 }
 
+/**
+ * הצורה הקנונית של `users.phone` בכל הפרויקט: `05XXXXXXXX`, ספרות בלבד.
+ *
+ * ## ⚠️ למה זה נוסף (15.9)
+ * שדה ההרשמה הוא `type="tel"` בלי `pattern`, ו-`registerCustomer` כתב
+ * את הערך **גולמי**. בבדיקה נרשם בפועל חשבון עם הטלפון `abcdefg`,
+ * והוא נשמר. וה-placeholder בטופס הוא `050-1234567` **עם מקפים** —
+ * כלומר כל מי שהלך לפי הדוגמה שמרנו לו מספר עם מקפים.
+ *
+ * מה שזה שבר במורד הזרם: `marketplace` ו-`listing` בונים
+ * `wa.me/972${phone.replace(/^0/,'')}`, ומקף אחד הפך את הקישור ל-
+ * `wa.me/97250-881-1085` — שבור לכל מודעה של כל מי שהקליד לפי
+ * ה-placeholder. ו-`createGrowCheckout` שולח את אותו שדה לספק התשלומים.
+ *
+ * ⚠️ **זה מנרמל ואינו מאמת.** קלט שאינו מספר כלל הופך למחרוזת ריקה,
+ * והחסימה על ריק היא באחריות הקורא — בדיוק כמו `needsPhone` ב-OAuth.
+ */
+export function normalizePhone(raw) {
+  const digits = String(raw ?? '').replace(/\D/g, '');
+  if (!digits) return '';
+  if (digits.startsWith('972')) return '0' + digits.slice(3);
+  return digits.startsWith('0') ? digits : '0' + digits;
+}
+
 /** Registers a new customer account — web ordering is customer-only, no driver signup here. */
 export async function registerCustomer({ name, email, phone, password, termsAccepted }) {
   // הסכמה לתנאי השימוש ולמדיניות הפרטיות היא תנאי להרשמה (כמו באפליקציה).
@@ -45,7 +69,7 @@ export async function registerCustomer({ name, email, phone, password, termsAcce
   const credential = await createUserWithEmailAndPassword(auth, email, password);
   await fbUpdateProfile(credential.user, { displayName: name });
   const profile = {
-    uid: credential.user.uid, name, email, phone, userType: 'customer',
+    uid: credential.user.uid, name, email, phone: normalizePhone(phone), userType: 'customer',
     referralCode: generateReferralCode(credential.user.uid),
     // אין כאן walletBalance. firestore.rules (newUserFieldsSafe) אוסר על
     // walletBalance/earningsBalance/cancellationStrikes/suspendedUntil/
@@ -233,5 +257,5 @@ export async function signInWithProvider(kind) {
  * חיפוש/השוואה של מספר במסכי האדמין מניח `05…`.
  */
 export async function setProfilePhone(uid, localPhone) {
-  await updateDoc(doc(db, 'users', uid), { phone: toLocalPhone(toE164(localPhone)) });
+  await updateDoc(doc(db, 'users', uid), { phone: normalizePhone(localPhone) });
 }
