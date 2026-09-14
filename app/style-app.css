@@ -274,6 +274,9 @@
   content: '';
   position: absolute;
   inset: 0;
+  /* 15.9 ביקורת נגישות — שכבת הזוהר מכסה את כל שטח האריח. אותה תבנית
+     שבלעה את כפתור ההתחברות ב-login.html. */
+  pointer-events: none;
   background: radial-gradient(140px 140px at 85% -10%, rgba(14,92,67,0.10), transparent 70%);
   opacity: 0;
   transition: opacity 0.3s var(--ease);
@@ -706,6 +709,16 @@
 .ai-chat-input-row { display: flex; gap: 10px; }
 .ai-chat-input-row input {
   flex: 1;
+  /* ⚠️ 15.9 — בלי `min-width:0` פריט flex לא מתכווץ מתחת לרוחב התוכן
+     המינימלי שלו (ברירת המחדל היא `min-width:auto`). ברוחב 320px
+     התיבה נשארה 206px, הכפתור 92px, והשורה `nowrap` דחפה את **כפתור
+     ״שלח״ 39px אל מחוץ למסך** — כלומר לא נגיש כלל, והדף גלש אופקית.
+
+     ⚠️ ותחת RTL החריגה היא **שמאלה** (`left:-39`), לא ימינה. בדיקה
+     שמחפשת `right > innerWidth` מפספסת אותה לגמרי — וזה בדיוק מה
+     שקרה לי בסריקה הראשונה, שדיווחה "אין אלמנט חורג" בזמן
+     ש-`scrollWidth` אמר 359. */
+  min-width: 0;
   border: 1.5px solid var(--border);
   border-radius: 12px;
   padding: 11px 15px;
