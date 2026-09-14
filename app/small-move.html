@@ -242,7 +242,7 @@
     import { createOrder } from './orders.js';
     import { orderTermsConsent } from './legal.js';
     import { ALL_ROOMS, findItemAnywhere, getItemPriceAnyCategory, getFullAICatalog, getSizeSiblings } from './data/items.js';
-    import { PRICE_PER_KM, FLOOR_SURCHARGE_PER_FLOOR, getSurgePricing, calculatePackingFromItems } from './data/pricing.js';
+    import { PRICE_PER_KM, FLOOR_SURCHARGE_PER_FLOOR, getSurgePricing, calculatePackingFromItems, INSURANCE_PRICE_SMALL_MOVE } from './data/pricing.js';
     import { BOX_ITEMS, MAX_VOLUME, estimateVolume } from './data/smallMoveItems.js';
     import { FLOORS, craneCostFor, distanceBetween, formatDateApp, parseDateApp } from './geo.js';
     import { analyzeImagesWithCatalog, isAIConfigured, friendlyAIError, chatAddItemsWithCatalog } from './ai-vision.js';
@@ -250,7 +250,7 @@
 
     const authState = await requireAuth();
     const BASE = 100; // smallMove-only constant — NOT pricing.js's BASE_PRICE (150), confirmed distinct in the source app
-    const INSURANCE_PRICE = 49;
+    // 12.9 — נגזר מ-data/pricing.js, שם הוא מסונכרן מול האפליקציה.
     const BOXES_TAB = 'boxes';
     // AI detection only knows the catalog + BOX_ITEMS keys (same AI_CATALOG shape the app builds for this flow).
     const AI_CATALOG = [...getFullAICatalog(), ...BOX_ITEMS.map(b => ({ key: b.key, label: b.label }))];
@@ -310,7 +310,7 @@
       const surgeAmount = surge ? Math.round(baseTotal * surge.rate) : 0;
       const packingCalc = calculatePackingFromItems(selected.filter(i => findItemAnywhere(i.key)).map(i => ({ itemKey: i.key, qty: i.qty })));
       const craneCost = state.needsCrane ? craneCostFor(state.craneFloor) : 0;
-      const insuranceAmount = state.hasInsurance ? INSURANCE_PRICE : 0;
+      const insuranceAmount = state.hasInsurance ? INSURANCE_PRICE_SMALL_MOVE : 0;
       const packingAmount = state.hasPacking ? packingCalc.total : 0;
       const preCouponTotal = baseTotal + surgeAmount + insuranceAmount + packingAmount + craneCost;
       // 11.9 — התוספת הצרכנית של 5% הוסרה. היא בוטלה באפליקציה ב-2.8,

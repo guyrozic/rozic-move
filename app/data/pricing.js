@@ -521,3 +521,17 @@ export function getSurgePricing(date) {
         return { label: 'שישי', rate: 0.25 };
     return null;
 }
+
+/**
+ * מחיר הביטוח, לפי סוג השירות.
+ *
+ * ⚠️ 12.9 — **חייב להישאר זהה ל-`INSURANCE_PRICE_APARTMENT` ו-
+ * `INSURANCE_PRICE_SMALL_MOVE` באפליקציה** (`src/data/pricing.ts`).
+ * `check-web-pricing-sync` משווה ביניהם ויפיל שינוי חד-צדדי.
+ *
+ * עד היום הם היו קשיחים **בתוך ה-HTML** של שני הדפים — עותק שלישי
+ * של אותו מספר, מעבר לשני המסכים באפליקציה. שינוי מחיר היה דורש
+ * עריכה בשלושה מקומות.
+ */
+export const INSURANCE_PRICE_APARTMENT = 99;
+export const INSURANCE_PRICE_SMALL_MOVE = 49;
