@@ -196,19 +196,36 @@ img, svg { display: block; }
 /* Mobile Menu */
 .mobile-menu {
   position: fixed;
-  top: var(--nav-h);
+  /* ⚠️ 15.9 — היה `top: var(--nav-h)` בלבד, בלי גובה הבאנר. ה-nav עצמו
+     יושב ב-`top: var(--banner-h)` וה-body מרפד ב-`nav-h + banner-h`,
+     כלומר התפריט היה האלמנט **היחיד** שלא ספר את הבאנר — ולכן נפתח
+     61px גבוה מדי, וה-nav (z-index 100) כיסה את הפריט הראשון.
+     התוצאה: "שירותים" לא היה לחיץ במובייל. אומת ב-elementFromPoint. */
+  top: calc(var(--nav-h) + var(--banner-h, 0px));
   left: 0; right: 0;
   background: var(--white);
   z-index: 99;
   padding: 20px 24px 32px;
   transform: translateY(-110%);
-  transition: transform 0.35s cubic-bezier(0.4,0,0.2,1);
+  /* 15.9 ביקורת נגישות — התפריט הסגור נשאר visible ו-focusable: בדסקטופ
+     (שבו ההמבורגר display:none) נמדדו 5 תחנות Tab אל קישורים בלתי-נראים,
+     ו-Playwright נכשל בלחיצה בפועל על כל החמישה. visibility מוציאה אותו
+     מסדר ה-Tab וממערך ה-hit-testing בלי לגעת בפריסה ובלי לשבור את
+     האנימציה (ההשהיה משאירה אותו גלוי לאורך הסגירה). */
+  visibility: hidden;
+  pointer-events: none;
+  transition: transform 0.35s cubic-bezier(0.4,0,0.2,1), visibility 0s linear 0.35s;
   box-shadow: 0 8px 24px rgba(0,0,0,0.12);
   border-bottom-left-radius: 20px;
   border-bottom-right-radius: 20px;
 }
 
-.mobile-menu.open { transform: translateY(0); }
+.mobile-menu.open {
+  transform: translateY(0);
+  visibility: visible;
+  pointer-events: auto;
+  transition: transform 0.35s cubic-bezier(0.4,0,0.2,1), visibility 0s linear 0s;
+}
 
 .mobile-menu ul { list-style: none; display: flex; flex-direction: column; gap: 4px; }
 
@@ -321,6 +338,9 @@ img, svg { display: block; }
 .title-accent::after {
   content: '';
   position: absolute;
+  /* 15.9 ביקורת נגישות — קישוט טהור. בלי pointer-events:none הוא נשאר
+     בערימת ה-hit-testing ועלול לבלוע לחיצה, בדיוק כמו העיגולים ב-login. */
+  pointer-events: none;
   bottom: 2px;
   right: 0; left: 0;
   height: 4px;
@@ -799,6 +819,7 @@ img, svg { display: block; }
 .step-connector::before {
   content: '';
   position: absolute;
+  pointer-events: none;  /* 15.9 — קישוט טהור */
   width: 32px;
   height: 2px;
   background: linear-gradient(90deg, var(--green), rgba(14,92,67,0.3));
@@ -811,6 +832,7 @@ img, svg { display: block; }
   color: var(--green);
   position: absolute;
   left: 2px;
+  pointer-events: none;  /* 15.9 — קישוט טהור */
 }
 
 /* ===== FOR MOVERS ===== */
@@ -824,6 +846,9 @@ img, svg { display: block; }
 .movers-section::before {
   content: '';
   position: absolute;
+  /* 15.9 — עיגול רקע 500×500. נמדד שאינו מכסה את ה-CTA כרגע (overflow:hidden
+     גוזר אותו), אבל זו בדיוק התבנית שבלעה את כפתור ההתחברות ב-login.html. */
+  pointer-events: none;
   top: -200px;
   right: -200px;
   width: 500px;
@@ -840,7 +865,7 @@ img, svg { display: block; }
 
 .movers-text { flex: 1; }
 
-.movers-text .section-label { color: rgba(255,255,255,0.5); }
+.movers-text .section-label { color: rgba(255,255,255,0.56); }  /* 15.9 — 4.33:1 מדוד, מתחת ל-AA. 0.56 => 4.78:1 */
 
 .movers-text h2 {
   font-size: clamp(1.9rem, 3.9vw, 2.9rem);
@@ -941,7 +966,8 @@ img, svg { display: block; }
 
 .driver-level {
   font-size: 0.72rem;
-  color: rgba(255,255,255,0.55);
+  /* 15.9 — 4.29:1 מדוד מול rgb(45,67,99). 0.62 => מעל 4.5:1 */
+  color: rgba(255,255,255,0.62);
 }
 
 .driver-badge-online {
@@ -958,7 +984,8 @@ img, svg { display: block; }
 .driver-orders-label {
   font-size: 0.7rem;
   font-weight: 700;
-  color: rgba(255,255,255,0.4);
+  /* 15.9 — 3.02:1 מדוד מול rgb(45,67,99), הרחק מתחת ל-AA. 0.62 => מעל 4.5:1 */
+  color: rgba(255,255,255,0.62);
   text-transform: uppercase;
   letter-spacing: 0.5px;
   margin-bottom: 10px;
@@ -1112,7 +1139,7 @@ img, svg { display: block; }
   position: relative;
 }
 
-.download-content .section-label { color: rgba(255,255,255,0.5); }
+.download-content .section-label { color: rgba(255,255,255,0.56); }  /* 15.9 — 4.33:1 מדוד, מתחת ל-AA. 0.56 => 4.78:1 */
 
 .download-content h2 {
   font-size: clamp(2rem, 4.4vw, 3.1rem);
@@ -1210,7 +1237,8 @@ img, svg { display: block; }
 .footer-col-title {
   font-size: 0.75rem;
   font-weight: 700;
-  color: rgba(255,255,255,0.5);
+  /* 15.9 — 4.14:1 מדוד מול rgb(28,64,53) אחרי שינוי הפוטר. 0.58 => 5.0:1 */
+  color: rgba(255,255,255,0.58);
   text-transform: uppercase;
   letter-spacing: 1px;
   margin-bottom: 4px;
