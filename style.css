@@ -33,7 +33,14 @@
 
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-html { scroll-behavior: smooth; }
+html {
+  scroll-behavior: smooth;
+  /* 14.9 — הגדלה כלל-אתרית: כל האתר בנוי על rem, ולכן הבסיס הוא הידית
+     היחידה שמגדילה את הסקאלה כולה יחד. 17.5px בטלפון ועד 19.5px בדסקטופ
+     (ברירת המחדל של הדפדפן היא 16px). היחידה נשארת rem ולא px, כך
+     שהגדרת גודל הגופן של המשתמש בדפדפן ממשיכה להיות מכובדת. */
+  font-size: clamp(1.09375rem, 1rem + 0.35vw, 1.21875rem);
+}
 
 body {
   font-family: 'Heebo', 'Segoe UI', Arial, sans-serif;
@@ -114,6 +121,7 @@ img, svg { display: block; }
   flex-shrink: 0;
 }
 
+.nav-logo .logo-arrow { width: 1.125rem; height: 1.125rem; }
 .nav-logo:hover .logo-arrow path { stroke: var(--green-mid); }
 
 .nav-links {
@@ -286,7 +294,7 @@ img, svg { display: block; }
 }
 
 .hero-title {
-  font-size: clamp(2.8rem, 5.4vw, 4.4rem);
+  font-size: clamp(2.9rem, 6vw, 4.4rem);
   font-weight: 900;
   line-height: 1.06;
   letter-spacing: -2px;
@@ -335,14 +343,18 @@ img, svg { display: block; }
   align-items: center;
   gap: 10px;
   text-decoration: none;
-  padding: 12px 20px;
+  padding: 13px 22px;
   border-radius: 14px;
   transition: transform var(--transition), box-shadow var(--transition);
 }
 
+/* האייקונים מקבלים רוחב ב-em כדי שיגדלו יחד עם הכיתוב ולא יישארו מאחור.
+   כל שלושת ה-SVG הם ברוחב 20 במקור (=1.25em), וה-viewBox שומר על היחס. */
+.btn-store svg { width: 1.25em; height: auto; flex-shrink: 0; }
+
 .btn-store div { text-align: start; line-height: 1.2; }
-.btn-store small { font-size: 0.7rem; opacity: 0.75; display: block; }
-.btn-store strong { font-size: 1rem; font-weight: 800; }
+.btn-store small { font-size: 0.78rem; opacity: 0.75; display: block; }
+.btn-store strong { font-size: 1.1rem; font-weight: 800; }
 
 .btn-apple {
   background: var(--text);
@@ -363,8 +375,9 @@ img, svg { display: block; }
 }
 .btn-web:hover { background: var(--green-dark); transform: translateY(-2px); box-shadow: var(--shadow-green); }
 
-.btn-store.large { padding: 14px 24px; }
-.btn-store.large strong { font-size: 1.1rem; }
+.btn-store.large { padding: 16px 28px; }
+.btn-store.large strong { font-size: 1.2rem; }
+.btn-store.large svg { width: 1.4em; }
 
 
 /* ===== PHONE MOCKUP ===== */
@@ -390,8 +403,10 @@ img, svg { display: block; }
 }
 
 .phone-frame {
-  width: 240px;
-  height: 480px;
+  /* ב-rem ולא ב-px: הטקסט שבתוך המסך גדל עם הבסיס, ומסגרת קשיחה
+     הייתה חותכת אותו. 15rem×30rem = 240×480 בבסיס 16px. */
+  width: 15rem;
+  height: 30rem;
   background: var(--text);
   border-radius: 36px;
   padding: 14px 10px;
@@ -400,8 +415,8 @@ img, svg { display: block; }
 }
 
 .phone-notch {
-  width: 60px;
-  height: 6px;
+  width: 3.75rem;
+  height: 0.375rem;
   background: #2a2a2a;
   border-radius: 3px;
   margin: 0 auto 10px;
@@ -442,8 +457,8 @@ img, svg { display: block; }
 }
 
 .app-avatar {
-  width: 28px;
-  height: 28px;
+  width: 1.75rem;
+  height: 1.75rem;
   border-radius: 50%;
   background: linear-gradient(135deg, var(--green), var(--navy));
 }
@@ -491,8 +506,8 @@ img, svg { display: block; }
 }
 
 .mover-ava {
-  width: 28px;
-  height: 28px;
+  width: 1.75rem;
+  height: 1.75rem;
   border-radius: 50%;
   flex-shrink: 0;
 }
@@ -569,8 +584,8 @@ img, svg { display: block; }
 }
 
 .badge-icon {
-  width: 28px;
-  height: 28px;
+  width: 1.75rem;
+  height: 1.75rem;
   background: var(--green);
   color: white;
   border-radius: 50%;
@@ -620,7 +635,7 @@ img, svg { display: block; }
 .section-label.light { color: rgba(255,255,255,0.7); }
 
 .section-header h2 {
-  font-size: clamp(1.8rem, 3.5vw, 2.6rem);
+  font-size: clamp(1.9rem, 3.9vw, 2.9rem);
   font-weight: 900;
   letter-spacing: -0.8px;
   color: var(--text);
@@ -663,8 +678,8 @@ img, svg { display: block; }
 }
 
 .feature-icon-wrap {
-  width: 56px;
-  height: 56px;
+  width: 3.5rem;
+  height: 3.5rem;
   background: white;
   border-radius: 14px;
   display: flex;
@@ -674,6 +689,8 @@ img, svg { display: block; }
   box-shadow: var(--shadow-sm);
   color: var(--green);
 }
+
+.feature-icon-wrap svg { width: 2.25rem; height: 2.25rem; }
 
 .feature-card h3 {
   font-size: 1.1rem;
@@ -804,7 +821,7 @@ img, svg { display: block; }
 .movers-text .section-label { color: rgba(255,255,255,0.5); }
 
 .movers-text h2 {
-  font-size: clamp(1.8rem, 3.5vw, 2.6rem);
+  font-size: clamp(1.9rem, 3.9vw, 2.9rem);
   font-weight: 900;
   letter-spacing: -0.8px;
   color: white;
@@ -837,8 +854,8 @@ img, svg { display: block; }
 }
 
 .benefit-check {
-  width: 22px;
-  height: 22px;
+  width: 1.375rem;
+  height: 1.375rem;
   background: var(--green);
   border-radius: 50%;
   display: flex;
@@ -846,6 +863,8 @@ img, svg { display: block; }
   justify-content: center;
   flex-shrink: 0;
 }
+
+.benefit-check svg { width: 0.875rem; height: auto; }
 
 .btn-light {
   display: inline-block;
@@ -873,7 +892,7 @@ img, svg { display: block; }
   border: 1px solid rgba(255,255,255,0.12);
   border-radius: 20px;
   padding: 24px;
-  width: 320px;
+  width: 20rem;
   backdrop-filter: blur(8px);
 }
 
@@ -885,8 +904,8 @@ img, svg { display: block; }
 }
 
 .driver-ava {
-  width: 44px;
-  height: 44px;
+  width: 2.75rem;
+  height: 2.75rem;
   border-radius: 50%;
   background: linear-gradient(135deg, #7C3AED, #4F46E5);
   flex-shrink: 0;
@@ -1008,6 +1027,8 @@ img, svg { display: block; }
 .faq-q:hover { color: var(--green-dark); }
 
 .faq-arrow {
+  width: 1.125rem;
+  height: 1.125rem;
   flex-shrink: 0;
   transition: transform 0.3s ease;
   color: var(--text-muted);
@@ -1021,7 +1042,7 @@ img, svg { display: block; }
   transition: max-height 0.4s cubic-bezier(0.4,0,0.2,1);
 }
 
-.faq-item.open .faq-a { max-height: 300px; }
+.faq-item.open .faq-a { max-height: 420px; }
 
 .faq-a p {
   padding: 0 20px 18px;
@@ -1072,7 +1093,7 @@ img, svg { display: block; }
 .download-content .section-label { color: rgba(255,255,255,0.5); }
 
 .download-content h2 {
-  font-size: clamp(1.9rem, 4vw, 2.8rem);
+  font-size: clamp(2rem, 4.4vw, 3.1rem);
   font-weight: 900;
   letter-spacing: -0.8px;
   color: white;
@@ -1120,6 +1141,8 @@ img, svg { display: block; }
 }
 
 .footer-brand { flex-shrink: 0; }
+
+.footer-logo svg { width: 1rem; height: 1rem; }
 
 .footer-logo {
   font-size: 1.1rem;
@@ -1267,6 +1290,6 @@ a.back {
 @media (max-width: 480px) {
   .stats-grid { grid-template-columns: 1fr 1fr; gap: 20px; }
   .hero-title { font-size: 2.2rem; }
-  .phone-frame { width: 210px; height: 420px; }
+  .phone-frame { width: 13.125rem; height: 26.25rem; }
   .faq-q { font-size: 0.88rem; }
 }
