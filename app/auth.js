@@ -218,7 +218,20 @@ export async function signInWithProvider(kind) {
   return { profile, isNew, needsPhone: !profile.phone };
 }
 
-/** משלימה את הטלפון שחסר אחרי התחברות עם ספק. ראו `needsPhone`. */
+/**
+ * משלימה את הטלפון שחסר אחרי התחברות עם ספק. ראו `needsPhone`.
+ *
+ * ⚠️ 15.9 — **נכתב כאן `toE164` (`+972…`), וזה היה הפורמט הלא נכון.**
+ * הפורמט הקנוני של `users.phone` בפרויקט הוא המקומי (`05…`): כך כותבים
+ * `registerCustomer` למעלה, `confirmPhoneVerificationCode` (שמריץ בדיוק
+ * `toLocalPhone(toE164(...))`), ו-`AuthContext` באפליקציה בשני נתיבי
+ * אימות הטלפון שלו. `toLocalPhone` קיים בקובץ הזה בשביל זה בדיוק.
+ *
+ * מה נשבר בפועל מהפורמט הזר: הלוח בונה קישור וואטסאפ בתור
+ * `wa.me/972${phone.replace(/^0/, '')}` — על `+972521234567` ה-replace לא
+ * תופס כלום והקישור יוצא `wa.me/972+972521234567`, כלומר שבור. בנוסף כל
+ * חיפוש/השוואה של מספר במסכי האדמין מניח `05…`.
+ */
 export async function setProfilePhone(uid, localPhone) {
-  await updateDoc(doc(db, 'users', uid), { phone: toE164(localPhone) });
+  await updateDoc(doc(db, 'users', uid), { phone: toLocalPhone(toE164(localPhone)) });
 }

@@ -97,6 +97,23 @@
 
     const authState = await requireAuth();
 
+    /**
+     * ⚠️ כותרת, תיאור, עיר, שם ותמונות של מודעה הם טקסט חופשי ש**משתמש
+     * אחר** הקליד, והם נשתלים כאן לתוך `innerHTML`. בלי בריחה, מודעה עם
+     * `<img src=x onerror=...>` בכותרת מריצה קוד אצל **כל** מי שפותח את
+     * הלוח — על המקור של rozicmove.com, עם ההתחברות שלו ב-IndexedDB.
+     *
+     * `listing.html` כבר עשה את זה נכון (`textContent` ו-`img.src` כמאפיין,
+     * ראו ההערה שם) — הדף הזה פשוט לא עודכן יחד איתו.
+     *
+     * הבריחה כוללת `"` ו-`'` כי חלק מהערכים יושבים בתוך מאפיין (`src=`,
+     * `alt=`, `href=`), ושם גרשיים סוגרים את המאפיין ופותחים מאפיין חדש —
+     * `onerror` למשל — בלי שום תו `<`.
+     */
+    const esc = (v) => String(v ?? '')
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+
     let allListings = [];
     let activeCategory = 'all';
     let searchQuery = '';
@@ -135,11 +152,11 @@
       const grid = document.getElementById('listing-grid');
       document.getElementById('empty-state').style.display = filtered.length === 0 ? 'block' : 'none';
       grid.innerHTML = filtered.map(l => `
-        <div class="listing-card" data-id="${l.id}">
-          ${l.photos?.[0] ? `<img class="listing-photo" src="${l.photos[0]}" alt="${l.title}">` : `<div class="listing-photo">${CATEGORY_INFO[l.category]?.icon || '📦'}</div>`}
+        <div class="listing-card" data-id="${esc(l.id)}">
+          ${l.photos?.[0] ? `<img class="listing-photo" src="${esc(l.photos[0])}" alt="${esc(l.title)}">` : `<div class="listing-photo">${CATEGORY_INFO[l.category]?.icon || '📦'}</div>`}
           <div class="listing-info">
-            <div class="listing-title">${l.title}</div>
-            <div class="listing-city">${l.city || ''}</div>
+            <div class="listing-title">${esc(l.title)}</div>
+            <div class="listing-city">${esc(l.city || '')}</div>
             <span class="listing-free-badge">חינם</span>
           </div>
         </div>
@@ -161,11 +178,11 @@
       const isOwner = listing.userId === authState.authUser.uid;
       const token = ++modalToken;
       document.getElementById('modal-content').innerHTML = `
-        ${listing.photos?.length ? `<div class="modal-photos">${listing.photos.map((p, i) => `<img src="${p}" alt="${listing.title} — תמונה ${i + 1}">`).join('')}</div>` : ''}
-        <h2>${listing.title}</h2>
-        <p class="app-card-desc">${listing.description || ''}</p>
+        ${listing.photos?.length ? `<div class="modal-photos">${listing.photos.map((p, i) => `<img src="${esc(p)}" alt="${esc(listing.title)} — תמונה ${i + 1}">`).join('')}</div>` : ''}
+        <h2>${esc(listing.title)}</h2>
+        <p class="app-card-desc">${esc(listing.description || '')}</p>
         <div class="price-line"><span>קטגוריה</span><span>${CATEGORY_INFO[listing.category]?.label || 'שונות'}</span></div>
-        <div class="price-line"><span>עיר</span><span>${listing.city || ''}</span></div>
+        <div class="price-line"><span>עיר</span><span>${esc(listing.city || '')}</span></div>
         <div class="price-line"><span>כתובת איסוף</span><span id="modal-address">…</span></div>
         ${(!isOwner && listing.status !== 'sold') ? `<div class="listing-disclaimer">ROZIC MOVE מפרסמת את המודעה בלבד ואינה צד לעסקה. איננו בודקים את הפריט, את מצבו, את בטיחותו או את זהות הצדדים. התיאום, המסירה וההובלה באחריות הצדדים בלבד. מומלץ להיפגש במקום ציבורי ולבדוק את הפריט לפני נטילתו.</div>` : ''}
         <div id="modal-contact">
@@ -193,7 +210,7 @@
         return;
       }
       const whatsapp = `https://wa.me/972${phone.replace(/^0/, '')}?text=${encodeURIComponent(`היי ${listing.userName}, ראיתי את "${listing.title}" ב-ROZIC MOVE ואשמח לקחת אותו. האם עדיין זמין?`)}`;
-      contactBox.innerHTML = `<a class="btn btn-primary btn-block" href="${whatsapp}" target="_blank">💬 יצירת קשר בוואטסאפ</a>`;
+      contactBox.innerHTML = `<a class="btn btn-primary btn-block" href="${esc(whatsapp)}" target="_blank">💬 יצירת קשר בוואטסאפ</a>`;
     }
     document.getElementById('modal-close').addEventListener('click', () => { document.getElementById('modal-overlay').style.display = 'none'; });
     document.getElementById('modal-overlay').addEventListener('click', (e) => { if (e.target.id === 'modal-overlay') e.currentTarget.style.display = 'none'; });
@@ -207,12 +224,12 @@
       list.innerHTML = listings.map(l => `
         <div class="order-row-card" style="cursor:default;">
           <div>
-            <div class="order-row-title">${l.title}</div>
+            <div class="order-row-title">${esc(l.title)}</div>
             <div class="order-row-meta">${l.status === 'sold' ? 'נמסר' : 'פעיל'}</div>
           </div>
           <div style="display:flex; gap:8px;">
-            ${l.status !== 'sold' ? `<button class="btn-text" data-action="sold" data-id="${l.id}">סמן כנמסר</button>` : ''}
-            <button class="btn-text" data-action="delete" data-id="${l.id}" style="color:#C0392B;">מחק</button>
+            ${l.status !== 'sold' ? `<button class="btn-text" data-action="sold" data-id="${esc(l.id)}">סמן כנמסר</button>` : ''}
+            <button class="btn-text" data-action="delete" data-id="${esc(l.id)}" style="color:#C0392B;">מחק</button>
           </div>
         </div>
       `).join('');

@@ -20,6 +20,19 @@
       padding: 24px;
       background: linear-gradient(160deg, #C8EDD8 0%, #E0F5E9 50%, #F0FAF5 100%);
     }
+    /* ⚠️ 15.9 — שני העיגולים האלה דקורטיביים בלבד, אבל הם
+       `position:absolute` בלי `pointer-events:none`, ולכן **בלעו את
+       הלחיצות** על מה שמתחתיהם. `::after` (480×480, פינה שמאלית
+       תחתונה) כיסה בדיוק את אזור כפתור ההתחברות — כלומר אי אפשר היה
+       להתחבר לאתר בלחיצה.
+
+       למה זה לא נראה לעין: ה-gradient שקוף מ-70% והלאה, כך שחזותית
+       אין שום סימן. אלמנט שקוף עדיין תופס לחיצות.
+
+       נתפס רק כי בדיקה אוטומטית ניסתה ללחוץ בפועל ונכשלה ב-timeout;
+       כל בדיקה שרק קוראת את ה-DOM הייתה מדווחת שהכפתור תקין. */
+    .auth-shell::before,
+    .auth-shell::after { pointer-events: none; }
     .auth-shell::before {
       content: '';
       position: absolute; top: -160px; right: -180px;
@@ -36,6 +49,7 @@
     }
     .auth-card {
       position: relative;
+      z-index: 1;
       max-width: 420px; width: 100%;
       padding: 34px 30px !important;
       border-radius: 22px !important;
@@ -256,9 +270,32 @@
       errorBox.innerHTML = message ? `<div class="alert alert-error">${message}</div>` : '';
     }
 
+    /**
+     * ⚠️ `next` מגיע משורת הכתובת, כלומר מכל קישור שמישהו שולח. בלי אימות
+     * מקור זה **הפניה פתוחה**: `login.html?next=https://evil.example` מקפיץ
+     * את המשתמש לאתר זר אחרי התחברות — והוא ראה rozicmove.com בשורת
+     * הכתובת לפני כן, כך שאתר-חיקוי שמבקש סיסמה נראה לו לגיטימי.
+     *
+     * חמור מזה: `next=javascript:...` היה נכתב ל-`location.href` ורץ
+     * **על המקור של rozicmove.com**, עם ההתחברות של הקורבן ב-IndexedDB.
+     * וזה לא דורש אפילו לחיצה — המאזין בסוף הקובץ מפנה מיד כשיש משתמש
+     * מחובר, כך שגלישה בלבד לקישור הייתה מספיקה.
+     *
+     * `new URL(raw, location.href)` פותר גם יעד יחסי (`../listing.html?id=1`
+     * מ-listing.html) וגם מוחלט, ואז נבדק המקור: `javascript:` נותן origin
+     * `'null'`, ו-`//evil.example` נותן את המקור של התוקף — שניהם נדחים.
+     * מוחזר נתיב יחסי בלבד, כך שגם יעד חוקי לא יכול לגרור מקור אחר.
+     */
     function nextUrl() {
-      const params = new URLSearchParams(location.search);
-      return params.get('next') || 'index.html';
+      const raw = new URLSearchParams(location.search).get('next');
+      if (!raw) return 'index.html';
+      try {
+        const resolved = new URL(raw, location.href);
+        if (resolved.origin !== location.origin) return 'index.html';
+        return resolved.pathname + resolved.search + resolved.hash;
+      } catch {
+        return 'index.html';
+      }
     }
 
     const TERMS_REQUIRED_MSG = 'יש לאשר את תנאי השימוש כדי להמשיך';
