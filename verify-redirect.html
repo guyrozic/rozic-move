@@ -28,7 +28,8 @@
     }
     .logo { font-size: 47px; margin-bottom: 12px; }
     .brand { font-size: 25px; font-weight: 900; color: #0E5C43; margin-bottom: 6px; }
-    .tagline { font-size: 17px; color: #888; margin-bottom: 28px; }
+    /* 15.9 — #888 על לבן = 3.54:1, מתחת לסף. #6E6E6E => 5.0:1 */
+    .tagline { font-size: 17px; color: #6E6E6E; margin-bottom: 28px; }
     .divider { height: 1px; background: #E0F0E8; margin: 20px 0; }
     .opening { font-size: 18px; color: #555; line-height: 29px; margin-bottom: 24px; }
     .btn {
@@ -48,7 +49,11 @@
     .btn-apple { background: #000; color: #FFF; }
     .btn-android { background: #1D3557; color: #FFF; }
     .btn:hover { opacity: 0.9; }
-    .note { font-size: 13px; color: #AAA; margin-top: 16px; }
+    /* ⚠️ 15.9 ביקורת נגישות — #AAA על לבן נמדד 2.32:1, הרחק מתחת ל-4.5
+       הנדרש לטקסט רגיל. #767676 הוא הגוון הכהה ביותר שעדיין נקרא "אפור
+       משני" ועומד בסף (4.54:1). שלושת הדפים האלה מחזיקים CSS משלהם ולא
+       נכללו בסבב שעבר על שאר האתר. */
+    .note { font-size: 13px; color: #767676; margin-top: 16px; }
     #status { font-size: 16px; color: #0E5C43; font-weight: 600; margin-bottom: 16px; }
 
     /* פוטר משפטי — הצהרת הנגישות חייבת להיות נגישה מכל דף.
@@ -61,7 +66,11 @@
       line-height: 25px;
       color: #BBB;
     }
-    .legal-links a { color: #40604F; text-decoration: none; }
+    /* ⚠️ 15.9 — יעד הנגיעה היה 19px, מתחת ל-24×24 (WCAG 2.2, 2.5.8) —
+       וזה כלל את הקישור להצהרת הנגישות עצמה. אותו תיקון בדיוק נעשה
+       בפוטר הראשי ב-11.9 ולא הגיע לשלושת הדפים האלה.
+       padding אנכי, לא min-height, כדי לא לשנות פריסה. */
+    .legal-links a { color: #40604F; text-decoration: none; display: inline-block; padding-block: 4px; }
     .legal-links a:hover { text-decoration: underline; }
   </style>
 </head>
@@ -126,7 +135,7 @@
 
     function showError(message) {
       statusEl.textContent = message;
-      statusEl.style.color = '#D64545';
+      statusEl.style.color = '#C13434';
     }
 
     function showSuccess(message) {
