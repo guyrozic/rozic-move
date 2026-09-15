@@ -88,10 +88,10 @@
     <div class="brand">ROZIC MOVE</div>
     <div class="tagline">מזיזים אותך קדימה</div>
 
-    <div id="status">התשלום התקבל בהצלחה!</div>
+    <div id="status">מאשרים את התשלום…</div>
 
     <div class="opening" id="opening">
-      פותחים את האפליקציה כדי להמשיך...
+      רגע אחד, בודקים את מצב ההזמנה.
     </div>
 
     <div class="divider"></div>
@@ -129,15 +129,78 @@
     // createGrowCheckout's `fromWeb` flag) land here in a plain browser tab —
     // there's no app installed in this context, so skip the dead-end deep-link
     // attempt and send the customer straight to their order status page instead.
+    /**
+     * ⚠️ 16.9 — **הדף הזה הכריז "התשלום התקבל בהצלחה!" בלי לבדוק דבר.**
+     * זו הייתה מחרוזת קשיחה ב-HTML.
+     *
+     * ולא מדובר במקרה קצה: `createGrowCheckout` מעביר ל-Grow **רק**
+     * `successUrl` — אין URL לכשל או לביטול — ולכן **כל** חזרה מהסליקה
+     * נוחתת כאן ומכריזה הצלחה, גם כשהתשלום נכשל.
+     *
+     * ⚠️ וגם בנתיב התקין ה-redirect מקדים את ה-webhook: הלקוח קרא
+     * "התקבל בהצלחה", לחץ "צפה בהזמנה שלך", ופגש **"שלם עכשיו — ₪X"**.
+     * שני מסכים עוקבים שסותרים זה את זה על כסף, והשני מזמין תשלום כפול.
+     *
+     * עכשיו הדף קורא את ההזמנה בפועל. הניסוח הפותח הוא "מאשרים את
+     * התשלום…" — נייטרלי, כי ברגע הנחיתה **באמת לא ידוע**.
+     */
     if (getParam('web') === '1') {
       var orderId = getParam('orderId');
-      document.getElementById('opening').textContent = 'ההזמנה שלך אושרה.';
       document.getElementById('app-buttons').style.display = 'none';
       document.getElementById('web-buttons').style.display = 'block';
       document.getElementById('note').style.display = 'none';
       document.getElementById('order-status-link').href = 'app/order-status.html' + (orderId ? ('?id=' + encodeURIComponent(orderId)) : '');
+      if (orderId) verifyPayment(orderId);
+      else {
+        document.getElementById('status').textContent = 'התשלום נשלח';
+        document.getElementById('opening').textContent = 'אפשר לבדוק את מצב ההזמנה בעמוד ההזמנות.';
+      }
     } else {
       setTimeout(openApp, 400);
+    }
+
+    /**
+     * ⚠️ ה-webhook של Grow יכול לאחר בכמה שניות אחרי ה-redirect, ולכן
+     * יש כאן ניסיונות חוזרים ולא קריאה אחת. אחרי ~12 שניות מפסיקים
+     * ואומרים את האמת — "עדיין מאשרים" — ולא מכריזים כשל: התשלום
+     * עשוי בהחלט להיות תקין, רק האישור טרם הגיע.
+     */
+    async function verifyPayment(orderId) {
+      var statusEl = document.getElementById('status');
+      var openEl = document.getElementById('opening');
+      try {
+        var fb = await import('./app/firebase.js');
+        var fs = await import('https://www.gstatic.com/firebasejs/12.16.0/firebase-firestore.js');
+        var fa = await import('https://www.gstatic.com/firebasejs/12.16.0/firebase-auth.js');
+        /**
+         * ⚠️ בלי ההמתנה הזאת **כל קריאה נפלה ל-catch**, והדף אמר "לא
+         * הצלחנו לאמת" גם כשהכל תקין. Firebase Auth משחזר את הסשן
+         * אסינכרונית, ו-`getDoc` שרץ לפניו נדחה על הרשאה — בדיוק
+         * כשהלקוח חוזר מהסליקה, כלומר בטעינה טרייה של הדף.
+         */
+        await new Promise(function (resolve) {
+          var un = fa.onAuthStateChanged(fb.auth, function () { un(); resolve(); });
+          setTimeout(resolve, 4000);  // לא נתקעים אם ה-SDK לא עונה
+        });
+        for (var i = 0; i < 6; i++) {
+          var snap = await fs.getDoc(fs.doc(fb.db, 'orders', orderId));
+          var d = snap.exists() ? snap.data() : null;
+          if (d && d.paymentStatus === 'paid') {
+            statusEl.textContent = 'התשלום התקבל בהצלחה!';
+            openEl.textContent = 'ההזמנה שלך אושרה.';
+            return;
+          }
+          await new Promise(function (r) { setTimeout(r, 2000); });
+        }
+        statusEl.textContent = 'התשלום נשלח — עדיין מאשרים';
+        openEl.textContent = 'האישור מהסליקה יכול לקחת עוד רגע. '
+          + 'אפשר לבדוק את מצב ההזמנה בעמוד ההזמנות, ואם היא עדיין מופיעה '
+          + 'כממתינה לתשלום בעוד כמה דקות — כדאי לפנות לתמיכה לפני שמשלמים שוב.';
+      } catch (e) {
+        // ⚠️ כשל קריאה אינו כשל תשלום. הניסוח לא מכריז לשום כיוון.
+        statusEl.textContent = 'התשלום נשלח';
+        openEl.textContent = 'לא הצלחנו לאמת את המצב מכאן. אפשר לבדוק בעמוד ההזמנות.';
+      }
     }
   </script>
 </body>
