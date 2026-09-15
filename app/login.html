@@ -27,7 +27,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="../style.css?v=ea009cc6">
+  <link rel="stylesheet" href="../style.css?v=a59589a2">
   <link rel="stylesheet" href="style-app.css?v=232d590a">
   <style>
     .auth-shell {
@@ -144,7 +144,7 @@
   </style>
 </head>
 <body class="app-body">
-<div data-build-stamp class="build-stamp" aria-hidden="true">עודכן 15.09 · 23:37</div>
+<div data-build-stamp class="build-stamp" aria-hidden="true">עודכן 15.09 · 23:56</div>
   <!-- ⚠️ 15.9 — "דלג לתוכן המרכזי" (WCAG 2.4.1, רמה A). זהו האלמנט הממוקד
        הראשון בדף: מוסתר מהעין, מופיע בפינה ברגע שמגיעים אליו ב-Tab, ומעביר
        את המיקוד אל <main id="main-content" tabindex="-1">. בלי ה-tabindex
@@ -307,6 +307,24 @@
      */
     const APPLE_WEB_ENABLED = false;
 
+    /**
+     * מעקף לבדיקה: `login.html?apple=1` מציג את הכפתור גם כשהדגל כבוי.
+     *
+     * ## למה זה נחוץ ולא סתם נוחות
+     * הצעדים בצד Apple (Services ID, אימות דומיין, Return URL) אינם
+     * ניתנים לבדיקה מהקוד — הדרך היחידה לדעת שהם נכונים היא **ללחוץ על
+     * הכפתור בפועל**. בלי המעקף, האימות הזה מחייב להפוך את הדגל ל-true,
+     * לדחוף לייצור (כל קומיט הוא ייצור כאן), ולגלות שם אם זה עובד — כלומר
+     * לבדוק על הלקוחות. עם המעקף גיא בודק על עצמו בקישור פרטי, ורק אחרי
+     * שהוא ראה שזה עובד הופך את הדגל ל-true לכולם.
+     *
+     * ⚠️ זה **לא** דלת אחורית: הוא חושף כפתור, לא הרשאה. אם הספק לא
+     * מוגדר בצד Apple, הלחיצה תיכשל ב-auth/operation-not-allowed בדיוק
+     * כמו לכל אחד אחר. ואם הספק כן מוגדר — אין סיבה שהדגל יישאר כבוי.
+     */
+    const appleEnabled = APPLE_WEB_ENABLED ||
+      new URLSearchParams(location.search).get('apple') === '1';
+
     const tabs = document.querySelectorAll('.auth-tab');
     const forms = { login: document.getElementById('login-form'), register: document.getElementById('register-form') };
     tabs.forEach(tab => {
@@ -446,7 +464,7 @@
     const oauthRow = document.getElementById('oauth-row');
     const phoneStep = document.getElementById('phone-step');
     const appleBtn = document.getElementById('btn-apple');
-    if (APPLE_WEB_ENABLED) appleBtn.hidden = false;
+    if (appleEnabled) appleBtn.hidden = false;
 
     function friendlyOAuthError(err) {
       const code = err && err.code;
@@ -498,6 +516,11 @@
         location.href = nextUrl();
       } catch (err) {
         holdRedirect = false;
+        // ⚠️ הנוסח שהמשתמש רואה הוא כללי בכוונה (ראו friendlyOAuthError),
+        // ולכן בלי השורה הזאת קוד השגיאה האמיתי אינו קיים באף מקום — וזה
+        // בדיוק הקוד שמבדיל בין "Services ID לא הוגדר" ל-"Return URL שגוי"
+        // בזמן ההגדרה מול Apple. אין כאן מידע על המשתמש, רק הקוד.
+        if (err && err.code) console.warn('[oauth]', kind, err.code);
         const msg = friendlyOAuthError(err);
         if (msg) showError(msg);
         btn.disabled = false; btn.querySelector('span').textContent = label;

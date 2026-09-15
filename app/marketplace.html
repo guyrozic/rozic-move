@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>ROZIC MOVE — יד שנייה חינם</title>
+  <title>ROZIC MOVE — מעבירים את זה הלאה</title>
 
   <!-- Open Graph / Twitter — קישור לדף הזה הוצג עד היום בלי כותרת,
        בלי תיאור ובלי תצוגה מקדימה בכל מקום שמשתפים אותו. -->
@@ -11,10 +11,10 @@
   <meta property="og:site_name" content="ROZIC MOVE">
   <meta property="og:locale" content="he_IL">
   <meta property="og:url" content="https://rozicmove.com/app/marketplace.html">
-  <meta property="og:title" content="יד שנייה חינם — ROZIC MOVE">
+  <meta property="og:title" content="מעבירים את זה הלאה — ROZIC MOVE">
   <meta property="og:description" content="לוח המסירה בחינם של ROZIC MOVE — פריטים שאנשים מוסרים בחינם, עם אפשרות להוסיף הובלה.">
   <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" content="יד שנייה חינם — ROZIC MOVE">
+  <meta name="twitter:title" content="מעבירים את זה הלאה — ROZIC MOVE">
   <meta name="twitter:description" content="לוח המסירה בחינם של ROZIC MOVE — פריטים שאנשים מוסרים בחינם, עם אפשרות להוסיף הובלה.">
   <!-- 15.9 — תמונת השיתוף. המקור: scripts/og-image.svg, נבנית מחדש ב-node scripts/make-og-image.mjs -->
   <meta property="og:image" content="https://rozicmove.com/og-image.png">
@@ -27,7 +27,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="../style.css?v=ea009cc6">
+  <link rel="stylesheet" href="../style.css?v=a59589a2">
   <link rel="stylesheet" href="style-app.css?v=232d590a">
   <style>
     .listing-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 12px; }
@@ -63,7 +63,7 @@
   </style>
 </head>
 <body class="app-body">
-<div data-build-stamp class="build-stamp" aria-hidden="true">עודכן 15.09 · 23:37</div>
+<div data-build-stamp class="build-stamp" aria-hidden="true">עודכן 15.09 · 23:56</div>
   <!-- ⚠️ 15.9 — "דלג לתוכן המרכזי" (WCAG 2.4.1, רמה A). זהו האלמנט הממוקד
        הראשון בדף: מוסתר מהעין, מופיע בפינה ברגע שמגיעים אליו ב-Tab, ומעביר
        את המיקוד אל <main id="main-content" tabindex="-1">. בלי ה-tabindex
@@ -81,8 +81,8 @@
            נמדד: אלמנט עם `tabindex="0"` מפורש **כן** נכנס לסדר גם במצב הזה
            (WebKit, 15.9). בלי זה אי אפשר היה להגיע מהלוח למסך הפרסום כלל. -->
       <a href="index.html" class="btn-text" tabindex="0" style="padding:0; margin-bottom:10px; display:inline-block;">→ בחירת שירות</a>
-      <h1>יד שנייה חינם</h1>
-      <p>תנו פריטים שאינכם צריכים, וקבלו בחינם ממי שגר קרוב.</p>
+      <h1>מעבירים את זה הלאה</h1>
+      <p>תנו פריטים שאינכם צריכים, וקבלו בחינם ממי שגר קרוב. הצפייה פתוחה לכולם — בלי חשבון.</p>
     </div>
   </div>
 
@@ -145,10 +145,27 @@
   </footer>
 
   <script type="module">
-    import { requireAuth, normalizePhone } from './auth.js';
+    import { normalizePhone } from './auth.js';
+    import { getAuthOptional } from './guest-checkout.js';
     import { subscribeToActiveListings, subscribeToUserListings, markListingSold, deleteListing, getListingContact, CATEGORY_INFO } from './listings.js';
 
-    const authState = await requireAuth();
+    /**
+     * ⚠️ 16.9 — **הדף הזה קרא `requireAuth()` בשורה הראשונה, כלומר גולש
+     * שסתם רצה לראות מה יש בלוח נזרק ל-login לפני שראה מודעה אחת.**
+     *
+     * הכרעת גיא: *"אין צורך בהרשמה כדי לצפות בפריטים — כן יש צורך
+     * בהרשמה כדי לבקש פריט ולמסור פריט… ניתן לצפות בלוח או להתחיל
+     * תהליך של מסירת פריט אבל בסוף זה מחייב התחברות."* זו בדיוק
+     * ה"הרשמה ההפוכה" של `guest-checkout.js`: לא חוסמים בכניסה,
+     * חוסמים בשליחה.
+     *
+     * ⚠️ **וזה עובד בלי לגעת ב-`firestore.rules`.** `match /listings/{id}`
+     * כבר `allow read: if true` (ראו ההערה שם — הוא נכתב ככה במכוון עבור
+     * `listing.html` הציבורי), ותת-המסמך `private/contact` דורש התחברות.
+     * כלומר החוקים כבר מתארים בדיוק את החלוקה הזו — רק הדף לא.
+     */
+    const authState = await getAuthOptional();
+    const myUid = authState?.authUser?.uid ?? null;
 
     /**
      * ⚠️ כותרת, תיאור, עיר, שם ותמונות של מודעה הם טקסט חופשי ש**משתמש
@@ -170,6 +187,22 @@
     let allListings = [];
     let activeCategory = 'all';
     let searchQuery = '';
+
+    /**
+     * המודעה שצריך לפתוח מיד עם הטעינה, אם חזרנו לכאן מההרשמה.
+     *
+     * ⚠️ בלי זה "בקשת פריט" שולחת אורח להתחברות ומחזירה אותו ללוח
+     * **סגור** — הוא צריך למצוא שוב את הפריט שכבר בחר, ברשת של עשרות
+     * מודעות. `openGuestLogin` מוסיפה את ה-id ל-`next`, וכאן הוא נפתח.
+     */
+    const pendingListingId = new URLSearchParams(location.search).get('listing');
+    let pendingHandled = false;
+
+    /** מפנה להרשמה, ומבטיחה שנחזור בדיוק לאותה מודעה פתוחה. */
+    function goLoginForListing(listingId) {
+      const back = encodeURIComponent(`marketplace.html?listing=${encodeURIComponent(listingId)}`);
+      location.href = `login.html?next=${back}`;
+    }
 
     /**
      * מפעיל ב-Enter/Space אלמנט שאינו כפתור אמיתי.
@@ -239,7 +272,40 @@
       allListings = listings;
       document.getElementById('loading').style.display = 'none';
       renderGrid();
+      openPendingListing();
     });
+
+    /**
+     * פותחת את המודעה שחזרנו אליה מההרשמה — בפעם הראשונה שהרשימה מגיעה.
+     *
+     * ⚠️ `pendingHandled` הכרחי: `subscribeToActiveListings` הוא מנוי חי,
+     * והוא יורה שוב בכל שינוי בלוח. בלי הדגל, מודעה חדשה של מישהו אחר
+     * הייתה קופצת למשתמש מודל שהוא כבר סגר.
+     *
+     * ⚠️ והפרמטר נמחק מה-URL אחרי הפתיחה. הוא נועד לשימוש חד-פעמי, ובלי
+     * המחיקה רענון או שיתוף הקישור פותחים אותו שוב.
+     */
+    function openPendingListing() {
+      if (!pendingListingId || pendingHandled) return;
+      pendingHandled = true;
+      const target = allListings.find(l => l.id === pendingListingId);
+      try {
+        history.replaceState(null, '', location.pathname);
+      } catch { /* דפדפן שחוסם היסטוריה — הפרמטר נשאר, וזו אי-נוחות בלבד */ }
+      if (!target) {
+        // הפריט ירד מהלוח בין הבקשה לחזרה. אמירה מפורשת עדיפה על לוח
+        // שנפתח בשקט ומשאיר את המשתמש לחפש מה שאינו קיים.
+        const host = document.querySelector('.app-container');
+        const box = document.createElement('div');
+        box.className = 'alert alert-info';
+        box.setAttribute('role', 'status');
+        box.textContent = 'הפריט שביקשתם כבר לא בלוח — כנראה מישהו הקדים. יש כאן עוד דברים.';
+        host?.prepend(box);
+        return;
+      }
+      const card = document.querySelector(`.listing-card[data-id="${CSS.escape(target.id)}"]`);
+      openModal(target, card);
+    }
 
     function renderGrid() {
       let filtered = allListings;
@@ -281,7 +347,7 @@
 
     async function openModal(listing, opener = null) {
       const overlay = document.getElementById('modal-overlay');
-      const isOwner = listing.userId === authState.authUser.uid;
+      const isOwner = !!myUid && listing.userId === myUid;
       const token = ++modalToken;
       modalOpener = opener || (document.activeElement !== document.body ? document.activeElement : null);
       document.getElementById('modal-content').innerHTML = `
@@ -295,6 +361,8 @@
         <div id="modal-contact">
           ${listing.status === 'sold' ? '<div class="alert alert-info">כבר נמסר</div>' :
             isOwner ? '<div class="alert alert-info">זו המודעה שלך</div>' :
+            !myUid ? `<p class="app-card-desc" style="margin-bottom:10px;">כדי לבקש את הפריט צריך חשבון — כך המוסר יודע מי פונה אליו. זה לוקח דקה, ואנחנו נחזיר אתכם בדיוק לפריט הזה.</p>
+                      <button class="btn btn-primary btn-block" id="guest-want-btn" tabindex="0">אני רוצה את הפריט ←</button>` :
             '<button class="btn btn-primary btn-block" disabled>טוען פרטי קשר…</button>'}
         </div>
       `;
@@ -303,6 +371,28 @@
       // מכריז על הכותרת (aria-labelledby) לפני שהמשתמש מתחיל לגלול פקדים,
       // וה-Tab הבא נופל בתוך החלון ולא מאחוריו.
       document.getElementById('modal-box').focus();
+
+      /**
+       * ⚠️ **האורח יוצא כאן, לפני `getListingContact`, וזה לא רק ייעול.**
+       *
+       * `listings/{id}/private/contact` הוא `allow read: if isAuth()`,
+       * כלומר לאורח הקריאה **תמיד** נכשלת — וה-SDK רושם על כל כישלון כזה
+       * `permission-denied` לקונסול. `.catch()` תופס את ה-Promise אבל לא
+       * משתיק את הלוג, כלומר כל פתיחת מודעה של אורח הייתה מייצרת שגיאה
+       * אדומה בדף שאין בו שום תקלה.
+       *
+       * ⚠️ **וגם: אין כאן `fallback` לשדות שעל המודעה הציבורית.** מודעה
+       * ישנה עדיין נושאת `userPhone`/`fromAddress` על המסמך עצמו, והצגתם
+       * לאורח הייתה פותחת מחדש בדיוק את הדליפה שנסגרה ב-21.8. זו אותה
+       * הכרעה בדיוק שכבר כתובה ב-`listing.html`.
+       */
+      if (!myUid) {
+        const addrGuest = document.getElementById('modal-address');
+        if (addrGuest) addrGuest.textContent = 'מוצגת למשתמשים מחוברים';
+        document.getElementById('guest-want-btn')
+          ?.addEventListener('click', () => goLoginForListing(listing.id));
+        return;
+      }
 
       const contact = await getListingContact(listing.id).catch(() => null);
       if (token !== modalToken) return;
@@ -382,8 +472,9 @@
       else if (e.shiftKey && (active === first || active === modalBoxEl)) { e.preventDefault(); last.focus(); }
     }, true);
 
-    // My listings management
-    subscribeToUserListings(authState.authUser.uid, (listings) => {
+    /* "המודעות שלי" הוא מסך של בעלים, ואין לאורח מודעות. `where userId ==
+       null` גם לא היה מחזיר כלום — הוא פשוט היה מריץ מנוי מיותר. */
+    if (myUid) subscribeToUserListings(myUid, (listings) => {
       const card = document.getElementById('my-listings-card');
       const list = document.getElementById('my-listings-list');
       if (listings.length === 0) { card.style.display = 'none'; return; }

@@ -30,7 +30,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="style.css?v=ea009cc6">
+  <link rel="stylesheet" href="style.css?v=a59589a2">
 
   <!--
     Structured data (JSON-LD). Kept deliberately free of prices, ratings and review
@@ -184,7 +184,7 @@
       {
         "@type": "Service",
         "@id": "https://rozicmove.com/#service-giveaway-board",
-        "name": "יד שנייה חינם",
+        "name": "מעבירים את זה הלאה",
         "alternateName": "Give & Take",
         "serviceType": "לוח מסירה בחינם",
         "provider": { "@id": "https://rozicmove.com/#organization" },
@@ -206,7 +206,7 @@
      שיחליף אותם; בלי הסימון הזה הם נעלמו גם בחמשת הדפים המשפטיים,
      בלי שום דרך להגיע אליהם (WCAG 1.4.4). -->
 <body class="has-nav-menu hp-home">
-<div data-build-stamp class="build-stamp" aria-hidden="true">עודכן 15.09 · 23:37</div>
+<div data-build-stamp class="build-stamp" aria-hidden="true">עודכן 15.09 · 23:56</div>
   <!-- ⚠️ 15.9 — "דלג לתוכן המרכזי" (WCAG 2.4.1, רמה A). זהו האלמנט הממוקד
        הראשון בדף: מוסתר מהעין, מופיע בפינה ברגע שמגיעים אליו ב-Tab, ומעביר
        את המיקוד אל <main id="main-content" tabindex="-1">. בלי ה-tabindex
@@ -334,7 +334,7 @@
           <div class="hp-svc" role="radiogroup" aria-label="בחירת שירות" id="hp-svc">
             <button type="button" class="hp-svc-chip" role="radio" aria-checked="true"  data-svc="apartment"   tabindex="0">מעבר דירה</button>
             <button type="button" class="hp-svc-chip" role="radio" aria-checked="false" data-svc="smallMove"   tabindex="-1">מובילים בקטנה</button>
-            <button type="button" class="hp-svc-chip" role="radio" aria-checked="false" data-svc="marketplace" tabindex="-1">יד שנייה חינם</button>
+            <button type="button" class="hp-svc-chip" role="radio" aria-checked="false" data-svc="marketplace" tabindex="-1">מעבירים את זה הלאה</button>
           </div>
 
           <!-- ══ הדרך הראשונה: תיאור חופשי ═══════════════════════════ -->
@@ -379,11 +379,14 @@
           </details>
         </div>
 
-        <!-- ══ לוח יד שנייה — מחליף את הכלי כששירות זה נבחר ═══════════ -->
+        <!-- ══ לוח "מעבירים את זה הלאה" — מחליף את הכלי כששירות זה נבחר ═══════════ -->
         <div class="hp-market" id="hp-market" hidden>
-          <h2>יד שנייה חינם</h2>
-          <p>לוח למסירת פריטים בחינם בלבד: מפרסמים פריט שלא צריך יותר, ומי שגר קרוב לוקח אותו. לא עוברים בו כספים — ולפריט שנלקח אפשר להזמין הובלה כהזמנת מובילים בקטנה.</p>
-          <a class="hp-go" href="app/marketplace.html">ללוח המודעות ←</a>
+          <h2>מעבירים את זה הלאה</h2>
+          <p>פריט שכבר לא צריך לא חייב להגיע לפח. מפרסמים אותו כאן, ומי שגר קרוב בא לקחת אותו.</p>
+          <p>אפס כסף — לא מוכרים ולא קונים, ולא עוברים בלוח כספים בכלל.</p>
+          <p>ואם מה שלקחתם גדול מכדי להרים לבד, אפשר להזמין לו הובלה כהזמנת מובילים בקטנה רגילה.</p>
+          <a class="hp-go" href="app/marketplace.html">בואו נראה מה מחכה שם ←</a>
+          <p class="hp-market-free">לצפייה בלוח לא צריך חשבון. חשבון נדרש רק כשמבקשים פריט או מוסרים אחד.</p>
         </div>
       </div>
     </div>
@@ -954,7 +957,7 @@
       });
 
       /* ⚠️ מוסתרים הפריטים שבתוך הכלי, ולא `#hp-tool` עצמו — בורר השירות
-         יושב בתוכו, והסתרתו הייתה נועלת את המבקר בתוך "יד שנייה חינם"
+         יושב בתוכו, והסתרתו הייתה נועלת את המבקר בתוך "מעבירים את זה הלאה"
          בלי דרך לחזור.
          ⚠️ ולכן גם קיים הכלל `.hp-stage [hidden]{display:none!important}`
          ב-`style.css`: `[hidden]` של הדפדפן מגיע מגיליון ברירת המחדל

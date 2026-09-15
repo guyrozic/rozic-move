@@ -31,7 +31,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="style.css?v=ea009cc6">
+  <link rel="stylesheet" href="style.css?v=a59589a2">
 
   <!--
     Structured data (JSON-LD). Kept deliberately free of prices, ratings and review
@@ -342,6 +342,57 @@
     .roomN em b:not(:first-child), .tot u b:not(:last-child) { opacity:0; }
   }
 
+
+  /* ═══ פריסה לרוחב — זה מה שמחזיר את הכרטיס לגובה של האתר ═══
+     האתר הרשמי הוא 445px, ושלי היה 676/870. הסריקה ברוחב מלא (1015px
+     ב-1920) גוזרת 371px גובה מעצם היחס; לצמצם אותה בגובה בלבד היה
+     מחזיר את המתיחה שכבר תוקנה. במקום זה היא יורדת לחצי הרוחב, ומה
+     שהיה מתחתיה עובר לצדה. */
+  .tool-row { display:grid; gap:clamp(11px,1.2vw,18px); align-items:start; }
+  .tool-a { grid-template-columns:minmax(0,1fr) minmax(0,.92fr); }
+  .tool-c { grid-template-columns:minmax(0,1fr) minmax(0,.86fr); }
+  @media (max-width:900px){ .tool-row { grid-template-columns:1fr; } }
+
+  /* בטור צר שלוש הדרכים נערמות כשורות, ולכן נכנסות לגובה של הסריקה */
+  .stack .scan-picks { grid-template-columns:1fr; gap:8px; margin-top:0; }
+  .stack .pick { display:grid; grid-template-columns:auto 1fr auto; gap:0 11px;
+    align-items:center; text-align:start; padding:10px 12px; }
+  .stack .pick .ic { grid-row:1/3; grid-column:1; margin:0; width:34px; height:34px; }
+  .stack .pick b, .stack .pick i { grid-column:2; }
+  .stack .pick b { font-size:.92rem; } .stack .pick i { margin-top:1px; font-size:.75rem; }
+  .stack .pick .tag2 { position:static; grid-column:3; grid-row:1/3;
+    justify-self:end; align-self:center; transform:none; margin:0; }
+  .stack .scan-q { margin:0 0 8px; text-align:start; font-size:.8rem; }
+
+  /* ג׳ — הרשימה לצד הסריקה, והדרכים בשורה מתחת */
+  .tool-c .acc { margin-top:0; }
+  .row2 { margin-top:clamp(10px,1.1vw,15px); }
+
+  /* ⚠️ הגובה נקבע ע"י הטור הגבוה, לא ע"י הסריקה — שלוש הדרכים היו 337px
+     והסריקה רק 139. הקיצוץ כאן הוא בהן, ולא בהדגמה. */
+  /* ג׳ — הרשימה בעמודת הסריקה ולא בשורה משלה. הסריקה 139px ושלוש
+     הדרכים 190, כלומר יש בעמודה 50px פנויים ממילא, והרשימה ממשיכה את
+     ההדגמה שיצרה אותה במקום לפתוח שורה שלישית. */
+  .scan-side { display:flex; flex-direction:column; gap:10px; min-width:0; }
+  .scan-side .acc { margin-top:0; padding:8px 11px 9px; }
+  .scan-side .acc-t { margin-bottom:6px; }
+  .scan-side .coln { margin-bottom:3px; padding-bottom:2px; }
+  .scan-side .acci { font-size:.73rem; line-height:1.28; }
+  .scan-side .accgrid { gap:3px 12px; }
+  .stack .pick { padding:9px 11px; }
+  .stack .pick .ic { width:32px; height:32px; }
+  .stack .pick i { font-size:.74rem; }
+  .stack .scan-q { margin:0 0 7px; }
+
+  /* ג׳ — שורת הדרכים מתחת לרשימה, קומפקטית */
+  .row2 .pick { padding:11px 9px; }
+  .row2 .pick .ic { width:34px; height:34px; margin-bottom:7px; }
+  .row2 .pick b { font-size:.93rem; }
+  .row2 .pick i { font-size:.75rem; }
+  .row2 .scan-q { margin:0 0 9px; }
+  .tool-c .acc { padding:9px 11px 10px; }
+  .tool-c .acci { font-size:.74rem; line-height:1.3; }
+  .tool-c .accgrid { gap:4px 10px; }
   .scan-q { font-size:.86rem; font-weight:700; color:var(--text-muted); margin:14px 0 0; text-align:center; }
   .scan-picks { display:grid; grid-template-columns:repeat(3,1fr); gap:11px; margin-top:12px; }
   .pick { border:1.5px solid var(--border); border-radius:14px; padding:16px 11px;
@@ -376,7 +427,7 @@
      שיחליף אותם; בלי הסימון הזה הם נעלמו גם בחמשת הדפים המשפטיים,
      בלי שום דרך להגיע אליהם (WCAG 1.4.4). -->
 <body class="has-nav-menu hp-home">
-<div data-build-stamp class="build-stamp" aria-hidden="true">עודכן 15.09 · 23:37</div>
+<div data-build-stamp class="build-stamp" aria-hidden="true">עודכן 15.09 · 23:56</div>
   <!-- ⚠️ 15.9 — "דלג לתוכן המרכזי" (WCAG 2.4.1, רמה A). זהו האלמנט הממוקד
        הראשון בדף: מוסתר מהעין, מופיע בפינה ברגע שמגיעים אליו ב-Tab, ומעביר
        את המיקוד אל <main id="main-content" tabindex="-1">. בלי ה-tabindex
@@ -500,7 +551,9 @@
             <span class="dots" aria-hidden="true"><i></i><i></i><i></i></span>
             <span class="tot"><u><b class="c0">0</b><b class="c1">4</b><b class="c2">7</b><b class="c3">11</b></u> פריטים</span>
           </div>
-          <div class="scan" role="img" aria-label="הדגמה: הסריקה עוברת בין סלון, חדר שינה ומטבח ומסמנת כל פריט בשמו">
+          <div class="tool-row tool-a">
+            <div class="scan-side">
+            <div class="scan" role="img" aria-label="הדגמה: הסריקה עוברת בין סלון, חדר שינה ומטבח ומסמנת כל פריט בשמו">
           <svg class="room r1" viewBox="0 0 520 190" preserveAspectRatio="none" aria-hidden="true" focusable="false"><use href="#rm-living"/></svg>
           <svg class="boxes b1" viewBox="0 0 520 190" preserveAspectRatio="none" aria-hidden="true" focusable="false">
             <rect class="k1" x="46" y="42" width="72" height="118"/>
@@ -534,33 +587,33 @@
           <span class="bxl l3 k4" style="left:75.0%;bottom:77.9%">מקרר</span>
           <span class="beam"></span>
           </div>
-          <div class="acc">
-          <p class="acc-t">הרשימה שלכם <span>נבנית תוך כדי</span></p>
-          <div class="accgrid">
-            <div class="col"><p class="coln n1b">סלון</p>
-              <ul>
-              <li class="acci a0">מקרר</li>
-              <li class="acci a1">מנורה</li>
-              <li class="acci a2">שולחן</li>
-              <li class="acci a3">ספה תלת</li>
-              </ul></div>
-            <div class="col"><p class="coln n2b">חדר שינה</p>
-              <ul>
-              <li class="acci a4">מיטה זוגית</li>
-              <li class="acci a5">שידת לילה</li>
-              <li class="acci a6">ארון</li>
-              </ul></div>
-            <div class="col"><p class="coln n3b">מטבח</p>
-              <ul>
-              <li class="acci a7">שולחן אוכל</li>
-              <li class="acci a8">כיסאות</li>
-              <li class="acci a9">תנור</li>
-              <li class="acci a10">מקרר</li>
-              </ul></div>
-          
-          </div>
-          </div>
-          <p class="scan-q">שלוש דרכים, אותה תוצאה — בחרו את הנוחה לכם</p>
+            <div class="acc">
+              <p class="acc-t">הרשימה שלכם <span>נבנית תוך כדי</span></p>
+              <div class="accgrid">
+                <div class="col"><p class="coln n1b">סלון</p>
+                  <ul>
+                  <li class="acci a0">מקרר</li>
+                  <li class="acci a1">מנורה</li>
+                  <li class="acci a2">שולחן</li>
+                  <li class="acci a3">ספה תלת</li>
+                  </ul></div>
+                <div class="col"><p class="coln n2b">חדר שינה</p>
+                  <ul>
+                  <li class="acci a4">מיטה זוגית</li>
+                  <li class="acci a5">שידת לילה</li>
+                  <li class="acci a6">ארון</li>
+                  </ul></div>
+                <div class="col"><p class="coln n3b">מטבח</p>
+                  <ul>
+                  <li class="acci a7">שולחן אוכל</li>
+                  <li class="acci a8">כיסאות</li>
+                  <li class="acci a9">תנור</li>
+                  <li class="acci a10">מקרר</li>
+                  </ul></div>
+              </div>
+            </div>
+            </div>
+            <div class="stack"><p class="scan-q">איך נוח לכם להתחיל?</p>
           <div class="scan-picks">
             <button class="pick ai"><span class="tag2">הכי מהיר</span>
               <span class="ic"><svg aria-hidden="true"><use href="#ic-cam"/></svg></span>
@@ -569,6 +622,7 @@
               <b>ספרו במילים</b><i>&laquo;דירת 3 עם ספה&raquo;</i></button>
             <button class="pick"><span class="ic"><svg aria-hidden="true"><use href="#ic-list"/></svg></span>
               <b>בחרו מרשימה</b><i>243 פריטים</i></button>
+          </div></div>
           </div>
         </div>
 

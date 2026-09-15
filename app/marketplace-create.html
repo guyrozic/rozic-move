@@ -12,10 +12,10 @@
   <meta property="og:locale" content="he_IL">
   <meta property="og:url" content="https://rozicmove.com/app/marketplace-create.html">
   <meta property="og:title" content="פרסום מודעה — ROZIC MOVE">
-  <meta property="og:description" content="פרסום מודעת מסירה בחינם בלוח היד שנייה של ROZIC MOVE.">
+  <meta property="og:description" content="פרסום מודעת מסירה בחינם בלוח &quot;מעבירים את זה הלאה&quot; של ROZIC MOVE.">
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="פרסום מודעה — ROZIC MOVE">
-  <meta name="twitter:description" content="פרסום מודעת מסירה בחינם בלוח היד שנייה של ROZIC MOVE.">
+  <meta name="twitter:description" content="פרסום מודעת מסירה בחינם בלוח &quot;מעבירים את זה הלאה&quot; של ROZIC MOVE.">
   <!-- 15.9 — תמונת השיתוף. המקור: scripts/og-image.svg, נבנית מחדש ב-node scripts/make-og-image.mjs -->
   <meta property="og:image" content="https://rozicmove.com/og-image.png">
   <meta property="og:image:type" content="image/png">
@@ -27,7 +27,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="../style.css?v=ea009cc6">
+  <link rel="stylesheet" href="../style.css?v=a59589a2">
   <link rel="stylesheet" href="style-app.css?v=232d590a">
   <style>
     .photo-grid { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 6px; }
@@ -64,7 +64,7 @@
   </style>
 </head>
 <body class="app-body">
-<div data-build-stamp class="build-stamp" aria-hidden="true">עודכן 15.09 · 23:37</div>
+<div data-build-stamp class="build-stamp" aria-hidden="true">עודכן 15.09 · 23:56</div>
   <!-- ⚠️ 15.9 — "דלג לתוכן המרכזי" (WCAG 2.4.1, רמה A). זהו האלמנט הממוקד
        הראשון בדף: מוסתר מהעין, מופיע בפינה ברגע שמגיעים אליו ב-Tab, ומעביר
        את המיקוד אל <main id="main-content" tabindex="-1">. בלי ה-tabindex
@@ -81,7 +81,7 @@
            משאירה בסדר ה-Tab **שדות טקסט בלבד** — לינקים וכפתורים נשמטים,
            וכפתור "פרסם מודעה" לא היה נגיש כלל. נמדד: אלמנט עם `tabindex="0"`
            מפורש **כן** נכנס לסדר גם במצב הזה (WebKit, 15.9). -->
-      <a href="marketplace.html" class="btn-text" tabindex="0" style="padding:0; margin-bottom:10px; display:inline-block;">→ יד שנייה חינם</a>
+      <a href="marketplace.html" class="btn-text" tabindex="0" style="padding:0; margin-bottom:10px; display:inline-block;">→ מעבירים את זה הלאה</a>
       <h1>פרסום מודעה</h1>
       <p>כמה פרטים קטנים, ותוכלו למסור בקלות למי שגר קרוב.</p>
     </div>
@@ -185,6 +185,12 @@
     <div id="submit-error" role="alert"></div>
     <p class="consent-note">בפרסום המודעה אני מאשר/ת שהפריט אינו מהפריטים האסורים, שהפרטים שמסרתי נכונים, ושהמסירה היא באחריותי ובאחריות מקבל הפריט בלבד.</p>
     <button class="btn btn-primary btn-block" id="submit-btn" tabindex="0">פרסם מודעה</button>
+    <!-- ⚠️ מוצג ב-JS לאורחים בלבד (ראו סוף הסקריפט), ולכן `hidden` בקוד.
+         זו סטייה מכוונת מ-`apartment.html`/`small-move.html`, ששם קיר
+         ההרשמה מגיע בלי שום התראה מוקדמת: כאן מה שהמשתמש מילא כולל
+         תמונות, והן החלק שעלול לא לשרוד את המעבר להרשמה. עדיף שיֵדע
+         שנייה לפני הלחיצה מאשר שיגלה אחריה. -->
+    <p class="consent-note" id="guest-publish-note" hidden>הפרסום דורש חשבון — נשמור את מה שמילאתם, ונחזיר אתכם בדיוק לכאן.</p>
     <p class="terms-note">בלחיצה על הכפתור אתם מאשרים את <a href="/terms.html" tabindex="0" target="_blank" rel="noopener">תנאי השימוש</a> ו<a href="/privacy.html" tabindex="0" target="_blank" rel="noopener">מדיניות הפרטיות</a></p>
   </div>
 
@@ -214,13 +220,25 @@
   </footer>
 
   <script type="module">
-    import { requireAuth } from './auth.js';
+    import { getAuthOptional } from './guest-checkout.js';
     import { createListing, CATEGORY_INFO } from './listings.js';
     import { uploadListingPhoto } from './storage.js';
     import { resizeImageToBlob, resizeImageToBase64 } from './image-resize.js';
     import { analyzeListingPhoto, askListingAI, isAIConfigured, friendlyAIError } from './ai-vision.js';
 
-    const authState = await requireAuth();
+    /**
+     * ⚠️ 16.9 — **הדף הזה קרא `requireAuth()` בשורה הראשונה.**
+     *
+     * הכרעת גיא: *"ניתן לצפות בלוח או להתחיל תהליך של מסירת פריט אבל בסוף
+     * זה מחייב התחברות."* כלומר אותו גבול בדיוק כמו בזרימת ההזמנה
+     * (`guest-checkout.js`): ממלאים בלי חשבון, ונרשמים ברגע השליחה.
+     *
+     * ⚠️ **ומכאן נובעת חובת שמירת הטיוטה, והיא לא אופציונלית כאן יותר
+     * מאשר שם.** מי שהעלה עשר תמונות, נתח אותן ב-AI וענה על שאלות
+     * ההנחיה — ואז נשלח להירשם וחוזר לדף ריק — קיבל חוויה גרועה מהחסימה
+     * בכניסה, שבה לפחות ידע מראש. ראו `saveListingDraft` למטה.
+     */
+    const authState = await getAuthOptional();
     const MAX_PHOTOS = 10;
     let photos = []; // File objects
     let category = 'furniture';
@@ -447,6 +465,28 @@
       if (!title) { errBox.innerHTML = '<div class="alert alert-error">יש להוסיף כותרת.</div>'; return; }
       if (photos.length === 0) { errBox.innerHTML = '<div class="alert alert-error">יש להוסיף לפחות תמונה אחת.</div>'; return; }
 
+      /**
+       * ⚠️ **כאן, ורק כאן, ההרשמה נדרשת** — ואחרי האימותים, לא לפניהם:
+       * אורח שנשלח להירשם ורק אז יגלה שחסרה תמונה עשה את המסלול פעמיים.
+       *
+       * `saveListingDraft` נקראת לפני ההפניה, ובדיוק כמו `goRegister`
+       * בזרימת ההזמנה — **ההפניה והשמירה חייבות להישאר צמודות.**
+       */
+      if (!authState) {
+        const btnGuest = document.getElementById('submit-btn');
+        btnGuest.disabled = true; btnGuest.textContent = 'שומר את המודעה...';
+        const saved = await saveListingDraft();
+        if (saved === 'text-only' || saved === 'none') {
+          // ⚠️ אמירה מפורשת ולא שתיקה: המשתמש חוזר לטופס בלי התמונות
+          // שבחר, ותמונה אחת היא תנאי לפרסום. בלי השורה הזו הוא היה
+          // נתקע על "יש להוסיף לפחות תמונה אחת" בלי להבין מה קרה.
+          errBox.innerHTML = '<div class="alert alert-info">הפרטים נשמרו. את התמונות נצטרך לבחור מחדש אחרי ההתחברות — הן לא עוברות את הדרך.</div>';
+        }
+        const next = encodeURIComponent(location.pathname + location.search);
+        location.href = `login.html?next=${next}`;
+        return;
+      }
+
       const btn = document.getElementById('submit-btn');
       btn.disabled = true; btn.textContent = 'מכין תמונות...';
       try {
@@ -472,6 +512,8 @@
           title, description: fullDescription, price: 0, category, city, fromAddress,
           photos: photoUrls,
         });
+        // ⚠️ בלי זה הטיוטה תצוף שוב במודעה הבאה שהמשתמש יתחיל לכתוב.
+        clearListingDraft();
         location.href = 'marketplace.html';
       } catch (err) {
         errBox.innerHTML = '<div class="alert alert-error">פרסום המודעה נכשל. נסה שוב.</div>';
@@ -513,6 +555,189 @@
       if (next) next.focus();
       else el.blur();   // השדה האחרון — יוצאים מהמקלדת, ולא מפרסמים
     });
+
+    /* ═══════════════ טיוטת המודעה ═══════════════════════════════════════
+       הצד השני של "ההרשמה בסוף". ראו ההערה על `getAuthOptional` למעלה.
+
+       ⚠️ **המפתח נושא את התחילית `rozic:draft:` בכוונה**, למרות שזו אינה
+       טיוטת הזמנה: `clearAllOrderDrafts()` ב-`guest-checkout.js` מוחקת
+       לפי התחילית הזו, והטיוטה כאן מחזיקה **את כתובת הבית** של המפרסם
+       (`#from-address` הוא כתובת האיסוף). זה אותו סוג דליפה בדיוק שתוארה
+       שם — מפתח גלובלי לדפדפן, על מכשיר שאנשים חולקים — ומפתח שלא נסרק
+       שם הוא בדיוק דליפה שאיש לא יראה.
+       ─────────────────────────────────────────────────────────────────── */
+    const LISTING_DRAFT_KEY = 'rozic:draft:listing';
+    const LISTING_DRAFT_TTL_MS = 24 * 60 * 60 * 1000;
+
+    /** האם התמונות נשמטו בשמירה האחרונה (מכסת אחסון) — ראו showListingDraftNotice. */
+    let draftPhotosDropped = false;
+
+    /**
+     * שומרת את כל מה שהאורח מילא, לפני ההפניה להרשמה.
+     *
+     * ⚠️ **התמונות הן החלק הקשה.** `photos` הוא מערך של `File` ואין דרך
+     * לשמור אותו ב-localStorage; הן נשמרות כ-data URL באותו גודל ואיכות
+     * שבהם הן היו נשלחות ל-Storage (1600px / 0.82), כדי שמה שיפורסם אחרי
+     * ההתחברות יהיה **אותה תמונה** ולא עותק מרוט.
+     *
+     * ⚠️ ולכן גם ייתכן שלא ייכנסו: עשר תמונות יכולות לעבור את מכסת
+     * ה-localStorage (~5MB). `setItem` הוא אטומי — או שהכול נכתב או שדבר
+     * לא — ולכן הנפילה חוזרת ושומרת את הטקסט בלבד, ומסמנת זאת. טקסט
+     * שנשמר בלי תמונות עדיף על טופס ריק לחלוטין.
+     *
+     * מחזירה 'full' | 'text-only' | 'none'.
+     */
+    async function saveListingDraft() {
+      const answers = guidingQuestions.map((_, i) =>
+        document.querySelector(`.guiding-answer-input[data-i="${i}"]`)?.value ?? '');
+      const base = {
+        savedAt: Date.now(),
+        title: document.getElementById('title').value,
+        description: document.getElementById('description').value,
+        city: document.getElementById('city').value,
+        fromAddress: document.getElementById('from-address').value,
+        category,
+        condition,
+        guidingQuestions: [...guidingQuestions],
+        guidingAnswers: answers,
+        photos: [],
+      };
+      try {
+        const dataUrls = [];
+        for (const file of photos) {
+          dataUrls.push('data:image/jpeg;base64,' + await resizeImageToBase64(file, 1600, 0.82));
+        }
+        localStorage.setItem(LISTING_DRAFT_KEY, JSON.stringify({ ...base, photos: dataUrls }));
+        return 'full';
+      } catch {
+        try {
+          localStorage.setItem(LISTING_DRAFT_KEY, JSON.stringify(base));
+          return 'text-only';
+        } catch {
+          // מצב פרטי, אחסון חסום או מלא גם לטקסט. לא מפיל את ההרשמה.
+          return 'none';
+        }
+      }
+    }
+
+    /** ⚠️ לקרוא אחרי פרסום מוצלח, אחרת הטיוטה תצוף במודעה הבאה. */
+    function clearListingDraft() {
+      try { localStorage.removeItem(LISTING_DRAFT_KEY); } catch { /* ראו saveListingDraft */ }
+    }
+
+    /**
+     * ⚠️ טיוטה שאינה עומדת בצורה הצפויה **נזרקת ולא מתוקנת חלקית** — אותו
+     * לקח בדיוק כמו `shapeOk` ב-`guest-checkout.js`: `guidingQuestions`
+     * שהוא מחרוזת ולא מערך מפיל את `renderGuidingQuestions`, כלומר הדף
+     * מת ואי אפשר לפרסם בו. התרחיש אינו זדוני אלא שגרתי — טיוטה שנשמרה
+     * בגרסת קוד קודמת, אצל מי שאין לו שום דרך לנקות אותה.
+     */
+    function listingDraftOk(d) {
+      if (!d || typeof d !== 'object') return false;
+      const str = (v) => typeof v === 'string';
+      if (!['title', 'description', 'city', 'fromAddress'].every(k => str(d[k]))) return false;
+      if (!Array.isArray(d.guidingQuestions) || !d.guidingQuestions.every(str)) return false;
+      if (!Array.isArray(d.guidingAnswers) || !d.guidingAnswers.every(str)) return false;
+      if (!Array.isArray(d.photos) || !d.photos.every(v => str(v) && v.startsWith('data:image/jpeg;base64,'))) return false;
+      if (d.category != null && !(d.category in CATEGORY_INFO)) return false;
+      if (d.condition != null && !CONDITION_OPTIONS.some(o => o.key === d.condition)) return false;
+      return true;
+    }
+
+    function loadListingDraft() {
+      try {
+        const raw = localStorage.getItem(LISTING_DRAFT_KEY);
+        if (!raw) return null;
+        const d = JSON.parse(raw);
+        if (!d?.savedAt || Date.now() - d.savedAt > LISTING_DRAFT_TTL_MS || !listingDraftOk(d)) {
+          clearListingDraft();
+          return null;
+        }
+        return d;
+      } catch {
+        clearListingDraft();
+        return null;
+      }
+    }
+
+    /** מסמנת מחדש קבוצת צ'יפים לפי הערך הפעיל (כולל `aria-pressed`). */
+    function syncChips(container, datasetKey, activeValue) {
+      [...container.children].forEach(c => {
+        const on = c.dataset[datasetKey] === activeValue;
+        c.classList.toggle('active', on);
+        c.setAttribute('aria-pressed', on ? 'true' : 'false');
+      });
+    }
+
+    /**
+     * data URL → `File`, כדי שהתמונה המשוחזרת תיכנס בדיוק לאותו מסלול
+     * (`resizeImageToBlob` → `uploadListingPhoto`) כמו תמונה שנבחרה עכשיו.
+     *
+     * הפענוח ב-`atob` ולא ב-`fetch(dataUrl)`: אין כאן בקשת רשת מדומה,
+     * אין תלות ב-CSP, והכשל (אם ה-base64 פגום) הוא סינכרוני ונתפס למעלה.
+     */
+    function dataUrlToFile(dataUrl, index) {
+      const bin = atob(dataUrl.split(',')[1]);
+      const bytes = new Uint8Array(bin.length);
+      for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+      return new File([bytes], `listing-${index + 1}.jpg`, { type: 'image/jpeg' });
+    }
+
+    function applyListingDraft(d) {
+      document.getElementById('title').value = d.title;
+      document.getElementById('description').value = d.description;
+      document.getElementById('city').value = d.city;
+      document.getElementById('from-address').value = d.fromAddress;
+
+      if (d.category) { category = d.category; syncChips(tabsEl, 'cat', category); }
+      condition = d.condition ?? null;
+      syncChips(conditionTabsEl, 'cond', condition);
+
+      guidingQuestions = d.guidingQuestions;
+      renderGuidingQuestions();
+      d.guidingAnswers.forEach((a, i) => {
+        const el = document.querySelector(`.guiding-answer-input[data-i="${i}"]`);
+        if (el) el.value = a;
+      });
+
+      try {
+        photos = d.photos.map(dataUrlToFile);
+      } catch {
+        // base64 פגום — עדיף טופס עם הטקסט ובלי תמונות מאשר דף שנפל.
+        photos = [];
+      }
+      draftPhotosDropped = photos.length === 0;
+      renderPhotos();
+    }
+
+    /**
+     * מודיעה מה חזר ומה לא. **לא** הודעת שגיאה: אין כאן כשל שהמשתמש צריך
+     * לפתור, אבל תמונה אחת היא תנאי לפרסום — ומי שלא יודע שהתמונות לא
+     * חזרו, ייתקע על "יש להוסיף לפחות תמונה אחת" בלי להבין למה.
+     */
+    function showListingDraftNotice() {
+      const host = document.querySelector('.app-container');
+      if (!host) return;
+      const box = document.createElement('div');
+      box.className = 'alert alert-info';
+      box.setAttribute('role', 'status');
+      box.textContent = draftPhotosDropped
+        ? 'החזרנו את מה שמילאתם. את התמונות צריך לבחור שוב — ואז אפשר לפרסם.'
+        : 'החזרנו את מה שמילאתם — אפשר לפרסם.';
+      host.prepend(box);
+    }
+
+    /* ⚠️ הטיוטה משוחזרת **רק למי שמחובר.** אורח שחוזר לדף בלי להירשם
+       ימלא אותו מחדש, וזה מכוון: הטיוטה נכתבת בדיוק ברגע הנטישה, ומי
+       שמשתמש במכשיר אחריו אינו אמור למצוא בטופס את הכתובת של קודמו.
+       (`clearAllOrderDrafts` סורקת אותה, אבל היא רצה רק בנתיב חסימת
+       המוביל בזרימת ההזמנה — היא אינה מגיעה לכאן.) */
+    if (authState) {
+      const draft = loadListingDraft();
+      if (draft) { applyListingDraft(draft); showListingDraftNotice(); }
+    } else {
+      document.getElementById('guest-publish-note').hidden = false;
+    }
   </script>
 </body>
 </html>
