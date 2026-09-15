@@ -64,7 +64,7 @@
   </style>
 </head>
 <body class="app-body">
-<div data-build-stamp class="build-stamp" aria-hidden="true">עודכן 15.09 · 23:56</div>
+<div data-build-stamp class="build-stamp" aria-hidden="true">עודכן 16.09 · 00:06</div>
   <!-- ⚠️ 15.9 — "דלג לתוכן המרכזי" (WCAG 2.4.1, רמה A). זהו האלמנט הממוקד
        הראשון בדף: מוסתר מהעין, מופיע בפינה ברגע שמגיעים אליו ב-Tab, ומעביר
        את המיקוד אל <main id="main-content" tabindex="-1">. בלי ה-tabindex
@@ -106,6 +106,14 @@
       </div>
       <div id="ai-listing-error" role="alert"></div>
       <button class="btn btn-secondary" id="ai-analyze-listing-btn" tabindex="0" style="margin-top:6px;" disabled>נתח תמונות עם AI ✨</button>
+      <!-- ⚠️ `isAIConfigured()` הוא `Boolean(auth.currentUser)` — כלומר אצל
+           אורח הכפתור שמעל **נשאר כבוי גם אחרי שהוא מוסיף תמונות**, בלי
+           מילה. כפתור מושתק בלי הסבר נראה כמו תקלה בדף. מוצג ב-JS
+           לאורחים בלבד (ראו סוף הסקריפט).
+           ⚠️ זו הודעה בלבד — **ההכרעה אם לפתוח את ה-AI לאורחים** (דרך
+           `signInAnonymously` או הרחבת `geminiProxy`) היא של גיא, כי כל
+           קריאה עולה כסף והמכסה היא per-uid. ראו ההערה ב-`ai-vision.js`. -->
+      <p class="app-card-desc" id="ai-guest-note" hidden style="margin-top:8px;">ניתוח התמונות ב-AI נפתח אחרי ההתחברות. עד אז אפשר למלא את הפרטים ידנית — זה עובד בדיוק אותו דבר.</p>
     </div>
 
     <div class="app-card">
@@ -475,13 +483,15 @@
       if (!authState) {
         const btnGuest = document.getElementById('submit-btn');
         btnGuest.disabled = true; btnGuest.textContent = 'שומר את המודעה...';
-        const saved = await saveListingDraft();
-        if (saved === 'text-only' || saved === 'none') {
-          // ⚠️ אמירה מפורשת ולא שתיקה: המשתמש חוזר לטופס בלי התמונות
-          // שבחר, ותמונה אחת היא תנאי לפרסום. בלי השורה הזו הוא היה
-          // נתקע על "יש להוסיף לפחות תמונה אחת" בלי להבין מה קרה.
-          errBox.innerHTML = '<div class="alert alert-info">הפרטים נשמרו. את התמונות נצטרך לבחור מחדש אחרי ההתחברות — הן לא עוברות את הדרך.</div>';
-        }
+        /**
+         * ⚠️ **אין כאן הודעה למשתמש, וזה מכוון.** השורה הבאה מחליפה את
+         * הדף, כלומר כל דבר שייכתב ל-`errBox` כאן לא ייקרא — נמדד:
+         * ההפניה יוצאת מיד. המקום שבו המשתמש *כן* שומע מה קרה הוא
+         * `showListingDraftNotice` בחזרה, והיא אומרת במפורש אם התמונות
+         * צריכות להיבחר שוב (`saved === 'text-only'` ⇒ `photos: []`
+         * בטיוטה ⇒ `draftPhotosDropped`).
+         */
+        await saveListingDraft();
         const next = encodeURIComponent(location.pathname + location.search);
         location.href = `login.html?next=${next}`;
         return;
@@ -737,6 +747,7 @@
       if (draft) { applyListingDraft(draft); showListingDraftNotice(); }
     } else {
       document.getElementById('guest-publish-note').hidden = false;
+      document.getElementById('ai-guest-note').hidden = false;
     }
   </script>
 </body>
