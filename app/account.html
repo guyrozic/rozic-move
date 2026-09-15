@@ -107,6 +107,7 @@
   <script type="module">
     import { requireAuth, resendVerificationEmail, refreshEmailVerified, sendPhoneVerificationCode, confirmPhoneVerificationCode, logout } from './auth.js';
     import { subscribeToUserOrders, customerTotalOf, STATUS_LABELS } from './orders.js';
+    import { clearAllOrderDrafts } from './guest-checkout.js';
 
     /**
      * בריחת HTML לכל ערך שמגיע ממסמך ההזמנה. **זו לא הגנה תיאורטית:**
@@ -236,6 +237,18 @@
     });
 
     document.getElementById('logout-btn').addEventListener('click', async () => {
+      /**
+       * ⚠️ 15.9 — **התנתקות לא ניקתה את טיוטת ההזמנה.**
+       *
+       * `rozic:draft:*` אינו משויך ל-uid אלא לדפדפן, ולכן היציאה
+       * מהחשבון השאירה על המכשיר את כתובת המוצא, כתובת היעד, התאריך
+       * וההערות החופשיות — והמשתמש הבא באותו מכשיר ראה אותן בטופס
+       * שלו. אומת בהרצה. ראו `clearAllOrderDrafts` ב-guest-checkout.js.
+       *
+       * לפני `logout()` ולא אחריו: `logout` גורר האזנות ו-redirect,
+       * ומחיקה שממתינה להם היא מחיקה שעלולה לא לקרות.
+       */
+      clearAllOrderDrafts();
       await logout();
       location.href = '../index.html';
     });
