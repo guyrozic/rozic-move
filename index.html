@@ -246,9 +246,9 @@
   /* ===== ג׳ · הרשימה, מקובצת לפי חדר ===== */
   .acc { margin-top:10px; border:1.5px solid var(--green-line); border-radius:12px;
     background:var(--green-tint); padding:10px 12px 11px; }
-  .acc-t { font-size:.73rem; font-weight:800; color:var(--green-ink); margin-bottom:8px;
-    display:flex; justify-content:space-between; align-items:baseline; }
-  .acc-t span { font-weight:600; color:var(--text-muted); font-size:.68rem; }
+  /* משפט אחד, לא flex בשני קצוות — בטור צר הפיצול ערבב את סדר המילים. */
+  .acc-t { font-size:.72rem; font-weight:800; color:var(--green-ink); margin-bottom:8px;
+    line-height:1.4; }
   /* 16.9 — טור אחד: חדר מתחת לחדר (במקום שלוש עמודות). התזמונים לא נגעו,
      רק הפריסה — כל .col יורד מתחת לקודמו והרשימה נבנית מלמעלה למטה. */
   .accgrid { display:flex; flex-direction:column; gap:10px; }
@@ -320,7 +320,7 @@
   /* RTL — הילד הראשון (הרחב) יושב מימין, השני (הרשימה) משמאל.
      16.9 — היחס הורחב מ-1.5:1 ל-1.95:1 אחרי הסרת הסטטוס-בר וקיפול הרשימה
      לטור אחד צר: הסריקה והכרטיסים מקבלים את הרוחב שהתפנה. */
-  .tool-c2 { grid-template-columns:minmax(0,1.95fr) minmax(0,1fr); }
+  .tool-c2 { grid-template-columns:minmax(0,2.45fr) minmax(0,1fr); }
   @media (max-width:900px){ .tool-row { grid-template-columns:1fr; } }
 
   /* העמודה הימנית הרחבה — סריקה, שאלה וכרטיסים */
@@ -427,7 +427,7 @@
      שיחליף אותם; בלי הסימון הזה הם נעלמו גם בחמשת הדפים המשפטיים,
      בלי שום דרך להגיע אליהם (WCAG 1.4.4). -->
 <body class="has-nav-menu hp-home">
-<div data-build-stamp class="build-stamp" aria-hidden="true">עודכן 16.09 · 02:03</div>
+<div data-build-stamp class="build-stamp" aria-hidden="true">עודכן 16.09 · 02:12</div>
   <!-- ⚠️ 15.9 — "דלג לתוכן המרכזי" (WCAG 2.4.1, רמה A). זהו האלמנט הממוקד
        הראשון בדף: מוסתר מהעין, מופיע בפינה ברגע שמגיעים אליו ב-Tab, ומעביר
        את המיקוד אל <main id="main-content" tabindex="-1">. בלי ה-tabindex
@@ -628,7 +628,7 @@
               <!-- ‏⚠ הרשימה הזאת היא הדגמה מונפשת הצמודה לסריקה, לא הרשימה האמיתית של
                    המשתמש. aria-hidden כדי שקורא מסך לא יכריז אותה כנתונים, והכותרת פותחת ב"הדגמה". -->
               <div class="acc" aria-hidden="true">
-                <p class="acc-t">הדגמה — הרשימה נבנית תוך כדי <span>לפי הסריקה</span></p>
+                <p class="acc-t">הדגמה — הרשימה נבנית תוך כדי הסריקה</p>
                 <div class="accgrid">
                   <div class="col"><p class="coln n1b">סלון</p>
                     <ul>
