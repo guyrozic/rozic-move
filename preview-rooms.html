@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<title>סריקה חדר אחרי חדר</title>
+<!-- ⚠️ דף השוואה ממוקד. noindex, לא מקושר, נמחק אחרי ההכרעה.
+     גיא: "השילוב בין אופציה 1 ל2 - ממש כמו באופציה הראשונה איך יש את
+     הסורק ונוצרת מסגרת עם שם על כל פריט ופריט... ואני רוצה כמו באופציה 2
+     שהוא סורק חדר אחרי חדר... אני רוצה שנעבוד רגע רק על החלק העליון."
+     לכן מוצג כאן אזור הסריקה בלבד — בלי ההירו ובלי שלוש הדרכים.
+     ⚠️ ותוקן פער שהיה ב-2: המונה הראה 4→9→15 בזמן שבחדרים היו פחות
+     פריטים מצוירים. עכשיו כל מספר במונה הוא מסגרת שרואים: 4 → 7 → 11. -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css?v=ea009cc6">
+<style>
+  body { background:#DDE4DE; }
+  .cc-lead { max-width:900px; margin:0 auto; padding:28px 20px 4px; text-align:center; }
+  .cc-lead h1 { font-size:1.6rem; font-weight:900; }
+  .cc-lead p { font-size:.96rem; color:var(--text-mid); margin-top:8px; line-height:1.6; }
+  .cc-jump { display:flex; gap:7px; justify-content:center; flex-wrap:wrap; margin-top:15px; }
+  .cc-jump a { font-size:.86rem; font-weight:800; padding:8px 15px; border-radius:999px;
+    background:var(--white); border:1.5px solid var(--border); color:var(--text); text-decoration:none; }
+  .cc-jump a:focus-visible { outline:3px solid var(--green); outline-offset:2px; }
+  .cc-label { max-width:760px; margin:42px auto 9px; padding:0 20px;
+    display:flex; align-items:baseline; gap:11px; flex-wrap:wrap; }
+  .cc-label h2 { font-size:1.22rem; font-weight:900; }
+  .cc-label span { font-size:.89rem; color:var(--text-mid); }
+  .why { max-width:760px; margin:0 auto 10px; padding:0 20px; font-size:.85rem;
+    color:var(--text-mid); line-height:1.6; }
+  .why b { color:var(--text); }
+
+  /* המסגרת הלבנה מדמה את הכרטיס, אבל מחזיקה רק את החלק העליון */
+  .cc-card { max-width:760px; margin:0 auto; background:var(--white); border-radius:18px;
+    padding:18px; box-shadow:0 14px 34px rgba(20,42,34,.16); }
+
+  /* ===== אזור הסריקה — משותף לארבעה ===== */
+  .scan { position:relative; border-radius:13px; overflow:hidden; height:250px;
+    background:linear-gradient(170deg,#EEF5F0,#DEEAE2); border:1px solid var(--border); }
+  .scan .room { position:absolute; inset:0; width:100%; height:100%;
+    opacity:0; animation:swap 12s linear infinite both; }
+  .scan .room * { stroke:#8FA89A; fill:none; stroke-width:2.1;
+    vector-effect:non-scaling-stroke; stroke-linecap:round; stroke-linejoin:round; }
+  .boxes { position:absolute; inset:0; width:100%; height:100%; z-index:2;
+    opacity:0; animation:swap 12s linear infinite both; }
+  .boxes rect { fill:rgba(78,218,169,.10); stroke:var(--green-line); stroke-width:2;
+    vector-effect:non-scaling-stroke; rx:4; opacity:0; animation:bx1 12s ease-out infinite both; }
+  .bxl { position:absolute; z-index:3; width:max-content; background:var(--green-line); color:#fff;
+    font-size:.68rem; font-weight:800; padding:2px 8px; border-radius:5px; white-space:nowrap;
+    opacity:0; animation:bx1 12s ease-out infinite both; }
+  /* ⚠️ חייב .scan לפני: ה-shorthand ב-.scan .room מאפס את ה-delay,
+     ובספציפיות (0,2,0) הוא גובר על .r2 לבדו. בלי זה שלושת החדרים
+     מוצגים בו-זמנית — וזה בדיוק מה שקרה. */
+  .scan .r1, .scan .b1, .scan .b1 rect, .scan .l1 { animation-delay:0s }
+  .scan .r2, .scan .b2, .scan .b2 rect, .scan .l2 { animation-delay:4s }
+  .scan .r3, .scan .b3, .scan .b3 rect, .scan .l3 { animation-delay:8s }
+  /* ⚠️ החפיפה בין 32% ל-36% מכוונת: בלעדיה נפתח חלון של חצי שנייה שבו
+     כל החדרים ב-0, וזה נקרא כבאג ולא כמעבר. */
+  @keyframes swap { 0%{opacity:0} 1%,32%{opacity:1} 36%,100%{opacity:0} }
+  /* המסגרת נעלמת ב-2.5s מהופעתה — לפני שהחדר מתחלף ב-4s, אחרת היא
+     נשארת רגע על החדר הבא ומצביעה על פריט שאינו שם. */
+  @keyframes bx1 { 0%,5%{opacity:0} 7%,30%{opacity:1} 33%,100%{opacity:0} }
+  @keyframes bx2 { 0%,7%{opacity:0} 9%,30%{opacity:1} 33%,100%{opacity:0} }
+  @keyframes bx3 { 0%,9%{opacity:0} 11%,30%{opacity:1} 33%,100%{opacity:0} }
+  @keyframes bx4 { 0%,11%{opacity:0} 13%,30%{opacity:1} 33%,100%{opacity:0} }
+  .k1 { animation-name:bx1 } .k2 { animation-name:bx2 } .k3 { animation-name:bx3 } .k4 { animation-name:bx4 }
+  .beam { position:absolute; inset-inline:0; height:56px; pointer-events:none; z-index:2;
+    background:linear-gradient(to bottom, transparent, rgba(78,218,169,.40) 62%, var(--green-on-dark));
+    box-shadow:0 0 22px rgba(78,218,169,.7); animation:beam 4s cubic-bezier(.5,0,.5,1) infinite; }
+  @keyframes beam { 0%,6%{top:-56px} 55%,100%{top:100%} }
+
+  .statusbar { display:flex; justify-content:space-between; align-items:center;
+    gap:12px; margin-bottom:9px; padding-inline:2px; min-height:24px; }
+  .roomN { font-size:.8rem; font-weight:800; color:var(--green-ink);
+    display:flex; gap:6px; align-items:center; }
+  .roomN em { font-style:normal; position:relative; display:inline-block;
+    width:5.2em; height:1.2em; vertical-align:middle; text-align:start; }
+  .roomN em b { position:absolute; inset:0; opacity:0; font-weight:800;
+    animation:cyc 12s linear infinite both; }
+  .roomN em b:nth-child(1){animation-delay:.2s} .roomN em b:nth-child(2){animation-delay:4.2s}
+  .roomN em b:nth-child(3){animation-delay:8.2s}
+  @keyframes cyc { 0%{opacity:0} 1%,31%{opacity:1} 33%,100%{opacity:0} }
+
+  .tot { display:flex; gap:6px; align-items:center; font-size:.8rem; font-weight:800;
+    color:var(--green-ink); background:var(--green-tint); border:1px solid var(--green-line);
+    padding:3px 12px; border-radius:999px; }
+  .tot u { text-decoration:none; position:relative; display:inline-block;
+    width:1.7em; height:1.2em; vertical-align:middle; }
+  .tot u b { position:absolute; inset:0; display:flex; align-items:center; justify-content:center;
+    opacity:0; font-weight:900; animation:cnt 12s linear infinite both; }
+  .tot u b:nth-child(1){animation-delay:1.9s} .tot u b:nth-child(2){animation-delay:5.9s}
+  .tot u b:nth-child(3){animation-delay:9.9s}
+  @keyframes cnt { 0%{opacity:0} 1%,32%{opacity:1} 34%,100%{opacity:0} }
+
+  /* ═══ ב · פס חדרים ═══ */
+  .dots { display:flex; gap:7px; align-items:center; }
+  .dots i { display:block; height:5px; width:34px; border-radius:99px; background:rgba(20,42,34,.16); }
+  .dots i::after { content:''; display:block; height:100%; width:100%; border-radius:99px;
+    background:var(--green-line); transform-origin:right center;
+    animation:fillbar 12s linear infinite both; }
+  .dots i:nth-child(1)::after{animation-delay:0s} .dots i:nth-child(2)::after{animation-delay:4s}
+  .dots i:nth-child(3)::after{animation-delay:8s}
+  @keyframes fillbar { 0%{transform:scaleX(0)} 30%,100%{transform:scaleX(1)} }
+
+  /* ═══ ג · רשימה מצטברת ═══ */
+  .pane { min-width:0; }
+  .split { display:grid; grid-template-columns:minmax(0,1fr) minmax(0,.5fr); gap:13px; }
+  .acc { border:1.5px solid var(--green-line); border-radius:13px; background:var(--green-tint);
+    padding:11px 12px; overflow:hidden; }
+  .acc .acc-t { font-size:.72rem; font-weight:800; color:var(--green-ink); margin-bottom:7px;
+    display:flex; justify-content:space-between; align-items:baseline; }
+  .acc ol { list-style:none; display:flex; flex-direction:column; gap:2px; }
+  .acc li { font-size:.75rem; font-weight:700; color:var(--text); display:flex;
+    gap:5px; align-items:baseline; line-height:1.45; }
+  .acc li::before { content:'✓'; color:var(--green-line); font-size:.66rem; }
+  .acc em { font-style:normal; font-size:.66rem; font-weight:500; color:var(--text-muted);
+    margin-inline-start:auto; }
+  @keyframes acc0 { 0%,8.3%{opacity:0;transform:translateY(4px)} 10.3%,96%{opacity:1;transform:none} 99.5%,100%{opacity:0} }
+  .a0 { animation:acc0 12s linear infinite both; }
+  @keyframes acc1 { 0%,10.4%{opacity:0;transform:translateY(4px)} 12.4%,96%{opacity:1;transform:none} 99.5%,100%{opacity:0} }
+  .a1 { animation:acc1 12s linear infinite both; }
+  @keyframes acc2 { 0%,12.5%{opacity:0;transform:translateY(4px)} 14.5%,96%{opacity:1;transform:none} 99.5%,100%{opacity:0} }
+  .a2 { animation:acc2 12s linear infinite both; }
+  @keyframes acc3 { 0%,14.6%{opacity:0;transform:translateY(4px)} 16.6%,96%{opacity:1;transform:none} 99.5%,100%{opacity:0} }
+  .a3 { animation:acc3 12s linear infinite both; }
+  @keyframes acc4 { 0%,41.7%{opacity:0;transform:translateY(4px)} 43.7%,96%{opacity:1;transform:none} 99.5%,100%{opacity:0} }
+  .a4 { animation:acc4 12s linear infinite both; }
+  @keyframes acc5 { 0%,43.8%{opacity:0;transform:translateY(4px)} 45.8%,96%{opacity:1;transform:none} 99.5%,100%{opacity:0} }
+  .a5 { animation:acc5 12s linear infinite both; }
+  @keyframes acc6 { 0%,45.8%{opacity:0;transform:translateY(4px)} 47.8%,96%{opacity:1;transform:none} 99.5%,100%{opacity:0} }
+  .a6 { animation:acc6 12s linear infinite both; }
+  @keyframes acc7 { 0%,75.0%{opacity:0;transform:translateY(4px)} 77.0%,96%{opacity:1;transform:none} 99.5%,100%{opacity:0} }
+  .a7 { animation:acc7 12s linear infinite both; }
+  @keyframes acc8 { 0%,77.1%{opacity:0;transform:translateY(4px)} 79.1%,96%{opacity:1;transform:none} 99.5%,100%{opacity:0} }
+  .a8 { animation:acc8 12s linear infinite both; }
+  @keyframes acc9 { 0%,79.2%{opacity:0;transform:translateY(4px)} 81.2%,96%{opacity:1;transform:none} 99.5%,100%{opacity:0} }
+  .a9 { animation:acc9 12s linear infinite both; }
+  @keyframes acc10 { 0%,81.2%{opacity:0;transform:translateY(4px)} 83.2%,96%{opacity:1;transform:none} 99.5%,100%{opacity:0} }
+  .a10 { animation:acc10 12s linear infinite both; }
+  @media (max-width:620px){ .split { grid-template-columns:1fr; } }
+
+  /* ═══ ד · מונה גדול ═══ */
+  .big { position:absolute; bottom:12px; inset-inline:0; z-index:4; text-align:center;
+    pointer-events:none; }
+  .big u { text-decoration:none; position:relative; display:inline-block; width:1.5em; height:1em;
+    font-size:2.9rem; font-weight:900; line-height:1; color:var(--green-ink);
+    text-shadow:0 2px 14px rgba(255,255,255,.95), 0 0 30px rgba(255,255,255,.9); }
+  .big u b { position:absolute; inset:0; display:flex; align-items:center; justify-content:center;
+    opacity:0; animation:cntBig 12s cubic-bezier(.2,1.5,.4,1) infinite both; }
+  .big u b:nth-child(1){animation-delay:1.9s} .big u b:nth-child(2){animation-delay:5.9s}
+  .big u b:nth-child(3){animation-delay:9.9s}
+  @keyframes cntBig { 0%{opacity:0;transform:scale(.55)} 3%,32%{opacity:1;transform:none}
+    34%,100%{opacity:0;transform:none} }
+  .big span { display:block; font-size:.76rem; font-weight:800; color:var(--green-ink);
+    text-shadow:0 1px 8px rgba(255,255,255,.95); margin-top:-2px; }
+
+  @media (prefers-reduced-motion:reduce){
+    .beam { display:none; }
+    .boxes rect,.bxl,.roomN em b,.tot u b,.big u b,.acc li,.scan .room,.boxes
+      { animation:none; opacity:1; transform:none; }
+    .dots i::after { animation:none; transform:none; }
+    .r2,.r3,.b2,.b3 { display:none; }
+    .roomN em b:not(:first-child), .tot u b:not(:last-child), .big u b:not(:last-child) { opacity:0; }
+  }
+</style>
+</head>
+<body>
+<div data-build-stamp class="build-stamp" aria-hidden="true">עודכן 15.09 · 22:56</div>
+<a class="skip-link" href="#main-content">דלג לתוכן המרכזי</a>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false"><defs>
+  <symbol id="rm-living" viewBox="0 0 330 190"><path d="M14 156h302"/>
+    <path d="M196 156v-30a9 9 0 0 1 9-9h86a9 9 0 0 1 9 9v30"/>
+    <path d="M205 117v-14a9 9 0 0 1 9-9h68a9 9 0 0 1 9 9v14"/>
+    <path d="M248 117v-23M205 129h86"/>
+    <path d="M150 156v-14h40v14M156 142v14M184 142v14"/>
+    <path d="M40 156V56a7 7 0 0 1 7-7h36a7 7 0 0 1 7 7v100"/><path d="M40 92h50M76 72v14M76 100v16"/>
+    <path d="M108 156h26M121 156V78"/><path d="m106 78 8-22h14l8 22z"/></symbol>
+  <symbol id="rm-bed" viewBox="0 0 330 190"><path d="M14 156h302"/>
+    <path d="M44 156v-26h150v26"/><path d="M44 130V72a7 7 0 0 1 7-7h11v65"/>
+    <path d="M70 130v-17h32v17M110 130v-17h32v17"/><path d="M62 141h132"/>
+    <path d="M204 156v-30h28v30M210 138h16"/>
+    <path d="M246 156V46h60v110"/><path d="M276 46v110M268 96v15M284 96v15"/></symbol>
+  <symbol id="rm-kitchen" viewBox="0 0 330 190"><path d="M14 156h302"/>
+    <path d="M36 112h96v9H36zM44 121v35M124 121v35"/>
+    <path d="M146 156v-32h26v32M146 124V92h6v32"/>
+    <path d="M188 156v-48h46v48M188 126h46M196 118h30"/>
+    <path d="M250 156V48h54v108M250 98h54M294 72v16M294 106v16"/></symbol>
+</defs></svg>
+
+<main id="main-content" tabindex="-1">
+  <div class="cc-lead">
+    <h1>סריקה חדר אחרי חדר</h1>
+    <p>המסגרות עם השם מ-<b>1</b>, והמעבר בין החדרים מ-<b>2</b> — באותה הדגמה.
+       מוצג כאן <b>רק אזור הסריקה</b>, בלי ההירו ובלי שלוש הדרכים.</p>
+    <p style="font-size:.89rem">בארבעתן אותה סריקה בדיוק. מה שמשתנה הוא
+       <b>איך אומרים לצופה איפה הוא נמצא וכמה כבר נאסף</b>.</p>
+    <nav class="cc-jump" aria-label="מעבר מהיר">
+      <a href="#R1">א · שם החדר ומונה</a><a href="#R2">ב · פס התקדמות</a>
+      <a href="#R3">ג · רשימה מצטברת</a><a href="#R4">ד · מונה גדול</a>
+    </nav>
+  </div>
+</main>
+
+<div class="cc-label"><h2 id="R1">א · שם החדר ומונה</h2><span>שתי תוויות קטנות בפינות.</span></div>
+<p class="why">הקריא ביותר, והכי קרוב למה שכבר אישרת. שם החדר בפינה אחת, הסכום המצטבר בשנייה — ו<b>שום דבר לא גונב את המסגרות</b>, שהן הגיבור.</p>
+<div class="cc-card">
+    <div class="statusbar">
+      <span class="roomN">סורק <em><b>סלון</b><b>חדר שינה</b><b>מטבח</b></em></span>
+      <span class="tot">סה״כ <u><b>4</b><b>7</b><b>11</b></u> פריטים</span>
+    </div>
+    <div class="scan " role="img" aria-label="הדגמה: הסריקה עוברת בין סלון, חדר שינה ומטבח ומסמנת כל פריט בשמו">
+      <svg class="room r1" viewBox="0 0 330 190" preserveAspectRatio="none" aria-hidden="true" focusable="false"><use href="#rm-living"/></svg>
+      <svg class="boxes b1" viewBox="0 0 330 190" preserveAspectRatio="none" aria-hidden="true" focusable="false">
+        <rect class="k1" x="36" y="45" width="58" height="113"/>
+        <rect class="k2" x="100" y="52" width="40" height="106"/>
+        <rect class="k3" x="146" y="138" width="48" height="20"/>
+        <rect class="k4" x="192" y="90" width="112" height="68"/>
+      </svg>
+      <span class="bxl l1 k1" style="left:10.9%;bottom:77.4%">מקרר</span>
+      <span class="bxl l1 k2" style="left:30.3%;bottom:73.7%">מנורה</span>
+      <span class="bxl l1 k3" style="left:44.2%;bottom:28.4%">שולחן</span>
+      <span class="bxl l1 k4" style="left:58.2%;bottom:53.7%">ספה תלת</span>
+      <svg class="room r2" viewBox="0 0 330 190" preserveAspectRatio="none" aria-hidden="true" focusable="false"><use href="#rm-bed"/></svg>
+      <svg class="boxes b2" viewBox="0 0 330 190" preserveAspectRatio="none" aria-hidden="true" focusable="false">
+        <rect class="k1" x="40" y="60" width="158" height="98"/>
+        <rect class="k2" x="200" y="122" width="36" height="36"/>
+        <rect class="k3" x="242" y="42" width="68" height="116"/>
+      </svg>
+      <span class="bxl l2 k1" style="left:12.1%;bottom:69.5%">מיטה זוגית</span>
+      <span class="bxl l2 k2" style="left:60.6%;bottom:36.9%">שידת לילה</span>
+      <span class="bxl l2 k3" style="left:73.3%;bottom:79.0%">ארון</span>
+      <svg class="room r3" viewBox="0 0 330 190" preserveAspectRatio="none" aria-hidden="true" focusable="false"><use href="#rm-kitchen"/></svg>
+      <svg class="boxes b3" viewBox="0 0 330 190" preserveAspectRatio="none" aria-hidden="true" focusable="false">
+        <rect class="k1" x="32" y="108" width="104" height="50"/>
+        <rect class="k2" x="142" y="88" width="34" height="70"/>
+        <rect class="k3" x="184" y="104" width="54" height="54"/>
+        <rect class="k4" x="246" y="44" width="62" height="114"/>
+      </svg>
+      <span class="bxl l3 k1" style="left:9.7%;bottom:44.2%">שולחן אוכל</span>
+      <span class="bxl l3 k2" style="left:43.0%;bottom:54.7%">כיסאות</span>
+      <span class="bxl l3 k3" style="left:55.8%;bottom:46.3%">תנור</span>
+      <span class="bxl l3 k4" style="left:74.5%;bottom:77.9%">מקרר</span>
+      <span class="beam"></span>
+    </div>
+</div>
+
+<div class="cc-label"><h2 id="R2">ב · פס התקדמות</h2><span>שלושה פסים במקום טקסט.</span></div>
+<p class="why">אומר <b>«יש עוד, וזה נגמר»</b> בלי מילה — ומי שנוחת באמצע רואה מיד שהוא לא בהתחלה. ⚠️ אבל הוא גם <b>לא אומר מה נסרק</b>; בלי שם החדר, הצופה צריך לזהות לבד שזה מטבח.</p>
+<div class="cc-card">
+    <div class="statusbar">
+      <span class="dots"><i></i><i></i><i></i></span>
+      <span class="tot">סה״כ <u><b>4</b><b>7</b><b>11</b></u> פריטים</span>
+    </div>
+    <div class="scan " role="img" aria-label="הדגמה: הסריקה עוברת בין סלון, חדר שינה ומטבח ומסמנת כל פריט בשמו">
+      <svg class="room r1" viewBox="0 0 330 190" preserveAspectRatio="none" aria-hidden="true" focusable="false"><use href="#rm-living"/></svg>
+      <svg class="boxes b1" viewBox="0 0 330 190" preserveAspectRatio="none" aria-hidden="true" focusable="false">
+        <rect class="k1" x="36" y="45" width="58" height="113"/>
+        <rect class="k2" x="100" y="52" width="40" height="106"/>
+        <rect class="k3" x="146" y="138" width="48" height="20"/>
+        <rect class="k4" x="192" y="90" width="112" height="68"/>
+      </svg>
+      <span class="bxl l1 k1" style="left:10.9%;bottom:77.4%">מקרר</span>
+      <span class="bxl l1 k2" style="left:30.3%;bottom:73.7%">מנורה</span>
+      <span class="bxl l1 k3" style="left:44.2%;bottom:28.4%">שולחן</span>
+      <span class="bxl l1 k4" style="left:58.2%;bottom:53.7%">ספה תלת</span>
+      <svg class="room r2" viewBox="0 0 330 190" preserveAspectRatio="none" aria-hidden="true" focusable="false"><use href="#rm-bed"/></svg>
+      <svg class="boxes b2" viewBox="0 0 330 190" preserveAspectRatio="none" aria-hidden="true" focusable="false">
+        <rect class="k1" x="40" y="60" width="158" height="98"/>
+        <rect class="k2" x="200" y="122" width="36" height="36"/>
+        <rect class="k3" x="242" y="42" width="68" height="116"/>
+      </svg>
+      <span class="bxl l2 k1" style="left:12.1%;bottom:69.5%">מיטה זוגית</span>
+      <span class="bxl l2 k2" style="left:60.6%;bottom:36.9%">שידת לילה</span>
+      <span class="bxl l2 k3" style="left:73.3%;bottom:79.0%">ארון</span>
+      <svg class="room r3" viewBox="0 0 330 190" preserveAspectRatio="none" aria-hidden="true" focusable="false"><use href="#rm-kitchen"/></svg>
+      <svg class="boxes b3" viewBox="0 0 330 190" preserveAspectRatio="none" aria-hidden="true" focusable="false">
+        <rect class="k1" x="32" y="108" width="104" height="50"/>
+        <rect class="k2" x="142" y="88" width="34" height="70"/>
+        <rect class="k3" x="184" y="104" width="54" height="54"/>
+        <rect class="k4" x="246" y="44" width="62" height="114"/>
+      </svg>
+      <span class="bxl l3 k1" style="left:9.7%;bottom:44.2%">שולחן אוכל</span>
+      <span class="bxl l3 k2" style="left:43.0%;bottom:54.7%">כיסאות</span>
+      <span class="bxl l3 k3" style="left:55.8%;bottom:46.3%">תנור</span>
+      <span class="bxl l3 k4" style="left:74.5%;bottom:77.9%">מקרר</span>
+      <span class="beam"></span>
+    </div>
+</div>
+
+<div class="cc-label"><h2 id="R3">ג · רשימה מצטברת</h2><span>הסריקה בצד אחד, מה שנאסף בשני.</span></div>
+<p class="why">הגרסה היחידה שמראה את <b>התוצר</b> ולא רק את התהליך — הרשימה גדלה מ-4 ל-11 ולא מתאפסת בין חדרים, וזה מה שמוכר בהובלה. ⚠️ אבל הסריקה מקבלת שני שליש מהרוחב, והמסגרות קטנות יותר.</p>
+<div class="cc-card">
+  <div class="split">
+    <div class="pane">
+    <div class="statusbar">
+      <span class="roomN">סורק <em><b>סלון</b><b>חדר שינה</b><b>מטבח</b></em></span>
+    </div>
+    <div class="scan " role="img" aria-label="הדגמה: הסריקה עוברת בין סלון, חדר שינה ומטבח ומסמנת כל פריט בשמו">
+      <svg class="room r1" viewBox="0 0 330 190" preserveAspectRatio="none" aria-hidden="true" focusable="false"><use href="#rm-living"/></svg>
+      <svg class="boxes b1" viewBox="0 0 330 190" preserveAspectRatio="none" aria-hidden="true" focusable="false">
+        <rect class="k1" x="36" y="45" width="58" height="113"/>
+        <rect class="k2" x="100" y="52" width="40" height="106"/>
+        <rect class="k3" x="146" y="138" width="48" height="20"/>
+        <rect class="k4" x="192" y="90" width="112" height="68"/>
+      </svg>
+      <span class="bxl l1 k1" style="left:10.9%;bottom:77.4%">מקרר</span>
+      <span class="bxl l1 k2" style="left:30.3%;bottom:73.7%">מנורה</span>
+      <span class="bxl l1 k3" style="left:44.2%;bottom:28.4%">שולחן</span>
+      <span class="bxl l1 k4" style="left:58.2%;bottom:53.7%">ספה תלת</span>
+      <svg class="room r2" viewBox="0 0 330 190" preserveAspectRatio="none" aria-hidden="true" focusable="false"><use href="#rm-bed"/></svg>
+      <svg class="boxes b2" viewBox="0 0 330 190" preserveAspectRatio="none" aria-hidden="true" focusable="false">
+        <rect class="k1" x="40" y="60" width="158" height="98"/>
+        <rect class="k2" x="200" y="122" width="36" height="36"/>
+        <rect class="k3" x="242" y="42" width="68" height="116"/>
+      </svg>
+      <span class="bxl l2 k1" style="left:12.1%;bottom:69.5%">מיטה זוגית</span>
+      <span class="bxl l2 k2" style="left:60.6%;bottom:36.9%">שידת לילה</span>
+      <span class="bxl l2 k3" style="left:73.3%;bottom:79.0%">ארון</span>
+      <svg class="room r3" viewBox="0 0 330 190" preserveAspectRatio="none" aria-hidden="true" focusable="false"><use href="#rm-kitchen"/></svg>
+      <svg class="boxes b3" viewBox="0 0 330 190" preserveAspectRatio="none" aria-hidden="true" focusable="false">
+        <rect class="k1" x="32" y="108" width="104" height="50"/>
+        <rect class="k2" x="142" y="88" width="34" height="70"/>
+        <rect class="k3" x="184" y="104" width="54" height="54"/>
+        <rect class="k4" x="246" y="44" width="62" height="114"/>
+      </svg>
+      <span class="bxl l3 k1" style="left:9.7%;bottom:44.2%">שולחן אוכל</span>
+      <span class="bxl l3 k2" style="left:43.0%;bottom:54.7%">כיסאות</span>
+      <span class="bxl l3 k3" style="left:55.8%;bottom:46.3%">תנור</span>
+      <span class="bxl l3 k4" style="left:74.5%;bottom:77.9%">מקרר</span>
+      <span class="beam"></span>
+
+    </div>
+    </div>
+    <div class="acc"><p class="acc-t">הרשימה שלכם <span>מתעדכן</span></p>
+      <ol>
+        <li class="a0">מקרר <em>סלון</em></li>
+        <li class="a1">מנורה <em>סלון</em></li>
+        <li class="a2">שולחן <em>סלון</em></li>
+        <li class="a3">ספה תלת <em>סלון</em></li>
+        <li class="a4">מיטה זוגית <em>חדר שינה</em></li>
+        <li class="a5">שידת לילה <em>חדר שינה</em></li>
+        <li class="a6">ארון <em>חדר שינה</em></li>
+        <li class="a7">שולחן אוכל <em>מטבח</em></li>
+        <li class="a8">כיסאות <em>מטבח</em></li>
+        <li class="a9">תנור <em>מטבח</em></li>
+        <li class="a10">מקרר <em>מטבח</em></li>
+      </ol></div>
+  </div>
+</div>
+
+<div class="cc-label"><h2 id="R4">ד · מונה גדול</h2><span>המספר הוא הגיבור.</span></div>
+<p class="why">המספר קופץ במרכז ומקבל את מלוא תשומת הלב — <b>הכי מיידי מבין הארבעה</b>. ⚠️ וזו גם ההסתייגות: הוא מתחרה במסגרות על העין, ומי שמסתכל על המספר מפספס את השמות.</p>
+<div class="cc-card">
+    <div class="statusbar">
+      <span class="roomN">סורק <em><b>סלון</b><b>חדר שינה</b><b>מטבח</b></em></span>
+    </div>
+    <div class="scan " role="img" aria-label="הדגמה: הסריקה עוברת בין סלון, חדר שינה ומטבח ומסמנת כל פריט בשמו">
+      <svg class="room r1" viewBox="0 0 330 190" preserveAspectRatio="none" aria-hidden="true" focusable="false"><use href="#rm-living"/></svg>
+      <svg class="boxes b1" viewBox="0 0 330 190" preserveAspectRatio="none" aria-hidden="true" focusable="false">
+        <rect class="k1" x="36" y="45" width="58" height="113"/>
+        <rect class="k2" x="100" y="52" width="40" height="106"/>
+        <rect class="k3" x="146" y="138" width="48" height="20"/>
+        <rect class="k4" x="192" y="90" width="112" height="68"/>
+      </svg>
+      <span class="bxl l1 k1" style="left:10.9%;bottom:77.4%">מקרר</span>
+      <span class="bxl l1 k2" style="left:30.3%;bottom:73.7%">מנורה</span>
+      <span class="bxl l1 k3" style="left:44.2%;bottom:28.4%">שולחן</span>
+      <span class="bxl l1 k4" style="left:58.2%;bottom:53.7%">ספה תלת</span>
+      <svg class="room r2" viewBox="0 0 330 190" preserveAspectRatio="none" aria-hidden="true" focusable="false"><use href="#rm-bed"/></svg>
+      <svg class="boxes b2" viewBox="0 0 330 190" preserveAspectRatio="none" aria-hidden="true" focusable="false">
+        <rect class="k1" x="40" y="60" width="158" height="98"/>
+        <rect class="k2" x="200" y="122" width="36" height="36"/>
+        <rect class="k3" x="242" y="42" width="68" height="116"/>
+      </svg>
+      <span class="bxl l2 k1" style="left:12.1%;bottom:69.5%">מיטה זוגית</span>
+      <span class="bxl l2 k2" style="left:60.6%;bottom:36.9%">שידת לילה</span>
+      <span class="bxl l2 k3" style="left:73.3%;bottom:79.0%">ארון</span>
+      <svg class="room r3" viewBox="0 0 330 190" preserveAspectRatio="none" aria-hidden="true" focusable="false"><use href="#rm-kitchen"/></svg>
+      <svg class="boxes b3" viewBox="0 0 330 190" preserveAspectRatio="none" aria-hidden="true" focusable="false">
+        <rect class="k1" x="32" y="108" width="104" height="50"/>
+        <rect class="k2" x="142" y="88" width="34" height="70"/>
+        <rect class="k3" x="184" y="104" width="54" height="54"/>
+        <rect class="k4" x="246" y="44" width="62" height="114"/>
+      </svg>
+      <span class="bxl l3 k1" style="left:9.7%;bottom:44.2%">שולחן אוכל</span>
+      <span class="bxl l3 k2" style="left:43.0%;bottom:54.7%">כיסאות</span>
+      <span class="bxl l3 k3" style="left:55.8%;bottom:46.3%">תנור</span>
+      <span class="bxl l3 k4" style="left:74.5%;bottom:77.9%">מקרר</span>
+      <span class="beam"></span>
+      <span class="big"><u><b>4</b><b>7</b><b>11</b></u><span>פריטים זוהו</span></span>
+    </div>
+</div>
+
+<p style="max-width:760px;margin:0 auto;padding:32px 20px 64px;text-align:center;font-size:.89rem;color:var(--text-mid);line-height:1.75">
+  <b>מחזור מלא הוא 12 שניות</b> — ארבע לכל חדר. זה ארוך, ומי שנוחת באמצע
+  יראה חדר אחד ויגלול. לכן שם החדר והמונה חשובים יותר משנדמה: הם מה
+  שאומר <b>«זה אחד מתוך שלושה»</b> למי שלא ראה את ההתחלה.
+</p>
+</body>
+</html>
