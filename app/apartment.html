@@ -31,7 +31,7 @@
   <link rel="stylesheet" href="style-app.css?v=232d590a">
 </head>
 <body class="app-body">
-<div data-build-stamp class="build-stamp" aria-hidden="true">עודכן 15.09 · 23:56</div>
+<div data-build-stamp class="build-stamp" aria-hidden="true">עודכן 16.09 · 00:50</div>
   <!-- ⚠️ 15.9 — "דלג לתוכן המרכזי" (WCAG 2.4.1, רמה A). זהו האלמנט הממוקד
        הראשון בדף: מוסתר מהעין, מופיע בפינה ברגע שמגיעים אליו ב-Tab, ומעביר
        את המיקוד אל <main id="main-content" tabindex="-1">. בלי ה-tabindex
@@ -64,7 +64,7 @@
 
         <!-- Step 1: items -->
         <section class="wizard-step" data-step="1">
-          <div class="ai-upload-card">
+          <div class="ai-upload-card" id="start-photo" style="scroll-margin-top:90px">
             <div class="ai-upload-icon-wrap"><div class="ai-upload-icon">📸</div></div>
             <div class="ai-upload-body">
               <h2>סריקת פריטים ב-AI</h2>
@@ -92,7 +92,7 @@
 
           <div id="ai-questions"></div>
 
-          <div class="ai-chat-card">
+          <div class="ai-chat-card" id="start-chat" style="scroll-margin-top:90px">
             <h2>💬 או כתבו לנו מה יש לכם</h2>
             <p>למשל: "יש לי מיטה זוגית ושתי ספות" — נוסיף את זה בעצמנו.</p>
             <div class="ai-chat-thread" id="ai-chat-thread"></div>
@@ -103,7 +103,7 @@
             </div>
           </div>
 
-          <div class="app-card">
+          <div class="app-card" id="start-list" style="scroll-margin-top:90px">
             <h2>או בחרו ידנית</h2>
             <p class="app-card-desc">בחרו כמות לכל פריט. אפשר לעבור בין הקטגוריות.</p>
             <div class="room-tabs" id="room-tabs" role="group" aria-label="קטגוריות פריטים"></div>
