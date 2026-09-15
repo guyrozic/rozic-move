@@ -182,14 +182,14 @@
           <div class="app-card">
             <h2>ביטוח ואריזה</h2>
             <div class="form-group">
-              <label><input type="checkbox" id="has-insurance"> ביטוח תכולה — כיסוי נזק עד ₪2,000 (+₪49)</label>
+              <label><input type="checkbox" id="has-insurance"> ביטוח תכולה — כיסוי נזק עד ₪2,000 (ללא עלות בשלב ההרצה)</label>
             </div>
             <div class="form-group">
               <label><input type="checkbox" id="has-packing"> שירות אריזה <span id="packing-price-label"></span></label>
             </div>
             <div class="form-group">
               <label for="notes">הערות למוביל (לא חובה)</label>
-              <textarea id="notes" rows="3"></textarea>
+              <textarea id="notes" rows="3" maxlength="500"></textarea>
             </div>
           </div>
 
@@ -255,13 +255,15 @@
   <script type="module">
     import { getAuthOptional, isDriverAccount, showDriverBlockAndHalt,
              loadOrderDraft, clearOrderDraft, goRegister,
-             applyDraftToForm } from './guest-checkout.js';
+             applyDraftToForm, draftWasDiscarded,
+             showDraftDiscardedNotice } from './guest-checkout.js';
     import { createOrder } from './orders.js';
     import { orderTermsConsent } from './legal.js';
     import { ALL_ROOMS, findItemAnywhere, getItemPriceAnyCategory, getFullAICatalog, getSizeSiblings } from './data/items.js';
     import { PRICE_PER_KM, FLOOR_SURCHARGE_PER_FLOOR, getSurgePricing, calculatePackingFromItems, INSURANCE_PRICE_SMALL_MOVE } from './data/pricing.js';
     import { BOX_ITEMS, MAX_VOLUME, estimateVolume } from './data/smallMoveItems.js';
     import { FLOORS, craneCostFor, distanceAndCoords, formatDateApp, parseDateApp } from './geo.js';
+    import { insurancePriceInPilot } from './pilot-mode.js';
     import { analyzeImagesWithCatalog, isAIConfigured, friendlyAIError, chatAddItemsWithCatalog } from './ai-vision.js';
     import { resizeImageToBase64 } from './image-resize.js';
 
@@ -295,6 +297,15 @@
     // עוד לא קיימים בשלב הזה. שני החצאים חייבים לרוץ, ראו guest-checkout.js.
     const restoredDraft = loadOrderDraft('smallMove');
     if (restoredDraft) Object.assign(state, restoredDraft);
+    /**
+     * ⚠️ 15.9 — טיוטה שנדחית נזרקה **בשקט מוחלט**.
+     *
+     * הלקוח שראה "ההזמנה שלך נשמרה" לפני ההרשמה חזר לטופס ריק בלי
+     * שום מילה, ומבחינתו זה פשוט לא עבד. נקרא **מיד** אחרי
+     * `loadOrderDraft` כי הדגל מתאפס בכל קריאה, ומוצג בסוף הסקריפט —
+     * שם כבר יש DOM להיתלות עליו.
+     */
+    const draftDiscarded = draftWasDiscarded();
 
     let step = 1;
 
@@ -337,7 +348,9 @@
       const surgeAmount = surge ? Math.round(baseTotal * surge.rate) : 0;
       const packingCalc = calculatePackingFromItems(selected.filter(i => findItemAnywhere(i.key)).map(i => ({ itemKey: i.key, qty: i.qty })));
       const craneCost = state.needsCrane ? craneCostFor(state.craneFloor) : 0;
-      const insuranceAmount = state.hasInsurance ? INSURANCE_PRICE_SMALL_MOVE : 0;
+      // ⚠️ 16.9 — עובר דרך `insurancePriceInPilot`: בשלב ההרצה התקנון
+      // מבטיח במפורש שלא ייגבו דמי כיסוי, והאתר גבה. ראו `pilot-mode.js`.
+      const insuranceAmount = state.hasInsurance ? insurancePriceInPilot(INSURANCE_PRICE_SMALL_MOVE) : 0;
       const packingAmount = state.hasPacking ? packingCalc.total : 0;
       const preCouponTotal = baseTotal + surgeAmount + insuranceAmount + packingAmount + craneCost;
       // 11.9 — התוספת הצרכנית של 5% הוסרה. היא בוטלה באפליקציה ב-2.8,
@@ -959,6 +972,7 @@
     renderFreeItems();
     updateItemsHeader();
     if (restoredDraft) applyDraftToForm(state);
+    else if (draftDiscarded) showDraftDiscardedNotice();
     goToStep(1);
   </script>
 </body>
