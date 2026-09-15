@@ -16,7 +16,27 @@ export function getFloorNumber(floor) {
 }
 
 /** Flat one-time crane surcharge by the item's own floor — NOT the unused hourly APARTMENT_CRANE_PRICE_PER_HOUR in pricing.ts (confirmed dead code in the app; this table is what's actually wired to both flows' UI). */
-export const CRANE_PRICE_PER_FLOOR = { 'קרקע': 0, '1': 300, '2': 400, '3': 500, '4': 600, '5': 700, '6+': 900 };
+/**
+ * ⚠️ 16.9 — `'קרקע'` היה **0** כאן ו-**300** באפליקציה, ו-`craneFloor`
+ * מאותחל ל-`'קרקע'` בשני טפסי ההזמנה.
+ *
+ * כלומר לקוח שסימן "צריך מנוף" ולא נגע בבורר הקומה קיבל מנוף **בחינם**
+ * דרך האתר, בזמן שאותה הזמנה בדיוק עלתה לו ₪300 באפליקציה. והאתר לא
+ * רק גבה פחות — הוא **הציג לו במפורש** "🏗️ תוספת מנוף: ₪0", כלומר
+ * הבטחה שאי אפשר לחזור ממנה אחרי ההזמנה.
+ *
+ * מיושר לאפליקציה לפי ההכרעה של גיא מ-11.9: *"תתקן את האתר שיהיה
+ * באותו מבנה ותנאים בדיוק כמו באפליקציה."* ⚠️ זו **העלאת מחיר**
+ * באתר, ולכן היא מסומנת בולט בדוח — הפיכה בספרה אחת אם הכוונה הייתה
+ * שקומת קרקע פטורה.
+ *
+ * `'קרקע'` ו-`'1'` באותו מחיר אינו טעות אלא **מינימום קריאת מנוף**:
+ * הגעת המנוף למקום עולה אותו דבר בין אם הפריט ברצפה או בקומה ראשונה.
+ *
+ * `npm run lint:drafts` ב-Hovalot (`check-web-pricing-sync`) מאמת שהטבלה
+ * הזאת זהה לזו שב-`src/data/pricing.ts`, ונכשל על כל פער — בשני הכיוונים.
+ */
+export const CRANE_PRICE_PER_FLOOR = { 'קרקע': 300, '1': 300, '2': 400, '3': 500, '4': 600, '5': 700, '6+': 900 };
 
 export function craneCostFor(floor) {
   return CRANE_PRICE_PER_FLOOR[floor] ?? 500;
