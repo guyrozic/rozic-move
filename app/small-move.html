@@ -564,6 +564,32 @@
     document.getElementById('ai-chat-send-btn').addEventListener('click', sendChatMessage);
     document.getElementById('ai-chat-input').addEventListener('keydown', (e) => { if (e.key === 'Enter') sendChatMessage(); });
 
+    /**
+     * מפעיל ב-Enter/Space אלמנט שאינו כפתור אמיתי.
+     *
+     * Space חייב `preventDefault` — אחרת הדפדפן גם מפעיל **וגם** גולל את
+     * הדף מתחת למשתמש. Enter לא גולל, אבל מונעים אותו באותה נשימה כדי
+     * שהתנהגות שני המקשים תהיה זהה.
+     *
+     * הקריאה היא ל-`handler` ולא ל-`el.click()`, כדי שלא ייווצר אירוע
+     * `click` סינתטי שיעבור שוב במאזין הקיים — לחיצת עכבר ולחיצת מקלדת
+     * מגיעות לאותו קוד בדיוק, פעם אחת כל אחת.
+     */
+    function activateOnKey(el, handler) {
+      el.addEventListener('keydown', (e) => {
+        if (e.key !== 'Enter' && e.key !== ' ' && e.key !== 'Spacebar') return;
+        e.preventDefault();
+        handler(e);
+      });
+    }
+
+    /** מסמן צ'יפ כממוקד-נגיש: כפתור-מיתוג עם מצב לחוץ/לא-לחוץ לקורא מסך. */
+    function makeChipAccessible(chip, pressed) {
+      chip.tabIndex = 0;
+      chip.setAttribute('role', 'button');
+      chip.setAttribute('aria-pressed', pressed ? 'true' : 'false');
+    }
+
     // ---------- Step 1: items ----------
     const roomTabsEl = document.getElementById('room-tabs');
     const itemListEl = document.getElementById('item-list');
@@ -574,18 +600,33 @@
       tab.className = 'room-tab' + (room.key === activeRoom ? ' active' : '');
       tab.textContent = `${room.icon} ${room.label}`;
       tab.dataset.room = room.key;
-      tab.addEventListener('click', () => { activeRoom = room.key; renderRoomTabs(); renderItems(); });
+      // ⚠️ הלשונית היא `div`, ובלי השלישייה הזאת היא בלתי-נגישה למקלדת
+      // לחלוטין: משתמש בלי עכבר נתקע בחדר הראשון ולא מגיע לסלון או למטבח,
+      // כלומר אי אפשר להשלים הזמנה.
+      makeChipAccessible(tab, room.key === activeRoom);
+      const selectRoom = () => { activeRoom = room.key; renderRoomTabs(); renderItems(); };
+      tab.addEventListener('click', selectRoom);
+      activateOnKey(tab, selectRoom);
       roomTabsEl.appendChild(tab);
     });
     const boxesTab = document.createElement('div');
     boxesTab.className = 'room-tab';
     boxesTab.textContent = '📦 קופסאות';
     boxesTab.dataset.room = BOXES_TAB;
-    boxesTab.addEventListener('click', () => { activeRoom = BOXES_TAB; renderRoomTabs(); renderItems(); });
+    makeChipAccessible(boxesTab, false);
+    const selectBoxes = () => { activeRoom = BOXES_TAB; renderRoomTabs(); renderItems(); };
+    boxesTab.addEventListener('click', selectBoxes);
+    activateOnKey(boxesTab, selectBoxes);
     roomTabsEl.appendChild(boxesTab);
 
     function renderRoomTabs() {
-      [...roomTabsEl.children].forEach(t => t.classList.toggle('active', t.dataset.room === activeRoom));
+      // ה-`aria-pressed` נצמד למחלקה `active` — אחרת קורא מסך ימשיך להכריז
+      // על הלשונית הקודמת כלחוצה גם אחרי שהמשתמש עבר חדר.
+      [...roomTabsEl.children].forEach(t => {
+        const on = t.dataset.room === activeRoom;
+        t.classList.toggle('active', on);
+        t.setAttribute('aria-pressed', on ? 'true' : 'false');
+      });
     }
 
 // Splits "מיטת יחיד (עד 90×200 ס"מ)" into a name line + a separate muted
@@ -667,10 +708,19 @@
       const chip = document.createElement('div');
       chip.className = 'room-tab';
       chip.textContent = slot;
-      chip.addEventListener('click', () => {
+      // חלון הזמן הוא בחירה יחידה שניתן גם לבטל (לחיצה חוזרת מנקה אותה),
+      // ולכן `aria-pressed` ולא `aria-selected`.
+      makeChipAccessible(chip, false);
+      const pickSlot = () => {
         state.timeSlot = state.timeSlot === slot ? '' : slot;
-        [...timeSlotsEl.children].forEach(c => c.classList.toggle('active', c.textContent === state.timeSlot));
-      });
+        [...timeSlotsEl.children].forEach(c => {
+          const on = c.textContent === state.timeSlot;
+          c.classList.toggle('active', on);
+          c.setAttribute('aria-pressed', on ? 'true' : 'false');
+        });
+      };
+      chip.addEventListener('click', pickSlot);
+      activateOnKey(chip, pickSlot);
       timeSlotsEl.appendChild(chip);
     });
 
@@ -687,12 +737,27 @@
       box.innerHTML = '';
       selectedItems().forEach(i => {
         const chip = document.createElement('div');
-        chip.className = 'room-tab' + (state.craneItems.includes(i.label) ? ' active' : '');
+        const on = state.craneItems.includes(i.label);
+        chip.className = 'room-tab' + (on ? ' active' : '');
         chip.textContent = i.label;
-        chip.addEventListener('click', () => {
-          state.craneItems = state.craneItems.includes(i.label) ? state.craneItems.filter(l => l !== i.label) : [...state.craneItems, i.label];
-          renderCraneItems();
-        });
+        // בחירה מרובה — כל פריט נדלק וכבה בנפרד, ולכן `aria-pressed` לכל צ'יפ.
+        makeChipAccessible(chip, on);
+        /**
+         * ⚠️ הצ'יפ מתעדכן במקומו ולא דרך `renderCraneItems()` שבונה את כל
+         * הרשימה מחדש: בנייה מחדש מוחקת את האלמנט הממוקד, והפוקוס של משתמש
+         * המקלדת היה נופל לראש הדף אחרי כל Enter. הרשימה עצמה
+         * (`selectedItems()`) לא משתנה מהלחיצה, ולכן התוצאה בעכבר זהה.
+         */
+        const toggleCraneItem = () => {
+          const picked = !state.craneItems.includes(i.label);
+          state.craneItems = picked
+            ? [...state.craneItems, i.label]
+            : state.craneItems.filter(l => l !== i.label);
+          chip.classList.toggle('active', picked);
+          chip.setAttribute('aria-pressed', picked ? 'true' : 'false');
+        };
+        chip.addEventListener('click', toggleCraneItem);
+        activateOnKey(chip, toggleCraneItem);
         box.appendChild(chip);
       });
     }
