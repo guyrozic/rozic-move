@@ -53,7 +53,7 @@
      שוליים ניכרים במסכים רחבים. `min()` ולא ערך קבוע: במסך רגיל הוא נשען
      על 96vw ונצמד לקצוות, ובמסך רחב מאוד התקרה מונעת שורת ניווט שנמתחת
      על שני מטר. */
-  --container-wide: min(96vw, 1880px);
+  --container-wide: min(98.5vw, 2040px);
   --transition:  0.25s cubic-bezier(0.4,0,0.2,1);
 
   /* ── צבעי מצב וטקסט משני ───────────────────────────────────────────
@@ -188,7 +188,10 @@ img, svg { display: block; }
 .nav-inner {
   max-width: var(--container-wide);
   margin: 0 auto;
-  padding: 0 24px;
+  /* ⚠️ 15.9, סבב שלישי — גיא: "יותר את חלק ימין ימינה וחלק שמאל שמאלה".
+     ה-24px היו שכבת שוליים שנייה מעל ה-max-width, ושתיהן יחד הרחיקו את
+     הלוגו מהקצה. `clamp` שומר על מרווח נשימה מינימלי בנייד. */
+  padding: 0 clamp(14px, 1.2vw, 22px);
   height: 100%;
   display: flex;
   align-items: center;
@@ -2381,4 +2384,14 @@ body.hp-home .nav:not(.scrolled) :is(a, button, summary, [tabindex]):focus-visib
 @media (max-width: 620px) {
   .hp-app-inline .hp-app-btns { flex: 1 1 100%; }
   .hp-app-inline .btn-store { flex: 1; justify-content: center; }
+}
+
+
+/* ── כפתורי החנות ברצועה שבטור (15.9) ───────────────────────────────
+   גיא: "תתאים אותם לאזור יותר נמוכות יותר רחבות". `.btn-store.large`
+   מוגדר ב-em, ולכן ריפוד אנכי קטן יותר לצד אופקי גדול יותר משנה את
+   הפרופורציה בלי לגעת בגודל הטקסט או בסמל. */
+.hp-app-inline .btn-store.large {
+  padding-block: 0.42em;
+  padding-inline: 1.5em;
 }
