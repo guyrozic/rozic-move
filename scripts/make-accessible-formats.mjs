@@ -517,6 +517,17 @@ function renderAudio(speechText, mp3Path, slug) {
 const sha256 = (buf) => createHash('sha256').update(buf).digest('hex');
 const sizeOf = (p) => (existsSync(p) ? statSync(p).size : null);
 
+/* ⚠️ החותמת שמזריק `scripts/stamp-assets.mjs` (`data-build-stamp`) משתנה בכל
+   הרצה, אך אינה חלק מהנוסח המשפטי ואינה נכנסת להתאמות — היא יושבת מחוץ
+   ל-<main> ש-extractMain קורא. כל עוד ה-sha חושב על הקובץ הגולמי, **כל** הרצת
+   stamp ייתמה מיד את הנגישות: שתי בדיקות הקבלה החובה לא היו יכולות להיות
+   ירוקות בו-זמנית, והכשל של --check היה מדבר על "נוסח ישן" גם כשהנוסח זהה.
+   לכן החותמת מנוקה לפני החישוב — בהפקה וב---check באותה פונקציה בדיוק,
+   שאחרת השתיים היו מחשבות שני מספרים שונים לאותו קובץ. */
+const STAMP_RE = /<div data-build-stamp[\s\S]*?<\/div>\n?/;
+const canonicalSource = (buf) =>
+  Buffer.from(buf.toString('utf8').replace(STAMP_RE, ''), 'utf8');
+
 function readManifest() {
   if (!existsSync(MANIFEST)) return null;
   try { return JSON.parse(readFileSync(MANIFEST, 'utf8')); }
@@ -543,7 +554,7 @@ function runCheck(docs) {
     const rec = (manifest.documents || {})[doc.slug];
     if (!rec) { problems.push(`${doc.slug}: אינו במניפסט — ההתאמה לא הופקה מעולם`); continue; }
 
-    const current = sha256(readFileSync(join(ROOT, doc.source)));
+    const current = sha256(canonicalSource(readFileSync(join(ROOT, doc.source))));
 
     for (const [kind, key, file] of [['הטקסט', 'text', `${doc.slug}.txt`],
                                      ['הקול', 'audio', `${doc.slug}.mp3`]]) {
@@ -653,7 +664,8 @@ for (const doc of docs) {
      בתקנון: הטקסט מתרענן, קובץ הקול נשאר מהנוסח הישן, וה-sha המשותף
      מתעדכן לחדש — כלומר --check היה מאשר בדיוק את המצב שהוא נבנה לתפוס.
      כאן רשומת האודיו נוגעת רק כשבאמת הוקרא, ואחרת נשמרת כמו שהייתה. */
-  const stamp = { sourceSha256: sha256(raw), termsVersion: version, generatedAt: now.toISOString() };
+  const stamp = { sourceSha256: sha256(canonicalSource(raw)), termsVersion: version,
+                  generatedAt: now.toISOString() };
   const prev = manifest.documents[doc.slug] || {};
 
   manifest.documents[doc.slug] = {
