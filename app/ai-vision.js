@@ -12,8 +12,25 @@ import { auth } from './firebase.js';
 
 const PROXY_URL = 'https://us-central1-hovalot-6cf65.cloudfunctions.net/geminiProxy';
 
+/**
+ * ⚠️ 16.9 — **החזירה `true` קשיח, וזה שיקר.**
+ *
+ * `callGemini` פותח ב-`if (!auth.currentUser) throw 'AI_NOT_CONFIGURED'`,
+ * ואין `signInAnonymously` בשום מקום בפרויקט. כלומר מאז שזרימת ההזמנה
+ * נפתחה לאורחים, **כל אורח** שניסה לסרוק חדר קיבל כישלון — והודעה
+ * שאומרת *"AI לא מוגדר כרגע באתר"*, כלומר מאשימה את האתר בתקלה
+ * שאינה קיימת.
+ *
+ * זה לא מקרה קצה אלא 100% מהאורחים, בפיצ'ר המרכזי, בדיוק במסלול
+ * שנפתח כדי להוריד חיכוך.
+ *
+ * ⚠️ הפונקציה עכשיו אומרת את האמת. **היא אינה פותרת את החיכוך** —
+ * ההכרעה אם לפתוח את ה-AI לאורחים (דרך `signInAnonymously` או
+ * הרחבת `geminiProxy`) היא של גיא, כי היא נוגעת בעלות: כל קריאה
+ * עולה כסף, והמכסה היום היא per-uid.
+ */
 export function isAIConfigured() {
-  return true;
+  return Boolean(auth.currentUser);
 }
 
 function buildCatalogList(catalog) {
@@ -283,7 +300,9 @@ Respond with JSON only, no markdown: {"reply": "<your answer in Hebrew>"}`;
 
 export function friendlyAIError(err) {
   const msg = String(err && err.message || err);
-  if (msg.includes('AI_NOT_CONFIGURED')) return 'AI לא מוגדר כרגע באתר. נסה שוב מאוחר יותר, או פנה לתמיכה 💬';
+  // ⚠️ ההודעה הקודמת ('AI לא מוגדר כרגע באתר') האשימה את האתר בתקלה
+  // שאינה קיימת. הסיבה האמיתית היא תמיד היעדר התחברות.
+  if (msg.includes('AI_NOT_CONFIGURED')) return 'כדי לסרוק תמונות צריך להתחבר. אפשר להמשיך להוסיף פריטים ידנית, ולהתחבר בהמשך.';
   if (msg.includes('AI_RATE_LIMITED')) return 'הגענו למגבלת השימוש החינמית של ה-AI לכמה דקות. נסה שוב עוד רגע.';
   return 'לא הצלחנו לנתח את התמונות. בדוק את החיבור לאינטרנט ונסה שוב.';
 }

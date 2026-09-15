@@ -369,8 +369,13 @@
     let aiPhotos = [];
     let pendingQuestions = [];
 
+    // ⚠️ 16.9 — ההודעה הייתה "סריקת AI תהיה זמינה בקרוב", וזה לא נכון:
+    // הפיצ'ר קיים ועובד, פשוט דורש התחברות. אורח שקרא את זה לא ידע
+    // שיש לו מה לעשות. ראו isAIConfigured ב-ai-vision.js.
     if (!isAIConfigured()) {
-      document.getElementById('ai-error').innerHTML = '<div class="alert alert-info">סריקת AI תהיה זמינה בקרוב.</div>';
+      document.getElementById('ai-error').innerHTML =
+        '<div class="alert alert-info">סריקת תמונות עם AI זמינה אחרי התחברות. '
+        + 'אפשר להמשיך ולהוסיף פריטים ידנית — ההזמנה תישמר.</div>';
     }
 
     // ⚠️ ה-label אינו מפעיל את הבורר מהמקלדת מעצמו. `click()` ישיר על
