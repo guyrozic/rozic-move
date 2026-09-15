@@ -480,16 +480,24 @@
     document.getElementById('submit-btn').addEventListener('click', submitListing);
 
     /**
-     * Enter בשדה טקסט חד-שורתי = פרסום — בדיוק מה ש-`<form>` היה עושה.
+     * Enter בשדה טקסט = מעבר לשדה הבא. **לא פרסום.**
      *
-     * אין `<form>` בדף, ולכן עד כאן Enter בשדה כלשהו פשוט לא עשה כלום, בלי
-     * שום רשת ביטחון. המאזין הוא delegation על כל המכל, כדי שיתפוס גם את
-     * שדות "עוד כמה פרטים" שנוצרים דינמית אחרי ניתוח ה-AI.
+     * ⚠️ 15.9 — הכרעת גיא (47.5). הגרסה הראשונה של המאזין הזה, שנוספה
+     * מוקדם יותר באותו יום, הפעילה `submitListing()` ישירות — "בדיוק מה
+     * ש-`<form>` היה עושה". זה נכון לטופס קצר, ושגוי כאן: השדות של
+     * "עוד כמה פרטים" נוצרים דינמית אחרי ניתוח ה-AI, והם שאלות פתוחות.
+     * מי שעונה על שאלה ומקיש Enter כדי לרדת שורה היה **מפרסם את המודעה**
+     * — כולל מספר הטלפון שלו — במקום להמשיך למלא.
+     *
+     * הפרסום הפיך (אפשר למחוק), ולכן זו לא הייתה הפרה פורמלית. זו פשוט
+     * הייתה נקודת ההפעלה-בטעות הקלה ביותר בדף.
+     *
+     * המעבר לשדה הבא הוא גם ניווט מקלדת טוב יותר וגם מונע את התאונה:
+     * פרסום קורה רק בלחיצה מפורשת על "פרסם".
      *
      * ⚠️ שני חריגים מכוונים:
-     * • `textarea` התיאור — שם Enter הוא ירידת שורה, ולא שליחה.
-     * • `#listing-chat-input` — שם Enter כבר שולח הודעה לעוזר ה-AI, ואסור
-     *   שלחיצה על Enter בצ'אט תפרסם מודעה.
+     * • `textarea` התיאור — שם Enter הוא ירידת שורה, ולא ניווט.
+     * • `#listing-chat-input` — שם Enter שולח הודעה לעוזר ה-AI.
      */
     document.querySelector('.app-container').addEventListener('keydown', (e) => {
       if (e.key !== 'Enter') return;
@@ -497,8 +505,12 @@
       if (!el || el.tagName !== 'INPUT' || el.type !== 'text') return;
       if (el.id === 'listing-chat-input') return;
       e.preventDefault();
-      const btn = document.getElementById('submit-btn');
-      if (!btn.disabled) submitListing();
+      // רק שדות שנראים על המסך — `offsetParent` מסנן מקטעים מקופלים.
+      const fields = [...document.querySelectorAll('.app-container input, .app-container textarea, .app-container select')]
+        .filter(f => !f.disabled && !f.readOnly && f.offsetParent !== null && f.id !== 'listing-chat-input');
+      const next = fields[fields.indexOf(el) + 1];
+      if (next) next.focus();
+      else el.blur();   // השדה האחרון — יוצאים מהמקלדת, ולא מפרסמים
     });
   </script>
 </body>
