@@ -117,7 +117,47 @@ export function subscribeToOrder(orderId, callback, onError) {
   }, onError);
 }
 
-/** Customer cancels their own order — mirrors cancelOrder(cancelledBy:'customer') in orders.ts. */
+/**
+ * ⚠️ **הפונקציה הזו אינה מקבילה עוד לביטול שבאפליקציה, והפער עולה כסף.**
+ *
+ * ## מה חסר, ומה התוצאה
+ * באפליקציה ביטול לקוח עבר לשרת ב-12.9 (`customerCancelOrder`), והוא
+ * כותב שלושה שדות שהקריאה כאן אינה כותבת:
+ *
+ * | חסר | התוצאה בפועל |
+ * |---|---|
+ * | `refundDue` / `refundStatus` | `ordersWithRefundDue` מסנן `refundDue > 0`, ולכן **הזמנה שבוטלה מהאתר לא מופיעה ב-AdminRefundsScreen לעולם**. הכסף נשאר אצלנו, ואיש לא יודע שיש חוב ולא כמה |
+ * | `cancelledAt` | הדוח החשבונאי נופל חזרה ל-`createdAt`, והביטול נספר בחודש היצירה |
+ * | דמי ביטול | האתר מעביר `0` תמיד; האפליקציה גובה לפי המדרג |
+ *
+ * ⚠️ **וזה לא תיאורטי:** `order-status.html` מתיר ביטול ב-`pending`
+ * וב-`assigned` — ושני אלה הם **אחרי תשלום** (הזמנה מגיעה ל-`pending`
+ * רק כש-`growNotify` מאשר את התשלום). `firestore.rules` אינם תופסים
+ * את זה: `refundDueIsDerived()` מאמת את `refundDue` רק אם הוא **נכתב**.
+ *
+ * ## ⚠️ למה זה עדיין לא תוקן — ואיך מתקנים
+ * **התיקון אינו לחשב כאן.** זה בדיוק מה שיצר את הפער: `customerCancelOrder`
+ * כבר מחשבת את המדרג בשעון ישראל (לקוח שמכשירו בחו"ל מקבל היסט מלא —
+ * נמדד שם ₪0 מוצג מול ₪1,500 שנגבים), כותבת `refundDue`, ומנקה את שדות
+ * המוביל. האתר צריך לקרוא לה, לא לשכפל אותה.
+ *
+ * **החיבור חסום ב-CORS, וההסרה אינה בידי האתר.** הפונקציה מוגדרת
+ * `onRequest(async (req, res) => …)` **בלי** `{ cors: true }`
+ * (`Hovalot/functions/src/customerCancelOrder.ts`), ולכן הדפדפן חוסם
+ * את הקריאה מ-rozicmove.com לפני שהיא יוצאת. נמדד מול הפונקציה החיה
+ * (15.9), preflight מ-`Origin: https://rozicmove.com`:
+ *
+ *   customerCancelOrder → 405, בלי `access-control-allow-origin`
+ *   createGrowCheckout  → 204 + `access-control-allow-origin: https://rozicmove.com`
+ *
+ * שלוש הפונקציות שהאתר כן קורא להן (`createGrowCheckout`, `geocodeAddress`,
+ * `geminiProxy`) כולן מוגדרות `{ cors: true }`. זה **שינוי של שורה אחת
+ * בריפו Hovalot + פריסה של הפונקציה** — ופריסה אסורה לסוכן הזה.
+ *
+ * עד אז הקריאה נשארת כפי שהיא **במכוון**: היא לפחות מסמנת את ההזמנה
+ * כמבוטלת. כתיבת `refundDue` מכאן בלי חישוב שרת היא בדיוק החישוב
+ * בצד-לקוח שהועבר לשרת מלכתחילה.
+ */
 export async function cancelOrder(orderId, cancellationFee = 0) {
   await updateDoc(doc(db, 'orders', orderId), {
     status: 'cancelled',
