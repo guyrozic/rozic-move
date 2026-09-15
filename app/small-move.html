@@ -34,7 +34,7 @@
     .van-gauge-fill { height: 100%; background: var(--green); transition: width 0.25s ease; }
     .van-gauge-fill.full { background: #C0392B; }
   
-    /* ⚠️ 16.9 — בספארי ה-Tab מדלג על <button>, <a> ו-input[type=file]
+    /* ⚠️ 15.9 — בספארי ה-Tab מדלג על <button>, <a> ו-input[type=file]
        כברירת מחדל, **אבל מכבד tabindex="0" מפורש**. בלי זה הדף הזה
        עמד על תחנת Tab אחת מול 136 בכרום. רק outline — אינו תופס מקום
        בפריסה, כך ששום דבר לא זז. */
@@ -44,7 +44,15 @@
   </style>
 </head>
 <body class="app-body">
+  <!-- ⚠️ 15.9 — "דלג לתוכן המרכזי" (WCAG 2.4.1, רמה A). זהו האלמנט הממוקד
+       הראשון בדף: מוסתר מהעין, מופיע בפינה ברגע שמגיעים אליו ב-Tab, ומעביר
+       את המיקוד אל <main id="main-content" tabindex="-1">. בלי ה-tabindex
+       על היעד הדפדפן מזיז את הגלילה בלבד, המיקוד נשאר על הקישור, וה-Tab
+       הבא חוזר לתחילת הניווט — כלומר הקישור לא עושה כלום. -->
+  <a class="skip-link" href="#main-content">דלג לתוכן המרכזי</a>
   <script src="under-construction-banner.js"></script>
+
+  <main id="main-content" tabindex="-1">
 
   <div class="step-hero" id="step-hero">
     <div class="step-hero-inner">
@@ -79,7 +87,7 @@
               </div>
               <div id="ai-progress-text" class="form-hint" style="display:none; margin-bottom:10px;"></div>
               <div id="ai-error" role="alert"></div>
-              <!-- ⚠️ 16.9 — label שעוטף input ב-display:none **אינו נגיש
+              <!-- ⚠️ 15.9 — label שעוטף input ב-display:none **אינו נגיש
                    למקלדת בשום דפדפן**: ה-label אינו מקבל מיקוד, וה-input
                    המוסתר אינו ניתן למיקוד. כלומר אי אפשר היה להוסיף תמונות
                    בלי עכבר — בכרום, בספארי, בכל מקום.
@@ -111,7 +119,7 @@
             <h2>או בחרו ידנית</h2>
             <div class="van-gauge"><div class="van-gauge-fill" id="van-gauge-fill" style="width:0%"></div></div>
             <div class="form-hint" id="van-gauge-label">0% מהטנדר</div>
-            <div class="room-tabs" id="room-tabs"></div>
+            <div class="room-tabs" id="room-tabs" role="group" aria-label="קטגוריות פריטים"></div>
             <div class="item-card-grid" id="item-list"></div>
           </div>
         </section>
@@ -134,31 +142,35 @@
             <h2>פרטי הובלה</h2>
             <div class="form-group">
               <label for="from-address">כתובת מוצא</label>
-              <input id="from-address" type="text" placeholder="רחוב, מספר, עיר">
+              <input id="from-address" type="text" required placeholder="רחוב, מספר, עיר">
             </div>
             <div class="form-row">
               <div class="form-group">
                 <label for="from-floor">קומה</label>
-                <select id="from-floor"></select>
+                <!-- ⚠️ 15.9 — "קומה" ו"מעלית" מופיעות פעמיים באותו שלב, למוצא
+                     וליעד, וההבחנה ביניהן ויזואלית בלבד: בטאב עיוור אין
+                     דרך לדעת איזו קומה ממלאים (WCAG 2.4.6). ה-aria-label
+                     מכיל את הטקסט הנראה במלואו, כנדרש ב-2.5.3. -->
+                <select id="from-floor" aria-label="קומה בכתובת המוצא"></select>
               </div>
               <div class="form-group">
                 <label for="from-elevator">מעלית</label>
-                <select id="from-elevator"><option value="1">יש מעלית</option><option value="0">אין מעלית</option></select>
+                <select id="from-elevator" aria-label="מעלית בכתובת המוצא"><option value="1">יש מעלית</option><option value="0">אין מעלית</option></select>
               </div>
             </div>
 
             <div class="form-group">
               <label for="to-address">כתובת יעד</label>
-              <input id="to-address" type="text" placeholder="רחוב, מספר, עיר">
+              <input id="to-address" type="text" required placeholder="רחוב, מספר, עיר">
             </div>
             <div class="form-row">
               <div class="form-group">
                 <label for="to-floor">קומה</label>
-                <select id="to-floor"></select>
+                <select id="to-floor" aria-label="קומה בכתובת היעד"></select>
               </div>
               <div class="form-group">
                 <label for="to-elevator">מעלית</label>
-                <select id="to-elevator"><option value="1">יש מעלית</option><option value="0">אין מעלית</option></select>
+                <select id="to-elevator" aria-label="מעלית בכתובת היעד"><option value="1">יש מעלית</option><option value="0">אין מעלית</option></select>
               </div>
             </div>
             <div id="distance-note" class="form-hint"></div>
@@ -175,8 +187,8 @@
                 <select id="crane-floor"></select>
               </div>
               <div class="form-group">
-                <label>אילו פריטים?</label>
-                <div id="crane-items"></div>
+                <label id="crane-items-label">אילו פריטים?</label>
+                <div id="crane-items" role="group" aria-labelledby="crane-items-label"></div>
               </div>
               <div class="alert alert-info" id="crane-price-preview"></div>
             </div>
@@ -186,11 +198,11 @@
             <h2>תזמון</h2>
             <div class="form-group">
               <label for="move-date">תאריך</label>
-              <input id="move-date" type="date">
+              <input id="move-date" type="date" required>
             </div>
             <div class="form-group">
-              <label>שעה מועדפת (לא חובה)</label>
-              <div class="room-tabs" id="time-slots"></div>
+              <label id="time-slots-label">שעה מועדפת (לא חובה)</label>
+              <div class="room-tabs" id="time-slots" role="group" aria-labelledby="time-slots-label"></div>
             </div>
           </div>
 
@@ -248,6 +260,8 @@
       </div>
     </div>
   </div>
+
+  </main>
 
   <footer class="footer">
     <div class="footer-inner container">
@@ -373,7 +387,7 @@
       const surgeAmount = surge ? Math.round(baseTotal * surge.rate) : 0;
       const packingCalc = calculatePackingFromItems(selected.filter(i => findItemAnywhere(i.key)).map(i => ({ itemKey: i.key, qty: i.qty })));
       const craneCost = state.needsCrane ? craneCostFor(state.craneFloor) : 0;
-      // ⚠️ 16.9 — עובר דרך `insurancePriceInPilot`: בשלב ההרצה התקנון
+      // ⚠️ 15.9 — עובר דרך `insurancePriceInPilot`: בשלב ההרצה התקנון
       // מבטיח במפורש שלא ייגבו דמי כיסוי, והאתר גבה. ראו `pilot-mode.js`.
       const insuranceAmount = state.hasInsurance ? insurancePriceInPilot(INSURANCE_PRICE_SMALL_MOVE) : 0;
       const packingAmount = state.hasPacking ? packingCalc.total : 0;
@@ -407,7 +421,7 @@
     let aiPhotos = [];
     let pendingQuestions = [];
 
-    // ⚠️ 16.9 — ההודעה הייתה "סריקת AI תהיה זמינה בקרוב", וזה לא נכון:
+    // ⚠️ 15.9 — ההודעה הייתה "סריקת AI תהיה זמינה בקרוב", וזה לא נכון:
     // הפיצ'ר קיים ועובד, פשוט דורש התחברות. אורח שקרא את זה לא ידע
     // שיש לו מה לעשות. ראו isAIConfigured ב-ai-vision.js.
     if (!isAIConfigured()) {
@@ -680,15 +694,16 @@
       const { name, size } = splitItemLabel(label);
       const card = document.createElement('div');
       card.className = 'item-card' + (qty > 0 ? ' has-qty' : '');
+      card.dataset.key = key;
       card.innerHTML = `
         <div class="item-card-icon-wrap"><span class="item-card-icon">${icon}</span></div>
         <div class="item-card-name">${name}</div>
         ${size ? `<div class="item-card-size">${size}</div>` : ''}
         <div class="item-card-price">₪${price} ליחידה</div>
         <div class="qty-control">
-          <button tabindex="0" data-action="dec" aria-label="הפחת">−</button>
+          <button tabindex="0" data-action="dec" aria-label="הפחת ${name}">−</button>
           <span class="qty-value">${qty}</span>
-          <button tabindex="0" data-action="inc" aria-label="הוסף" ${full && qty === 0 ? 'disabled' : ''}>+</button>
+          <button tabindex="0" data-action="inc" aria-label="הוסף ${name}" ${full && qty === 0 ? 'disabled' : ''}>+</button>
         </div>`;
       card.querySelector('[data-action="inc"]').addEventListener('click', () => {
         if (currentVolume() + itemVolume(key) > MAX_VOLUME) return;
@@ -700,7 +715,33 @@
       return card;
     }
 
+
+    /* ⚠️ 15.9 — WCAG 2.4.3. `renderItems()` פותחת ב-`innerHTML = ''` ובונה
+       את כל הרשת מחדש, והיא רצה מכל לחיצה על +/−. הכפתור שהיה ממוקד נמחק
+       מתחת לאצבע, והמיקוד נופל ל-<body> — כלומר מי שמוסיף שתי יחידות מאותו
+       פריט במקלדת חייב לטאב מחדש מראש הדף בין לחיצה ללחיצה.
+       אותה תקלה כבר תוקנה בצ'יפי המנוף ובתמונות הלוח, בכל מקום בנפרד;
+       כאן — במסך המרכזי של הזרימה — היא נשארה.
+       שני העוזרים האלה שומרים *מי* היה ממוקד (מפתח הפריט + הפעולה) ולא
+       הפניה לאלמנט, כי האלמנט עצמו כבר לא קיים אחרי הבנייה מחדש. */
+    function captureItemFocus() {
+      const el = document.activeElement;
+      if (!el || !itemListEl.contains(el)) return null;
+      const card = el.closest('.item-card');
+      if (!card || !card.dataset.key || !el.dataset.action) return null;
+      return { key: card.dataset.key, action: el.dataset.action };
+    }
+    function restoreItemFocus(f) {
+      if (!f) return;
+      const el = itemListEl.querySelector(
+        '.item-card[data-key="' + f.key + '"] [data-action="' + f.action + '"]');
+      // כפתור שהפך ל-disabled (כמות 0, או טנדר מלא) אינו בר-מיקוד — ואז
+      // עדיף להשאיר את המיקוד היכן שנפל מאשר להעיף אותו לכפתור אחר.
+      if (el && !el.disabled) el.focus();
+    }
+
     function renderItems() {
+      const keepFocus = captureItemFocus();
       itemListEl.innerHTML = '';
       const vol = currentVolume();
       const pct = Math.min((vol / MAX_VOLUME) * 100, 100);
@@ -710,10 +751,12 @@
 
       if (activeRoom === BOXES_TAB) {
         BOX_ITEMS.forEach(b => itemListEl.appendChild(renderItemCard(b.key, b.label, b.icon, b.price)));
+        restoreItemFocus(keepFocus);
         return;
       }
       const room = ALL_ROOMS.find(r => r.key === activeRoom);
       room.items.forEach(item => itemListEl.appendChild(renderItemCard(item.key, item.label, item.icon, getItemPriceAnyCategory(item.key))));
+      restoreItemFocus(keepFocus);
     }
     renderItems();
 
@@ -809,8 +852,28 @@
       errBox.innerHTML = '';
       state.fromAddress = document.getElementById('from-address').value.trim();
       state.toAddress = document.getElementById('to-address').value.trim();
-      if (!state.fromAddress || !state.toAddress) {
-        errBox.innerHTML = '<div class="alert alert-error">יש למלא כתובת מוצא וכתובת יעד.</div>';
+      /* ⚠️ 15.9 — WCAG 3.3.1. ההודעה הייתה אחת לשני השדות, לא אמרה איזה מהם
+         ריק, השדה עצמו לא סומן כשגוי, והמיקוד נשאר על כפתור ההמשך. התבנית
+         הנכונה כבר קיימת באותו קובץ על `terms-accept` — aria-invalid,
+         aria-describedby להודעה, והעברת מיקוד. כאן היא חסרה. */
+      const fromEl = document.getElementById('from-address');
+      const toEl = document.getElementById('to-address');
+      for (const el of [fromEl, toEl]) {
+        el.removeAttribute('aria-invalid');
+        el.removeAttribute('aria-describedby');
+      }
+      const missing = [];
+      if (!state.fromAddress) missing.push(['כתובת מוצא', fromEl]);
+      if (!state.toAddress) missing.push(['כתובת יעד', toEl]);
+      if (missing.length) {
+        errBox.innerHTML =
+          '<div class="alert alert-error" id="delivery-error-msg">יש למלא ' +
+          missing.map((m) => m[0]).join(' ו') + '.</div>';
+        for (const [, el] of missing) {
+          el.setAttribute('aria-invalid', 'true');
+          el.setAttribute('aria-describedby', 'delivery-error-msg');
+        }
+        missing[0][1].focus();
         return;
       }
       state.fromFloor = document.getElementById('from-floor').value;
@@ -894,7 +957,7 @@
       // לפני ההפניה — בלי זה הלקוח חוזר מההרשמה לדף ריק.
       if (!authState) { goRegister('smallMove', state); return; }
       /**
-       * ⚠️ 16.9 — **היה `!emailVerified && !phoneVerified`, והאפליקציה
+       * ⚠️ 15.9 — **היה `!emailVerified && !phoneVerified`, והאפליקציה
        * נטשה את הביטוי הזה אחרי תקרית אמיתית.**
        *
        * `SummaryScreen.tsx` דורש `phoneVerified` **לבדו**, ומעליו
@@ -916,7 +979,7 @@
       }
       btn.disabled = true; btn.textContent = 'יוצר הזמנה...';
       /**
-       * ⚠️ 16.9 — **כשל שקט השאיר את הכפתור "יוצר הזמנה..." לנצח.**
+       * ⚠️ 15.9 — **כשל שקט השאיר את הכפתור "יוצר הזמנה..." לנצח.**
        *
        * `addDoc` של Firestore לא זורק כשאין רשת — הכתיבה נשמרת מקומית
        * וה-promise **פשוט לא נפתר**. כלומר אין `catch`, אין שגיאה, ואין

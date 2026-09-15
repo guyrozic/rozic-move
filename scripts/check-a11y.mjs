@@ -24,6 +24,10 @@
  *      viewport-zoom  · user-scalable=no או maximum-scale ב-viewport
  *      raw-color      · ערך צבע גולמי שאינו בפלטה בכלל CSS שצובע טקסט
  *      unresolved-var · var(--x) בדף שאינו טוען את הגיליון שמגדיר אותו
+ *      landmark-main  · דף בלי <main> אחד ויחיד
+ *      skip-link      · קישור "דלג לתוכן" חסר, לא ראשון, או מצביע ליעד
+ *                       שאינו קיים / שאין עליו tabindex="-1"
+ *      positive-tabindex · tabindex="1" ומעלה — שובר את סדר ה-Tab הטבעי
  *
  *  מה היא **לא** בודקת — ולמה
  *  ---------------------------
@@ -65,9 +69,17 @@ const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 /** מחליף קטע בתווי רווח באותו אורך — השורות והאופסטים נשארים נכונים. */
 const blank = (s) => s.replace(/[^\n]/g, ' ');
 
-/** מסיר הערות HTML, והערות JS בתוך <script>, בלי להזיז שום אופסט. */
+/** מסיר הערות HTML, הערות CSS בתוך <style> והערות JS בתוך <script>, בלי
+ *  להזיז שום אופסט.
+ *  ⚠️ הערות ה-CSS אינן קישוט: הערה שמסבירה כלל מצטטת שמות תגיות
+ *  (`מדלג על <button>`), והטוקנייזר קרא את הציטוט כתגית אמיתית — כלומר
+ *  "כפתור" שקיים רק בטקסט של הערה נחשב לכפתור בדף. */
 function stripComments(src) {
   let out = src.replace(/<!--[\s\S]*?-->/g, blank);
+  out = out.replace(/<style\b[^>]*>([\s\S]*?)<\/style>/gi, (m, body) => {
+    const cleaned = body.replace(/\/\*[\s\S]*?\*\//g, blank);
+    return m.slice(0, m.length - body.length - '</style>'.length) + cleaned + '</style>';
+  });
   out = out.replace(/<script\b[^>]*>([\s\S]*?)<\/script>/gi, (m, body, off) => {
     const cleaned = body
       .replace(/\/\*[\s\S]*?\*\//g, blank)
@@ -219,10 +231,42 @@ function checkDocument(file, src, palette) {
 
   const headings = [];
 
+  /* --- 15.9 — נקודות ציון, קישור דילוג וסדר Tab --- */
+  let mainCount = 0;
+  const idAttrs = new Map();       // id → האטריביוטים של האלמנט שנושא אותו
+  let skipLink = null;             // { href, start }
+  let firstFocusable = null;       // { name, start, cls }
+
   for (let i = 0; i < toks.length; i++) {
     const t = toks[i];
     if (t.close) continue;
     const a = attrsOf(t);
+
+    if (a.id) idAttrs.set(a.id, a);
+    if (t.name === 'main') mainCount++;
+
+    /* ---------- positive-tabindex ----------
+       ⚠️ `tabindex="${…}"` דינמי אינו מספר ולכן אינו נבדק — הבדיקה
+       אוכפת מה שכתוב בקוד, לא מה שייווצר בזמן ריצה. */
+    if ('tabindex' in a) {
+      const n = Number(a.tabindex);
+      if (Number.isFinite(n) && n >= 1) {
+        add('positive-tabindex', t.start,
+          `tabindex="${a.tabindex}" — מוציא את הרכיב מסדר ה-Tab הטבעי (WCAG 2.4.3)`);
+      }
+    }
+
+    /* ---------- איתור הקישור הראשון שאפשר להגיע אליו ב-Tab ---------- */
+    const tabbable =
+      (t.name === 'a' && 'href' in a) || t.name === 'button' || t.name === 'select' ||
+      t.name === 'textarea' || (t.name === 'input' && (a.type || '').toLowerCase() !== 'hidden') ||
+      ('tabindex' in a && Number(a.tabindex) >= 0);
+    if (tabbable && !firstFocusable) {
+      firstFocusable = { name: t.name, start: t.start, cls: a.class || '' };
+    }
+    if (t.name === 'a' && /(^|\s)skip-link(\s|$)/.test(a.class || '') && !skipLink) {
+      skipLink = { href: a.href || '', start: t.start };
+    }
 
     /* ---------- img-alt ---------- */
     if (t.name === 'img' && !('alt' in a)) {
@@ -295,6 +339,36 @@ function checkDocument(file, src, palette) {
       if (ms && +ms[1] < 2) {
         add('viewport-zoom', t.start, `maximum-scale=${ms[1]} — מגביל זום מתחת ל-200%`);
       }
+    }
+  }
+
+  /* ---------- landmark-main ---------- */
+  if (mainCount !== 1) {
+    add('landmark-main', 0, mainCount === 0
+      ? 'אין <main> בדף — אין יעד לקישור הדילוג ואין נקודת ציון "תוכן ראשי"'
+      : `${mainCount} אלמנטי <main> בדף — חייב להיות אחד ויחיד`);
+  }
+
+  /* ---------- skip-link ----------
+     ⚠️ שלושת התנאים הם שלושת אופני הכשל שנמדדו בפועל בדפדפן:
+     קישור שאינו קיים · קישור שיושב אחרי הניווט (כלומר מדלג על כלום) ·
+     ויעד בלי tabindex="-1" (הדפדפן גולל אליו אבל המיקוד נשאר מאחור,
+     וה-Tab הבא חוזר לראש הדף). */
+  if (!skipLink) {
+    add('skip-link', 0, 'אין קישור עם class="skip-link" — WCAG 2.4.1, רמה A');
+  } else {
+    if (firstFocusable && firstFocusable.start !== skipLink.start) {
+      add('skip-link', firstFocusable.start,
+        `<${firstFocusable.name}> ניתן למיקוד מופיע לפני קישור הדילוג — הקישור חייב להיות הראשון`);
+    }
+    const id = skipLink.href.startsWith('#') ? skipLink.href.slice(1) : null;
+    const target = id ? idAttrs.get(id) : null;
+    if (!target) {
+      add('skip-link', skipLink.start,
+        `href="${skipLink.href}" — אין בדף אלמנט עם ה-id הזה, הקישור אינו מוביל לשום מקום`);
+    } else if (target.tabindex !== '-1') {
+      add('skip-link', skipLink.start,
+        `היעד #${id} בלי tabindex="-1" — הדפדפן יגלול אליו אבל המיקוד יישאר על הקישור`);
     }
   }
 
@@ -427,7 +501,8 @@ for (const f of files) {
 findings.sort((a, b) => a.file.localeCompare(b.file) || a.line - b.line);
 
 const RULES = ['img-alt', 'control-name', 'field-label', 'svg-name', 'page-h1',
-  'heading-skip', 'viewport-zoom', 'raw-color', 'unresolved-var'];
+  'heading-skip', 'viewport-zoom', 'raw-color', 'unresolved-var',
+  'landmark-main', 'skip-link', 'positive-tabindex'];
 
 if (findings.length) {
   let last = '';

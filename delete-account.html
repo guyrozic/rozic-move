@@ -83,6 +83,12 @@
   </style>
 </head>
 <body>
+  <!-- ⚠️ 15.9 — "דלג לתוכן המרכזי" (WCAG 2.4.1, רמה A). זהו האלמנט הממוקד
+       הראשון בדף: מוסתר מהעין, מופיע בפינה ברגע שמגיעים אליו ב-Tab, ומעביר
+       את המיקוד אל <main id="main-content" tabindex="-1">. בלי ה-tabindex
+       על היעד הדפדפן מזיז את הגלילה בלבד, המיקוד נשאר על הקישור, וה-Tab
+       הבא חוזר לתחילת הניווט — כלומר הקישור לא עושה כלום. -->
+  <a class="skip-link" href="#main-content">דלג לתוכן המרכזי</a>
 
   <nav class="nav scrolled" id="nav">
     <div class="nav-inner">
@@ -101,12 +107,14 @@
     </div>
   </nav>
 
+  <main id="main-content" tabindex="-1">
+
   <div class="sub-hero">
     <h1>מחיקת חשבון</h1>
     <p class="updated">עודכן לאחרונה: ספטמבר 2026</p>
   </div>
 
-  <main class="sub-main">
+  <div class="sub-main">
     <a tabindex="0" class="back-link" href="index.html">← חזרה לעמוד הבית</a>
 
     <div class="card">
@@ -156,6 +164,8 @@
         קבוע — אנו פועלים לטפל בכל בקשה כזו בהקדם האפשרי ובתוך פרק זמן סביר.
       </p>
     </div>
+  </div>
+
   </main>
 
   <footer class="footer">

@@ -153,10 +153,42 @@
     a:focus-visible,
     button:focus-visible,
     [tabindex]:focus-visible { outline: 3px solid #0E5C43; outline-offset: 2px; }
+
+    /* ⚠️ 15.9 — "דלג לתוכן המרכזי" (WCAG 2.4.1, רמה A).
+       הדף הזה אינו טוען את style.css, ולכן הכלל משוכפל כאן בערכים
+       גולמיים שזהים לטוקנים: --green ‏#0E5C43, --white ‏#FFFFFF,
+       --radius-sm ‏10px. שינוי באחד מהם חייב לעבור גם כאן.
+       לא display:none — זה היה מוציא את הקישור מסדר ה-Tab ומבטל אותו. */
+    .skip-link {
+      position: fixed;
+      top: -120px;
+      inset-inline-start: 16px;
+      z-index: 10000;
+      padding: 12px 22px;
+      border-radius: 0 0 10px 10px;
+      background: #0E5C43;
+      color: #FFFFFF;            /* 7.98:1 על #0E5C43 */
+      font-family: inherit;
+      font-size: 0.95rem;
+      font-weight: 700;
+      line-height: 1.4;
+      text-decoration: none;
+      box-shadow: 0 16px 32px rgba(20,42,34,0.18);
+      transition: top 0.25s cubic-bezier(0.4,0,0.2,1);
+    }
+    .skip-link:focus { top: 0; }
+    .skip-link:focus-visible { outline: 3px solid #FFFFFF; outline-offset: -6px; }
+    @media (prefers-reduced-motion: reduce) { .skip-link { transition: none; } }
   </style>
 </head>
 <body>
-  <div class="card">
+  <!-- ⚠️ 15.9 — "דלג לתוכן המרכזי" (WCAG 2.4.1, רמה A). זהו האלמנט הממוקד
+       הראשון בדף: מוסתר מהעין, מופיע בפינה ברגע שמגיעים אליו ב-Tab, ומעביר
+       את המיקוד אל <main id="main-content" tabindex="-1">. בלי ה-tabindex
+       על היעד הדפדפן מזיז את הגלילה בלבד, המיקוד נשאר על הקישור, וה-Tab
+       הבא חוזר לתחילת הניווט — כלומר הקישור לא עושה כלום. -->
+  <a class="skip-link" href="#main-content">דלג לתוכן המרכזי</a>
+  <main class="card" id="main-content" tabindex="-1">
     <div class="logo" aria-hidden="true">🚚</div>
     <!-- ⚠️ 15.9 — לדף הזה לא הייתה ולו כותרת אחת: הכול היה `div`, וניווט
          לפי כותרות (דרך הניווט העיקרית של קורא מסך) פשוט לא היה קיים.
@@ -204,7 +236,7 @@
       <a tabindex="0" href="/accessibility.html">הצהרת נגישות</a> ·
       <a tabindex="0" href="/delete-account.html">מחיקת חשבון</a>
     </footer>
-  </div>
+  </main>
 
   <script>
     function getListingId() {

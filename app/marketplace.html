@@ -63,7 +63,15 @@
   </style>
 </head>
 <body class="app-body">
+  <!-- ⚠️ 15.9 — "דלג לתוכן המרכזי" (WCAG 2.4.1, רמה A). זהו האלמנט הממוקד
+       הראשון בדף: מוסתר מהעין, מופיע בפינה ברגע שמגיעים אליו ב-Tab, ומעביר
+       את המיקוד אל <main id="main-content" tabindex="-1">. בלי ה-tabindex
+       על היעד הדפדפן מזיז את הגלילה בלבד, המיקוד נשאר על הקישור, וה-Tab
+       הבא חוזר לתחילת הניווט — כלומר הקישור לא עושה כלום. -->
+  <a class="skip-link" href="#main-content">דלג לתוכן המרכזי</a>
   <script src="under-construction-banner.js"></script>
+  <main id="main-content" tabindex="-1">
+
   <div class="step-hero">
     <div class="step-hero-inner">
       <!-- ⚠️ `tabindex="0"` על לינקים וכפתורים לאורך הדף אינו מיותר.
@@ -85,7 +93,7 @@
     <div class="form-group">
       <input type="text" id="search-input" placeholder="חיפוש לפי שם או עיר..." aria-label="חיפוש מודעות לפי שם או עיר">
     </div>
-    <div class="room-tabs" id="category-tabs"></div>
+    <div class="room-tabs" id="category-tabs" role="group" aria-label="סינון לפי קטגוריה"></div>
 
     <div id="loading" class="center-loading"><span class="spinner"></span></div>
     <div class="listing-grid" id="listing-grid"></div>
@@ -109,6 +117,8 @@
       <div id="modal-content"></div>
     </div>
   </div>
+
+  </main>
 
   <footer class="footer">
     <div class="footer-inner container">
@@ -389,7 +399,14 @@
           </div>
         </div>
       `).join('');
-      list.querySelectorAll('[data-action="sold"]').forEach(btn => btn.addEventListener('click', () => markListingSold(btn.dataset.id)));
+      /* ⚠️ 15.9 — WCAG 3.3.4. סימון "נמסר" כותב status:'sold' ואין בממשק
+         כפתור שמחזיר לפעיל — כלומר פעולה בלתי הפיכה בלחיצה אחת, בלי
+         אישור, בשורה שצמודה ל"מחק" שכן מבקש אישור. שם המודעה נכנס
+         לשאלה כי ברשימה של כמה מודעות אין דרך אחרת לדעת מה מסמנים. */
+      list.querySelectorAll('[data-action="sold"]').forEach(btn => btn.addEventListener('click', () => {
+        const title = btn.getAttribute('aria-label').replace(/^סמן כנמסר את המודעה /, '');
+        if (confirm(`לסמן את "${title}" כנמסר? המודעה תרד מהלוח, ואי אפשר להחזיר אותה לפעילה.`)) markListingSold(btn.dataset.id);
+      }));
       list.querySelectorAll('[data-action="delete"]').forEach(btn => btn.addEventListener('click', () => { if (confirm('למחוק את המודעה?')) deleteListing(btn.dataset.id); }));
     });
   </script>

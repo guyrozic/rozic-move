@@ -1139,9 +1139,22 @@ img, svg { display: block; }
   transition: grid-template-rows 0.4s cubic-bezier(0.4,0,0.2,1);
 }
 
-.faq-a > * { overflow: hidden; min-height: 0; }
+/* ⚠️ 15.9 — התשובה הייתה מקופלת **ויזואלית בלבד**: אין `display:none`,
+   אין `visibility:hidden` ואין `hidden`, ולכן קורא מסך הקריא את חמש
+   התשובות ברצף — בזמן שכל חמשת הכפתורים מדווחים `aria-expanded="false"`.
+   כלומר מה שנאמר למשתמש על מצב האקורדיון וממה שהוא באמת שומע לא הסכימו.
+   `visibility:hidden` מוציא מעץ הנגישות ומסדר ה-Tab גם יחד. ההשהיה היא
+   מה ששומר על האנימציה: בפתיחה הנראוּת חוזרת מיד (delay 0), בסגירה היא
+   יורדת רק אחרי ש-0.4 שניות הקיפול הסתיימו — כלומר המראה לא משתנה. */
+.faq-a > * {
+  overflow: hidden;
+  min-height: 0;
+  visibility: hidden;
+  transition: visibility 0s linear 0.4s;
+}
 
 .faq-item.open .faq-a { grid-template-rows: 1fr; }
+.faq-item.open .faq-a > * { visibility: visible; transition-delay: 0s; }
 
 .faq-a p {
   padding: 0 20px 18px;
@@ -1416,8 +1429,28 @@ a.back {
 }
 
 @media (max-width: 680px) {
-  .nav-links, .nav-cta { display: none; }
+  /* ⚠️ 15.9 — WCAG 1.4.4. הכלל הזה היה `.nav-links, .nav-cta { display:none }`
+     בלי תנאי, בעוד ההמבורגר שמחליף אותם קיים **רק ב-index.html**. בחמשת
+     הדפים האחרים שטוענים את הגיליון (privacy, terms, accessibility,
+     delete-account, 404) הניווט העליון פשוט נעלם בלי תחליף — נמדד
+     בדפדפן: 0 קישורים נראים ואפס המבורגר, ב-640 / 480 / 360 / 320 פיקסל.
+     640px הוא בדיוק הרוחב שאליו מגיעים כשמגדילים טקסט ל-200% על מסך
+     1280, כלומר זה אובדן תוכן בהגדלה ולא רק במסך צר.
+     `:has(.nav-toggle)` מצמצם את ההסתרה לדף שבאמת יש בו מה שיחליף. */
+  .has-nav-menu .nav-links,
+  .has-nav-menu .nav-cta { display: none; }
   .nav-toggle { display: flex; }
+  /* בדפים בלי המבורגר הקישורים נשארים — ובצפיפות הרגילה הם גולשים
+     מהמסך. הצמצום הזה חל רק עליהם, כלומר רק במקום שהיה קודם ריק.
+     נמדד אחרי השינוי: 4 קישורים נראים ואפס גלילה אופקית, ב-640 / 480 /
+     360 / 320 פיקסל, בכל חמשת הדפים.
+     ⚠️ מחלקה על <body> ולא `:has(.nav-toggle)` על ה-nav: `:has()` אינו
+     נתמך בפיירפוקס שלפני 121, ושם הכלל כולו היה נפסל — כלומר בדף הבית
+     היו מופיעים גם ההמבורגר וגם הקישורים. מחלקה עובדת בכל דפדפן. */
+  .has-nav-menu .nav-inner { gap: 32px; }
+  body:not(.has-nav-menu) .nav-inner { gap: 12px; padding: 0 14px; }
+  body:not(.has-nav-menu) .nav-links { gap: 12px; font-size: 0.82rem; }
+  body:not(.has-nav-menu) .nav-cta { padding: 8px 14px; font-size: 0.82rem; }
   .features-grid { grid-template-columns: 1fr; }
   .hero-phone { transform: scale(0.85); }
   .phone-float-badge { display: none; }
@@ -1490,3 +1523,55 @@ textarea:focus-visible,
 .download-section :is(a, button, summary, [tabindex]):focus-visible {
   outline-color: var(--green-on-dark);
 }
+
+/* --- 15.9 — קישור "דלג לתוכן המרכזי" (WCAG 2.4.1, רמה A) --- */
+/* בכל דף באתר יש בראשו אותו בלוק חוזר — ניווט, לוגו, קישורים — ובזרימת
+   ההזמנה יש אחריו עשרות תחנות Tab נוספות לפני התוכן. בלי הקישור הזה מי
+   שמנווט במקלדת חייב לעבור את כולן מחדש בכל דף.
+
+   ⚠️ לא `display:none` ולא `visibility:hidden` — שניהם מוציאים אותו מסדר
+   ה-Tab, כלומר מבטלים בדיוק את מה שהוא בא לתת. הוא מוזז אל מחוץ למסך
+   ב-`top` שלילי וחוזר ב-`:focus`.
+   ⚠️ `position:fixed` ולא `absolute`: ב-absolute הוא היה נצבע בראש
+   **המסמך**, ומי שלוחץ Tab אחרי שגלל למטה לא היה רואה אותו כלל.
+   ⚠️ `inset-inline-start` ולא `left`: הדף RTL, והפינה ההתחלתית היא ימין. */
+.skip-link {
+  position: fixed;
+  top: -120px;
+  inset-inline-start: 16px;
+  z-index: 10000;
+  padding: 12px 22px;
+  border-radius: 0 0 var(--radius-sm) var(--radius-sm);
+  background: var(--green);
+  color: var(--white);            /* 7.98:1 על --green */
+  font-family: inherit;
+  font-size: 0.95rem;
+  font-weight: 700;
+  line-height: 1.4;
+  text-decoration: none;
+  box-shadow: var(--shadow-md);
+  transition: top var(--transition);
+}
+.skip-link:focus { top: 0; }
+
+/* הטבעת הכללית היא `3px solid var(--green)` — כלומר ירוק על ירוק, בלתי
+   נראה על הקישור הזה עצמו. טבעת לבנה **בתוך** המילוי נראית תמיד, בלי
+   תלות במה שמאחורי הקישור באותו רגע. */
+.skip-link:focus-visible { outline: 3px solid var(--white); outline-offset: -6px; }
+
+@media (prefers-reduced-motion: reduce) {
+  .skip-link { transition: none; }
+}
+
+/* --- 15.9 — רשימות תבליט במסמכים המשפטיים (WCAG 1.3.1) --- */
+/* במדיניות הפרטיות ובתקנון היו 60 שורות תבליט שנכתבו כ-`<p>• …</p>` —
+   רשימה שקיימת לעין ואינה קיימת בעץ המסמך. קורא מסך אינו מכריז "רשימה
+   בת שישה פריטים", ואי-אפשר לדלג פריט-פריט — וזו בדיוק הצורה שבה נקרא
+   מסמך משפטי. עכשיו `<ul>/<li>` אמיתיים.
+   ⚠️ הסימן • נשאר בתוך הטקסט והתבליט של הדפדפן מנוטרל, כדי שהמראה יישאר
+   זהה בדיוק. אין שוליים על ה-`li` **במכוון**: ה-reset בראש הגיליון
+   (`*{margin:0}`) איפס גם את ה-`<p>` המקורי, ולכן שוליים "טבעיים" של
+   רשימה היו מוסיפים ריווח שלא היה שם. נמדד: הוספת `margin-block:1em`
+   האריכה את מדיניות הפרטיות ב-578 פיקסלים ואת התקנון ב-1,256.
+   אומת בהשוואת צילומי מסך מלאים — ראו דוח 15.9. */
+.bullet-list { list-style: none; margin: 0; padding: 0; }

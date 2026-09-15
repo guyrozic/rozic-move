@@ -201,7 +201,17 @@
   }
   </script>
 </head>
-<body>
+<!-- ⚠️ 15.9 — `has-nav-menu` מסמנת שלדף יש תפריט המבורגר. רק כאן.
+     ה-CSS מסתיר את קישורי הניווט מתחת ל-680px **רק** בדף שיש בו מה
+     שיחליף אותם; בלי הסימון הזה הם נעלמו גם בחמשת הדפים המשפטיים,
+     בלי שום דרך להגיע אליהם (WCAG 1.4.4). -->
+<body class="has-nav-menu">
+  <!-- ⚠️ 15.9 — "דלג לתוכן המרכזי" (WCAG 2.4.1, רמה A). זהו האלמנט הממוקד
+       הראשון בדף: מוסתר מהעין, מופיע בפינה ברגע שמגיעים אליו ב-Tab, ומעביר
+       את המיקוד אל <main id="main-content" tabindex="-1">. בלי ה-tabindex
+       על היעד הדפדפן מזיז את הגלילה בלבד, המיקוד נשאר על הקישור, וה-Tab
+       הבא חוזר לתחילת הניווט — כלומר הקישור לא עושה כלום. -->
+  <a class="skip-link" href="#main-content">דלג לתוכן המרכזי</a>
   <script src="app/under-construction-banner.js"></script>
 
   <!-- Navigation -->
@@ -240,6 +250,8 @@
       <li><a tabindex="0" href="#download" class="menu-link mobile-cta">הורד עכשיו</a></li>
     </ul>
   </div>
+  <main id="main-content" tabindex="-1">
+
   <!-- Hero -->
   <section class="hero">
     <div class="hero-bg">
@@ -601,6 +613,8 @@
     </div>
   </section>
 
+  </main>
+
   <!-- Footer -->
   <footer class="footer">
     <div class="footer-inner container">
@@ -718,6 +732,12 @@
       anchor.addEventListener('click', function(e) {
         const href = this.getAttribute('href');
         if (href === '#') return;
+        // ⚠️ 15.9 — קישור "דלג לתוכן" חייב להישאר מחוץ להאזנה הזו.
+        // ה-preventDefault שלמטה גולל בלי להזיז את המיקוד, ולכן הקישור
+        // *נראה* עובד אבל ה-Tab הבא חוזר לתחילת הניווט — כלומר הוא לא
+        // מדלג על כלום. נמדד בדפדפן: זה נכשל ב-index.html בלבד, כי רק
+        // כאן יש גלילה חלקה. ברירת המחדל של הדפדפן מזיזה גם מיקוד.
+        if (this.classList.contains('skip-link')) return;
         const target = document.querySelector(href);
         if (target) {
           e.preventDefault();

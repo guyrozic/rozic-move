@@ -58,6 +58,26 @@ const MUTATIONS = [
   ['unresolved-var', 'app/index.html',
     '.app-body button:focus-visible { outline: 3px solid var(--green); outline-offset: 2px; }',
     '.app-body button:focus-visible { outline: 3px solid var(--green-ring); outline-offset: 2px; }'],
+
+  /* 15.9 — שלושת הכללים שנוספו עם קישור "דלג לתוכן". */
+
+  ['landmark-main', 'privacy.html',
+    '\n  <main id="main-content" tabindex="-1">\n',
+    '\n  <div id="main-content" tabindex="-1">\n'],
+
+  ['skip-link', 'terms.html',
+    '  <a class="skip-link" href="#main-content">דלג לתוכן המרכזי</a>\n',
+    ''],
+
+  /* היעד בלי tabindex="-1" — הדפדפן גולל אליו אבל המיקוד נשאר על הקישור.
+     זה הכשל השקט: הקישור נראה עובד, ובפועל אינו מדלג על כלום. */
+  ['skip-link', '404.html',
+    '\n  <main id="main-content" tabindex="-1">\n',
+    '\n  <main id="main-content">\n'],
+
+  ['positive-tabindex', 'app/login.html',
+    '<h1 class="auth-logo">\n        <a tabindex="0" href="../index.html">',
+    '<h1 class="auth-logo">\n        <a tabindex="3" href="../index.html">'],
 ];
 
 function runCheck() {

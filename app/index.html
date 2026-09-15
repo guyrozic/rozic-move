@@ -38,6 +38,12 @@
   </style>
 </head>
 <body class="app-body">
+  <!-- ⚠️ 15.9 — "דלג לתוכן המרכזי" (WCAG 2.4.1, רמה A). זהו האלמנט הממוקד
+       הראשון בדף: מוסתר מהעין, מופיע בפינה ברגע שמגיעים אליו ב-Tab, ומעביר
+       את המיקוד אל <main id="main-content" tabindex="-1">. בלי ה-tabindex
+       על היעד הדפדפן מזיז את הגלילה בלבד, המיקוד נשאר על הקישור, וה-Tab
+       הבא חוזר לתחילת הניווט — כלומר הקישור לא עושה כלום. -->
+  <a class="skip-link" href="#main-content">דלג לתוכן המרכזי</a>
   <!-- ⚠️ `tabindex="0"` על הלינקים בדף אינו מיותר. בספארי במק, ברירת המחדל
        של המערכת ("Tab מדגיש כל פריט" כבוי) משאירה בסדר ה-Tab **שדות טקסט
        בלבד** — ובדף הזה אין אף שדה טקסט, כלומר נמדדו בו **אפס** תחנות Tab
@@ -51,8 +57,10 @@
       ROZIC MOVE
     </a>
     <div style="flex:1"></div>
-    <a tabindex="0" href="account.html" class="back-btn" title="החשבון שלי" style="font-size:1rem;">👤</a>
+    <a tabindex="0" href="account.html" class="back-btn" title="החשבון שלי" aria-label="החשבון שלי" style="font-size:1rem;">👤</a>
   </div>
+
+  <main id="main-content" tabindex="-1">
 
   <div class="step-hero">
     <div class="step-hero-inner">
@@ -141,6 +149,8 @@
     </div>
 
   </div>
+
+  </main>
 
   <footer class="footer">
     <div class="footer-inner container">

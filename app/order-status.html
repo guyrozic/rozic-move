@@ -31,7 +31,15 @@
   <link rel="stylesheet" href="style-app.css">
 </head>
 <body class="app-body">
+  <!-- ⚠️ 15.9 — "דלג לתוכן המרכזי" (WCAG 2.4.1, רמה A). זהו האלמנט הממוקד
+       הראשון בדף: מוסתר מהעין, מופיע בפינה ברגע שמגיעים אליו ב-Tab, ומעביר
+       את המיקוד אל <main id="main-content" tabindex="-1">. בלי ה-tabindex
+       על היעד הדפדפן מזיז את הגלילה בלבד, המיקוד נשאר על הקישור, וה-Tab
+       הבא חוזר לתחילת הניווט — כלומר הקישור לא עושה כלום. -->
+  <a class="skip-link" href="#main-content">דלג לתוכן המרכזי</a>
   <script src="under-construction-banner.js"></script>
+  <main id="main-content" tabindex="-1">
+
   <div class="step-hero">
     <div class="step-hero-inner">
       <a href="account.html" class="btn-text" style="padding:0; margin-bottom:10px; display:inline-block;">→ החשבון שלי</a>
@@ -44,6 +52,8 @@
     <div id="loading" class="center-loading"><span class="spinner"></span></div>
     <div id="content" style="display:none;"></div>
   </div>
+
+  </main>
 
   <footer class="footer">
     <div class="footer-inner container">
@@ -182,7 +192,7 @@
       });
 
       /**
-       * ⚠️ 16.9 — **הלקוח לא ידע שייגבו ממנו דמי ביטול.**
+       * ⚠️ 15.9 — **הלקוח לא ידע שייגבו ממנו דמי ביטול.**
        *
        * `confirm('לבטל את ההזמנה?')` לא הזכיר אותם במילה, והתוצאה לא
        * הוצגה אחר כך. כלומר לקוח שביטל הזמנה משולמת יום לפני המועד

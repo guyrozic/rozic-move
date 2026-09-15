@@ -64,7 +64,15 @@
   </style>
 </head>
 <body class="app-body">
+  <!-- ⚠️ 15.9 — "דלג לתוכן המרכזי" (WCAG 2.4.1, רמה A). זהו האלמנט הממוקד
+       הראשון בדף: מוסתר מהעין, מופיע בפינה ברגע שמגיעים אליו ב-Tab, ומעביר
+       את המיקוד אל <main id="main-content" tabindex="-1">. בלי ה-tabindex
+       על היעד הדפדפן מזיז את הגלילה בלבד, המיקוד נשאר על הקישור, וה-Tab
+       הבא חוזר לתחילת הניווט — כלומר הקישור לא עושה כלום. -->
+  <a class="skip-link" href="#main-content">דלג לתוכן המרכזי</a>
   <script src="under-construction-banner.js"></script>
+  <main id="main-content" tabindex="-1">
+
   <div class="step-hero">
     <div class="step-hero-inner">
       <!-- ⚠️ `tabindex="0"` על לינקים וכפתורים לאורך הדף אינו מיותר.
@@ -104,19 +112,19 @@
       <div id="ai-filled-badge" class="alert alert-success" style="display:none;">✓ AI מילא עבורך את הפרטים למטה — אפשר לערוך</div>
       <div class="form-group">
         <label for="title">כותרת</label>
-        <input id="title" type="text" maxlength="100" placeholder="לדוגמה: ספה תלת מושבית">
+        <input id="title" type="text" required maxlength="100" placeholder="לדוגמה: ספה תלת מושבית">
       </div>
       <div class="form-group">
         <label for="description">תיאור</label>
         <textarea id="description" rows="4" maxlength="2000" placeholder="מצב הפריט, מידות, כל פרט שיעזור..."></textarea>
       </div>
       <div class="form-group">
-        <label>קטגוריה</label>
-        <div class="room-tabs" id="category-tabs"></div>
+        <label id="category-tabs-label">קטגוריה</label>
+        <div class="room-tabs" id="category-tabs" role="group" aria-labelledby="category-tabs-label"></div>
       </div>
       <div class="form-group">
-        <label>מצב הפריט (לא חובה)</label>
-        <div class="room-tabs" id="condition-tabs"></div>
+        <label id="condition-tabs-label">מצב הפריט (לא חובה)</label>
+        <div class="room-tabs" id="condition-tabs" role="group" aria-labelledby="condition-tabs-label"></div>
       </div>
       <div id="guiding-questions"></div>
     </div>
@@ -178,6 +186,8 @@
     <button class="btn btn-primary btn-block" id="submit-btn" tabindex="0">פרסם מודעה</button>
     <p class="terms-note">בלחיצה על הכפתור אתם מאשרים את <a href="/terms.html" tabindex="0" target="_blank" rel="noopener">תנאי השימוש</a> ו<a href="/privacy.html" tabindex="0" target="_blank" rel="noopener">מדיניות הפרטיות</a></p>
   </div>
+
+  </main>
 
   <footer class="footer">
     <div class="footer-inner container">

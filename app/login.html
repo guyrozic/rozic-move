@@ -144,7 +144,15 @@
   </style>
 </head>
 <body class="app-body">
+  <!-- ⚠️ 15.9 — "דלג לתוכן המרכזי" (WCAG 2.4.1, רמה A). זהו האלמנט הממוקד
+       הראשון בדף: מוסתר מהעין, מופיע בפינה ברגע שמגיעים אליו ב-Tab, ומעביר
+       את המיקוד אל <main id="main-content" tabindex="-1">. בלי ה-tabindex
+       על היעד הדפדפן מזיז את הגלילה בלבד, המיקוד נשאר על הקישור, וה-Tab
+       הבא חוזר לתחילת הניווט — כלומר הקישור לא עושה כלום. -->
+  <a class="skip-link" href="#main-content">דלג לתוכן המרכזי</a>
   <script src="under-construction-banner.js"></script>
+  <main id="main-content" tabindex="-1">
+
   <div class="auth-shell">
     <div class="auth-card app-card">
       <!-- ⚠️ 15.9 — למסך הזה לא הייתה ולו כותרת אחת: הכול היה `div`, וניווט
@@ -190,7 +198,12 @@
            אליהן מהמקלדת, בשום דפדפן, ולכן מסך ההרשמה היה בלתי-נגיש למקלדת
            לחלוטין. `role=button` + `tabindex` + מאזין Enter/Space מתקנים את
            זה בלי לשנות פיקסל אחד ובלי לגעת בהתנהגות העכבר. -->
-      <div class="auth-tabs" role="tablist">
+      <!-- ⚠️ 15.9 — היה כאן role="tablist". ל-tablist יש ילדים מחויבים
+           (role="tab"), ושני הילדים כאן הם role="button" — כלומר עץ
+           ARIA לא חוקי, שקורא מסך מפרש בלי הבטחה. הכפתורים עצמם
+           תקינים (aria-pressed מתעדכן), ולכן התפקיד השגוי של המכל ירד
+           במקום להמציא מבנה טאבים שלם. -->
+      <div class="auth-tabs">
         <div class="auth-tab active" data-tab="login" role="button" tabindex="0" aria-pressed="true">התחברות</div>
         <div class="auth-tab" data-tab="register" role="button" tabindex="0" aria-pressed="false">הרשמה</div>
       </div>
@@ -200,7 +213,7 @@
       <div id="phone-step" hidden>
         <div class="form-group">
           <label for="oauth-phone">מספר טלפון</label>
-          <input id="oauth-phone" type="tel" inputmode="tel" placeholder="050-0000000" autocomplete="tel">
+          <input id="oauth-phone" type="tel" inputmode="tel" aria-required="true" placeholder="050-0000000" autocomplete="tel">
         </div>
         <button tabindex="0" type="button" class="btn btn-primary btn-block" id="phone-save">שמור והמשך</button>
       </div>
@@ -237,8 +250,9 @@
         </div>
         <div class="form-group">
           <label for="reg-password">סיסמה</label>
-          <input id="reg-password" type="password" required minlength="6" autocomplete="new-password">
-          <div class="form-hint">לפחות 6 תווים</div>
+          <input id="reg-password" type="password" required minlength="6" autocomplete="new-password"
+                 aria-describedby="reg-password-hint">
+          <div class="form-hint" id="reg-password-hint">לפחות 6 תווים</div>
         </div>
         <div class="form-group">
           <label class="terms-label">
@@ -250,6 +264,8 @@
       </form>
     </div>
   </div>
+
+  </main>
 
   <footer class="footer">
     <div class="footer-inner container">
@@ -440,7 +456,7 @@
       if (code === 'auth/account-exists-with-different-credential')
         return 'כבר קיים חשבון עם האימייל הזה. התחברו עם אימייל וסיסמה.';
       if (code === 'auth/unauthorized-domain') return 'הדומיין הזה אינו מאושר להתחברות. פנו לתמיכה.';
-      // ⚠️ 16.9 — `signInWithProvider` מתנתקת וזורקת את זה כשהחשבון מושעה.
+      // ⚠️ 15.9 — `signInWithProvider` מתנתקת וזורקת את זה כשהחשבון מושעה.
       // עד היום הבדיקה הייתה ב-`login()` בלבד, ולכן מושעה שלחץ "המשך עם
       // Google" פשוט נכנס. הנוסח זהה למסלול המייל, כדי ששני המסלולים
       // יראו אותו דבר.

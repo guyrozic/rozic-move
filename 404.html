@@ -95,6 +95,12 @@
   </style>
 </head>
 <body>
+  <!-- ⚠️ 15.9 — "דלג לתוכן המרכזי" (WCAG 2.4.1, רמה A). זהו האלמנט הממוקד
+       הראשון בדף: מוסתר מהעין, מופיע בפינה ברגע שמגיעים אליו ב-Tab, ומעביר
+       את המיקוד אל <main id="main-content" tabindex="-1">. בלי ה-tabindex
+       על היעד הדפדפן מזיז את הגלילה בלבד, המיקוד נשאר על הקישור, וה-Tab
+       הבא חוזר לתחילת הניווט — כלומר הקישור לא עושה כלום. -->
+  <a class="skip-link" href="#main-content">דלג לתוכן המרכזי</a>
 
   <nav class="nav scrolled" id="nav">
     <div class="nav-inner">
@@ -113,13 +119,15 @@
     </div>
   </nav>
 
+  <main id="main-content" tabindex="-1">
+
   <div class="sub-hero">
     <div class="code" aria-hidden="true">404</div>
     <h1>הדף לא נמצא</h1>
     <p class="updated">הכתובת שהגעתם אליה אינה קיימת, הוסרה או שונתה.</p>
   </div>
 
-  <main class="sub-main">
+  <div class="sub-main">
     <div class="card">
       <p>אין מה לדאוג — הכל במקום. אפשר לחזור לעמוד הבית או להוריד את האפליקציה ולהתחיל הזמנה.</p>
       <div class="nf-actions">
@@ -128,6 +136,8 @@
       </div>
       <p class="nf-web">או <a tabindex="0" href="/app/index.html">הזמינו ישירות מהדפדפן</a></p>
     </div>
+  </div>
+
   </main>
 
   <footer class="footer">

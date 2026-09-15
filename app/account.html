@@ -31,7 +31,15 @@
   <link rel="stylesheet" href="style-app.css">
 </head>
 <body class="app-body">
+  <!-- ⚠️ 15.9 — "דלג לתוכן המרכזי" (WCAG 2.4.1, רמה A). זהו האלמנט הממוקד
+       הראשון בדף: מוסתר מהעין, מופיע בפינה ברגע שמגיעים אליו ב-Tab, ומעביר
+       את המיקוד אל <main id="main-content" tabindex="-1">. בלי ה-tabindex
+       על היעד הדפדפן מזיז את הגלילה בלבד, המיקוד נשאר על הקישור, וה-Tab
+       הבא חוזר לתחילת הניווט — כלומר הקישור לא עושה כלום. -->
+  <a class="skip-link" href="#main-content">דלג לתוכן המרכזי</a>
   <script src="under-construction-banner.js"></script>
+  <main id="main-content" tabindex="-1">
+
   <div class="step-hero">
     <div class="step-hero-inner">
       <a tabindex="0" href="index.html" class="btn-text" style="padding:0; margin-bottom:10px; display:inline-block;">→ בחירת שירות</a>
@@ -60,14 +68,14 @@
         <div id="phone-step-number">
           <div class="form-group">
             <label for="phone-input">מספר טלפון</label>
-            <input id="phone-input" type="tel" placeholder="050-1234567">
+            <input id="phone-input" type="tel" required placeholder="050-1234567">
           </div>
           <button tabindex="0" class="btn btn-primary" id="send-code-btn">שלח קוד אימות</button>
         </div>
         <div id="phone-step-code" style="display:none;">
           <div class="form-group">
             <label for="code-input">קוד שהתקבל ב-SMS</label>
-            <input id="code-input" type="text" inputmode="numeric" placeholder="123456">
+            <input id="code-input" type="text" inputmode="numeric" required placeholder="123456">
           </div>
           <button tabindex="0" class="btn btn-primary" id="confirm-code-btn">אשר קוד</button>
         </div>
@@ -102,6 +110,8 @@
       <button tabindex="0" class="btn btn-danger btn-block" id="logout-btn">התנתק</button>
     </div>
   </div>
+
+  </main>
 
   <footer class="footer">
     <div class="footer-inner container">
@@ -164,7 +174,7 @@
       } else {
         emailBox.innerHTML = '<div class="alert alert-info">האימייל טרם אומת. <button tabindex="0" class="btn-text" id="resend-email-btn">שלח שוב קישור אימות</button></div>';
         document.getElementById('resend-email-btn')?.addEventListener('click', async (e) => {
-          // ⚠️ 16.9 — היה כאן `await` בלי `try`. בכשל
+          // ⚠️ 15.9 — היה כאן `await` בלי `try`. בכשל
           // (`auth/too-many-requests` — Firebase זורק אותו כבר אחרי
           // שתי שליחות) הכפתור **נתקע על "נשלח..."** והלקוח מאמין
           // שהמייל יצא. זה גרוע מתקיעה שקטה: זו הודעת הצלחה על כשל.
@@ -230,7 +240,7 @@
       try {
         await confirmPhoneVerificationCode(verificationId, code, phone);
         /**
-         * ⚠️ 16.9 — **לא היה כאן ענף הצלחה בכלל.** האימות הצליח,
+         * ⚠️ 15.9 — **לא היה כאן ענף הצלחה בכלל.** האימות הצליח,
          * `users/{uid}` נכתב עם `phoneVerified: true` — והמסך קפא:
          * הכפתור נשאר "מאמת..." מושבת לצמיתות, והשורה למעלה המשיכה
          * לומר "הטלפון עדיין לא אומת".
