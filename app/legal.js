@@ -29,8 +29,13 @@ import { serverTimestamp } from 'https://www.gstatic.com/firebasejs/12.16.0/fire
  *
  * ⚠️ **חייב להיות זהה בדיוק לערך שם** — `check-terms-version-sync`
  * נופל אחרת, וזו כל מטרתו.
+ *
+ * ⚠️ 15.9 — `-3`: הנוסח **השלישי** בספטמבר 2026. נוספו שתי התחייבויות
+ * בנושא שוויון ונגישות — פסקה "שוויון ונגישות" בסעיף 5 (מובילים)
+ * ותת-סעיף הפליה בסעיף 9 (שימוש אסור). ראו את ההערה המלאה
+ * ב-`Hovalot/src/constants/legal.ts`.
  */
-export const TERMS_VERSION = '2026-09-2';
+export const TERMS_VERSION = '2026-09-3';
 
 /**
  * בונה את ראיית ההסכמה שמוצמדת להזמנה חדשה באתר — מראה של
