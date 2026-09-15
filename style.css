@@ -2362,34 +2362,23 @@ body.hp-home .nav:not(.scrolled) :is(a, button, summary, [tabindex]):focus-visib
   flex-wrap: wrap;
 }
 .hp-app-line {
-  flex: 1 1 15em;
-  min-width: 0;
+  flex: none;
   font-size: 0.95rem;
   font-weight: 700;
   line-height: 1.45;
   color: var(--white);
   margin: 0;
 }
-.hp-app-line span {
-  display: block;
-  font-weight: 400;
-  font-size: 0.86rem;
-  /* אטום ולא שקוף — שקיפות על גרדיאנט נותנת ניגודיות שונה בכל נקודה. */
-  color: var(--green-wash);
-  margin-block-start: 3px;
-}
+
 .hp-app-inline .hp-app-btns { display: flex; gap: 9px; flex: none; }
-.hp-app-inline .hp-a-dark,
-.hp-app-inline .hp-a-ghost {
-  font-size: 0.85rem;
-  font-weight: 800;
-  padding: 10px 17px;
-  border-radius: 10px;
-  text-decoration: none;
-  white-space: nowrap;
-}
+
+/* ⚠️ הכפתורים ברצועה הם `.btn-store` של מקטע ההורדה. שם `.btn-apple`
+   מקבל רקע לבן דרך `.download-section` — כאן צריך את אותו טיפול, כי
+   שחור על הירוק הכהה כמעט נעלם. */
+.hp-app-inline .btn-apple { background: var(--white); color: var(--text); }
+.hp-app-inline .btn-apple:hover { background: var(--bg); }
+.hp-app-inline .hp-app-btns { display: flex; gap: 10px; flex-wrap: wrap; }
 @media (max-width: 620px) {
   .hp-app-inline .hp-app-btns { flex: 1 1 100%; }
-  .hp-app-inline .hp-a-dark,
-  .hp-app-inline .hp-a-ghost { flex: 1; text-align: center; }
+  .hp-app-inline .btn-store { flex: 1; justify-content: center; }
 }
