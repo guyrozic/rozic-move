@@ -199,6 +199,27 @@
 
         <!-- Step 4: summary -->
         <section class="wizard-step" data-step="4" style="display:none;">
+          <!-- ⚠️ 15.9 — **המסך האחרון לפני התשלום לא סיכם כלום.**
+               הוא הציג פירוט מחיר מלא, אבל לא את הכתובות, לא את התאריך, לא
+               את חלון הזמן ולא את רשימת הפריטים — רק שורת "סכום פריטים (7)".
+               הלקוח אישר ושילם בלי לראות לאן מובילים, מתי, ומה בדיוק נכנס
+               לרשימה; הנתונים האלה הופיעו לראשונה ב-order-status.html, כלומר
+               **אחרי** שההזמנה נוצרה ושולמה.
+               הכרטיס הזה מציג בדיוק את אותם שדות, מאותו `state` שכבר נאסף
+               בשלב 3, שלב אחד מוקדם יותר. אין כאן שום חישוב חדש ושום מספר —
+               פירוט המחיר שמתחת נשאר כפי שהוא. -->
+          <div class="app-card">
+            <!-- "פרטי ההזמנה" ולא "סיכום ההזמנה": הכרטיס הצדדי בדף הזה כבר
+                 נושא <h3>סיכום ההזמנה</h3>, ושתי כותרות באותו שם באותו דף
+                 שוברות ניווט-לפי-כותרות בקורא מסך. זה גם השם שבו מוצגים
+                 אותם שדות עצמם ב-order-status.html. -->
+            <h2>פרטי ההזמנה</h2>
+            <p class="app-card-desc">אלה הפרטים שיישלחו למוביל. אפשר לחזור ולתקן כל דבר לפני התשלום.</p>
+            <dl class="recap-list" id="recap-lines"></dl>
+            <h3 class="recap-items-title" id="recap-items-title">הפריטים שנבחרו <span id="recap-items-count"></span></h3>
+            <ul class="recap-items" id="recap-items" role="list" aria-labelledby="recap-items-title"></ul>
+          </div>
+
           <div class="app-card">
             <h2>ביטוח ואריזה</h2>
             <div class="form-group">
@@ -842,9 +863,67 @@
     document.getElementById('notes').addEventListener('input', (e) => { state.notes = e.target.value; });
     document.getElementById('back-to-3').addEventListener('click', () => goToStep(3));
 
+    /**
+     * ⚠️ 15.9 — הסיכום שלפני התשלום. בריחת HTML לכל ערך, כי שלושה מהם
+     * מגיעים מהקלדה חופשית של הלקוח (שתי הכתובות ותוויות הפריטים שנוספו
+     * ידנית ב-freeItems), והם נכתבים כאן דרך `innerHTML`. זהה ל-`esc`
+     * ב-order-status.html — כולל `"` ו-`'`, שסוגרים מאפיין ופותחים
+     * מאפיין חדש בלי שום תו `<`.
+     */
+    const escHtml = (v) => String(v ?? '')
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+
+    /** "קומת קרקע" · "קומה 3 · אין מעלית". במפלס הקרקע המעלית חסרת משמעות. */
+    const floorText = (floor, hasElevator) =>
+      floor === 'קרקע' ? 'קומת קרקע' : `קומה ${floor} · ${hasElevator ? 'יש מעלית' : 'אין מעלית'}`;
+
+    /**
+     * ⚠️ מציג **רק** שדות שכבר יושבים ב-`state` — שלב 3 אוסף את כולם
+     * ומאמת שהכתובות אינן ריקות לפני שהוא מעביר לשלב 4. אין כאן שום
+     * נתון שנגזר, נשלף או מנוחש.
+     *
+     * חלון הזמן הוא שדה רשות בשלב 3 ("שעה מועדפת"). כשלא נבחר, השורה
+     * נשארת ואומרת זאת במפורש — השמטה שקטה הייתה מחזירה בדיוק את הבעיה
+     * שהכרטיס הזה בא לפתור: הלקוח לא יודע מה נשלח בשמו.
+     */
+    function renderRecap() {
+      const rows = [
+        ['כתובת מוצא', `${state.fromAddress} · ${floorText(state.fromFloor, state.fromElevator)}`],
+        ['כתובת יעד', `${state.toAddress} · ${floorText(state.toFloor, state.toElevator)}`],
+        ['תאריך', state.date],
+        ['חלון זמן מועדף', state.timeSlot || 'לא נבחר'],
+      ];
+      if (state.needsCrane) {
+        rows.push(['מנוף הרמה', state.craneItems.length
+          ? `קומה ${state.craneFloor} · ${state.craneItems.join(', ')}`
+          : `קומה ${state.craneFloor}`]);
+      }
+      document.getElementById('recap-lines').innerHTML = rows.map(([k, v]) =>
+        `<div class="recap-row"><dt>${escHtml(k)}</dt><dd>${escHtml(v)}</dd></div>`
+      ).join('');
+
+      // פריטי `freeItems` הם פריטים לכל דבר מבחינת הלקוח — פשוט כאלה
+      // שאין להם עדיין מחיר אוטומטי, ולכן מסומנים ולא מוסתרים.
+      const rowsItems = [
+        ...selectedItems().map(i => ({ label: i.label, qty: i.qty, pending: false })),
+        ...state.freeItems.map(f => ({ label: f.label, qty: f.qty, pending: true })),
+      ];
+      document.getElementById('recap-items-count').textContent = `(${rowsItems.length})`;
+      // ⚠️ "2 יח׳" ולא "×2": תוויות הקטלוג עצמן מכילות מידות עם סימן
+      // כפל (מיטה זוגית 160×200 ס"מ), ו-"×2" בסוף השורה נקרא — בעין
+      // ובקורא מסך — כהמשך של המידה.
+      document.getElementById('recap-items').innerHTML = rowsItems.map(i =>
+        `<li><span>${escHtml(i.label)}</span><span class="recap-qty">${escHtml(i.qty)} יח׳`
+        + (i.pending ? ' <span class="recap-pending">· ממתין לתמחור</span>' : '')
+        + '</span></li>'
+      ).join('');
+    }
+
     function renderSummary() {
       document.getElementById('has-insurance').checked = state.hasInsurance;
       document.getElementById('has-packing').checked = state.hasPacking;
+      renderRecap();
       const p = computePrice();
       document.getElementById('packing-price-label').textContent = `(+₪${p.packingCalc.total})`;
 

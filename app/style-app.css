@@ -452,6 +452,34 @@
 }
 .price-total strong { color: var(--green-dark); }
 
+/* --- סיכום ההזמנה לפני התשלום -----------------------------------------
+   ⚠️ 15.9 — השלב האחרון לפני התשלום הציג פירוט מחיר בלבד. הכתובות,
+   התאריך, חלון הזמן ורשימת הפריטים נראו לראשונה רק ב-order-status.html —
+   כלומר **אחרי** שההזמנה נוצרה ושולמה. הכללים כאן מציגים בדיוק את אותם
+   נתונים, מאותו state, שלב אחד קודם.
+
+   ⚠️ `list-style: none` לבדו מוציא את ה-<ul> מעץ הנגישות ב-Safari/VoiceOver
+   (הרשימה מוכרזת כטקסט רץ, בלי "רשימה, 7 פריטים"). `role="list"` על
+   ה-<ul> מחזיר אותה — ראו את המארקאפ ב-apartment.html ו-small-move.html.
+
+   ⚠️ `text-align: end` ולא `left`: הדף כולו RTL, והערך צריך להיצמד לקצה
+   החיצוני של השורה — אותו קצה שאליו נצמדים הסכומים ב-.price-line מתחת. */
+.recap-list { margin: 0 0 18px; display: flex; flex-direction: column; gap: 9px; }
+.recap-row { display: flex; justify-content: space-between; gap: 16px; font-size: 0.88rem; }
+.recap-row dt { flex-shrink: 0; font-weight: 700; color: var(--text-mid); }
+.recap-row dd { margin: 0; text-align: end; color: var(--text); }
+
+.recap-items-title { font-size: 0.95rem; font-weight: 800; letter-spacing: -0.2px; color: var(--text); margin-bottom: 10px; }
+.recap-items { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+.recap-items li {
+  display: flex; justify-content: space-between; gap: 16px;
+  font-size: 0.88rem; color: var(--text-mid);
+  padding-bottom: 8px; border-bottom: 1px solid var(--border);
+}
+.recap-items li:last-child { padding-bottom: 0; border-bottom: none; }
+.recap-items .recap-qty { flex-shrink: 0; font-weight: 700; color: var(--text); }
+.recap-items .recap-pending { font-weight: 700; color: var(--amber-strong); }
+
 /* --- Sticky bottom bar --- */
 .app-bottom-bar {
   position: sticky;
@@ -528,6 +556,11 @@
   .service-tiles { grid-template-columns: 1fr 1fr; gap: 10px; }
   .app-container { padding: 20px 16px 0; }
   .form-row { flex-direction: column; gap: 0; }
+  /* כתובת ארוכה נשברת לשלוש-ארבע שורות ברוחב טלפון. שורה עברית שנשברת
+     חייבת להתחיל מימין — ולכן הערך יורד לשורה משלו, מיושר להתחלה,
+     במקום להידחק לקצה השמאלי ולהיקרא מסורבל. */
+  .recap-row { flex-direction: column; gap: 2px; }
+  .recap-row dd { text-align: start; }
 }
 
 /* ===== Wide wizard shell (apartment.html / small-move.html) ===== */
