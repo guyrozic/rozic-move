@@ -150,8 +150,18 @@
     // באתר בלבד לפני הרשמה, הוא יוכל לקבל מחיר לפני הרשמה, אבל עוד
     // לפני שלב התשלום תהיה הרשמה". החסימה היחידה כאן היא מוביל —
     // הזמנת הובלה אינה מסך שלו. ראו guest-checkout.js.
-    import { getAuthOptional, isDriverAccount, showDriverBlockAndHalt } from './guest-checkout.js';
-    if (isDriverAccount(await getAuthOptional())) showDriverBlockAndHalt();
+    //
+    // ⚠️ 15.9 — החסימה כאן צומצמה לשני אריחי ההזמנה בלבד.
+    // הדף הזה הוא ה-hub, ויושבים בו גם "יד שנייה חינם", "ההזמנות שלי",
+    // "הגדרות" ו"תמיכה טכנית" — כולם מסכים שמוביל רשאי להיכנס אליהם,
+    // וכולם פתוחים לו ממילא בכניסה ישירה. חסימת הדף כולה סגרה לו את
+    // *הדרך* אליהם בלי לחסום אותם, והשאירה לו מוצא יחיד לדף הבית.
+    //
+    // ⚠️ **האכיפה לא נחלשה:** `apartment.html` ו-`small-move.html`
+    // ממשיכים לקרוא ל-`showDriverBlockAndHalt()` בשורה הראשונה, ולכן
+    // קישור ישיר, רענון, back או לשונית חדשה נחסמים בדיוק כמו קודם.
+    import { getAuthOptional, isDriverAccount, blockOrderTilesForDriver } from './guest-checkout.js';
+    if (isDriverAccount(await getAuthOptional())) blockOrderTilesForDriver();
   </script>
 </body>
 </html>
