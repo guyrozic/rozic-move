@@ -49,7 +49,11 @@
   /* ⚠️ 15.9 — רוחב נפרד לניווט ולהירו. גיא: "אני רוצה את הכול יותר פרוס
      על כל הדף הרוחבי". התוכן הקריא במקטעים שלמטה נשאר ב-1240 בכוונה —
      שורת טקסט רחבה מכך קשה לעקוב אחריה. */
-  --container-wide: 1640px;
+  /* ⚠️ 15.9, סבב שני — גיא: "תבצע באופן יותר משמעותי". 1640 עדיין השאיר
+     שוליים ניכרים במסכים רחבים. `min()` ולא ערך קבוע: במסך רגיל הוא נשען
+     על 96vw ונצמד לקצוות, ובמסך רחב מאוד התקרה מונעת שורת ניווט שנמתחת
+     על שני מטר. */
+  --container-wide: min(96vw, 1880px);
   --transition:  0.25s cubic-bezier(0.4,0,0.2,1);
 
   /* ── צבעי מצב וטקסט משני ───────────────────────────────────────────
@@ -2342,3 +2346,50 @@ body.hp-home .nav:not(.scrolled) :is(a, button, summary, [tabindex]):focus-visib
 /* ראש שורת המחיר — ההסתרה במצב ריק היא `hidden` מה-JS, וזה מבטל את
    ה-flex. בלי הכלל הזה האלמנט היה חוזר להיות גלוי. */
 .hp-sum > b[hidden] { display: none; }
+
+
+/* ── רצועת האפליקציה, בתוך טור הטקסט (15.9) ─────────────────────────
+   ⚠️ הייתה `<section class="hp-app">` ברוחב מלא מתחת להירו. גיא ביקש
+   להכניס אותה לתוך הטור. בדרך זה גם סגר כפילות: אותם שני כפתורי חנות
+   הופיעו גם כאן וגם במקטע #download בתחתית הדף. */
+.hp-app-inline {
+  margin-block-start: clamp(22px, 2.6vw, 34px);
+  padding-block-start: clamp(16px, 2vw, 22px);
+  border-block-start: 1px solid rgba(255, 255, 255, 0.16);
+  display: flex;
+  align-items: center;
+  gap: clamp(14px, 1.8vw, 26px);
+  flex-wrap: wrap;
+}
+.hp-app-line {
+  flex: 1 1 15em;
+  min-width: 0;
+  font-size: 0.95rem;
+  font-weight: 700;
+  line-height: 1.45;
+  color: var(--white);
+  margin: 0;
+}
+.hp-app-line span {
+  display: block;
+  font-weight: 400;
+  font-size: 0.86rem;
+  /* אטום ולא שקוף — שקיפות על גרדיאנט נותנת ניגודיות שונה בכל נקודה. */
+  color: var(--green-wash);
+  margin-block-start: 3px;
+}
+.hp-app-inline .hp-app-btns { display: flex; gap: 9px; flex: none; }
+.hp-app-inline .hp-a-dark,
+.hp-app-inline .hp-a-ghost {
+  font-size: 0.85rem;
+  font-weight: 800;
+  padding: 10px 17px;
+  border-radius: 10px;
+  text-decoration: none;
+  white-space: nowrap;
+}
+@media (max-width: 620px) {
+  .hp-app-inline .hp-app-btns { flex: 1 1 100%; }
+  .hp-app-inline .hp-a-dark,
+  .hp-app-inline .hp-a-ghost { flex: 1; text-align: center; }
+}
