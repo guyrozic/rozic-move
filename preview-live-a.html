@@ -3,7 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>ROZIC MOVE — הזמנת הובלה ומעבר דירה אונליין בישראל</title>
+  <meta name="robots" content="noindex, nofollow">
+  <title>ROZIC MOVE — סריקה בלבד</title>
   <meta name="description" content="פלטפורמה ישראלית להזמנת הובלות: מעבר דירה, מובילים בקטנה ושירות אריזה. בונים רשימת פריטים, מקבלים מחיר לפני אישור, ועוקבים אחרי המוביל בזמן אמת — באפליקציה או ישירות מהדפדפן.">
   <link rel="canonical" href="https://rozicmove.com/">
   <meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large">
@@ -200,6 +201,175 @@
     ]
   }
   </script>
+  <style>
+/* ⚠️ תצוגה מקדימה. המבנה, הרוחב והגובה הם של index.html עצמו —
+   .hp-hero עם --container-wide ו-min-height, ו-.hp-panel עם margin-top:auto
+   על שורת המחיר. גרסה א+ב: הסריקה לבדה. */
+:root { --sh: 236px; }
+  /* ===== שורת הסטטוס ===== */
+  .statusbar { display:flex; justify-content:space-between; align-items:center;
+    gap:10px; margin-bottom:9px; flex-wrap:wrap; }
+  .roomN { font-size:.79rem; font-weight:800; color:var(--green-ink);
+    display:flex; gap:4px; align-items:center; }
+  .roomN em { font-style:normal; position:relative; display:inline-block;
+    width:5.1em; height:1.2em; text-align:start; }
+  .roomN em b { position:absolute; inset:0; opacity:0; font-weight:800;
+    animation:none 15s linear infinite both; }
+  .live { font-weight:600; color:var(--text-muted); }
+  .live::after { content:''; display:inline-block; width:6px; height:6px; border-radius:50%;
+    background:var(--green-line); margin-inline-start:5px; vertical-align:middle;
+    animation:pulse 1.5s ease-in-out infinite; }
+  @keyframes pulse { 0%,100%{opacity:.25;transform:scale(.8)} 50%{opacity:1;transform:scale(1)} }
+  .dots { display:flex; gap:6px; align-items:center; }
+  .dots i { display:block; height:5px; width:30px; border-radius:99px; background:rgba(20,42,34,.14); }
+  .dots i::after { content:''; display:block; height:100%; width:100%; border-radius:99px;
+    background:var(--green-line); transform-origin:right center;
+    animation:none 15s linear infinite both; }
+  .dots i:nth-child(1)::after{animation-name:bar1}
+  .dots i:nth-child(2)::after{animation-name:bar2}
+  .dots i:nth-child(3)::after{animation-name:bar3}
+  @keyframes bar1 { 0%{transform:scaleX(0)} 30%,100%{transform:scaleX(1)} }
+  @keyframes bar2 { 0%,33%{transform:scaleX(0)} 63%,100%{transform:scaleX(1)} }
+  @keyframes bar3 { 0%,66.33%{transform:scaleX(0)} 96.33%,100%{transform:scaleX(1)} }
+  .tot { display:flex; gap:5px; align-items:center; font-size:.79rem; font-weight:800;
+    color:var(--green-ink); background:var(--green-tint); border:1px solid var(--green-line);
+    padding:3px 11px; border-radius:999px; }
+  .tot u { text-decoration:none; position:relative; display:inline-block; width:1.6em; height:1.2em; }
+  .tot u b { position:absolute; inset:0; display:flex; align-items:center; justify-content:center;
+    opacity:0; font-weight:900; animation:none 15s linear infinite both; }
+
+  /* ===== אזור הסריקה ===== */
+  /* ⚠️ aspect-ratio ולא גובה קבוע. הכרטיס באתר רחב 1015px ב-1920
+     ו-705px ב-1280 — גובה 236 נתן יחס 4.3 מול viewBox של 2.74, כלומר
+     מתיחה אופקית פי 2.5 שהשטיחה את כל הרהיטים. 52/19 הוא בדיוק היחס
+     של ה-viewBox, ולכן אין מתיחה בשום רוחב. */
+  .scan { position:relative; border-radius:12px; overflow:hidden;
+    aspect-ratio:52/19;
+    background:linear-gradient(170deg,#EEF5F0,#DEEAE2); border:1px solid var(--border); }
+  .scan .room, .boxes { position:absolute; inset:0; width:100%; height:100%;
+    opacity:0; animation:swap 15s linear infinite both; }
+  .boxes { z-index:2; }
+  .scan .room * { stroke:#8FA89A; fill:none; stroke-width:2.1;
+    vector-effect:non-scaling-stroke; stroke-linecap:round; stroke-linejoin:round; }
+  .boxes rect { fill:rgba(78,218,169,.10); stroke:var(--green-line); stroke-width:2;
+    vector-effect:non-scaling-stroke; rx:4; opacity:0; animation:none 15s ease-out infinite both; }
+  .bxl { position:absolute; z-index:3; width:max-content; background:var(--green-line); color:#fff;
+    font-size:.67rem; font-weight:800; padding:2px 8px; border-radius:5px; white-space:nowrap;
+    opacity:0; animation:none 15s ease-out infinite both; }
+  /* ⚠️ .scan לפני: ה-shorthand מאפס את ה-delay ובספציפיות (0,2,0) גובר
+     על .r2 לבדו — בלעדיו שלושת החדרים מוצגים בו-זמנית. */
+  .scan .r1, .scan .b1, .scan .b1 rect, .scan .l1 { animation-delay:0s }
+  .scan .r2, .scan .b2, .scan .b2 rect, .scan .l2 { animation-delay:5s }
+  .scan .r3, .scan .b3, .scan .b3 rect, .scan .l3 { animation-delay:10s }
+  @keyframes swap { 0%{opacity:0} 1%,32%{opacity:1} 34.5%,100%{opacity:0} }
+  @media (max-width:620px){ .scan { aspect-ratio:43/19; } }
+  .beam { position:absolute; inset-inline:0; height:58px; pointer-events:none; z-index:2;
+    background:linear-gradient(to bottom, transparent, rgba(78,218,169,.38) 62%, var(--green-on-dark));
+    box-shadow:0 0 22px rgba(78,218,169,.7); animation:beam 5s cubic-bezier(.5,0,.5,1) infinite; }
+  @keyframes beam { 0%,7%{top:-58px} 58%,100%{top:100%} }
+
+  /* ===== ג׳ · הרשימה, מקובצת לפי חדר ===== */
+  .acc { margin-top:10px; border:1.5px solid var(--green-line); border-radius:12px;
+    background:var(--green-tint); padding:10px 12px 11px; }
+  .acc-t { font-size:.73rem; font-weight:800; color:var(--green-ink); margin-bottom:8px;
+    display:flex; justify-content:space-between; align-items:baseline; }
+  .acc-t span { font-weight:600; color:var(--text-muted); font-size:.68rem; }
+  .accgrid { display:grid; grid-template-columns:repeat(3,1fr); gap:6px 12px; align-items:start; }
+  .coln { font-size:.68rem; font-weight:800; color:var(--text-muted); margin-bottom:4px;
+    padding-bottom:3px; border-bottom:1px solid rgba(0,166,81,.28);
+    opacity:0; animation:none 15s linear infinite both; }
+  .acc ul { list-style:none; display:flex; flex-direction:column; gap:3px; }
+  .acci { font-size:.77rem; font-weight:700; color:var(--text); display:flex;
+    gap:5px; align-items:center; line-height:1.35;
+    opacity:0; animation:none 15s linear infinite both; }
+  .acci::before { content:'✓'; color:var(--green-line); font-size:.68rem; }
+  @media (max-width:560px){
+    .accgrid { gap:5px 8px; }
+    .acci { font-size:.72rem; gap:4px; }
+    .coln { font-size:.64rem; }
+  }
+
+  @keyframes bx1 { 0%,6.67%{opacity:0} 8.13%,30.00%{opacity:1} 32.00%,100%{opacity:0} }
+  @keyframes bx2 { 0%,9.33%{opacity:0} 10.80%,30.00%{opacity:1} 32.00%,100%{opacity:0} }
+  @keyframes bx3 { 0%,12.00%{opacity:0} 13.47%,30.00%{opacity:1} 32.00%,100%{opacity:0} }
+  @keyframes bx4 { 0%,14.67%{opacity:0} 16.13%,30.00%{opacity:1} 32.00%,100%{opacity:0} }
+  .boxes rect.k1,.bxl.k1{animation-name:bx1} .boxes rect.k2,.bxl.k2{animation-name:bx2}
+  .boxes rect.k3,.bxl.k3{animation-name:bx3} .boxes rect.k4,.bxl.k4{animation-name:bx4}
+  @keyframes cnt0 { 0%,16%{opacity:1} 17.33%,100%{opacity:0} }
+  @keyframes cnt1 { 0%,16%{opacity:0} 17.33%,49.33%{opacity:1} 50.67%,100%{opacity:0} }
+  @keyframes cnt2 { 0%,49.33%{opacity:0} 50.67%,82.67%{opacity:1} 84%,100%{opacity:0} }
+  @keyframes cnt3 { 0%,82.67%{opacity:0} 84%,98.67%{opacity:1} 100%{opacity:0} }
+  @keyframes rm1 { 0%,33%{opacity:1} 34.33%,100%{opacity:0} }
+  @keyframes rm2 { 0%,33%{opacity:0} 34.33%,66.33%{opacity:1} 67.67%,100%{opacity:0} }
+  @keyframes rm3 { 0%,66.33%{opacity:0} 67.67%,98.67%{opacity:1} 100%{opacity:0} }
+  .tot u b.c0{animation-name:cnt0} .tot u b.c1{animation-name:cnt1}
+  .tot u b.c2{animation-name:cnt2} .tot u b.c3{animation-name:cnt3}
+  .roomN em b.n1{animation-name:rm1} .roomN em b.n2{animation-name:rm2}
+  .roomN em b.n3{animation-name:rm3}
+  @keyframes acc0 { 0%,8.33%{opacity:0;transform:translateY(4px)} 10.33%,98.5%{opacity:1;transform:none} 100%{opacity:0} }
+  .acci.a0{animation-name:acc0}
+  @keyframes acc1 { 0%,11.00%{opacity:0;transform:translateY(4px)} 13.00%,98.5%{opacity:1;transform:none} 100%{opacity:0} }
+  .acci.a1{animation-name:acc1}
+  @keyframes acc2 { 0%,13.67%{opacity:0;transform:translateY(4px)} 15.67%,98.5%{opacity:1;transform:none} 100%{opacity:0} }
+  .acci.a2{animation-name:acc2}
+  @keyframes acc3 { 0%,16.33%{opacity:0;transform:translateY(4px)} 18.33%,98.5%{opacity:1;transform:none} 100%{opacity:0} }
+  .acci.a3{animation-name:acc3}
+  @keyframes acc4 { 0%,41.67%{opacity:0;transform:translateY(4px)} 43.67%,98.5%{opacity:1;transform:none} 100%{opacity:0} }
+  .acci.a4{animation-name:acc4}
+  @keyframes acc5 { 0%,44.33%{opacity:0;transform:translateY(4px)} 46.33%,98.5%{opacity:1;transform:none} 100%{opacity:0} }
+  .acci.a5{animation-name:acc5}
+  @keyframes acc6 { 0%,47.00%{opacity:0;transform:translateY(4px)} 49.00%,98.5%{opacity:1;transform:none} 100%{opacity:0} }
+  .acci.a6{animation-name:acc6}
+  @keyframes acc7 { 0%,75.00%{opacity:0;transform:translateY(4px)} 77.00%,98.5%{opacity:1;transform:none} 100%{opacity:0} }
+  .acci.a7{animation-name:acc7}
+  @keyframes acc8 { 0%,77.67%{opacity:0;transform:translateY(4px)} 79.67%,98.5%{opacity:1;transform:none} 100%{opacity:0} }
+  .acci.a8{animation-name:acc8}
+  @keyframes acc9 { 0%,80.33%{opacity:0;transform:translateY(4px)} 82.33%,98.5%{opacity:1;transform:none} 100%{opacity:0} }
+  .acci.a9{animation-name:acc9}
+  @keyframes acc10 { 0%,83.00%{opacity:0;transform:translateY(4px)} 85.00%,98.5%{opacity:1;transform:none} 100%{opacity:0} }
+  .acci.a10{animation-name:acc10}
+  @keyframes col1 { 0%,98.5%{opacity:1} 100%{opacity:0} }
+  @keyframes col2 { 0%,33%{opacity:0} 34.33%,98.5%{opacity:1} 100%{opacity:0} }
+  @keyframes col3 { 0%,66.33%{opacity:0} 67.67%,98.5%{opacity:1} 100%{opacity:0} }
+  .coln.n1b{animation-name:col1} .coln.n2b{animation-name:col2} .coln.n3b{animation-name:col3}
+
+  @media (prefers-reduced-motion:reduce){
+    .beam { display:none; }
+    .boxes rect,.bxl,.roomN em b,.tot u b,.acci,.coln,.scan .room,.boxes,.live::after
+      { animation:none; opacity:1; transform:none; }
+    .dots i::after { animation:none; transform:none; }
+    .r2,.r3,.b2,.b3,.l2,.l3 { display:none; }
+    .roomN em b:not(:first-child), .tot u b:not(:last-child) { opacity:0; }
+  }
+
+  .scan-q { font-size:.86rem; font-weight:700; color:var(--text-muted); margin:14px 0 0; text-align:center; }
+  .scan-picks { display:grid; grid-template-columns:repeat(3,1fr); gap:11px; margin-top:12px; }
+  .pick { border:1.5px solid var(--border); border-radius:14px; padding:16px 11px;
+    background:var(--white); cursor:pointer; text-align:center; position:relative; display:block;
+    width:100%; font-family:inherit; min-height:44px; }
+  .pick .ic { width:40px; height:40px; margin:0 auto 9px; border-radius:12px; background:var(--green-light);
+    display:flex; align-items:center; justify-content:center; }
+  .pick .ic svg { width:20px; height:20px; stroke:var(--green); fill:none; stroke-width:1.9; }
+  .pick b { display:block; font-size:.97rem; font-weight:800; }
+  .pick i { display:block; font-style:normal; font-size:.79rem; color:var(--text-muted); margin-top:3px; }
+  .pick.ai { border-color:var(--green-line); border-width:2.5px; background:var(--green-tint); }
+  .pick.ai .ic { background:var(--green); } .pick.ai .ic svg { stroke:#fff; }
+  .pick.ai b { color:var(--green-ink); }
+  .tag2 { position:absolute; top:-11px; right:50%; transform:translateX(50%);
+    background:var(--green); color:#fff; font-size:.69rem; font-weight:800;
+    padding:3px 12px; border-radius:999px; white-space:nowrap; }
+  @media (max-width:620px){
+    .scan-picks { grid-template-columns:1fr; gap:8px; }
+    .pick { display:grid; grid-template-columns:auto 1fr; gap:0 11px;
+      align-items:center; text-align:start; padding:11px 13px; }
+    .pick .ic { grid-row:1/3; margin:0; width:36px; height:36px; }
+    .pick b, .pick i { grid-column:2; }
+    .pick .tag2 { top:50%; right:auto; left:11px; transform:translateY(-50%); }
+    .pick b { font-size:.93rem; } .pick i { margin-top:1px; }
+    .pick .tag2 { position:static; grid-column:2; justify-self:start;
+      transform:none; margin-top:5px; }
+  }
+  </style>
 </head>
 <!-- ⚠️ 15.9 — `has-nav-menu` מסמנת שלדף יש תפריט המבורגר. רק כאן.
      ה-CSS מסתיר את קישורי הניווט מתחת ל-680px **רק** בדף שיש בו מה
@@ -323,49 +493,59 @@
       </div>
 
       <div class="hp-panel">
-        <div class="hp-panel-top" id="hp-tool">
-          <!-- ══ בורר השירות ══════════════════════════════════════════
-               ⚠️ `role="radiogroup"` עם שלושה `role="radio"` ו-`aria-checked`
-               אמיתי שמתעדכן ב-JS. **לא** `role="button"` על הילדים — ממצא
-               שכבר תוקן באתר פעם אחת ואין להחזיר: קורא מסך היה מכריז שלושה
-               כפתורים בלתי-קשורים במקום "אפשרות 1 מתוך 3, מסומנת".
-               ⚠️ ניווט המקלדת הוא roving tabindex לפי APG: Tab נכנס לקבוצה
-               פעם אחת (אל המסומנת), והחצים/Home/End מזיזים בתוכה. -->
-          <div class="hp-svc" role="radiogroup" aria-label="בחירת שירות" id="hp-svc">
-            <button type="button" class="hp-svc-chip" role="radio" aria-checked="true"  data-svc="apartment"   tabindex="0">מעבר דירה</button>
-            <button type="button" class="hp-svc-chip" role="radio" aria-checked="false" data-svc="smallMove"   tabindex="-1">מובילים בקטנה</button>
-            <button type="button" class="hp-svc-chip" role="radio" aria-checked="false" data-svc="marketplace" tabindex="-1">יד שנייה חינם</button>
+        <div class="hp-panel-top">
+          <div class="statusbar">
+            <span class="roomN">סורק <em><b class="n1">סלון</b><b class="n2">חדר שינה</b><b class="n3">מטבח</b></em>
+              · <span class="live">מזהה פריטים…</span></span>
+            <span class="dots" aria-hidden="true"><i></i><i></i><i></i></span>
+            <span class="tot"><u><b class="c0">0</b><b class="c1">4</b><b class="c2">7</b><b class="c3">11</b></u> פריטים</span>
           </div>
-
-          <!-- ══ הדרך הראשונה: תיאור חופשי ═══════════════════════════ -->
-          <form class="hp-chat" id="hp-chat-form">
-            <span class="hp-chat-field">
-              <label for="hp-chat-input" class="hp-sr">תיאור חופשי של מה שמעבירים</label>
-              <input type="text" id="hp-chat-input" name="q" autocomplete="off"
-                     placeholder="ספרו לנו מה מעבירים…">
-            </span>
-            <button type="submit" class="hp-go">נתחיל ←</button>
-          </form>
-
-          <p class="hp-sep" id="hp-sep"><span>או בחרו מהנפוצים</span></p>
-
-          <!-- הרשת נבנית ב-JS מהקטלוג האמיתי. -->
-          <div class="hp-grid" id="hp-items"></div>
-
-          <p class="hp-note-line" id="hp-volume-note" hidden></p>
-          <p class="hp-note-line" id="hp-items-hint">טוען את הקטלוג…</p>
-
-          <a class="hp-more" id="hp-more-link" href="app/apartment.html">חיפוש בכל הקטלוג ←</a>
-          <!-- ⚠️ קישור, לא אזור-גרירה. בחירת התמונות וניתוח ה-AI חיים בתוך
-               זרימת ההזמנה ושם הם גם דורשים התחברות. אזור גרירה שמקבל קובץ
-               ולא עושה איתו כלום היה נראה שבור. -->
-          <p class="hp-cam" id="hp-cam">או <a id="hp-photo-link" href="app/apartment.html">צלמו את החדר</a> ונזהה את הפריטים.</p>
+          <div class="scan" role="img" aria-label="הדגמה: הסריקה עוברת בין סלון, חדר שינה ומטבח ומסמנת כל פריט בשמו">
+          <svg class="room r1" viewBox="0 0 520 190" preserveAspectRatio="none" aria-hidden="true" focusable="false"><use href="#rm-living"/></svg>
+          <svg class="boxes b1" viewBox="0 0 520 190" preserveAspectRatio="none" aria-hidden="true" focusable="false">
+            <rect class="k1" x="46" y="42" width="72" height="118"/>
+            <rect class="k2" x="148" y="48" width="52" height="112"/>
+            <rect class="k3" x="228" y="134" width="70" height="26"/>
+            <rect class="k4" x="328" y="84" width="150" height="76"/>
+          </svg>
+          <span class="bxl l1 k1" style="left:8.8%;bottom:79.0%">מקרר</span>
+          <span class="bxl l1 k2" style="left:28.5%;bottom:75.8%">מנורה</span>
+          <span class="bxl l1 k3" style="left:43.8%;bottom:30.6%">שולחן</span>
+          <span class="bxl l1 k4" style="left:63.1%;bottom:56.9%">ספה תלת</span>
+          <svg class="room r2" viewBox="0 0 520 190" preserveAspectRatio="none" aria-hidden="true" focusable="false"><use href="#rm-bed"/></svg>
+          <svg class="boxes b2" viewBox="0 0 520 190" preserveAspectRatio="none" aria-hidden="true" focusable="false">
+            <rect class="k1" x="64" y="62" width="212" height="98"/>
+            <rect class="k2" x="300" y="118" width="50" height="42"/>
+            <rect class="k3" x="380" y="42" width="92" height="118"/>
+          </svg>
+          <span class="bxl l2 k1" style="left:12.3%;bottom:68.5%">מיטה זוגית</span>
+          <span class="bxl l2 k2" style="left:57.7%;bottom:39.0%">שידת לילה</span>
+          <span class="bxl l2 k3" style="left:73.1%;bottom:79.0%">ארון</span>
+          <svg class="room r3" viewBox="0 0 520 190" preserveAspectRatio="none" aria-hidden="true" focusable="false"><use href="#rm-kitchen"/></svg>
+          <svg class="boxes b3" viewBox="0 0 520 190" preserveAspectRatio="none" aria-hidden="true" focusable="false">
+            <rect class="k1" x="48" y="104" width="142" height="56"/>
+            <rect class="k2" x="210" y="86" width="44" height="74"/>
+            <rect class="k3" x="282" y="100" width="66" height="60"/>
+            <rect class="k4" x="390" y="44" width="80" height="116"/>
+          </svg>
+          <span class="bxl l3 k1" style="left:9.2%;bottom:46.4%">שולחן אוכל</span>
+          <span class="bxl l3 k2" style="left:40.4%;bottom:70.5%">כיסאות</span>
+          <span class="bxl l3 k3" style="left:54.2%;bottom:48.5%">תנור</span>
+          <span class="bxl l3 k4" style="left:75.0%;bottom:77.9%">מקרר</span>
+          <span class="beam"></span>
+          </div>
+          <p class="scan-q">שלוש דרכים, אותה תוצאה — בחרו את הנוחה לכם</p>
+          <div class="scan-picks">
+            <button class="pick ai"><span class="tag2">הכי מהיר</span>
+              <span class="ic"><svg aria-hidden="true"><use href="#ic-cam"/></svg></span>
+              <b>צלמו את הבית</b><i>נזהה את הפריטים</i></button>
+            <button class="pick"><span class="ic"><svg aria-hidden="true"><use href="#ic-chat"/></svg></span>
+              <b>ספרו במילים</b><i>&laquo;דירת 3 עם ספה&raquo;</i></button>
+            <button class="pick"><span class="ic"><svg aria-hidden="true"><use href="#ic-list"/></svg></span>
+              <b>בחרו מרשימה</b><i>243 פריטים</i></button>
+          </div>
         </div>
 
-        <!-- ══ שורת המחיר ═══════════════════════════════════════════════
-             ⚠️ `aria-live="polite"` + `aria-atomic` יושבים על ראש המחיר
-             בלבד (התווית והמספר), ולא על הרצועה כולה: אזור חי שעוטף גם את
-             הכפתור וגם את הפירוט היה מקריא את הכול מחדש בכל לחיצה. -->
         <div class="hp-pay" id="hp-price">
           <div class="hp-sum" aria-live="polite" aria-atomic="true">
             <b id="hp-price-num" hidden></b>
@@ -380,11 +560,7 @@
         </div>
 
         <!-- ══ לוח יד שנייה — מחליף את הכלי כששירות זה נבחר ═══════════ -->
-        <div class="hp-market" id="hp-market" hidden>
-          <h2>יד שנייה חינם</h2>
-          <p>לוח למסירת פריטים בחינם בלבד: מפרסמים פריט שלא צריך יותר, ומי שגר קרוב לוקח אותו. לא עוברים בו כספים — ולפריט שנלקח אפשר להזמין הובלה כהזמנת מובילים בקטנה.</p>
-          <a class="hp-go" href="app/marketplace.html">ללוח המודעות ←</a>
-        </div>
+        
       </div>
     </div>
   </section>
@@ -787,264 +963,19 @@
        משכפל אותו. אם הייבוא ייכשל, אין נפילה למספר מומצא — הכרטיס מציג
        הודעה שהמחיר לא נטען (המאזין בסוף הקובץ).
        ══════════════════════════════════════════════════════════════════ -->
-  <script type="module">
-    import { findItemAnywhere, getItemPriceAnyCategory, getAllItemsFlat } from './app/data/items.js';
-    import { BASE_PRICE, getVolumeDiscount } from './app/data/pricing.js';
-    import { BOX_ITEMS, MAX_VOLUME, estimateVolume } from './app/data/smallMoveItems.js';
-
-    window.__hpReady = true;
-
-    /* ⚠️ המספר היחיד כאן שהועתק ולא יובא. `app/small-move.html` מגדיר
-       אותו בשורה `const BASE = 100;` כקבוע מקומי — הוא **אינו**
-       `BASE_PRICE` של `pricing.js` (150), ואינו מיוצא משום מקום. אם הוא
-       ישתנה שם, הוא חייב להשתנות גם כאן. זו החוליה היחידה שאינה נאכפת
-       מעצמה, ולכן היא מסומנת. */
-    const SMALL_MOVE_BASE = 100;
-
-    /* שישה פריטים לכל שירות — הרשת היא 3×2, ושתי עמודות מתחת ל-620px. */
-    const SERVICES = {
-      apartment: {
-        href: 'app/apartment.html',
-        featured: ['double_bed', 'sofa_3seat', 'fridge_freezer_medium',
-                   'wardrobe_large', 'dining_table_medium', 'washer_dryer_large'],
-      },
-      smallMove: {
-        href: 'app/small-move.html',
-        featured: ['box_m', 'box_l', 'armchair_1seat',
-                   'fridge_freezer_medium', 'washer_dryer_large', 'tv_up_to_55'],
-      },
-      marketplace: { href: 'app/marketplace.html', featured: [] },
-    };
-
-    let service = 'apartment';
-    const qty = { apartment: {}, smallMove: {} };
-
-    /* ---------- קריאת פריט מהמקור האמיתי ---------- */
-
-    /** ארגזי הקרטון חיים ב-`smallMoveItems.js` ולא בקטלוג החדרים. */
-    const boxOf = (key) => BOX_ITEMS.find((b) => b.key === key);
-
-    function itemInfo(key) {
-      const box = boxOf(key);
-      if (box) return { key, label: box.label, price: box.price, volume: box.volume };
-      const item = findItemAnywhere(key);
-      if (!item) return null;
-      return { key, label: item.label, price: getItemPriceAnyCategory(key), volume: estimateVolume(item) };
-    }
-
-    /** שם תצוגה קצר — נגזר מהתווית האמיתית ואינו נכתב מחדש ביד:
-     *  "מיטה זוגית (160×200 ס\"מ)" ⇠ "מיטה זוגית".
-     *  ⚠️ השם הנגיש נשאר התווית **המלאה**, כולל המידות. */
-    const shortLabel = (label) => label.split(/\s*[(—]/)[0].trim();
-
-    /* ---------- המחיר ---------- */
-
-    /**
-     * ⚠️ העתק מדויק של החישוב ב-`app/apartment.html` ו-`app/small-move.html`,
-     * עם שלושת הרכיבים שאי-אפשר לדעת בעמוד הבית מאופסים:
-     *   · `travelCost` — `round(distance * PRICE_PER_KM)`, ואין עדיין כתובות ⇠ 0
-     *   · `floorSurcharge` — דורש קומה ומעלית בשני הקצוות ⇠ 0
-     *   · `surgeAmount` — `getSurgePricing(date)`, ואין עדיין תאריך ⇠ אינו נכלל
-     * שלושתם **נאמרים בפירוש** בפירוט שתחת «איך המחיר מחושב?». הם לא "נשכחו".
-     */
-    function computePrice() {
-      const selected = Object.entries(qty[service] || {})
-        .filter(([, q]) => q > 0)
-        .map(([key, q]) => ({ ...itemInfo(key), qty: q }))
-        .filter((i) => i.label);
-
-      const itemsSubtotal = selected.reduce((s, i) => s + i.price * i.qty, 0);
-      const units = selected.reduce((s, i) => s + i.volume * i.qty, 0);
-
-      if (service === 'smallMove') {
-        // מובילים בקטנה: בלי הנחת נפח, ועלות בסיס נפרדת.
-        return {
-          selected, units, itemsSubtotal, discountRate: 0, discount: 0,
-          base: SMALL_MOVE_BASE, total: SMALL_MOVE_BASE + itemsSubtotal,
-        };
-      }
-      const discountRate = getVolumeDiscount(itemsSubtotal);
-      const discount = Math.round(itemsSubtotal * discountRate);
-      return {
-        selected, units, itemsSubtotal, discountRate, discount,
-        base: BASE_PRICE, total: Math.round(BASE_PRICE + itemsSubtotal - discount),
-      };
-    }
-
-    /* ---------- רינדור ---------- */
-
-    const $ = (id) => document.getElementById(id);
-    const shekel = (n) => '₪' + n.toLocaleString('he-IL');
-
-    /* ⚠️ חובה, לא הידור. תוויות הקטלוג מכילות גרשיים כפולים — 'ס"מ' בכל
-       פריט עם מידות, ו-'טלוויזיה עד 55"' באינצ'ים. בלי בריחה הן סוגרות
-       את `aria-label="…"` באמצע, ומה שיוצא הוא אטריביוט קטוע ותגית
-       שבורה: בדיוק המקרה שבו הקוד "נראה נכון" והדף מתנהג אחרת. */
-    const esc = (s) => String(s)
-      .replace(/&/g, '&amp;').replace(/</g, '&lt;')
-      .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
-
-    function renderItems() {
-      const cfg = SERVICES[service];
-      $('hp-items').innerHTML = cfg.featured.map((key) => {
-        const info = itemInfo(key);
-        if (!info) return '';
-        const q = (qty[service] || {})[key] || 0;
-        const picked = q > 0;
-        const addLabel = picked
-          ? 'הוסף עוד ' + info.label + ', ' + shekel(info.price) + ' ליחידה, נבחרו ' + q
-          : 'הוסף ' + info.label + ', ' + shekel(info.price);
-        return '<span class="hp-cell" data-picked="' + picked + '">'
-          + (picked
-              ? '<button type="button" class="hp-cell-sub" data-sub="' + esc(key) + '"'
-                + ' aria-label="' + esc('הסר ' + info.label) + '"><span aria-hidden="true">−</span></button>'
-              : '')
-          + '<button type="button" class="hp-cell-add" data-add="' + esc(key) + '"'
-          + ' aria-label="' + esc(addLabel) + '">'
-          + '<span class="hp-cell-name">' + esc(shortLabel(info.label)) + '</span>'
-          + '<span class="hp-cell-q" aria-hidden="true">' + (picked ? q : '+') + '</span>'
-          + '</button>'
-          + '</span>';
-      }).join('');
-    }
-
-    function renderPrice() {
-      const p = computePrice();
-      const count = p.selected.reduce((s, i) => s + i.qty, 0);
-
-      /* ⚠️ 15.9 — במצב ריק הוצג מקף בגודל המחיר ובצבעו, והוא נקרא על המסך
-         כקו ירוק מרחף מעל הטקסט. עכשיו ראש השורה מוסתר לגמרי והמשפט לבדו
-         נושא את ההסבר. `hidden` ולא מחרוזת ריקה, כדי שקורא מסך לא יכריז
-         אלמנט ריק בכל שינוי כמות. */
-      const numEl = $('hp-price-num');
-      numEl.hidden = !count;
-      numEl.innerHTML = count ? esc(shekel(p.total)) + ' <small>כולל מע״מ</small>' : '';
-      $('hp-price-label').textContent = count
-        ? count + (count === 1 ? ' פריט' : ' פריטים') + ' · נסגר אחרי הכתובות'
-        : 'בחרו פריט כדי לראות מחיר סופי';
-
-      const rows = [];
-      rows.push(['פריטים (' + count + ')', shekel(p.itemsSubtotal)]);
-      if (p.discount > 0) {
-        rows.push(['הנחת נפח (' + Math.round(p.discountRate * 100) + '%)', '−' + shekel(p.discount)]);
-      }
-      rows.push(['עלות בסיס', shekel(p.base)]);
-      rows.push(['נסיעה · קומות · תוספת סוף שבוע', 'אחרי הכתובות והתאריך']);
-      rows.push(['סך הכול עד כה', shekel(p.total)]);
-      $('hp-breakdown').innerHTML = rows
-        .map((r) => '<div><span>' + esc(r[0]) + '</span><span>' + esc(r[1]) + '</span></div>')
-        .join('');
-
-      /* ⚠️ מגבלת נפח הרכב — `MAX_VOLUME` מ-`smallMoveItems.js`, אותו מספר
-         שמגביל את הזרימה עצמה. בלי זה אפשר לבנות כאן הזמנה שלא נכנסת לרכב. */
-      const note = $('hp-volume-note');
-      const over = service === 'smallMove' && p.units > MAX_VOLUME;
-      note.hidden = !over;
-      if (over) note.textContent = 'ההזמנה כבר גדולה מרכב של מובילים בקטנה — כדאי לעבור למעבר דירה.';
-    }
-
-    function renderService() {
-      const cfg = SERVICES[service];
-      const isMarket = service === 'marketplace';
-
-      document.querySelectorAll('[data-svc]').forEach((b) => {
-        const on = b.dataset.svc === service;
-        b.setAttribute('aria-checked', String(on));
-        b.tabIndex = on ? 0 : -1;
-      });
-
-      /* ⚠️ מוסתרים הפריטים שבתוך הכלי, ולא `#hp-tool` עצמו — בורר השירות
-         יושב בתוכו, והסתרתו הייתה נועלת את המבקר בתוך "יד שנייה חינם"
-         בלי דרך לחזור.
-         ⚠️ ולכן גם קיים הכלל `.hp-stage [hidden]{display:none!important}`
-         ב-`style.css`: `[hidden]` של הדפדפן מגיע מגיליון ברירת המחדל
-         ומפסיד לכל `display:flex/grid` מפורש. בלעדיו ההסתרה הזו "נכתבת"
-         ופשוט לא קורית — שקט ובלי שגיאה. */
-      ['hp-chat-form', 'hp-sep', 'hp-items', 'hp-items-hint', 'hp-more-link', 'hp-cam']
-        .forEach((id) => { $(id).hidden = isMarket; });
-      $('hp-price').hidden = isMarket;
-      $('hp-market').hidden = !isMarket;
-      if (isMarket) { $('hp-volume-note').hidden = true; return; }
-
-      $('hp-more-link').href = cfg.href;
-      $('hp-photo-link').href = cfg.href;
-      $('hp-continue').href = cfg.href;
-      $('hp-items-hint').textContent = 'אלה הנפוצים ביותר — בהזמנה עצמה יש '
-        + getAllItemsFlat().length + ' פריטים לבחירה.';
-      renderItems();
-      renderPrice();
-    }
-
-    /* ---------- אירועים ---------- */
-
-    $('hp-items').addEventListener('click', (e) => {
-      const add = e.target.closest('[data-add]');
-      const sub = e.target.closest('[data-sub]');
-      if (!add && !sub) return;
-      const key = (add || sub).dataset.add || (add || sub).dataset.sub;
-      const bag = qty[service];
-      bag[key] = Math.max(0, (bag[key] || 0) + (add ? 1 : -1));
-      if (!bag[key]) delete bag[key];
-      renderItems();
-      renderPrice();
-      /* ⚠️ המיקוד חוזר לצ'יפ שנלחץ. בלי זה כל לחיצה מחזירה את המיקוד
-         ל-<body>, ומשתמש מקלדת מאבד את מקומו אחרי כל פריט. */
-      const again = document.querySelector('[data-add="' + key + '"]');
-      if (again) again.focus();
-    });
-
-    /* בורר השירות — לחיצה, וחצים לפי APG. */
-    const chips = Array.from(document.querySelectorAll('[data-svc]'));
-    $('hp-svc').addEventListener('click', (e) => {
-      const b = e.target.closest('[data-svc]');
-      if (!b) return;
-      service = b.dataset.svc;
-      renderService();
-    });
-    $('hp-svc').addEventListener('keydown', (e) => {
-      const i = chips.indexOf(document.activeElement);
-      if (i === -1) return;
-      let next = null;
-      if (e.key === 'ArrowRight' || e.key === 'ArrowUp') next = (i + chips.length - 1) % chips.length;
-      if (e.key === 'ArrowLeft' || e.key === 'ArrowDown') next = (i + 1) % chips.length;
-      if (e.key === 'Home') next = 0;
-      if (e.key === 'End') next = chips.length - 1;
-      if (next === null) return;
-      e.preventDefault();
-      service = chips[next].dataset.svc;
-      renderService();
-      chips[next].focus();
-    });
-
-    /* התיאור החופשי — מעביר לזרימה הקיימת. הטקסט אינו מעובד כאן. */
-    $('hp-chat-form').addEventListener('submit', (e) => {
-      e.preventDefault();
-      window.location.href = SERVICES[service].href;
-    });
-
-    /* מספר הפריטים בפס העובדות — מהקטלוג, לא מודבק. */
-    $('hp-catalog-count').textContent = getAllItemsFlat().length.toLocaleString('he-IL');
-
-    renderService();
-  </script>
+  
 
   <!-- ⚠️ רשת ביטחון. אם הייבוא של מודולי התמחור נכשל (רשת, MIME שגוי,
        דפדפן ישן) — הדף **לא** מציג מספר, הוא אומר שהמחיר לא נטען. מספר
        מודבק במקום חישוב אמיתי הוא בדיוק מה שאסור שיקרה כאן. -->
-  <script>
-    setTimeout(function () {
-      /* ⚠️ התנאי הוא **הרשת שנבנתה בפועל**, ולא דגל "המודול נטען".
-         נמדד: `id` חסר אחד גרם ל-TypeError אחרי `__hpReady = true`,
-         כלומר הדגל היה דלוק והכלי היה ריק — והרשת ביטחון לא נפתחה. */
-      var grid = document.getElementById('hp-items');
-      if (grid && grid.children.length) return;
-      var num = document.getElementById('hp-price-num');
-      var label = document.getElementById('hp-price-label');
-      var hint = document.getElementById('hp-items-hint');
-      if (num) num.textContent = 'לא זמין';
-      if (label) label.textContent = 'המחיר לא נטען';
-      if (hint) hint.textContent = 'טעינת הקטלוג נכשלה — נסו לרענן את הדף.';
-    }, 4000);
-  </script>
+  
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false"><defs>
+  <symbol id="ic-cam" viewBox="0 0 24 24"><path d="M4 8V6a2 2 0 0 1 2-2h2M16 4h2a2 2 0 0 1 2 2v2M20 16v2a2 2 0 0 1-2 2h-2M8 20H6a2 2 0 0 1-2-2v-2" stroke-linecap="round"/><circle cx="12" cy="12" r="3.2"/></symbol>
+  <symbol id="ic-chat" viewBox="0 0 24 24"><path d="M21 11.5a8.4 8.4 0 0 1-9 8.4 9 9 0 0 1-3.6-.8L3 21l1.9-5.4A8.4 8.4 0 0 1 12 3a8.4 8.4 0 0 1 9 8.5z" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+  <symbol id="ic-list" viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h10" stroke-linecap="round"/></symbol>
+  <symbol id="rm-living" viewBox="0 0 520 190"><path d="M20 156h480"/><path d="M52 156V54a8 8 0 0 1 8-8h42a8 8 0 0 1 8 8v102"/><path d="M52 94h58M96 72v16M96 102v18"/><path d="M158 156h30M173 156V78"/><path d="m156 78 9-24h16l9 24z"/><path d="M234 156v-16h58v16M241 140v16M285 140v16"/><path d="M334 156v-32a10 10 0 0 1 10-10h112a10 10 0 0 1 10 10v32"/><path d="M344 114v-16a10 10 0 0 1 10-10h92a10 10 0 0 1 10 10v16"/><path d="M400 114V88M344 128h112"/></symbol>
+  <symbol id="rm-bed" viewBox="0 0 520 190"><path d="M20 156h480"/><path d="M70 156v-28h200v28"/><path d="M70 128V74a8 8 0 0 1 8-8h14v62"/><path d="M100 128v-18h44v18M154 128v-18h44v18"/><path d="M92 140h178"/><path d="M304 156v-34h42v34M312 138h26"/><path d="M384 156V46h84v110"/><path d="M426 46v110M416 98v18M436 98v18"/></symbol>
+  <symbol id="rm-kitchen" viewBox="0 0 520 190"><path d="M20 156h480"/><path d="M54 110h130v10H54zM64 120v36M174 120v36"/><path d="M214 156v-24M248 156v-24M208 132h46v-9h-46zM213 123V86h8v37"/><path d="M286 156v-52h58v52M286 124h58M296 116h38"/><path d="M394 156V48h72v108"/><path d="M394 100h72M452 74v18M452 110v18"/></symbol>
+</defs></svg>
 </body>
 </html>
