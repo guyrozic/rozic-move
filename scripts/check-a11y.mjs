@@ -393,9 +393,14 @@ function checkDocument(file, src, palette) {
   for (const m of clean.matchAll(/<link\b[^>]*rel\s*=\s*["']?stylesheet["']?[^>]*>/gi)) {
     const href = /href\s*=\s*["']([^"']+)["']/.exec(m[0]);
     if (!href) continue;
-    const target = href[1].startsWith('/')
-      ? join(ROOT, href[1].slice(1))
-      : resolve(ROOT, dirname(file), href[1]);
+    /* ⚠️ 15.9 — חותמת המטמון (`style.css?v=ab12cd34`) אינה חלק מהנתיב.
+       בלי הקילוף הזה `readFileSync` נכשל בשקט, ה-`catch` בולע, וכל
+       הטוקנים של הגיליון נחשבים "לא מוגדרים" — 84 ממצאי unresolved-var
+       על שינוי שלא נגע בעיצוב כלל. */
+    const clean1 = href[1].split('?')[0].split('#')[0];
+    const target = clean1.startsWith('/')
+      ? join(ROOT, clean1.slice(1))
+      : resolve(ROOT, dirname(file), clean1);
     try { for (const v of declaredVars(readFileSync(target, 'utf8'))) available.add(v); }
     catch { /* גיליון חיצוני (גופנים) — אין מה לקרוא */ }
   }
