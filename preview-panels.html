@@ -99,8 +99,8 @@
     background:var(--white); cursor:pointer; }
   .B .room b { display:block; font-size:1.3rem; font-weight:900; color:var(--text); }
   .B .room span { font-size:.76rem; color:var(--text-muted); }
-  .B .room.on { background:#F0FAF4; border-color:#00A651; }
-  .B .room.on b, .B .room.on span { color:#007A3D; }
+  .B .room.on { background:var(--green-tint); border-color:var(--green-line); }
+  .B .room.on b, .B .room.on span { color:var(--green-ink); }
   .B .skip { display:inline-block; margin-top:13px; font-size:.85rem; font-weight:800; color:var(--green); }
 
   /* ===== C · שאלה אחת גדולה ===== */
@@ -115,7 +115,7 @@
   .C .opt .ic svg { width:20px; height:20px; stroke:var(--green); fill:none; stroke-width:2; }
   .C .opt b { display:block; font-size:.98rem; font-weight:800; }
   .C .opt span { font-size:.78rem; color:var(--text-muted); }
-  .C .opt.on { border-color:#00A651; background:#F0FAF4; }
+  .C .opt.on { border-color:var(--green-line); background:var(--green-tint); }
   .C .later { margin-top:16px; font-size:.84rem; color:var(--text-muted); }
 
   /* ===== D · עגלה ===== */
@@ -138,30 +138,148 @@
   .E .quick { display:grid; gap:11px; }
   .E .q { display:flex; align-items:center; gap:11px; border:1.5px solid var(--border);
     border-radius:12px; padding:11px 13px; background:var(--white); }
-  .E .q.done { background:#F0FAF4; border-color:#00A651; }
+  .E .q.done { background:var(--green-tint); border-color:var(--green-line); }
   .E .num { width:24px; height:24px; flex:none; border-radius:50%; background:var(--bg);
     border:1.5px solid var(--border); display:flex; align-items:center; justify-content:center;
     font-size:.78rem; font-weight:900; color:var(--text-muted); }
-  .E .q.done .num { background:#00A651; border-color:#00A651; color:#fff; }
+  .E .q.done .num { background:var(--green-line); border-color:var(--green-line); color:#fff; }
   .E .q .t { flex:1; min-width:0; }
   .E .q .t b { display:block; font-size:.9rem; font-weight:700; }
   .E .q .t span { font-size:.8rem; color:var(--text-muted); }
-  .E .q .v { font-size:.86rem; font-weight:800; color:#007A3D; white-space:nowrap; }
+  .E .q .v { font-size:.86rem; font-weight:800; color:var(--green-ink); white-space:nowrap; }
   .E .q .v.todo { color:var(--text-muted); font-weight:600; }
   .E .note { margin-top:13px; font-size:.83rem; color:var(--text-muted); }
+
+  /* ===== ו · מחשבון ===== */
+  .F .fld { margin-bottom:10px; }
+  .F .fld label { display:block; font-size:.8rem; font-weight:700; color:var(--text-mid); margin-bottom:4px; }
+  .F .fld .bx { height:42px; border:1.5px solid var(--border); border-radius:11px; background:var(--bg);
+    display:flex; align-items:center; padding:0 13px; color:var(--text-muted); font-size:.89rem; }
+  .F .two { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+  .F .res { margin-top:14px; background:var(--green-light); border-radius:12px; padding:13px 16px;
+    display:flex; align-items:baseline; gap:10px; }
+  .F .res b { font-size:1.6rem; font-weight:900; color:var(--green); }
+  .F .res span { font-size:.82rem; color:var(--text-mid); }
+
+  /* ===== ז · חיפוש ראשון ===== */
+  .G { text-align:center; }
+  .G .sbox { display:flex; align-items:center; gap:10px; border:2px solid var(--green);
+    border-radius:14px; padding:14px 16px; margin:14px 0 12px; background:var(--white); }
+  .G .sbox svg { width:20px; height:20px; stroke:var(--green); fill:none; stroke-width:2.2; flex:none; }
+  .G .sbox span { flex:1; text-align:start; color:var(--text-muted); font-size:.95rem; }
+  .G .pills { display:flex; flex-wrap:wrap; gap:7px; justify-content:center; }
+  .G .pill2 { font-size:.83rem; font-weight:600; padding:7px 13px; border-radius:999px;
+    border:1.5px solid var(--border); background:var(--white); color:var(--text-mid); }
+  .G .cnt { font-size:.83rem; color:var(--text-muted); margin-top:13px; }
+
+  /* ===== ח · תמונה ראשונה ===== */
+  .H2 { text-align:center; }
+  .H2 .drop { border:2px dashed var(--green-line); border-radius:15px; background:var(--green-tint);
+    padding:26px 18px; display:flex; flex-direction:column; align-items:center; gap:9px; }
+  .H2 .drop svg { width:34px; height:34px; stroke:var(--green); fill:none; stroke-width:1.8; }
+  .H2 .drop b { font-size:1.02rem; }
+  .H2 .drop span { font-size:.84rem; color:var(--text-mid); }
+  .H2 .badge { display:inline-block; background:var(--green); color:#fff; font-size:.72rem;
+    font-weight:800; padding:3px 10px; border-radius:999px; margin-bottom:10px; }
+  .H2 .alt { margin-top:14px; font-size:.85rem; color:var(--text-muted); }
+  .H2 .alt a { color:var(--green); font-weight:800; }
+
+  /* ===== ט · חבילות ===== */
+  .I2 .packs { display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin-top:12px; }
+  .I2 .pack { border:1.5px solid var(--border); border-radius:14px; padding:15px 11px; text-align:center;
+    background:var(--white); position:relative; }
+  .I2 .pack.on { border-color:var(--green-line); border-width:2.5px; background:var(--green-tint); }
+  .I2 .pack.on::before { content:'הכי נפוץ'; position:absolute; inset-block-start:-11px;
+    inset-inline-start:50%; transform:translateX(50%); background:var(--green); color:#fff;
+    font-size:.68rem; font-weight:800; padding:3px 11px; border-radius:999px; white-space:nowrap; }
+  .I2 .pack b { display:block; font-size:.95rem; font-weight:800; margin-bottom:3px; }
+  .I2 .pack .pr { font-size:1.35rem; font-weight:900; color:var(--green); line-height:1.1; }
+  .I2 .pack .it { font-size:.76rem; color:var(--text-muted); margin-top:5px; line-height:1.4; }
+  .I2 .custom { margin-top:13px; font-size:.85rem; color:var(--text-muted); text-align:center; }
+  .I2 .custom a { color:var(--green); font-weight:800; }
+
+  /* ===== י · צ'אט מלא ===== */
+  .J2 .thread { display:flex; flex-direction:column; gap:9px; margin:4px 0 12px; }
+  .J2 .msg { max-width:82%; font-size:.88rem; line-height:1.5; padding:9px 13px; border-radius:14px; }
+  .J2 .bot { background:var(--bg); border:1px solid var(--border); align-self:flex-start;
+    border-start-start-radius:4px; }
+  .J2 .me { background:var(--green); color:#fff; align-self:flex-end; border-start-end-radius:4px; }
+  .J2 .qr { display:flex; gap:7px; flex-wrap:wrap; margin-bottom:11px; }
+  .J2 .qr span { font-size:.82rem; font-weight:700; padding:7px 13px; border-radius:999px;
+    border:1.5px solid var(--green-line); color:var(--green-ink); background:var(--green-tint); }
+  .J2 .inp { display:flex; align-items:center; gap:9px; border:1.5px solid var(--border);
+    border-radius:12px; padding:10px 13px; background:var(--bg); }
+  .J2 .inp span { flex:1; color:var(--text-muted); font-size:.89rem; }
+
+  /* ===== יא · מחירון גלוי ===== */
+  .K2 .tbl { border:1px solid var(--border); border-radius:12px; overflow:hidden; margin-top:11px; }
+  .K2 .tr { display:flex; justify-content:space-between; align-items:center; gap:10px;
+    padding:9px 13px; font-size:.86rem; border-block-start:1px solid var(--border); }
+  .K2 .tr:first-child { border-block-start:0; background:var(--bg); font-weight:800; font-size:.79rem;
+    color:var(--text-muted); }
+  .K2 .tr b { font-weight:800; color:var(--green); font-variant-numeric:tabular-nums; }
+  .K2 .tr .add { font-size:.79rem; font-weight:800; color:var(--green); }
+  .K2 .more2 { margin-top:11px; font-size:.85rem; font-weight:800; color:var(--green); display:inline-block; }
+
+  /* ===== יב · טופס קלאסי ===== */
+  .L2 .fld { margin-bottom:11px; }
+  .L2 .fld label { display:block; font-size:.82rem; font-weight:700; margin-bottom:5px; }
+  .L2 .fld .bx { height:44px; border:1.5px solid var(--border); border-radius:10px; background:var(--white);
+    display:flex; align-items:center; padding:0 13px; color:var(--text-muted); font-size:.89rem; }
+  .L2 .row2 { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+  .L2 .hint2 { font-size:.8rem; color:var(--text-muted); margin-top:-6px; margin-bottom:11px; }
+
+  /* ===== יג · חדרים ===== */
+  .M2 .rooms2 { display:grid; grid-template-columns:repeat(4,1fr); gap:9px; margin-top:12px; }
+  .M2 .rm { border:1.5px solid var(--border); border-radius:13px; padding:15px 7px; text-align:center;
+    background:var(--white); }
+  .M2 .rm svg { width:24px; height:24px; stroke:var(--green); fill:none; stroke-width:1.9; margin-bottom:6px; }
+  .M2 .rm b { display:block; font-size:.85rem; font-weight:800; }
+  .M2 .rm span { font-size:.73rem; color:var(--text-muted); }
+  .M2 .rm.on { background:var(--green-tint); border-color:var(--green-line); }
+  .M2 .prog { margin-top:13px; font-size:.84rem; color:var(--text-muted); }
+
+  /* ===== יד · סליידר ===== */
+  .N2 { text-align:center; }
+  .N2 .val { font-size:2.4rem; font-weight:900; color:var(--green); line-height:1; margin:8px 0 3px; }
+  .N2 .lbl { font-size:.86rem; color:var(--text-muted); margin-bottom:18px; }
+  .N2 .track { height:8px; border-radius:99px; background:var(--border); position:relative; margin:0 6px 9px; }
+  .N2 .track::before { content:''; position:absolute; inset-block:0; inset-inline-start:0; width:52%;
+    background:var(--green); border-radius:99px; }
+  .N2 .knob { position:absolute; inset-block-start:50%; inset-inline-start:52%;
+    transform:translate(50%,-50%); width:24px; height:24px; border-radius:50%; background:var(--white);
+    border:3px solid var(--green); box-shadow:0 2px 8px rgba(20,42,34,.22); }
+  .N2 .ticks { display:flex; justify-content:space-between; font-size:.75rem; color:var(--text-muted); }
+  .N2 .after2 { margin-top:16px; font-size:.85rem; color:var(--text-muted); }
+
+  /* ===== טו · מה אחרים הזמינו ===== */
+  .O2 .ex { border:1.5px solid var(--border); border-radius:13px; padding:12px 14px; margin-top:10px;
+    display:flex; align-items:center; justify-content:space-between; gap:12px; background:var(--white); }
+  .O2 .ex .t2 { min-width:0; }
+  .O2 .ex b { display:block; font-size:.9rem; font-weight:800; }
+  .O2 .ex span { font-size:.79rem; color:var(--text-muted); }
+  .O2 .ex .pr2 { font-size:1.1rem; font-weight:900; color:var(--green); white-space:nowrap; }
+  .O2 .own { margin-top:13px; font-size:.85rem; text-align:center; color:var(--text-muted); }
+  .O2 .own a { color:var(--green); font-weight:800; }
+
+  @media (max-width:620px){
+    .F .two, .L2 .row2 { grid-template-columns:1fr; }
+    .I2 .packs, .C .opts { grid-template-columns:1fr; }
+    .M2 .rooms2, .B .rooms { grid-template-columns:repeat(2,1fr); }
+  }
 </style>
 </head>
 <body>
-<div data-build-stamp class="build-stamp" aria-hidden="true">עודכן 15.09 · 21:15</div>
+<div data-build-stamp class="build-stamp" aria-hidden="true">עודכן 15.09 · 21:22</div>
 <a class="skip-link" href="#main-content">דלג לתוכן המרכזי</a>
 <main id="main-content" tabindex="-1">
   <div class="pp-lead">
-    <h1>חמישה סגנונות לאזור ההזמנה</h1>
+    <h1>חמישה־עשר סגנונות לאזור ההזמנה</h1>
     <p>הרקע, הכותרת והמסגרת זהים בכולם — <b>רק הפנים של הכרטיס הלבן משתנה</b>.
        כל אחד מארגן את אותה משימה אחרת: להביא מבקר להתחיל הזמנה.</p>
     <nav class="pp-jump" aria-label="מעבר מהיר">
       <a href="#A">א · הקיים</a><a href="#B">ב · שלב־שלב</a><a href="#C">ג · שאלה אחת</a>
-      <a href="#D">ד · עגלה</a><a href="#E">ה · מסלול מהיר</a>
+      <a href="#D">ד · עגלה</a><a href="#E">ה · מסלול מהיר</a><a href="#F">ו · מחשבון</a><a href="#G">ז · חיפוש ראשון</a><a href="#H2">ח · תמונה ראשונה</a><a href="#I2">ט · חבילות</a><a href="#J2">י · צ׳אט מלא</a><a href="#K2">יא · מחירון גלוי</a><a href="#L2">יב · טופס קלאסי</a><a href="#M2">יג · לפי חדרים</a><a href="#N2">יד · סליידר</a><a href="#O2">טו · מה אחרים הזמינו</a>
     </nav>
   </div>
 </main>
@@ -273,6 +391,170 @@
   </div>
   <div class="pp-foot"><div class="pp-sum"><b>₪1,340</b><span>הערכה · נסגר אחרי הכתובות</span></div>
     <button class="pp-go">המשך ←</button></div></div>
+</div></div>
+
+
+<div class="pp-label"><h2 id="F">ו · מחשבון</h2><span>שלושה שדות ומחיר מיד — בלי לבחור פריט אחד.</span></div>
+<div class="pp-frame"><div class="pp-stage">
+  <div class="pp-copy"><p class="k">הובלות · מעברי דירה</p>
+    <h3>שלושה שדות, ומחיר.<em>מחיר כאן ועכשיו.</em></h3>
+    <p>מחשבון ישיר — בלי לבחור פריטים.</p></div>
+  <div class="pp-card F"><div class="pp-in">
+    <div class="two">
+      <div class="fld"><label>מאיפה</label><div class="bx">עיר ורחוב</div></div>
+      <div class="fld"><label>לאן</label><div class="bx">עיר ורחוב</div></div></div>
+    <div class="fld"><label>גודל הדירה</label><div class="bx">3 חדרים</div></div>
+    <div class="res"><b>₪2,340</b><span>הערכה · נסגר אחרי הפריטים</span></div>
+  </div>
+  <div class="pp-foot"><div class="pp-sum"><b>₪2,340</b><span>הערכה · שלושה שדות</span></div>
+    <button class="pp-go">המשך להזמנה ←</button></div></div>
+</div></div>
+
+<div class="pp-label"><h2 id="G">ז · חיפוש ראשון</h2><span>שדה חיפוש גדול במרכז. מי שיודע מה הוא מחפש מתחיל מיד.</span></div>
+<div class="pp-frame"><div class="pp-stage">
+  <div class="pp-copy"><p class="k">הובלות · מעברי דירה</p>
+    <h3>מחפשים פריט,<br>ומתחילים.<em>מחיר כאן ועכשיו.</em></h3>
+    <p>שדה חיפוש אחד גדול.</p></div>
+  <div class="pp-card G"><div class="pp-in">
+    <div class="sbox"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-4.3-4.3" stroke-linecap="round"/></svg><span>חפשו פריט — מיטה, מקרר, ספה…</span></div>
+    <div class="pills"><span class="pill2">מיטה זוגית</span><span class="pill2">מקרר</span><span class="pill2">ספה</span>
+      <span class="pill2">ארון</span><span class="pill2">מכונת כביסה</span><span class="pill2">שולחן</span></div>
+    <p class="cnt">243 פריטים בקטלוג</p>
+  </div>
+  <div class="pp-foot"><div class="pp-sum"><span>חפשו פריט כדי להתחיל</span></div>
+    <button class="pp-go">המשך להזמנה ←</button></div></div>
+</div></div>
+
+<div class="pp-label"><h2 id="H2">ח · תמונה ראשונה</h2><span>אזור גרירה גדול. ה-AI עושה את העבודה.</span></div>
+<div class="pp-frame"><div class="pp-stage">
+  <div class="pp-copy"><p class="k">הובלות · מעברי דירה</p>
+    <h3>צלמו את החדר,<br>ואנחנו נזהה.<em>מחיר כאן ועכשיו.</em></h3>
+    <p>התמונה היא נקודת הפתיחה.</p></div>
+  <div class="pp-card H2"><div class="pp-in">
+    <span class="badge">זיהוי אוטומטי</span>
+    <div class="drop"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 16.5V19a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-2.5M12 3v13m0-13 4.5 4.5M12 3 7.5 7.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      <b>גררו תמונות של החדרים</b><span>נזהה את הפריטים במקומכם</span></div>
+    <p class="alt">או <a href="#H2">בחרו פריטים ידנית</a></p>
+  </div>
+  <div class="pp-foot"><div class="pp-sum"><span>העלו תמונה ונזהה</span></div>
+    <button class="pp-go">המשך להזמנה ←</button></div></div>
+</div></div>
+
+<div class="pp-label"><h2 id="I2">ט · חבילות</h2><span>שלוש חבילות מוכנות עם מחיר. הכי מהיר להחליט.</span></div>
+<div class="pp-frame"><div class="pp-stage">
+  <div class="pp-copy"><p class="k">הובלות · מעברי דירה</p>
+    <h3>חבילה מוכנה,<br>מחיר ידוע.<em>מחיר כאן ועכשיו.</em></h3>
+    <p>שלוש חבילות לפי גודל דירה.</p></div>
+  <div class="pp-card I2"><div class="pp-in">
+    <div class="packs">
+      <div class="pack"><b>דירת 2</b><p class="pr">₪1,340</p><p class="it">מיטה · ספה · מקרר · ארון</p></div>
+      <div class="pack on"><b>דירת 3</b><p class="pr">₪2,340</p><p class="it">+ שולחן · מכונת כביסה · טלוויזיה</p></div>
+      <div class="pack"><b>דירת 4+</b><p class="pr">₪3,280</p><p class="it">+ ריהוט נוסף וקרטונים</p></div></div>
+    <p class="custom">לא מדויק? <a href="#I2">בנו רשימה משלכם</a></p>
+  </div>
+  <div class="pp-foot"><div class="pp-sum"><b>₪2,340</b><span>חבילת דירת 3 חדרים</span></div>
+    <button class="pp-go">המשך להזמנה ←</button></div></div>
+</div></div>
+
+<div class="pp-label"><h2 id="J2">י · צ׳אט מלא</h2><span>הכרטיס הוא שיחה. אין טופס בכלל.</span></div>
+<div class="pp-frame"><div class="pp-stage">
+  <div class="pp-copy"><p class="k">הובלות · מעברי דירה</p>
+    <h3>פשוט ספרו לנו<br>מה מעבירים.<em>מחיר כאן ועכשיו.</em></h3>
+    <p>שיחה, לא טופס.</p></div>
+  <div class="pp-card J2"><div class="pp-in">
+    <div class="thread">
+      <p class="msg bot">היי! מה אתם מעבירים?</p>
+      <p class="msg me">דירת 3 חדרים, יש ספה גדולה ומקרר</p>
+      <p class="msg bot">מעולה. הספה תלת־מושבית או פינתית?</p></div>
+    <div class="qr"><span>תלת־מושבית</span><span>פינתית</span><span>לא בטוח</span></div>
+    <div class="inp"><span>כתבו תשובה…</span></div>
+  </div>
+  <div class="pp-foot"><div class="pp-sum"><span>עונים על שאלה כדי להמשיך</span></div>
+    <button class="pp-go">המשך להזמנה ←</button></div></div>
+</div></div>
+
+<div class="pp-label"><h2 id="K2">יא · מחירון גלוי</h2><span>רואים כמה כל פריט עולה לפני שבוחרים.</span></div>
+<div class="pp-frame"><div class="pp-stage">
+  <div class="pp-copy"><p class="k">הובלות · מעברי דירה</p>
+    <h3>המחירון גלוי,<br>בלי הפתעות.<em>מחיר כאן ועכשיו.</em></h3>
+    <p>רואים כמה כל פריט עולה.</p></div>
+  <div class="pp-card K2"><div class="pp-in">
+    <div class="tbl">
+      <div class="tr"><span>פריט</span><span>מחיר</span></div>
+      <div class="tr"><span>מיטה זוגית</span><span><b>₪180</b> <span class="add">הוסף</span></span></div>
+      <div class="tr"><span>ספה תלת־מושבית</span><span><b>₪220</b> <span class="add">הוסף</span></span></div>
+      <div class="tr"><span>מקרר/מקפיא</span><span><b>₪150</b> <span class="add">הוסף</span></span></div>
+      <div class="tr"><span>ארון 4 דלתות</span><span><b>₪260</b> <span class="add">הוסף</span></span></div></div>
+    <a class="more2" href="#K2">כל 243 הפריטים ←</a>
+  </div>
+  <div class="pp-foot"><div class="pp-sum"><span>0 פריטים נבחרו</span></div>
+    <button class="pp-go">המשך להזמנה ←</button></div></div>
+</div></div>
+
+<div class="pp-label"><h2 id="L2">יב · טופס קלאסי</h2><span>שדות מסודרים, בלי הפתעות. מה שמצופה.</span></div>
+<div class="pp-frame"><div class="pp-stage">
+  <div class="pp-copy"><p class="k">הובלות · מעברי דירה</p>
+    <h3>ממלאים,<br>ומקבלים מחיר.<em>מחיר כאן ועכשיו.</em></h3>
+    <p>טופס מסודר וצפוי.</p></div>
+  <div class="pp-card L2"><div class="pp-in">
+    <div class="fld"><label>סוג השירות</label><div class="bx">מעבר דירה</div></div>
+    <div class="row2">
+      <div class="fld"><label>כתובת מוצא</label><div class="bx">עיר, רחוב ומספר</div></div>
+      <div class="fld"><label>כתובת יעד</label><div class="bx">עיר, רחוב ומספר</div></div></div>
+    <div class="row2">
+      <div class="fld"><label>גודל</label><div class="bx">3 חדרים</div></div>
+      <div class="fld"><label>תאריך</label><div class="bx">בחרו תאריך</div></div></div>
+    <p class="hint2">המחיר הסופי נקבע אחרי בחירת הפריטים.</p>
+  </div>
+  <div class="pp-foot"><div class="pp-sum"><span>מלאו את השדות</span></div>
+    <button class="pp-go">המשך להזמנה ←</button></div></div>
+</div></div>
+
+<div class="pp-label"><h2 id="M2">יג · לפי חדרים</h2><span>עוברים על הבית חדר-חדר, כדי לא לשכוח.</span></div>
+<div class="pp-frame"><div class="pp-stage">
+  <div class="pp-copy"><p class="k">הובלות · מעברי דירה</p>
+    <h3>חדר אחרי חדר,<br>בלי לשכוח.<em>מחיר כאן ועכשיו.</em></h3>
+    <p>עוברים על הבית לפי חדרים.</p></div>
+  <div class="pp-card M2"><div class="pp-in">
+    <div class="rooms2">
+      <div class="rm on"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 18v-6a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v6M4 18h16M7 10V8" stroke-linecap="round"/></svg><b>סלון</b><span>3 פריטים</span></div>
+      <div class="rm"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="9" width="16" height="10" rx="2"/><path d="M8 9V6h8v3" stroke-linecap="round"/></svg><b>חדר שינה</b><span>הוסיפו</span></div>
+      <div class="rm"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="4" width="14" height="16" rx="2"/><path d="M9 8h2M9 13h6" stroke-linecap="round"/></svg><b>מטבח</b><span>הוסיפו</span></div>
+      <div class="rm"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v16M4 12h16" stroke-linecap="round"/></svg><b>עוד</b><span>מרפסת, מחסן</span></div></div>
+    <p class="prog">חדר אחד מתוך ארבעה — ואפשר לדלג על מה שלא רלוונטי.</p>
+  </div>
+  <div class="pp-foot"><div class="pp-sum"><b>₪640</b><span>3 פריטים · סלון</span></div>
+    <button class="pp-go">המשך להזמנה ←</button></div></div>
+</div></div>
+
+<div class="pp-label"><h2 id="N2">יד · סליידר</h2><span>גוררים גודל דירה והמחיר זז חי.</span></div>
+<div class="pp-frame"><div class="pp-stage">
+  <div class="pp-copy"><p class="k">הובלות · מעברי דירה</p>
+    <h3>מזיזים,<br>והמחיר זז.<em>מחיר כאן ועכשיו.</em></h3>
+    <p>סליידר אחד לגודל הדירה.</p></div>
+  <div class="pp-card N2"><div class="pp-in">
+    <p class="val">3 חדרים</p><p class="lbl">גררו כדי לשנות</p>
+    <div class="track"><span class="knob"></span></div>
+    <div class="ticks"><span>1</span><span>2</span><span>3</span><span>4</span><span>5+</span></div>
+    <p class="after2">אחרי זה נדייק לפי הפריטים שבאמת יש לכם.</p>
+  </div>
+  <div class="pp-foot"><div class="pp-sum"><b>₪2,340</b><span>הערכה לדירת 3 חדרים</span></div>
+    <button class="pp-go">המשך להזמנה ←</button></div></div>
+</div></div>
+
+<div class="pp-label"><h2 id="O2">טו · מה אחרים הזמינו</h2><span>דוגמאות אמיתיות כנקודת פתיחה.</span></div>
+<div class="pp-frame"><div class="pp-stage">
+  <div class="pp-copy"><p class="k">הובלות · מעברי דירה</p>
+    <h3>אנשים כמוכם<br>הזמינו את זה.<em>מחיר כאן ועכשיו.</em></h3>
+    <p>דוגמאות אמיתיות כנקודת פתיחה.</p></div>
+  <div class="pp-card O2"><div class="pp-in">
+    <div class="ex"><span class="t2"><b>דירת 3 חדרים · תל אביב ← חיפה</b><span>מיטה, ספה, מקרר, ארון ועוד 4</span></span><span class="pr2">₪2,340</span></div>
+    <div class="ex"><span class="t2"><b>דירת 2 חדרים · באותה עיר</b><span>מיטה, שולחן, מכונת כביסה</span></span><span class="pr2">₪980</span></div>
+    <div class="ex"><span class="t2"><b>כמה פריטים · מובילים בקטנה</b><span>ספה ומקרר בלבד</span></span><span class="pr2">₪370</span></div>
+    <p class="own">משהו דומה? <a href="#O2">התחילו מאחד מהם</a> או <a href="#O2">בנו רשימה משלכם</a></p>
+  </div>
+  <div class="pp-foot"><div class="pp-sum"><span>בחרו דוגמה או התחילו מאפס</span></div>
+    <button class="pp-go">המשך להזמנה ←</button></div></div>
 </div></div>
 
 <p style="max-width:900px;margin:0 auto;padding:26px 20px 60px;text-align:center;font-size:.9rem;color:var(--text-mid);line-height:1.7">
