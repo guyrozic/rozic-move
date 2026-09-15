@@ -1,0 +1,54 @@
+{
+  "generator": "scripts/make-accessible-formats.mjs",
+  "regulation": "תקנה 29(ד) — טקסט פשוט וקובץ קול",
+  "voice": {
+    "name": "Carmit",
+    "rate": 145,
+    "engine": "macOS say",
+    "mp3": "lame 32kbps mono"
+  },
+  "documents": {
+    "terms": {
+      "title": "תנאי שימוש",
+      "source": "terms.html",
+      "versionSource": "app/legal.js",
+      "text": {
+        "path": "accessible/terms.txt",
+        "bytes": 40912,
+        "blocks": 131,
+        "sourceSha256": "2c051c556e96f7e494203bda043c8f92eaf012d49951fd243c4f45fcc20b0385",
+        "termsVersion": "2026-09-3",
+        "generatedAt": "2026-09-15T14:41:59.700Z"
+      },
+      "audio": {
+        "path": "accessible/terms.mp3",
+        "bytes": 8037982,
+        "seconds": 2009.5,
+        "sourceSha256": "2c051c556e96f7e494203bda043c8f92eaf012d49951fd243c4f45fcc20b0385",
+        "termsVersion": "2026-09-3",
+        "generatedAt": "2026-09-15T14:41:59.700Z"
+      }
+    },
+    "privacy": {
+      "title": "מדיניות פרטיות",
+      "source": "privacy.html",
+      "versionSource": "app/legal.js",
+      "text": {
+        "path": "accessible/privacy.txt",
+        "bytes": 15933,
+        "blocks": 57,
+        "sourceSha256": "ac7f8dc035b20dbe8d6e837b998207cbb03c299288f0c41d477e35c9d0f3f3fa",
+        "termsVersion": "2026-09-3",
+        "generatedAt": "2026-09-15T14:41:59.700Z"
+      },
+      "audio": {
+        "path": "accessible/privacy.mp3",
+        "bytes": 3277009,
+        "seconds": 819.25,
+        "sourceSha256": "ac7f8dc035b20dbe8d6e837b998207cbb03c299288f0c41d477e35c9d0f3f3fa",
+        "termsVersion": "2026-09-3",
+        "generatedAt": "2026-09-15T14:41:59.700Z"
+      }
+    }
+  }
+}

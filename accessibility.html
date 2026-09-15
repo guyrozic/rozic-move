@@ -29,6 +29,9 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css">
+  <!-- 15.9 — "דפוס נגיש" לפי תקנה 29(ד)(4). ⚠️ media="print" הוא מה שמונע
+       מהגיליון לגעת בתצוגת המסך; ההסבר המלא בראש הקובץ. -->
+  <link rel="stylesheet" href="print-accessible.css" media="print">
   <style>
     .sub-hero {
       background: linear-gradient(160deg, #E8F7EF 0%, #F4FBF7 100%);
@@ -90,6 +93,82 @@
       padding: 0 8px;
       color: var(--text);
       font-weight: 700;
+    }
+
+    /* ── טופס הבקשה למידע בדרך נגישה (15.9) ────────────────────────────
+       ⚠️ **הסגנונות כאן ולא ב-`style.css` בכוונה.** שתי סיבות: סוכן אחר
+       עבד על הגיליון המשותף באותו יום, והכללים האלה משרתים דף אחד בלבד —
+       הם לא אמורים לנחות על 17 העמודים שטוענים אותו.
+       כל צבע בא מטוקן שנמדד; `scripts/check-a11y.mjs` נופל על ערך גולמי.
+       ⚠️ שדות הבחירה גדולים במכוון (22px) ושטח הלחיצה הוא כל השורה —
+       זו התאמה בפני עצמה, לא עיצוב. */
+    .a11y-form { margin: 18px 0 8px; display: grid; gap: 18px; }
+    .a11y-fieldset {
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 14px 16px 10px;
+      margin: 0;
+    }
+    .a11y-fieldset legend {
+      font-weight: 700;
+      color: var(--navy);
+      padding: 0 6px;
+      font-size: 1rem;
+    }
+    .a11y-opt {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      padding: 8px 4px;
+    }
+    .a11y-opt + .a11y-opt { border-top: 1px solid var(--border); }
+    .a11y-opt input { width: 22px; height: 22px; margin: 2px 0 0; flex: none; accent-color: var(--green); }
+    .a11y-opt label { flex: 1; cursor: pointer; line-height: 1.5; }
+    .a11y-opt-detail { display: block; color: var(--text-muted); font-size: 0.9rem; }
+    .a11y-field { display: grid; gap: 6px; }
+    .a11y-field label { font-weight: 700; color: var(--navy); }
+    .a11y-field input,
+    .a11y-field textarea {
+      font: inherit;
+      color: var(--text);
+      background: var(--white);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 11px 12px;
+      width: 100%;
+      box-sizing: border-box;
+    }
+    .a11y-field textarea { resize: vertical; }
+    /* ⚠️ מיקוד נראה לעין הוא WCAG 2.4.7 — ברירת המחדל של הדפדפן נעלמת
+       ברגע שנוגעים ב-border, ולכן הוא נכתב כאן במפורש ולא נשען עליה. */
+    .a11y-form input:focus-visible,
+    .a11y-form textarea:focus-visible,
+    .a11y-submit:focus-visible {
+      outline: 3px solid var(--green);
+      outline-offset: 2px;
+    }
+    .a11y-submit {
+      font: inherit;
+      font-weight: 700;
+      color: var(--white);
+      background: var(--green);
+      border: none;
+      border-radius: 50px;
+      padding: 13px 28px;
+      cursor: pointer;
+      justify-self: start;
+      transition: background var(--transition);
+    }
+    .a11y-submit:hover { background: var(--green-dark); }
+    .a11y-submit:disabled { opacity: 0.6; cursor: default; }
+    .a11y-status {
+      margin: 4px 0 14px;
+      padding: 14px 16px;
+      border-radius: var(--radius-sm);
+      background: var(--green-light);
+      border: 1px solid var(--green-mid);
+      color: var(--text);
+      line-height: 1.6;
     }
   </style>
 </head>
@@ -325,12 +404,38 @@
         אם מידע על השירות — ובכלל זה תנאי השימוש, מדיניות הפרטיות, פרטי הזמנה או אישור הזמנה —
         אינו נגיש לכם בדרך שבה הוא מוצג היום, אפשר לבקש אותו באחת מהתאמות הנגישות שבתקנה 29(ד):
       </p>
+      <!-- ⚠️ 15.9 — הרשימה הזו תוקנה כדי **לתאר את מה שקיים בפועל**, ולא
+           רק את מה שהתקנה מתירה להבטיח. שלוש מההתאמות כבר מופקות ומתפרסמות
+           (טקסט, קול, דפוס נגיש) ולכן הן נמסרות מיד; ברייל תלוי בספק חיצוני
+           ולכן נכתב כאן במפורש, עם המועד הסטטוטורי ולא עם הבטחה מיידית.
+           ⚠️ אין לכתוב כאן "זמין מיד" על משהו שאינו מופק בפועל. -->
       <ul>
-        <li><strong>קובץ דיגיטלי הניתן להקראה</strong> בתוכנת הקראה או להמרה לברייל (טקסט פשוט או PDF) — לא יאוחר משלושה שבועות מהבקשה.</li>
-        <li><strong>קובץ קול</strong> — לא יאוחר משלושה שבועות מהבקשה.</li>
+        <li>
+          <strong>קובץ טקסט להקראה</strong> — קובץ שתוכנת הקראה קוראת, וגם ניתן להמרה לברייל.
+          <strong>התקנון ומדיניות הפרטיות זמינים להורדה עכשיו:</strong>
+          <a tabindex="0" href="accessible/terms.txt">קובץ הטקסט של התקנון</a> ·
+          <a tabindex="0" href="accessible/privacy.txt">קובץ הטקסט של מדיניות הפרטיות</a>.
+          מסמך או מידע אחר — לא יאוחר משלושה שבועות מהבקשה.
+        </li>
+        <li>
+          <strong>קובץ קול</strong> — הקלטה של המסמך, להאזנה או להורדה.
+          <strong>התקנון ומדיניות הפרטיות זמינים עכשיו:</strong>
+          <a tabindex="0" href="accessible/terms.mp3">קובץ הקול של התקנון</a> ·
+          <a tabindex="0" href="accessible/privacy.mp3">קובץ הקול של מדיניות הפרטיות</a>.
+          מסמך או מידע אחר — לא יאוחר משלושה שבועות מהבקשה.
+        </li>
+        <li>
+          <strong>דפוס, או דפוס נגיש</strong> — אותיות דפוס בגופן פשוט ומעובה בגודל 16–22 נקודות,
+          על נייר שאינו מבריק וללא קישוטי רקע. <strong>זה כבר בנוי בדף:</strong> לחיצה על "הדפסה"
+          בדפדפן, בדף הזה וכן בתנאי השימוש ובמדיניות הפרטיות, מדפיסה אותם בפריסה הזו — בלי ניווט,
+          בלי רקעים, בשחור על לבן. מי שמעדיף שנשלח לו עותק מודפס בדואר — לא יאוחר משלושה שבועות מהבקשה.
+        </li>
         <li><strong>הקראה בקול על ידי אדם</strong> — מיד עם הבקשה. אם המידע ארוך מ-3 עמודים, במועד שנתאם יחד ולא יאוחר משבוע מהבקשה.</li>
-        <li><strong>דפוס, או דפוס נגיש</strong> — אותיות דפוס בגופן פשוט ומעובה בגודל 16–22 נקודות, על נייר שאינו מבריק וללא קישוטי רקע.</li>
-        <li><strong>כתב ברייל</strong> — לא יאוחר משלושה שבועות מהבקשה.</li>
+        <li>
+          <strong>כתב ברייל</strong> — לא יאוחר משלושה שבועות מהבקשה.
+          <strong>לשם שקיפות:</strong> את ההדפסה בברייל מבצע עבורנו ספק חיצוני, ולכן היא נשלחת בדואר
+          ואינה מיידית. הבקשה נרשמת אצלנו ביום שהיא מתקבלת, והמועד נמדד מאותו יום.
+        </li>
         <li><strong>התאמה סבירה אחרת</strong> המתאימה למוגבלות, לרבות היעזרות באמצעי תקשורת תומכת וחלופית ובאדם המסייע לכם בתקשורת דרך קבע.</li>
       </ul>
       <p>
@@ -339,6 +444,145 @@
         <strong>פישוט לשוני</strong> אינו חל על מסמכים המנוסחים בלשון משפטית, כמו תנאי השימוש ומדיניות
         הפרטיות (תקנה 29(ה)); כל שאר ההתאמות כן.
       </p>
+
+      <!-- ============================================================
+           ⚠️ 15.9 — **הטופס הזה הוא מה שהופך את הרשימה שלמעלה למנגנון.**
+
+           עד היום ההצהרה הבטיחה "קובץ קול, לא יאוחר משלושה שבועות
+           מהבקשה" — ולא היה שום מקום לבקש בו, לא הייתה רשומה, ולא היה
+           מי שסופר את שלושת השבועות. זו הייתה ההתחייבות היחידה בהצהרה
+           בלי כיסוי תפעולי, ופער בין הצהרה למציאות הוא בדיוק העילה
+           שההצהרה נועדה למנוע.
+
+           שלושה כללים לכל עריכה כאן:
+             1. **הטופס אינו הדרך היחידה.** שלושת הקישורים שמתחתיו
+                (טלפון · וואטסאפ · דואר אלקטרוני) הם HTML סטטי ועובדים
+                גם בלי JavaScript. ההצהרה כותבת "בקשה מתקבלת בכל אחת
+                מדרכי הפנייה", וטופס שהוא הדרך היחידה סותר את זה.
+             2. **אין חובת חשבון.** הבקשה נשלחת בלי התחברות, דרך
+                `functions/src/submitAccessibilityRequest.ts`. דרישה
+                להירשם כדי לבקש היא בעצמה מחסום נגישות.
+             3. **`role="status"` על תיבת התשובה** — בלעדיו מי שמשתמש
+                בקורא מסך לוחץ "שליחה" ולא נאמר לו דבר.
+           ============================================================ -->
+      <h3 id="accessible-request">לבקש התאמה — כאן</h3>
+      <p>
+        אפשר לבקש כאן, ואפשר בכל אחת מדרכי הפנייה שלמעלה — זה אותו הדבר. הבקשה חינם, אין צורך
+        בחשבון, ואיננו מבקשים תעודה. בסוף תקבלו מספר בקשה, ונחזור אליכם כדי לבחור יחד את ההתאמה
+        המדויקת (תקנה 29(ג)).
+      </p>
+
+      <form id="a11y-request-form" class="a11y-form">
+        <fieldset class="a11y-fieldset">
+          <legend>1. מה תרצו לקבל? אפשר לבחור יותר מאחת</legend>
+          <div class="a11y-opt">
+            <input type="checkbox" id="a11y-fmt-digital_text" name="format" value="digital_text">
+            <label for="a11y-fmt-digital_text"><strong>קובץ טקסט להקראה</strong><span class="a11y-opt-detail">קובץ שתוכנת הקראה קוראת, וגם ניתן להמרה לברייל</span></label>
+          </div>
+          <div class="a11y-opt">
+            <input type="checkbox" id="a11y-fmt-audio" name="format" value="audio">
+            <label for="a11y-fmt-audio"><strong>קובץ קול</strong><span class="a11y-opt-detail">הקלטה של המסמך, להאזנה או להורדה</span></label>
+          </div>
+          <div class="a11y-opt">
+            <input type="checkbox" id="a11y-fmt-large_print" name="format" value="large_print">
+            <label for="a11y-fmt-large_print"><strong>דפוס נגיש</strong><span class="a11y-opt-detail">אותיות גדולות ומעובות, ניגודיות גבוהה, בלי קישוטי רקע</span></label>
+          </div>
+          <div class="a11y-opt">
+            <input type="checkbox" id="a11y-fmt-human_reading" name="format" value="human_reading">
+            <label for="a11y-fmt-human_reading"><strong>הקראה בקול על ידי אדם</strong><span class="a11y-opt-detail">נתקשר ונקריא — מיד עם הבקשה, ובמסמך ארוך עד שבוע</span></label>
+          </div>
+          <div class="a11y-opt">
+            <input type="checkbox" id="a11y-fmt-braille" name="format" value="braille">
+            <label for="a11y-fmt-braille"><strong>כתב ברייל</strong><span class="a11y-opt-detail">הדפסה בברייל שנשלחת בדואר</span></label>
+          </div>
+          <div class="a11y-opt">
+            <input type="checkbox" id="a11y-fmt-other" name="format" value="other">
+            <label for="a11y-fmt-other"><strong>התאמה אחרת</strong><span class="a11y-opt-detail">כל התאמה סבירה אחרת, לרבות תקשורת תומכת וחלופית</span></label>
+          </div>
+        </fieldset>
+
+        <fieldset class="a11y-fieldset">
+          <legend>2. איזה מסמך או מידע?</legend>
+          <div class="a11y-opt">
+            <input type="radio" id="a11y-doc-terms" name="doc" value="terms" checked>
+            <label for="a11y-doc-terms">תנאי השימוש (התקנון)</label>
+          </div>
+          <div class="a11y-opt">
+            <input type="radio" id="a11y-doc-privacy" name="doc" value="privacy">
+            <label for="a11y-doc-privacy">מדיניות הפרטיות</label>
+          </div>
+          <div class="a11y-opt">
+            <input type="radio" id="a11y-doc-accessibility" name="doc" value="accessibility">
+            <label for="a11y-doc-accessibility">הצהרת הנגישות</label>
+          </div>
+          <div class="a11y-opt">
+            <input type="radio" id="a11y-doc-order" name="doc" value="order">
+            <label for="a11y-doc-order">פרטי הזמנה או אישור הזמנה</label>
+          </div>
+          <div class="a11y-opt">
+            <input type="radio" id="a11y-doc-other" name="doc" value="other">
+            <label for="a11y-doc-other">מידע אחר על השירות</label>
+          </div>
+        </fieldset>
+
+        <div id="a11y-doc-other-wrap" class="a11y-field" hidden>
+          <label for="a11y-doc-other">איזה מידע?</label>
+          <input type="text" id="a11y-doc-other" name="docOther" maxlength="160">
+        </div>
+
+        <fieldset class="a11y-fieldset">
+          <legend>3. איך נחזור אליכם?</legend>
+          <div class="a11y-opt">
+            <input type="radio" id="a11y-via-phone" name="contactMethod" value="phone" checked>
+            <label for="a11y-via-phone">שיחת טלפון</label>
+          </div>
+          <div class="a11y-opt">
+            <input type="radio" id="a11y-via-whatsapp" name="contactMethod" value="whatsapp">
+            <label for="a11y-via-whatsapp">וואטסאפ</label>
+          </div>
+          <div class="a11y-opt">
+            <input type="radio" id="a11y-via-sms" name="contactMethod" value="sms">
+            <label for="a11y-via-sms">מסרון (SMS)</label>
+          </div>
+          <div class="a11y-opt">
+            <input type="radio" id="a11y-via-email" name="contactMethod" value="email">
+            <label for="a11y-via-email">דואר אלקטרוני</label>
+          </div>
+          <div class="a11y-opt">
+            <input type="radio" id="a11y-via-post" name="contactMethod" value="post">
+            <label for="a11y-via-post">דואר</label>
+          </div>
+        </fieldset>
+
+        <div class="a11y-field">
+          <label for="a11y-contact-detail">מספר טלפון, כתובת דואר אלקטרוני או כתובת למשלוח</label>
+          <input type="text" id="a11y-contact-detail" name="contactDetail" maxlength="200" autocomplete="tel">
+        </div>
+
+        <div class="a11y-field">
+          <label for="a11y-contact-name">שם (לא חובה)</label>
+          <input type="text" id="a11y-contact-name" name="contactName" maxlength="80" autocomplete="name">
+        </div>
+
+        <div class="a11y-field">
+          <label for="a11y-notes">משהו שכדאי שנדע? טכנולוגיה מסייעת שאתם משתמשים בה, או דרך שנוחה לכם יותר (לא חובה)</label>
+          <textarea id="a11y-notes" name="notes" maxlength="1500" rows="3"></textarea>
+        </div>
+
+        <button type="submit" id="a11y-request-submit" class="a11y-submit">שליחת הבקשה</button>
+      </form>
+
+      <div id="a11y-request-status" class="a11y-status" role="status" aria-live="polite" hidden></div>
+
+      <p>
+        <strong>מעדיפים לפנות ישירות?</strong> שלושת הקישורים האלה נושאים את אותה בקשה בדיוק,
+        לפי מה שמילאתם למעלה:
+      </p>
+      <ul class="contact-list">
+        <li><a tabindex="0" id="a11y-request-whatsapp" href="https://wa.me/972508811085">שליחת הבקשה בוואטסאפ</a></li>
+        <li><a tabindex="0" id="a11y-request-mail" href="mailto:support@rozicmove.com?subject=%D7%91%D7%A7%D7%A9%D7%94%20%D7%9C%D7%A7%D7%91%D7%9C%D7%AA%20%D7%9E%D7%99%D7%93%D7%A2%20%D7%91%D7%93%D7%A8%D7%9A%20%D7%A0%D7%92%D7%99%D7%A9%D7%94">שליחת הבקשה בדואר אלקטרוני</a></li>
+        <li><a tabindex="0" href="tel:+972508811085">בטלפון: 050-881-1085</a> (זמין גם בוואטסאפ ובמסרון)</li>
+      </ul>
 
       <h3>שירותי עזר בהזמנה ובהובלה</h3>
       <ul>
@@ -432,5 +676,7 @@
       <p>כל הזכויות שמורות · מדינת ישראל</p>
     </div>
   </footer>
+
+  <script type="module" src="app/accessibility-request.js"></script>
 </body>
 </html>

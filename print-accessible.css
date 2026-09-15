@@ -1,0 +1,150 @@
+/* ============================================================================
+ *  print-accessible.css — "דפוס נגיש" לפי תקנה 29(ד)(4)
+ * ============================================================================
+ *
+ *  ## מה זה
+ *  התקנה מונה בין ההתאמות למסירת מידע בדרך נגישה **"דפוס, או דפוס נגיש"**,
+ *  ומגדירה אותו: אותיות דפוס בגופן פשוט ומעובה, בגודל 16–22 נקודות, על נייר
+ *  שאינו מבריק וללא קישוטי רקע. ההצהרה שלנו מבטיחה את ההתאמה הזו — ועד היום
+ *  לא היה בשום עמוד באתר כלל `@media print` אחד. מי שלחץ "הדפסה" קיבל את
+ *  העיצוב המסכי: 14–17px, טקסט אפרפר על רקעים צבעוניים, וניווט ופוטר על הדף.
+ *
+ *  ⚠️ **זו ההתאמה היחידה מבין השש שאפשר לקיים בלי שיבקשו אותה** — היא לא
+ *  דורשת הפקה ולא ספק, רק שהדף יידע להדפיס את עצמו נכון. לכן היא כאן ולא
+ *  בתור.
+ *
+ *  ## איפה זה טעון
+ *  `<link rel="stylesheet" href="print-accessible.css" media="print">`
+ *  ב-`terms.html`, `privacy.html` ו-`accessibility.html` — שלושת המסמכים
+ *  שההצהרה מזכירה בשמם. ⚠️ ה-`media="print"` הוא מה שמונע מהגיליון לגעת
+ *  במסך, וה-`@media print` שעוטף את הכול הוא הרשת השנייה: גיליון שייטען
+ *  בטעות בלי האטריביוט לא ישנה כלום.
+ *
+ *  ## ⚠️ למה גיליון נפרד ולא `style.css`
+ *  שתי סיבות, ושתיהן מחייבות:
+ *    1. 15.9 — סוכן אחר עבד על `style.css` במקביל.
+ *    2. `style.css` נטען ב-17 עמודים. כללי הדפסה שנכתבים שם חלים על כולם,
+ *       כולל זרימת ההזמנה ומסכי התשלום, ואת אלה **לא** רוצים לשנות: פה
+ *       ההחלטה היא "מסמך משפטי להדפסה", לא "האתר להדפסה".
+ *
+ *  ## ⚠️ צבעים
+ *  שחור על לבן בלבד. `scripts/check-a11y.mjs` אוכף שכל `color:` יבוא מטוקן
+ *  שנמדד — ולבן ושחור הם שני הערכים שהוא מתיר תמיד (`loadPalette`), וזה גם
+ *  הניגוד הגבוה ביותר שיש. אין כאן `var(--…)`: הגיליון חייב לעבוד גם אם
+ *  יצורף לעמוד שאינו טוען את `style.css`.
+ * ========================================================================== */
+
+@media print {
+
+  /* ---- 1. הדף עצמו ------------------------------------------------------
+     שוליים אמיתיים, כדי שכריכה או חור ניקוב לא יבלעו טקסט. */
+  @page {
+    margin: 18mm 16mm;
+  }
+
+  /* ---- 2. גוף המסמך -----------------------------------------------------
+     17pt הוא אמצע הטווח שהתקנה מחייבת (16–22). `font-weight: 600` הוא
+     ה"מעובה" שבהגדרה — Heebo נטענת עם 600, ומי שמדפיס בלי חיבור לרשת
+     נופל ל-Arial, שגם היא גופן פשוט חסר תגים. */
+  html, body {
+    background: #FFFFFF !important;
+    color: #000000 !important;
+    font-family: 'Heebo', Arial, 'Helvetica Neue', sans-serif !important;
+    font-size: 17pt !important;
+    font-weight: 600 !important;
+    line-height: 1.65 !important;
+  }
+
+  /* ⚠️ כל רקע, צל ומסגרת צבעונית יורדים — "ללא קישוטי רקע" שבתקנה, וגם
+     כדי שהדיו לא ימרח את הנייר וישבור את הניגודיות. הכלל גורף בכוונה:
+     הוא צריך לתפוס גם אלמנטים שיתווספו לעמוד אחרי שנכתב. */
+  * {
+    background: transparent !important;
+    background-image: none !important;
+    box-shadow: none !important;
+    text-shadow: none !important;
+    color: #000000 !important;
+  }
+
+  /* ---- 3. מה לא מודפס ---------------------------------------------------
+     ניווט, פוטר, קישור הדילוג, באנרים וכל כפתור — כולם חסרי משמעות על
+     נייר, ודוחפים את התוכן לעמוד נוסף. */
+  .nav,
+  .footer,
+  .skip-link,
+  .back-link,
+  .nav-cta,
+  .sub-hero,
+  nav,
+  footer,
+  button,
+  form,
+  [role="dialog"],
+  .a11y-request-form,
+  .under-construction-banner {
+    display: none !important;
+  }
+
+  /* ---- 4. פריסה ---------------------------------------------------------
+     עמודה אחת ברוחב מלא. כל `max-width` מסכי הופך למגבלה מיותרת על נייר. */
+  .container,
+  .sub-main,
+  main,
+  .card {
+    max-width: none !important;
+    width: auto !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    border: 0 !important;
+    border-radius: 0 !important;
+  }
+
+  .card {
+    margin-bottom: 10mm !important;
+    /* קו דק בין סעיפים — ההפרדה היחידה שנשארת אחרי שהרקעים ירדו. */
+    border-bottom: 1pt solid #000000 !important;
+    padding-bottom: 6mm !important;
+  }
+
+  /* ---- 5. כותרות --------------------------------------------------------
+     ההיררכיה נשמרת בגודל ובמשקל, לא בצבע — הצבע כבר שחור בכל מקום. */
+  h1 { font-size: 24pt !important; font-weight: 800 !important; margin: 0 0 6mm !important; }
+  h2 { font-size: 20pt !important; font-weight: 800 !important; margin: 8mm 0 3mm !important; }
+  h3 { font-size: 18pt !important; font-weight: 700 !important; margin: 6mm 0 2mm !important; }
+
+  /* כותרת לא נשארת לבדה בתחתית עמוד, ופסקה לא נשברת באמצע שורה שנייה. */
+  h1, h2, h3 { break-after: avoid; page-break-after: avoid; }
+  p, li { orphans: 3; widows: 3; }
+
+  p { margin: 0 0 3mm !important; }
+  ul, ol { margin: 0 0 4mm !important; padding-inline-start: 8mm !important; }
+  li { margin-bottom: 2mm !important; }
+
+  /* ---- 6. קישורים -------------------------------------------------------
+     ⚠️ על נייר קישור הוא מבוי סתום: "לחצו כאן" בלי כתובת. הכתובת מודפסת
+     אחריו בסוגריים, בגופן קטן יותר אך עדיין בטווח שהתקנה מחייבת.
+     קישורי עוגן פנימיים (#) וקישורי `tel:`/`mailto:` מוחרגים — הראשונים
+     חסרי משמעות מודפסים, והאחרונים כבר מציגים את הערך בטקסט עצמו. */
+  a { text-decoration: underline !important; }
+
+  a[href^="http"]::after {
+    content: " (" attr(href) ")";
+    font-size: 14pt;
+    font-weight: 400;
+    word-break: break-all;
+  }
+
+  a[href^="#"]::after,
+  a[href^="tel:"]::after,
+  a[href^="mailto:"]::after {
+    content: "" !important;
+  }
+
+  /* ---- 7. שרידים --------------------------------------------------------
+     SVG דקורטיבי (חץ הלוגו, דפוס הנקודות) אינו מידע, והוא מודפס כריבוע
+     אפור על נייר. */
+  svg[aria-hidden="true"],
+  .logo-arrow {
+    display: none !important;
+  }
+}
