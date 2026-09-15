@@ -144,6 +144,46 @@ body{font-family:Heebo,sans-serif;direction:rtl;background:#DDE4DE;color:var(--t
   background:linear-gradient(to bottom,var(--green-deep) 0 52%,var(--bg) 52% 100%)}}
 
 
+
+/* ===== כ · שילוב א+ד+ח על רקע מסך העלייה של האפליקציה =====
+   ⚠️ הרקע אינו "בהשראת" מסך העלייה — הוא **אותו מתכון בדיוק**,
+   מועתק מ-LoginScreen.tsx / UserTypeScreen.tsx:
+     גרדיאנט רדיאלי  pineLight #1c8563 → pine #0E5C43 (45%) → pineStrong #0A4433
+     נקודות          15×15, r=1, #DFF3E8 באטימות 0.12
+     זוהר            #6AC28A מ-0.55 ל-0 ב-70%
+   כך שהמעבר מהאתר לאפליקציה לא נראה כמו מעבר לאתר אחר. */
+.K{--dot:#DFF3E8;--glow:#6AC28A}
+.K .nav{background:transparent;position:relative;z-index:3;
+  border-bottom:1px solid rgba(255,255,255,.12)}
+.K .logo{color:#fff}.K .navlinks{color:rgba(255,255,255,.72)}
+.K .stage{position:relative;overflow:hidden;
+  background:radial-gradient(120% 95% at 50% 8%,#1c8563 0%,#0E5C43 45%,#0A4433 100%)}
+/* הנקודות — אותו צעד ואותו גוון */
+.K .stage::before{content:'';position:absolute;inset:0;pointer-events:none;z-index:1;
+  background-image:radial-gradient(circle at 1px 1px,var(--dot) 1px,transparent 1px);
+  background-size:15px 15px;opacity:.12}
+/* הזוהר */
+.K .stage::after{content:'';position:absolute;z-index:1;pointer-events:none;
+  inset-block-start:-14%;inset-inline-start:50%;transform:translateX(50%);
+  width:min(760px,92%);aspect-ratio:1;border-radius:50%;
+  background:radial-gradient(circle,rgba(106,194,138,.55) 0%,rgba(106,194,138,0) 70%)}
+.K .hero{position:relative;z-index:2;color:#fff;padding:46px clamp(18px,3vw,40px) 40px;
+  display:grid;grid-template-columns:minmax(0,.88fr) minmax(0,1.12fr);gap:40px;align-items:center}
+.K .route{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:1;opacity:.5}
+/* ⚠️ המשאית ישבה מאחורי פסי האמון וקווי המתאר חצו את הטקסט. הוזזה
+   לקצה התחתון של אזור הטקסט והוקטנה — טקסטורה, לא רכיב שמתחרה. */
+.K .art{position:absolute;inset-block-end:-26px;inset-inline-end:6%;
+  width:min(330px,27%);opacity:.14;pointer-events:none;z-index:1}
+.K .kicker{color:var(--green-on-dark)}
+.K h3{font-size:clamp(2.1rem,4.3vw,3.7rem);line-height:.99;font-weight:900;letter-spacing:-.025em}
+.K h3 em{display:block;font-style:normal;color:var(--green-on-dark);margin-top:10px;
+  font-size:clamp(1.42rem,2.6vw,2.3rem)}
+.K .lede{color:rgba(255,255,255,.78)}
+.K .facts{border-top:1px solid rgba(255,255,255,.16)}
+.K .fact b{color:#fff}.K .fact span{color:rgba(255,255,255,.62)}
+.K .panel{box-shadow:0 30px 68px -22px rgba(0,0,0,.6)}
+@media (max-width:860px){.K .hero{grid-template-columns:1fr;gap:26px}.K .art{display:none}}
+
 /* ===== ד · מפה ומסלול ===== */
 .D .nav{background:var(--white);border-bottom:1px solid var(--border)}
 .D .navlinks{color:var(--text-mid)}
@@ -309,16 +349,70 @@ body{font-family:Heebo,sans-serif;direction:rtl;background:#DDE4DE;color:var(--t
 <main id="main-content" tabindex="-1">
 
 <div class="lead">
-  <h1>עשרה כיוונים לראש עמוד הבית</h1>
+  <h1>השילוב, ועשרת הכיוונים</h1>
   <p>שלושתם נושאים בדיוק את אותו תוכן ואת אותו כלי — ההבדל הוא בטיפול החזותי בלבד.
      גללו, והשוו. בטלפון הם נערמים לטור אחד.</p>
   <nav class="jump" aria-label="מעבר מהיר">
-    <a href="#A">א · ירוק עמוק</a><a href="#B">ב · בהיר וגרפי</a><a href="#C">ג · מפוצל</a><a href="#D">ד · מפה</a><a href="#E">ה · קרטון</a><a href="#F">ו · מחיר</a><a href="#G">ז · חשבונית</a><a href="#H">ח · איור</a><a href="#I">ט · מינימלי</a><a href="#J">י · פס צבע</a>
+    <a href="#K"><b>כ · השילוב</b></a><a href="#A">א · ירוק עמוק</a><a href="#B">ב · בהיר וגרפי</a><a href="#C">ג · מפוצל</a><a href="#D">ד · מפה</a><a href="#E">ה · קרטון</a><a href="#F">ו · מחיר</a><a href="#G">ז · חשבונית</a><a href="#H">ח · איור</a><a href="#I">ט · מינימלי</a><a href="#J">י · פס צבע</a>
   </nav>
 </div>
 </main>
 
 <!-- A -->
+
+<div class="label"><h2 id="K">כ · השילוב — א + ד + ח על רקע האפליקציה</h2>
+  <span>הרקע הוא אותו מתכון בדיוק ממסך העלייה: גרדיאנט, נקודות וזוהר.</span></div>
+<div class="frame K">
+  <div class="stage">
+    <div class="nav"><span class="logo">ROZIC MOVE</span>
+      <div class="navlinks"><span>שירותים</span><span>איך זה עובד</span><span>למובילים</span><span>שאלות</span></div></div>
+    <svg class="route" viewBox="0 0 1280 520" fill="none" aria-hidden="true" preserveAspectRatio="none">
+      <path d="M-40 400 C 250 400, 300 220, 540 220 S 900 100, 1140 100" stroke="#4EDAA9"
+        stroke-width="2.5" stroke-dasharray="9 12" stroke-linecap="round" opacity=".75"/>
+      <circle cx="-6" cy="400" r="7.5" fill="#4EDAA9" opacity=".85"/>
+      <circle cx="1140" cy="100" r="7.5" fill="#4EDAA9" opacity=".85"/>
+    </svg>
+    <svg class="art" viewBox="0 0 240 150" fill="none" aria-hidden="true">
+      <rect x="6" y="52" width="118" height="72" rx="5" stroke="#DFF3E8" stroke-width="3"/>
+      <path d="M124 74h44l30 30v20h-74z" stroke="#DFF3E8" stroke-width="3" stroke-linejoin="round"/>
+      <circle cx="52" cy="128" r="14" stroke="#DFF3E8" stroke-width="3"/>
+      <circle cx="166" cy="128" r="14" stroke="#DFF3E8" stroke-width="3"/>
+      <path d="M30 70h30M30 86h52" stroke="#DFF3E8" stroke-width="3" stroke-linecap="round"/>
+    </svg>
+    <div class="hero">
+      <div>
+        <p class="kicker">הובלות · מעברי דירה</p>
+        <h3>כמה עולה<br>להעביר דירה?<em>מחיר כאן ועכשיו.</em></h3>
+        <p class="lede">בוחרים מה מעבירים ורואים את המחיר מתעדכן. בלי שיחות ובלי &laquo;נחזור אליך&raquo;.</p>
+        <div class="facts">
+          <div class="fact"><b>243</b><span>פריטים בקטלוג</span></div>
+          <div class="fact"><b>מחיר סופי</b><span>לא טווח</span></div>
+          <div class="fact"><b>מעקב חי</b><span>רואים את המוביל</span></div>
+        </div>
+      </div>
+      <div class="panel">
+        <div class="p-top">
+          <div class="svc"><button class="on">מעבר דירה</button><button>מובילים בקטנה</button><button>יד שנייה חינם</button></div>
+          <div class="ask"><input placeholder="ספרו לנו מה מעבירים…" aria-label="תיאור חופשי"><button>נתחיל</button></div>
+          <p class="sep">או בחרו מהנפוצים</p>
+          <div class="grid">
+            <span class="cell on">מיטה זוגית <i>2</i></span><span class="cell on">ספה תלת <i>1</i></span><span class="cell">מקרר <i>+</i></span>
+            <span class="cell">ארון 4 דלתות <i>+</i></span><span class="cell">שולחן אוכל <i>+</i></span><span class="cell">מכונת כביסה <i>+</i></span>
+          </div>
+          <a class="p-more" href="#K">חיפוש בכל הקטלוג ←</a>
+          <p class="p-cam">או <a href="#K">צלמו את החדר</a> ונזהה את הפריטים.</p>
+        </div>
+        <div class="p-pay"><div class="p-sum"><b>₪660</b><span>3 פריטים · נסגר אחרי הכתובות</span></div>
+          <button class="p-go">המשך להזמנה ←</button></div>
+      </div>
+    </div>
+  </div>
+  <div class="app"><div><b>אפשר גם מהטלפון — ושם זה נוח יותר</b>
+    <p>מעקב בזמן אמת. הזמנה שפתחתם כאן תחכה לכם שם.</p></div>
+    <div class="btns"><a class="a-dark" href="#K">App Store</a><a class="a-ghost" href="#K">Google Play</a></div></div>
+  <div class="after"><b>כל מה שצריך כדי לזוז</b>↓ וכאן ממשיכים כל המקטעים הקיימים</div>
+</div>
+
 <div class="label"><h2 id="A">א · ירוק עמוק</h2><span>הכי נועז. הכלי הלבן בולט על רקע כהה מלא.</span></div>
 <div class="frame A">
   <div class="nav"><span class="logo">ROZIC MOVE</span>
