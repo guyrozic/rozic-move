@@ -205,37 +205,10 @@
    .hp-hero עם --container-wide ו-min-height, ו-.hp-panel עם margin-top:auto
    על שורת המחיר. גרסה ג׳: עם הרשימה הנבנית. */
 :root { --sh: 236px; }
-  /* ===== שורת הסטטוס ===== */
-  .statusbar { display:flex; justify-content:space-between; align-items:center;
-    gap:10px; margin-bottom:9px; flex-wrap:wrap; }
-  .roomN { font-size:.79rem; font-weight:800; color:var(--green-ink);
-    display:flex; gap:4px; align-items:center; }
-  .roomN em { font-style:normal; position:relative; display:inline-block;
-    width:5.1em; height:1.2em; text-align:start; }
-  .roomN em b { position:absolute; inset:0; opacity:0; font-weight:800;
-    animation:none 15s linear infinite both; }
-  .live { font-weight:600; color:var(--text-muted); }
-  .live::after { content:''; display:inline-block; width:6px; height:6px; border-radius:50%;
-    background:var(--green-line); margin-inline-start:5px; vertical-align:middle;
-    animation:pulse 1.5s ease-in-out infinite; }
-  @keyframes pulse { 0%,100%{opacity:.25;transform:scale(.8)} 50%{opacity:1;transform:scale(1)} }
-  .dots { display:flex; gap:6px; align-items:center; }
-  .dots i { display:block; height:5px; width:30px; border-radius:99px; background:rgba(20,42,34,.14); }
-  .dots i::after { content:''; display:block; height:100%; width:100%; border-radius:99px;
-    background:var(--green-line); transform-origin:right center;
-    animation:none 15s linear infinite both; }
-  .dots i:nth-child(1)::after{animation-name:bar1}
-  .dots i:nth-child(2)::after{animation-name:bar2}
-  .dots i:nth-child(3)::after{animation-name:bar3}
-  @keyframes bar1 { 0%{transform:scaleX(0)} 30%,100%{transform:scaleX(1)} }
-  @keyframes bar2 { 0%,33%{transform:scaleX(0)} 63%,100%{transform:scaleX(1)} }
-  @keyframes bar3 { 0%,66.33%{transform:scaleX(0)} 96.33%,100%{transform:scaleX(1)} }
-  .tot { display:flex; gap:5px; align-items:center; font-size:.79rem; font-weight:800;
-    color:var(--green-ink); background:var(--green-tint); border:1px solid var(--green-line);
-    padding:3px 11px; border-radius:999px; }
-  .tot u { text-decoration:none; position:relative; display:inline-block; width:1.6em; height:1.2em; }
-  .tot u b { position:absolute; inset:0; display:flex; align-items:center; justify-content:center;
-    opacity:0; font-weight:900; animation:none 15s linear infinite both; }
+  /* ⚠️ שורת הסטטוס (statusbar, roomN, live, dots, tot) הוסרה 16.9 לבקשת
+     גיא, יחד עם ה-keyframes המתים שלה (pulse, bar1-3, cnt0-3, rm1-3).
+     ה-keyframes של הסריקה עצמה (swap, beam, bx) ושל הרשימה (acc, col)
+     לא נגעו. */
 
   /* ===== אזור הסריקה ===== */
   /* ⚠️ aspect-ratio ולא גובה קבוע. הכרטיס באתר רחב 1015px ב-1920
@@ -273,7 +246,9 @@
   .acc-t { font-size:.73rem; font-weight:800; color:var(--green-ink); margin-bottom:8px;
     display:flex; justify-content:space-between; align-items:baseline; }
   .acc-t span { font-weight:600; color:var(--text-muted); font-size:.68rem; }
-  .accgrid { display:grid; grid-template-columns:repeat(3,1fr); gap:6px 12px; align-items:start; }
+  /* 16.9 — טור אחד: חדר מתחת לחדר (במקום שלוש עמודות). התזמונים לא נגעו,
+     רק הפריסה — כל .col יורד מתחת לקודמו והרשימה נבנית מלמעלה למטה. */
+  .accgrid { display:flex; flex-direction:column; gap:10px; }
   .coln { font-size:.68rem; font-weight:800; color:var(--text-muted); margin-bottom:4px;
     padding-bottom:3px; border-bottom:1px solid rgba(0,166,81,.28);
     opacity:0; animation:none 15s linear infinite both; }
@@ -283,7 +258,7 @@
     opacity:0; animation:none 15s linear infinite both; }
   .acci::before { content:'✓'; color:var(--green-line); font-size:.68rem; }
   @media (max-width:560px){
-    .accgrid { gap:5px 8px; }
+    .accgrid { gap:8px; }
     .acci { font-size:.72rem; gap:4px; }
     .coln { font-size:.64rem; }
   }
@@ -294,17 +269,6 @@
   @keyframes bx4 { 0%,14.67%{opacity:0} 16.13%,30.00%{opacity:1} 32.00%,100%{opacity:0} }
   .boxes rect.k1,.bxl.k1{animation-name:bx1} .boxes rect.k2,.bxl.k2{animation-name:bx2}
   .boxes rect.k3,.bxl.k3{animation-name:bx3} .boxes rect.k4,.bxl.k4{animation-name:bx4}
-  @keyframes cnt0 { 0%,16%{opacity:1} 17.33%,100%{opacity:0} }
-  @keyframes cnt1 { 0%,16%{opacity:0} 17.33%,49.33%{opacity:1} 50.67%,100%{opacity:0} }
-  @keyframes cnt2 { 0%,49.33%{opacity:0} 50.67%,82.67%{opacity:1} 84%,100%{opacity:0} }
-  @keyframes cnt3 { 0%,82.67%{opacity:0} 84%,98.67%{opacity:1} 100%{opacity:0} }
-  @keyframes rm1 { 0%,33%{opacity:1} 34.33%,100%{opacity:0} }
-  @keyframes rm2 { 0%,33%{opacity:0} 34.33%,66.33%{opacity:1} 67.67%,100%{opacity:0} }
-  @keyframes rm3 { 0%,66.33%{opacity:0} 67.67%,98.67%{opacity:1} 100%{opacity:0} }
-  .tot u b.c0{animation-name:cnt0} .tot u b.c1{animation-name:cnt1}
-  .tot u b.c2{animation-name:cnt2} .tot u b.c3{animation-name:cnt3}
-  .roomN em b.n1{animation-name:rm1} .roomN em b.n2{animation-name:rm2}
-  .roomN em b.n3{animation-name:rm3}
   @keyframes acc0 { 0%,8.33%{opacity:0;transform:translateY(4px)} 10.33%,98.5%{opacity:1;transform:none} 100%{opacity:0} }
   .acci.a0{animation-name:acc0}
   @keyframes acc1 { 0%,11.00%{opacity:0;transform:translateY(4px)} 13.00%,98.5%{opacity:1;transform:none} 100%{opacity:0} }
@@ -334,11 +298,9 @@
 
   @media (prefers-reduced-motion:reduce){
     .beam { display:none; }
-    .boxes rect,.bxl,.roomN em b,.tot u b,.acci,.coln,.scan .room,.boxes,.live::after
+    .boxes rect,.bxl,.acci,.coln,.scan .room,.boxes
       { animation:none; opacity:1; transform:none; }
-    .dots i::after { animation:none; transform:none; }
     .r2,.r3,.b2,.b3,.l2,.l3 { display:none; }
-    .roomN em b:not(:first-child), .tot u b:not(:last-child) { opacity:0; }
   }
 
 
@@ -352,34 +314,41 @@
   /* ה-.hp-pay הוסר, לכן הכרטיס צריך ריפוד תחתון משלו (במקור היה 0) */
   .hp-panel-top { padding-bottom:clamp(14px,1.6vw,20px); }
   .tool-row { display:grid; gap:clamp(12px,1.4vw,20px); align-items:stretch; }
-  /* RTL — הילד הראשון (הרחב) יושב מימין, השני (הרשימה) משמאל */
-  .tool-c2 { grid-template-columns:minmax(0,1.5fr) minmax(0,1fr); }
+  /* RTL — הילד הראשון (הרחב) יושב מימין, השני (הרשימה) משמאל.
+     16.9 — היחס הורחב מ-1.5:1 ל-1.95:1 אחרי הסרת הסטטוס-בר וקיפול הרשימה
+     לטור אחד צר: הסריקה והכרטיסים מקבלים את הרוחב שהתפנה. */
+  .tool-c2 { grid-template-columns:minmax(0,1.95fr) minmax(0,1fr); }
   @media (max-width:900px){ .tool-row { grid-template-columns:1fr; } }
 
-  /* העמודה הימנית הרחבה — סטטוס, סריקה, שאלה וכרטיסים */
+  /* העמודה הימנית הרחבה — סריקה, שאלה וכרטיסים */
   .tool-main { display:flex; flex-direction:column; gap:11px; min-width:0; }
-  .tool-main .statusbar { margin-bottom:0; }
   .tool-main .scan-q { margin:2px 0 0; text-align:start; }
-  /* ⚠️ הכרטיסים קומפקטיים בעמדה זו: המשנה ארוך יותר (העלאת תמונות,
-     ניסוח מלא) ושלושתם בשורה בטור צר, כך שבלי הידוק גובה הכרטיס דוחף
-     את הפאנל מעל 580 ב-1280. ריפוד וגופן מוקטנים מחזירים אותו. */
-  .tool-main .scan-picks { margin-top:0; gap:9px; }
-  .tool-main .pick { padding:12px 10px; }
-  .tool-main .pick .ic { width:34px; height:34px; margin-bottom:7px; }
-  .tool-main .pick b { font-size:.9rem; line-height:1.2; }
-  .tool-main .pick i { font-size:.72rem; line-height:1.32; margin-top:3px; }
-  .tool-main .pick .tag2 { font-size:.66rem; padding:2px 9px; }
+  /* 16.9 — הכרטיסים הוגדלו (ריפוד, אייקון וגופן) מהמקום שהתפנה בעמודה
+     הרחבה יותר, אך מרוסנים כדי לשמור על גובה פאנל סביר גם ב-1280. */
+  .tool-main .scan-picks { margin-top:0; gap:10px; }
+  .tool-main .pick { padding:14px 12px; }
+  .tool-main .pick .ic { width:38px; height:38px; margin-bottom:8px; }
+  .tool-main .pick .ic svg { width:21px; height:21px; }
+  .tool-main .pick b { font-size:1rem; line-height:1.2; }
+  .tool-main .pick i { font-size:.79rem; line-height:1.3; margin-top:4px; }
+  .tool-main .pick .tag2 { font-size:.69rem; padding:3px 11px; }
 
   /* העמודה השמאלית — הרשימה בראש, המחיר והכפתור נעוצים לתחתית */
   .tool-list { display:flex; flex-direction:column; min-width:0; }
-  .tool-list .acc { margin-top:0; padding:10px 12px 11px; }
-  .tool-list .acci { font-size:.75rem; line-height:1.3; }
-  .tool-list .accgrid { gap:4px 10px; }
-  .list-foot { margin-top:auto; padding-top:13px; }
+  .tool-list .acc { margin-top:0; padding:9px 12px 10px; }
+  .tool-list .acci { font-size:.75rem; line-height:1.25; }
+  /* טור הרשימה הוא הגבוה מבין השניים ב-1280 (11 פריטים זה מתחת לזה);
+     ריווח מהודק שומר על הפאנל מיושר לגובה עמודת ההירו. */
+  .tool-list .accgrid { gap:7px; }
+  .tool-list .acc ul { gap:2px; }
+  .tool-list .coln { margin-bottom:3px; padding-bottom:2px; }
+  .list-foot { margin-top:auto; padding-top:11px; display:flex;
+    flex-direction:column; align-items:flex-start; }
   .list-price { font-size:.81rem; color:var(--text-muted); margin:0 0 9px;
     line-height:1.35; }
-  .list-foot .hp-go { display:flex; width:100%; justify-content:center;
-    box-sizing:border-box; }
+  /* 16.9 — כפתור צר לפי תוכן, מיושר לתחילת העמודה (לא רוחב מלא) */
+  .list-foot .hp-go { display:inline-flex; width:fit-content; align-self:flex-start;
+    justify-content:center; box-sizing:border-box; }
   @media (max-width:900px){
     .list-foot { padding-top:11px; }
   }
@@ -419,7 +388,7 @@
      שיחליף אותם; בלי הסימון הזה הם נעלמו גם בחמשת הדפים המשפטיים,
      בלי שום דרך להגיע אליהם (WCAG 1.4.4). -->
 <body class="has-nav-menu hp-home">
-<div data-build-stamp class="build-stamp" aria-hidden="true">עודכן 16.09 · 00:50</div>
+<div data-build-stamp class="build-stamp" aria-hidden="true">עודכן 16.09 · 01:19</div>
   <!-- ⚠️ 15.9 — "דלג לתוכן המרכזי" (WCAG 2.4.1, רמה A). זהו האלמנט הממוקד
        הראשון בדף: מוסתר מהעין, מופיע בפינה ברגע שמגיעים אליו ב-Tab, ומעביר
        את המיקוד אל <main id="main-content" tabindex="-1">. בלי ה-tabindex
@@ -538,14 +507,8 @@
       <div class="hp-panel">
         <div class="hp-panel-top">
           <div class="tool-row tool-c2">
-            <!-- ‏══ עמודה ימנית (רחבה ~60%): סטטוס · סריקה · שאלה · כרטיסים ══ -->
+            <!-- ‏══ עמודה ימנית (רחבה ~66%): סריקה · שאלה · כרטיסים ══ -->
             <div class="tool-main">
-              <div class="statusbar">
-                <span class="roomN">סורק <em><b class="n1">סלון</b><b class="n2">חדר שינה</b><b class="n3">מטבח</b></em>
-                  · <span class="live">מזהה פריטים…</span></span>
-                <span class="dots" aria-hidden="true"><i></i><i></i><i></i></span>
-                <span class="tot"><u><b class="c0">0</b><b class="c1">4</b><b class="c2">7</b><b class="c3">11</b></u> פריטים</span>
-              </div>
               <div class="scan" role="img" aria-label="הדגמה: הסריקה עוברת בין סלון, חדר שינה ומטבח ומסמנת כל פריט בשמו">
                 <svg class="room r1" viewBox="0 0 520 190" preserveAspectRatio="none" aria-hidden="true" focusable="false"><use href="#rm-living"/></svg>
                 <svg class="boxes b1" viewBox="0 0 520 190" preserveAspectRatio="none" aria-hidden="true" focusable="false">
