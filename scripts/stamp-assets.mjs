@@ -61,8 +61,22 @@ function resolveAsset(href, pageFile) {
   return dir ? join(dir, href) : href;
 }
 
+/* ⚠️ 15.9 — חותמת זמן גלויה, **זמנית**, לבקשת גיא: הוא לא יכול היה לדעת
+   אם מה שהוא רואה הוא הגרסה החדשה, ובזבזנו על זה סבבים שלמים. היא
+   מתעדכנת בכל הרצה של הסקריפט הזה — כלומר בכל פריסה.
+
+   ⚠️ **להסיר לפני השקה לציבור.** החיפוש: `data-build-stamp`. */
+const now = new Date();
+const STAMP = new Intl.DateTimeFormat('he-IL', {
+  day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit',
+  timeZone: 'Asia/Jerusalem',
+}).format(now).replace(',', ' ·');
+
+const STAMP_HTML = `<div data-build-stamp class="build-stamp" aria-hidden="true">עודכן ${STAMP}</div>`;
+
 let changed = 0;
 const missing = [];
+let stamped = 0;
 
 for (const page of pages) {
   const file = join(ROOT, page);
@@ -82,7 +96,16 @@ for (const page of pages) {
       return want;
     },
   );
-  if (!CHECK && out !== src) writeFileSync(file, out);
+  /* החותמת נכנסת מיד אחרי <body>, ומוחלפת אם כבר קיימת. */
+  let withStamp = out;
+  if (!CHECK) {
+    const re = /<div data-build-stamp[\s\S]*?<\/div>\n?/;
+    withStamp = re.test(out)
+      ? out.replace(re, STAMP_HTML + '\n')
+      : out.replace(/(<body[^>]*>\n?)/i, `$1${STAMP_HTML}\n`);
+    if (withStamp !== out) stamped++;
+  }
+  if (!CHECK && withStamp !== src) writeFileSync(file, withStamp);
 }
 
 if (CHECK) {
@@ -94,7 +117,5 @@ if (CHECK) {
   }
   console.log(`  ✓ כל הנכסים ב-${pages.length} דפים נושאים חותמת גרסה עדכנית.`);
 } else {
-  console.log(changed
-    ? `  ✓ ${changed} הפניות עודכנו ב-${pages.length} דפים.`
-    : `  ✓ הכול כבר מעודכן (${pages.length} דפים).`);
+  console.log(`  ✓ ${changed} הפניות · חותמת "${STAMP}" ב-${stamped} דפים.`);
 }

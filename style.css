@@ -2423,3 +2423,28 @@ body.hp-home .nav:not(.scrolled) :is(a, button, summary, [tabindex]):focus-visib
    יותר. `balance` מחלק אותן שווה במקום להשאיר מילה בודדת בשורה השנייה.
    ⚠️ ויזואלי בלבד — הטקסט מגיע מהקטלוג ולא נגעתי בו. */
 .hp-cell { text-wrap: balance; }
+
+
+/* ── חותמת עדכון — ⚠️ זמנית, להסרה לפני השקה ─────────────────────────
+   גיא ביקש (15.9) דרך לדעת אם מה שהוא רואה הוא הגרסה האחרונה. היא
+   מתעדכנת אוטומטית ב-`scripts/stamp-assets.mjs`, שרץ בכל פריסה.
+   `aria-hidden` — היא מידע לנו ולא למבקר, ואין סיבה שקורא מסך יכריז
+   אותה בכל טעינה. החיפוש להסרה: `data-build-stamp`. */
+.build-stamp {
+  position: fixed;
+  inset-block-start: 0;
+  /* ⚠️ `right` ולא `inset-inline-end` — הדף RTL, ושם `inline-end` הוא
+     שמאל. גיא ביקש את הפינה הימנית, והכוונה לימין הפיזי של המסך. */
+  right: 0;
+  z-index: 100000;
+  padding: 3px 9px;
+  border-radius: 0 0 8px 0;
+  background: rgba(20, 42, 34, 0.82);
+  color: #DFF3E8;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  font-variant-numeric: tabular-nums;
+  pointer-events: none;
+  user-select: none;
+}
