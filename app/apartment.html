@@ -823,13 +823,22 @@
         el.removeAttribute('aria-invalid');
         el.removeAttribute('aria-describedby');
       }
+      /* ⚠️ 15.9 — התאריך היה `required` ב-HTML ולא נבדק ב-JS. אין `<form>`
+         בדף, ולכן `required` אינו אוכף דבר: שדה ריק הפיק
+         `new Date(NaN, NaN, NaN)`, ומשם `state.date === 'NaN/NaN/NaN'`
+         נכתב להזמנה כ-`scheduledDate`. נתפס כשכרטיס הסיכום החדש הציג
+         אותו — קודם הוא פשוט לא הוצג לאיש. */
+      const dateEl = document.getElementById('move-date');
+      dateEl.removeAttribute('aria-invalid');
+      dateEl.removeAttribute('aria-describedby');
       const missing = [];
       if (!state.fromAddress) missing.push(['כתובת מוצא', fromEl]);
       if (!state.toAddress) missing.push(['כתובת יעד', toEl]);
+      if (!dateEl.value) missing.push(['תאריך', dateEl]);
       if (missing.length) {
         errBox.innerHTML =
           '<div class="alert alert-error" id="delivery-error-msg">יש למלא ' +
-          missing.map((m) => m[0]).join(' ו') + '.</div>';
+          missing.map((m) => m[0]).join(', ').replace(/, ([^,]*)$/, ' ו$1') + '.</div>';
         for (const [, el] of missing) {
           el.setAttribute('aria-invalid', 'true');
           el.setAttribute('aria-describedby', 'delivery-error-msg');
