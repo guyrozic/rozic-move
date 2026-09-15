@@ -239,6 +239,26 @@ export async function signInWithProvider(kind) {
   }
   const { user } = await signInWithPopup(auth, provider);
   const { profile, isNew } = await upsertOAuthProfile(user);
+  /**
+   * ⚠️ 16.9 — **הבדיקה הזאת הייתה כאן חסרה, והיא קיימת ב-`login()`
+   * שורות ספורות מעל.**
+   *
+   * השעיה נאכפת בשרת בשני מקומות בלבד (`acceptOrderSecure`,
+   * `notifyDriversOnNewOrder`) ו**אינה מופיעה בחוקי Firestore כלל**.
+   * כלומר מסך ההתחברות הוא שער האכיפה המרכזי — ומוביל מושעה שלחץ
+   * "המשך עם Google" באתר פשוט נכנס.
+   *
+   * ההשעיה היא הסנקציה **היחידה** שיש למערכת מול דיווח הטרדה
+   * (`AdminReportsScreen`). שער שנאכף במסלול אחד מתוך שניים אינו שער.
+   *
+   * ⚠️ `upsertOAuthProfile` רץ **לפני** הבדיקה בכוונה — הוא זה שמחזיר
+   * את הפרופיל, ובלעדיו אין מה לבדוק. הוא אינו מעניק שום גישה בפני
+   * עצמו.
+   */
+  if (profile?.suspended) {
+    await signOut(auth);
+    throw { code: 'auth/account-suspended' };
+  }
   return { profile, isNew, needsPhone: !profile.phone };
 }
 

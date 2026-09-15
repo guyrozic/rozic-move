@@ -815,8 +815,25 @@
       // ⚠️ כאן, ורק כאן, ההרשמה נדרשת. goRegister שומרת את הטיוטה
       // לפני ההפניה — בלי זה הלקוח חוזר מההרשמה לדף ריק.
       if (!authState) { goRegister('apartment', state); return; }
-      if (!authState.authUser.emailVerified && !authState.profile.phoneVerified) {
-        errBox.innerHTML = '<div class="alert alert-error">נדרש אימות מייל או טלפון לפני אישור הזמנה. <a tabindex="0" href="account.html">לאימות</a></div>';
+      /**
+       * ⚠️ 16.9 — **היה `!emailVerified && !phoneVerified`, והאפליקציה
+       * נטשה את הביטוי הזה אחרי תקרית אמיתית.**
+       *
+       * `SummaryScreen.tsx` דורש `phoneVerified` **לבדו**, ומעליו
+       * ההערה: *"Email verification is no longer an acceptable
+       * substitute for this specific check … see 2026-08-02 incident
+       * where an order was paid for and matched to a driver despite an
+       * unverified phone."*
+       *
+       * ⚠️ **ובאתר הפער חמור יותר מבאפליקציה:** מי שנרשם עם Google
+       * מקבל `authUser.emailVerified === true` **אוטומטית**, ולכן שער
+       * הטלפון לא חל עליו לעולם. הטלפון שנאסף ב-`needsPhone` הוא טקסט
+       * חופשי שלא אומת מעולם — והוא מה שנמסר למוביל.
+       *
+       * התקרית של 2.8 הוקשחה בצד אחד בלבד. זה הצד השני.
+       */
+      if (!authState.profile.phoneVerified) {
+        errBox.innerHTML = '<div class="alert alert-error">נדרש אימות טלפון לפני אישור הזמנה — המוביל צריך דרך ליצור איתך קשר. <a tabindex="0" href="account.html">לאימות</a></div>';
         return;
       }
       btn.disabled = true; btn.textContent = 'יוצר הזמנה...';

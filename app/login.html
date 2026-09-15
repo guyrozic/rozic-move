@@ -415,6 +415,11 @@
       if (code === 'auth/account-exists-with-different-credential')
         return 'כבר קיים חשבון עם האימייל הזה. התחברו עם אימייל וסיסמה.';
       if (code === 'auth/unauthorized-domain') return 'הדומיין הזה אינו מאושר להתחברות. פנו לתמיכה.';
+      // ⚠️ 16.9 — `signInWithProvider` מתנתקת וזורקת את זה כשהחשבון מושעה.
+      // עד היום הבדיקה הייתה ב-`login()` בלבד, ולכן מושעה שלחץ "המשך עם
+      // Google" פשוט נכנס. הנוסח זהה למסלול המייל, כדי ששני המסלולים
+      // יראו אותו דבר.
+      if (code === 'auth/account-suspended') return 'החשבון הזה הושעה. פנה לתמיכה.';
       return 'ההתחברות נכשלה. נסו שוב.';
     }
 
