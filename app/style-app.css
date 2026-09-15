@@ -27,7 +27,7 @@
 .construction-banner {
   width: 100%;
   background: #F5A623;
-  color: #3A2400;
+  color: var(--brown-deep);
   text-align: center;
   font-weight: 800;
   font-size: 0.82rem;
@@ -152,6 +152,16 @@
   box-shadow: 0 0 0 4px rgba(14,92,67,0.12);
 }
 
+/* ⚠️ 15.9 — `outline: none` למעלה גובר על הכלל הגלובלי שב-style.css
+   (`.form-group input:focus` הוא 0,2,1 מול `input:focus-visible` שהוא
+   0,1,1), ולכן טבעת המיקוד של האתר נמחקה בכל שדה בזרימת ההזמנה.
+   נשאר שינוי צבע המסגרת, שהוא אמנם אינדיקציה נראית — אבל חלשה בהרבה
+   מהטבעת שהאתר מבטיח בכל מקום אחר. `:focus-visible` מחזיר אותה
+   **רק בניווט מקלדת**: מי שלוחץ בעכבר ממשיך לראות בדיוק מה שראה. */
+.form-group input:focus-visible,
+.form-group select:focus-visible,
+.form-group textarea:focus-visible { outline: 3px solid var(--green); outline-offset: 2px; }
+
 .form-group textarea { resize: vertical; min-height: 80px; }
 
 .form-hint { font-size: 0.76rem; color: var(--text-muted); margin-top: 5px; }
@@ -233,7 +243,7 @@
 .btn-text { background: none; color: var(--green-dark); padding: 8px 4px; }
 .btn-text:hover { color: var(--green); }
 
-.btn-danger { background: #FCE9E9; color: #C0392B; }
+.btn-danger { background: #FCE9E9; color: var(--danger); }
 .btn-danger:hover:not(:disabled) { background: #F8D2D2; }
 
 .btn:disabled { opacity: 0.55; cursor: not-allowed; }
@@ -247,9 +257,9 @@
   margin-bottom: 16px;
   line-height: 1.6;
 }
-.alert-error   { background: #FCE9E9; color: #C0392B; border: 1px solid #F3C6C6; }
+.alert-error   { background: #FCE9E9; color: var(--danger); border: 1px solid #F3C6C6; }
 .alert-success { background: var(--green-light); color: var(--green-dark); border: 1px solid rgba(14,92,67,0.25); }
-.alert-info    { background: #EAF2FB; color: #2A5B8C; border: 1px solid #CFE3F5; }
+.alert-info    { background: #EAF2FB; color: var(--info); border: 1px solid #CFE3F5; }
 
 /* --- Service tiles (hub) --- */
 .service-tiles {
@@ -319,7 +329,7 @@
 .service-tile.tile-orange:hover { box-shadow: 0 4px 14px rgba(245,106,0,0.10), 0 28px 56px -16px rgba(245,106,0,0.26); border-color: rgba(245,106,0,0.28); }
 
 .service-tile.tile-purple { background: linear-gradient(155deg, var(--white) 0%, #EEE9F9 130%); }
-.service-tile.tile-purple .tile-icon-wrap { background: linear-gradient(155deg, var(--white) 0%, #E1D8F3 100%); color: #6B4FA0; box-shadow: var(--shadow-1), inset 0 0 0 1px rgba(107,79,160,0.16); }
+.service-tile.tile-purple .tile-icon-wrap { background: linear-gradient(155deg, var(--white) 0%, #E1D8F3 100%); color: var(--purple); box-shadow: var(--shadow-1), inset 0 0 0 1px rgba(107,79,160,0.16); }
 .service-tile.tile-purple::before { background: radial-gradient(140px 140px at 85% -10%, rgba(107,79,160,0.14), transparent 70%); }
 .service-tile.tile-purple:hover { box-shadow: 0 4px 14px rgba(107,79,160,0.10), 0 28px 56px -16px rgba(107,79,160,0.26); border-color: rgba(107,79,160,0.28); }
 
@@ -470,19 +480,19 @@
 }
 /* ענבר, כמו colors.amber באפליקציה — בלי הכלל הזה התג רונדר בלי רקע בכלל
    וההזמנה נראתה כאילו היא במצב לא מוכר. */
-.status-badge.pending_pricing  { background: #FBEFD9; color: #8A5A08; }
+.status-badge.pending_pricing  { background: #FBEFD9; color: var(--amber-strong); }
 /* ⚠️ 15.9 — היה #93690A על #FFF3D6, כלומר 4.46:1: מתחת ל-4.5, והתג
    הזה אינו "טקסט גדול" (0.78rem ≈ 14–16px, גם במשקל 800). #856008
    עובר ב-5.18:1. */
-.status-badge.pending_payment { background: #FFF3D6; color: #856008; }
-.status-badge.pending         { background: #E3EEFB; color: #2A5B8C; }
+.status-badge.pending_payment { background: #FFF3D6; color: var(--amber-deep); }
+.status-badge.pending         { background: #E3EEFB; color: var(--info); }
 .status-badge.assigned,
 .status-badge.en_route,
 .status-badge.in_progress     { background: var(--green-light); color: var(--green-dark); }
-.status-badge.completed       { background: #E9E9E9; color: #555; }
-.status-badge.cancelled       { background: #FCE9E9; color: #C0392B; }
+.status-badge.completed       { background: #E9E9E9; color: var(--text-plain); }
+.status-badge.cancelled       { background: #FCE9E9; color: var(--danger); }
 /* ⚠️ 15.9 — היה #777 על #EEE, כלומר 3.86:1. #656565 עובר ב-5.02:1. */
-.status-badge.draft           { background: #EEE; color: #656565; }
+.status-badge.draft           { background: #EEE; color: var(--text-gray); }
 
 .order-list { display: flex; flex-direction: column; gap: 12px; }
 .order-row-card {
@@ -648,7 +658,10 @@
 }
 .ai-upload-card .ai-upload-icon { font-size: 1.8rem; }
 .ai-upload-card .ai-upload-body { flex: 1; min-width: 0; }
-.ai-upload-card h3 { font-size: 1.2rem; font-weight: 800; letter-spacing: -0.3px; color: var(--text); margin-bottom: 6px; }
+/* ⚠️ 15.9 — הכותרת הזו הייתה h3 מיד אחרי ה-h1 של השלב: דילוג ברמות,
+   ורמה חסרה בעץ הכותרות. הכרטיס הזה הוא אח של כל .app-card סביבו,
+   ולכן h2. אותן הצהרות בדיוק — המראה לא זז. */
+.ai-upload-card h2 { font-size: 1.2rem; font-weight: 800; letter-spacing: -0.3px; color: var(--text); margin-bottom: 6px; }
 .ai-upload-card p { font-size: 0.88rem; color: var(--text-mid); margin-bottom: 18px; max-width: 620px; }
 .ai-photo-thumbs { display: flex; gap: 8px; flex-wrap: wrap; justify-content: flex-start; margin-bottom: 14px; }
 .ai-photo-thumbs .ai-thumb { position: relative; width: 64px; height: 64px; }
@@ -702,7 +715,8 @@
   margin-bottom: 24px;
   box-shadow: var(--shadow-2);
 }
-.ai-chat-card h3 { font-size: 1.1rem; font-weight: 800; letter-spacing: -0.3px; color: var(--text); margin-bottom: 4px; }
+/* 15.9 — h3 ⇠ h2, מאותה סיבה. ראו ההערה ב-.ai-upload-card. */
+.ai-chat-card h2 { font-size: 1.1rem; font-weight: 800; letter-spacing: -0.3px; color: var(--text); margin-bottom: 4px; }
 .ai-chat-card > p { font-size: 0.86rem; color: var(--text-mid); margin-bottom: 16px; }
 .ai-chat-thread { display: flex; flex-direction: column; gap: 10px; margin-bottom: 14px; max-height: 340px; overflow-y: auto; }
 .ai-chat-thread:empty { display: none; }
@@ -731,6 +745,9 @@
   background: var(--bg);
 }
 .ai-chat-input-row input:focus { outline: none; border-color: var(--green); background: var(--white); }
+/* 15.9 — שדה הצ'אט היה השדה היחיד באתר בלי טבעת זוהר **ובלי** outline:
+   שינוי צבע המסגרת היה כל מה שסימן מיקוד. אותו טיפול כמו .form-group. */
+.ai-chat-input-row input:focus-visible { outline: 3px solid var(--green); outline-offset: 2px; }
 .ai-chat-input-row button:disabled { opacity: 0.5; cursor: default; }
 .ai-free-items { display: flex; flex-direction: column; gap: 8px; margin-top: 4px; }
 .ai-free-item-row {

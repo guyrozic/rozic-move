@@ -385,7 +385,7 @@
           </div>
           <div style="display:flex; gap:8px;">
             ${l.status !== 'sold' ? `<button class="btn-text" tabindex="0" data-action="sold" data-id="${esc(l.id)}" aria-label="סמן כנמסר את המודעה ${esc(l.title)}">סמן כנמסר</button>` : ''}
-            <button class="btn-text" tabindex="0" data-action="delete" data-id="${esc(l.id)}" aria-label="מחק את המודעה ${esc(l.title)}" style="color:#C0392B;">מחק</button>
+            <button class="btn-text" tabindex="0" data-action="delete" data-id="${esc(l.id)}" aria-label="מחק את המודעה ${esc(l.title)}" style="color:var(--danger);">מחק</button>
           </div>
         </div>
       `).join('');

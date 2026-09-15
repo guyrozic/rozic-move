@@ -95,7 +95,7 @@
       <div id="ai-listing-progress-wrap" class="ai-upload-progress" style="display:none; margin-top:10px;">
         <div class="ai-upload-progress-fill" id="ai-listing-progress-fill" style="width:0%"></div>
       </div>
-      <div id="ai-listing-error"></div>
+      <div id="ai-listing-error" role="alert"></div>
       <button class="btn btn-secondary" id="ai-analyze-listing-btn" tabindex="0" style="margin-top:6px;" disabled>נתח תמונות עם AI ✨</button>
     </div>
 
@@ -122,7 +122,7 @@
     </div>
 
     <div class="ai-chat-card">
-      <h3>💬 צריך עזרה בכתיבת המודעה?</h3>
+      <h2>💬 צריך עזרה בכתיבת המודעה?</h2>
       <p>שאלו איך לכתוב כותרת טובה, לתאר מצב, ועוד.</p>
       <div class="ai-chat-thread" id="listing-chat-thread"></div>
       <div class="ai-chat-input-row">
@@ -171,7 +171,9 @@
       <p class="banned-note">ROZIC MOVE רשאית להסיר כל מודעה ולחסום כל משתמש לפי שיקול דעתה.</p>
     </div>
 
-    <div id="submit-error"></div>
+    <!-- ⚠️ 15.9 — #submit-error קיבל role="alert" ב-apartment.html
+         וב-small-move.html, וכאן נשכח. אותו שם, אותו תפקיד, אותו תיקון. -->
+    <div id="submit-error" role="alert"></div>
     <p class="consent-note">בפרסום המודעה אני מאשר/ת שהפריט אינו מהפריטים האסורים, שהפרטים שמסרתי נכונים, ושהמסירה היא באחריותי ובאחריות מקבל הפריט בלבד.</p>
     <button class="btn btn-primary btn-block" id="submit-btn" tabindex="0">פרסם מודעה</button>
     <p class="terms-note">בלחיצה על הכפתור אתם מאשרים את <a href="/terms.html" tabindex="0" target="_blank" rel="noopener">תנאי השימוש</a> ו<a href="/privacy.html" tabindex="0" target="_blank" rel="noopener">מדיניות הפרטיות</a></p>

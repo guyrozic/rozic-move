@@ -99,7 +99,12 @@
     .oauth-apple:hover { border-color: #000; }
     .oauth-divider {
       display: flex; align-items: center; gap: 12px; margin-bottom: 18px;
-      color: var(--text-light); font-size: 0.82rem;
+      /* ⚠️ 15.9 — היה `var(--text-light)`, טוקן ש**אינו קיים בשום מקום**
+         בריפו. הצהרה עם משתנה בלתי-פתור נזרקת בשקט, ולכן המילה "או"
+         שבין כפתורי ה-OAuth לטופס המייל ירשה את צבע הגוף המלא במקום
+         את הגוון המעומעם שהמחבר התכוון אליו. --text-muted הוא הטוקן
+         שנועד לתפקיד הזה, והוא 5.76:1 על לבן. ⚠️ שינוי **נראה**. */
+      color: var(--text-muted); font-size: 0.82rem;
     }
     .oauth-divider::before, .oauth-divider::after {
       content: ''; flex: 1; height: 1px; background: #E3EAE6;

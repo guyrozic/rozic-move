@@ -48,8 +48,10 @@
         <h2 id="profile-name">—</h2>
         <p class="app-card-desc" id="profile-email">—</p>
 
-        <div id="email-status"></div>
-        <div id="phone-status"></div>
+        <!-- 15.9 — שני האזורים האלה נכתבים ב-JS אחרי טעינת הדף (מצב אימות
+             המייל והטלפון). בלי aria-live הם מופיעים בשקט מוחלט. -->
+        <div id="email-status" aria-live="polite"></div>
+        <div id="phone-status" aria-live="polite"></div>
       </div>
 
       <div class="app-card" id="phone-verify-card" style="display:none;">
@@ -69,7 +71,7 @@
           </div>
           <button tabindex="0" class="btn btn-primary" id="confirm-code-btn">אשר קוד</button>
         </div>
-        <div id="phone-error"></div>
+        <div id="phone-error" role="alert"></div>
         <div id="recaptcha-container"></div>
       </div>
 
@@ -91,7 +93,7 @@
             <label for="support-message">ההודעה שלך</label>
             <textarea id="support-message" rows="4" placeholder="למשל: לא הצלחתי לשלם על ההזמנה שלי..."></textarea>
           </div>
-          <div id="support-error"></div>
+          <div id="support-error" role="alert"></div>
           <button tabindex="0" class="btn btn-primary" id="support-submit-btn">שלח פנייה</button>
           <p class="terms-note">בלחיצה על הכפתור אתם מאשרים את <a tabindex="0" href="/terms.html" target="_blank" rel="noopener">תנאי השימוש</a> ו<a tabindex="0" href="/privacy.html" target="_blank" rel="noopener">מדיניות הפרטיות</a></p>
         </div>

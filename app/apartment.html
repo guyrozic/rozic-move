@@ -58,14 +58,14 @@
           <div class="ai-upload-card">
             <div class="ai-upload-icon-wrap"><div class="ai-upload-icon">📸</div></div>
             <div class="ai-upload-body">
-              <h3>סריקת פריטים ב-AI</h3>
+              <h2>סריקת פריטים ב-AI</h2>
               <p>העלו תמונות מהמחשב או מהנייד — נזהה את הפריטים בעצמנו.</p>
               <div class="ai-photo-thumbs" id="ai-photo-thumbs"></div>
               <div class="ai-upload-progress" id="ai-progress-wrap" style="display:none;">
                 <div class="ai-upload-progress-fill" id="ai-progress-fill" style="width:0%"></div>
               </div>
               <div id="ai-progress-text" class="form-hint" style="display:none; margin-bottom:10px;"></div>
-              <div id="ai-error"></div>
+              <div id="ai-error" role="alert"></div>
               <!-- ⚠️ 16.9 — label שעוטף input ב-display:none **אינו נגיש
                    למקלדת בשום דפדפן**: ה-label אינו מקבל מיקוד, וה-input
                    המוסתר אינו ניתן למיקוד. כלומר אי אפשר היה להוסיף תמונות
@@ -84,7 +84,7 @@
           <div id="ai-questions"></div>
 
           <div class="ai-chat-card">
-            <h3>💬 או כתבו לנו מה יש לכם</h3>
+            <h2>💬 או כתבו לנו מה יש לכם</h2>
             <p>למשל: "יש לי מיטה זוגית ושתי ספות" — נוסיף את זה בעצמנו.</p>
             <div class="ai-chat-thread" id="ai-chat-thread"></div>
             <div id="ai-free-items" class="ai-free-items"></div>
@@ -180,7 +180,7 @@
             </div>
           </div>
 
-          <div id="delivery-error"></div>
+          <div id="delivery-error" role="alert"></div>
           <button tabindex="0" class="btn btn-primary btn-block" id="delivery-continue-btn">המשך</button>
           <button tabindex="0" class="btn-text" id="back-to-2">→ חזרה</button>
         </section>

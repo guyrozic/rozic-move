@@ -148,7 +148,7 @@
         <div class="app-card">
           <div class="alert alert-info">ההזמנה נוצרה — נשאר רק לשלם כדי שמוביל יוכל לקחת אותה.</div>
           <button class="btn btn-primary btn-block" id="pay-btn">שלם עכשיו — ₪${esc(total)}</button>
-          <div id="pay-error"></div>
+          <div id="pay-error" role="alert"></div>
         </div>` : ''}
 
         <div class="app-card">
@@ -167,7 +167,7 @@
 
         ${cancellable ? `
         <button class="btn btn-danger btn-block" id="cancel-btn">ביטול הזמנה</button>
-        <div id="cancel-error"></div>` : ''}
+        <div id="cancel-error" role="alert"></div>` : ''}
       `;
 
       document.getElementById('pay-btn')?.addEventListener('click', async (e) => {

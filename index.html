@@ -674,13 +674,27 @@
       document.body.classList.toggle('menu-open', isOpen);
     });
 
+    function closeMenu(returnFocus) {
+      if (!menu.classList.contains('open')) return;
+      menu.classList.remove('open');
+      toggle.classList.remove('active');
+      toggle.setAttribute('aria-expanded', 'false');
+      document.body.classList.remove('menu-open');
+      if (returnFocus) toggle.focus();
+    }
+
     document.querySelectorAll('.menu-link').forEach(link => {
-      link.addEventListener('click', () => {
-        menu.classList.remove('open');
-        toggle.classList.remove('active');
-        toggle.setAttribute('aria-expanded', 'false');
-        document.body.classList.remove('menu-open');
-      });
+      link.addEventListener('click', () => closeMenu(false));
+    });
+
+    /* ⚠️ 15.9 — Escape לא סגר את התפריט, ונמדד שאחרי לחיצה עליו
+       `aria-expanded` נשאר "true" והתפריט נשאר גלוי. מי שפתח את התפריט
+       במקלדת נשאר בתוכו בלי דרך יציאה מוכרת: הדרך היחידה לסגור הייתה
+       לנווט חזרה אל ההמבורגר ולהקיש עליו שוב. Escape הוא המוסכמה,
+       והחזרת המיקוד אל הכפתור הפותח היא החצי השני שלה — בלעדיה המיקוד
+       נשאר תלוי על קישור שנעלם מהמסך. */
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') closeMenu(true);
     });
 
     // FAQ accordion
