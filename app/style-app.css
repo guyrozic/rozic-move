@@ -471,14 +471,18 @@
 /* ענבר, כמו colors.amber באפליקציה — בלי הכלל הזה התג רונדר בלי רקע בכלל
    וההזמנה נראתה כאילו היא במצב לא מוכר. */
 .status-badge.pending_pricing  { background: #FBEFD9; color: #8A5A08; }
-.status-badge.pending_payment { background: #FFF3D6; color: #93690A; }
+/* ⚠️ 15.9 — היה #93690A על #FFF3D6, כלומר 4.46:1: מתחת ל-4.5, והתג
+   הזה אינו "טקסט גדול" (0.78rem ≈ 14–16px, גם במשקל 800). #856008
+   עובר ב-5.18:1. */
+.status-badge.pending_payment { background: #FFF3D6; color: #856008; }
 .status-badge.pending         { background: #E3EEFB; color: #2A5B8C; }
 .status-badge.assigned,
 .status-badge.en_route,
 .status-badge.in_progress     { background: var(--green-light); color: var(--green-dark); }
 .status-badge.completed       { background: #E9E9E9; color: #555; }
 .status-badge.cancelled       { background: #FCE9E9; color: #C0392B; }
-.status-badge.draft           { background: #EEE; color: #777; }
+/* ⚠️ 15.9 — היה #777 על #EEE, כלומר 3.86:1. #656565 עובר ב-5.02:1. */
+.status-badge.draft           { background: #EEE; color: #656565; }
 
 .order-list { display: flex; flex-direction: column; gap: 12px; }
 .order-row-card {

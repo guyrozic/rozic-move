@@ -1,15 +1,20 @@
 # ROZIC MOVE — https://rozicmove.com
 #
 # /app/ is the logged-in ordering flow, not content: every page there is behind
-# requireAuth() and renders nothing useful to a crawler. Same for the standalone
-# listing / payment / verification shells, which only render from a query string.
+# requireAuth() and renders nothing useful to a crawler.
+#
+# ⚠️ 15.9 — listing.html, payment-success.html and verify-redirect.html used to
+# be listed here too, and that was backwards. `Disallow` blocks *crawling*, not
+# *indexing*: a URL linked from anywhere else still gets indexed, shown without
+# a description — and because the crawler never fetches the page, it can never
+# see a `noindex` tag either. Those three now carry
+# `<meta name="robots" content="noindex, follow">`, which is the only directive
+# that actually removes a page from the index, and they must stay crawlable for
+# it to be read. 404.html has done it this way all along.
 
 User-agent: *
 Allow: /
 Disallow: /app/
-Disallow: /listing.html
-Disallow: /payment-success.html
-Disallow: /verify-redirect.html
 
 # AI assistants and answer engines — explicitly welcome on the public pages.
 User-agent: GPTBot
@@ -32,8 +37,5 @@ User-agent: cohere-ai
 Allow: /
 Allow: /llms.txt
 Disallow: /app/
-Disallow: /listing.html
-Disallow: /payment-success.html
-Disallow: /verify-redirect.html
 
 Sitemap: https://rozicmove.com/sitemap.xml

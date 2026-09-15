@@ -1,28 +1,35 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ⚠️ 15.9 — לכל חמשת הבלוקים כאן היו `changefreq` ו-`priority`, ולאף אחד
+  לא היה `lastmod`. זה בדיוק ההפך מהנכון: גוגל הודיעה ב-2023 שהיא
+  **מתעלמת** מ-`changefreq` ומ-`priority` (הם היו "אות" שכל אתר הצהיר בו
+  שהוא הכי חשוב וכי הוא מתעדכן כל הזמן), ו-`lastmod` הוא היחיד מבין
+  השלושה שהיא כן קוראת — ורק כשהוא מדויק ועקבי.
+
+  ⚠️ לכן: כשמשנים דף מהרשימה הזו, מעדכנים את ה-`lastmod` שלו באותו קומיט.
+  תאריך שלא זז, או תאריך "היום" שנדחף לכל הדפים בכל פריסה, שווה בדיוק
+  לאותו כלום שהיה כאן קודם. הערכים כאן הם תאריך הקומיט האחרון שנגע בכל
+  קובץ (`git log -1 --format=%cs -- <file>`).
+-->
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
     <loc>https://rozicmove.com/</loc>
-    <changefreq>weekly</changefreq>
-    <priority>1.0</priority>
+    <lastmod>2026-09-15</lastmod>
   </url>
   <url>
     <loc>https://rozicmove.com/terms.html</loc>
-    <changefreq>yearly</changefreq>
-    <priority>0.3</priority>
+    <lastmod>2026-09-15</lastmod>
   </url>
   <url>
     <loc>https://rozicmove.com/privacy.html</loc>
-    <changefreq>yearly</changefreq>
-    <priority>0.3</priority>
+    <lastmod>2026-09-15</lastmod>
   </url>
   <url>
     <loc>https://rozicmove.com/accessibility.html</loc>
-    <changefreq>yearly</changefreq>
-    <priority>0.3</priority>
+    <lastmod>2026-09-15</lastmod>
   </url>
   <url>
     <loc>https://rozicmove.com/delete-account.html</loc>
-    <changefreq>yearly</changefreq>
-    <priority>0.3</priority>
+    <lastmod>2026-09-15</lastmod>
   </url>
 </urlset>

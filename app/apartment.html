@@ -22,7 +22,9 @@
         <div class="step-dot" data-step="3"></div>
         <div class="step-dot" data-step="4"></div>
       </div>
-      <h1 id="step-title">מעבר דירה — אילו פריטים מובילים?</h1>
+      <!-- ⚠️ `tabindex="-1"` — ראו goToStep. מאפשר מיקוד תכנותי בלבד;
+           הכותרת אינה נכנסת לסדר ה-Tab ואינה משנה דבר במראה. -->
+      <h1 id="step-title" tabindex="-1">מעבר דירה — אילו פריטים מובילים?</h1>
       <p id="step-desc">העלו תמונה של כל חדר ונזהה פריטים אוטומטית, או בחרו ידנית מהרשימה.</p>
     </div>
   </div>
@@ -186,7 +188,10 @@
             <p class="form-hint">* המחיר עשוי להשתנות בהתאם לפרטים בפועל.</p>
           </div>
 
-          <div id="submit-error"></div>
+          <!-- ⚠️ 15.9 — היה בלי `role="alert"`, בעוד ש-#terms-error שכמה
+               שורות מתחת כן קיבל אותו: כשל אימות התנאים הוכרז, וכשל **יצירת
+               ההזמנה** — היקר הרבה יותר — היה שקט לגמרי לקורא מסך. -->
+          <div id="submit-error" role="alert"></div>
           <div class="form-group">
             <label class="terms-label" for="terms-accept">
               <input type="checkbox" id="terms-accept" required aria-describedby="terms-error">
@@ -885,6 +890,33 @@
       4: ['סיכום ואישור', 'בדקו את הפירוט ואשרו את ההזמנה.'],
     };
 
+    /**
+     * ⚠️ 15.9 נגישות — המעבר בין השלבים הוא הזרימה המרכזית באתר, והוא היה
+     * שקט לחלוטין לטכנולוגיה מסייעת.
+     *
+     * לחיצה על "המשך" מסתירה את הכפתור (`display:none`), והמיקוד **נופל
+     * ל-`<body>`**: ה-Tab הבא מתחיל מראש המסמך, אחרי הניווט והלוגו, ולא
+     * מתוכן השלב החדש. במקביל `<h1 id="step-title">` מחליף טקסט בלבד —
+     * בלי `aria-live` ובלי העברת מיקוד — ולכן קורא מסך **אינו מכריז
+     * דבר**: המשתמש לא יודע שהשלב התחלף.
+     *
+     * העברת המיקוד אל הכותרת (שקיבלה `tabindex="-1"` כדי שתוכל לקבל
+     * מיקוד תכנותי, בלי להיכנס לסדר ה-Tab) פותרת את שני הצדדים בבת אחת:
+     * הקורא מכריז את כותרת השלב החדש, וה-Tab ממשיך ממנה והלאה. זו התבנית
+     * המומלצת למעבר "מסך" באפליקציית עמוד-יחיד, ועדיפה על `aria-live`,
+     * שמכריז אך לא מזיז את המיקוד.
+     *
+     * `preventScroll: true` — הגלילה לראש הדף נעשית בשורה שמתחת, ובלעדיו
+     * הדפדפן היה מוסיף גלילה משלו וקוטע אותה.
+     *
+     * הקריאה הראשונה (`goToStep(1)` בטעינת הדף) אינה ממקדת: חטיפת מיקוד
+     * בטעינה היא בעצמה בעיית נגישות, ואין ממה "לעבור".
+     *
+     * ⚠️ `behavior: 'smooth'` היה קבוע והתעלם מ-`prefers-reduced-motion`,
+     * שהיא בדיוק ההעדפה שמבקשת לא לגלול בתנועה. עכשיו הוא מותנה בה.
+     */
+    let stepEntered = false;
+
     function goToStep(n) {
       step = n;
       document.querySelectorAll('.wizard-step').forEach(el => { el.style.display = Number(el.dataset.step) === step ? 'block' : 'none'; });
@@ -893,7 +925,8 @@
         el.classList.toggle('active', s === step);
         el.classList.toggle('done', s < step);
       });
-      document.getElementById('step-title').textContent = STEP_TITLES[step][0];
+      const titleEl = document.getElementById('step-title');
+      titleEl.textContent = STEP_TITLES[step][0];
       document.getElementById('step-desc').textContent = STEP_TITLES[step][1];
       document.getElementById('step-hero').className = 'step-hero step-' + step;
       document.getElementById('bottom-bar').style.display = step === 1 ? 'flex' : 'none';
@@ -901,7 +934,11 @@
       if (step === 3) { renderCraneItems(); updateCranePreview(); }
       if (step === 4) renderSummary();
       renderSidePrice();
-      window.scrollTo({ top: 0, behavior: 'smooth' });
+
+      const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      window.scrollTo({ top: 0, behavior: reduceMotion ? 'auto' : 'smooth' });
+      if (stepEntered) titleEl.focus({ preventScroll: true });
+      stepEntered = true;
     }
 
     function updateItemsHeader() {

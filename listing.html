@@ -4,6 +4,34 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>ROZIC MOVE — מוצר</title>
+  <!-- ⚠️ 15.9 — הכותרת הזו היא ברירת מחדל בלבד: `setListingHead()` בתחתית
+       הקובץ מחליפה אותה בשם המודעה בפועל ברגע שהיא נטענת. עד היום **כל**
+       מודעה שותפה תחת אותה כותרת גנרית — בלשונית, בהיסטוריה ובסימנייה. -->
+  <meta name="description" content="מודעת מסירה חינם ב-ROZIC MOVE — פריט יד שנייה שמישהו מוסר בחינם. פתחו את המודעה כדי לראות פרטים וליצור קשר עם המפרסם.">
+  <!--
+    ⚠️ 15.9 — הדף היה חסום ב-robots.txt ב-`Disallow` בלבד.
+    `Disallow` מונע **זחילה**, לא **אינדוקס**: גוגל עדיין מאנדקס כתובת
+    שהגיעה אליו מקישור חיצוני, ומציג אותה בלי תיאור. גרוע מכך — כל עוד
+    הזחילה חסומה, גוגל לעולם לא יקרא `noindex` שיתווסף כאן, כי הוא לא
+    ייכנס לדף כדי לראות אותו. לכן שורת ה-`Disallow` הוסרה מ-robots.txt
+    והחסימה עברה לתגית הזו, שהיא היחידה שבאמת מוציאה מהאינדקס.
+    `follow` — הקישורים המשפטיים שבפוטר כן ראויים למעקב.
+  -->
+  <meta name="robots" content="noindex, follow">
+
+  <!-- Open Graph — זהו דף השיתוף של המוצר (נשלח בוואטסאפ), ועד היום
+       הקישור הוצג בלי כותרת ובלי תיאור.
+       ⚠️ הערכים כאן **סטטיים וגנריים בכוונה**: סורקי התצוגה המקדימה של
+       וואטסאפ/פייסבוק אינם מריצים JavaScript, ולכן og שמוזרק ב-JS לא
+       יגיע אליהם לעולם. שם המודעה הספציפי כן מתעדכן ב-`document.title`,
+       שמשרת את הלשונית, ההיסטוריה והסימנייה של המשתמש.
+       ⚠️ אין `og:image` — אין בריפו קובץ תמונה כלשהו. ראו הדוח. -->
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="ROZIC MOVE">
+  <meta property="og:locale" content="he_IL">
+  <meta property="og:title" content="מוצר בחינם ב-ROZIC MOVE">
+  <meta property="og:description" content="מודעת מסירה חינם ב-ROZIC MOVE — פריט יד שנייה שמישהו מוסר בחינם. פתחו את המודעה כדי לראות פרטים וליצור קשר עם המפרסם.">
+  <meta name="twitter:card" content="summary">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;600;700;900&display=swap" rel="stylesheet">
   <style>
@@ -58,13 +86,17 @@
 
     /* פוטר משפטי — הצהרת הנגישות חייבת להיות נגישה מכל דף.
        יושב בתוך הכרטיס, כי ה-body כאן ממורכז ב-flex. */
+    /* ⚠️ 15.9 — הגוון היה #BBB, כלומר 1.92:1 על לבן. הוא צובע את המפרידים
+       "·" שבין הקישורים — טקסט מרונדר לכל דבר, ולכן כפוף ל-4.5:1 כמו כל
+       טקסט אחר. #767676 הוא הגוון הבהיר ביותר שעדיין עובר (4.54:1).
+       הקישורים עצמם נושאים #40604F ולא הושפעו. */
     .legal-links {
       margin-top: 22px;
       padding-top: 16px;
       border-top: 1px solid #E0F0E8;
       font-size: 13px;
       line-height: 25px;
-      color: #BBB;
+      color: #767676;
     }
     /* ⚠️ 15.9 — יעד הנגיעה היה 19px, מתחת ל-24×24 (WCAG 2.2, 2.5.8) —
        וזה כלל את הקישור להצהרת הנגישות עצמה. אותו תיקון בדיוק נעשה
@@ -77,7 +109,10 @@
     .listing-photos { display: flex; gap: 6px; overflow-x: auto; margin-bottom: 14px; }
     .listing-photos img { width: 96px; height: 96px; object-fit: cover; border-radius: 12px; flex-shrink: 0; }
     .listing-title { font-size: 21px; font-weight: 900; color: #1A2E1A; margin-bottom: 4px; }
-    .listing-meta { font-size: 15px; color: #888; margin-bottom: 12px; }
+    /* ⚠️ 15.9 — הגוון היה #888, כלומר 3.54:1 על הכרטיס הלבן. זו שורת
+       הקטגוריה והעיר של המודעה — מידע, לא קישוט. #6E6E6E הוא אותו גוון
+       שכבר משמש את `.tagline` בדף, ועובר ב-5.10:1. */
+    .listing-meta { font-size: 15px; color: #6E6E6E; margin-bottom: 12px; }
     .listing-desc { font-size: 16px; color: #555; line-height: 26px; white-space: pre-wrap; margin-bottom: 16px; }
     .free-badge {
       display: inline-block; font-size: 13px; font-weight: 800;
@@ -94,11 +129,11 @@
       background: #FAFCFB; border: 1px solid #E4EFE9; border-radius: 12px;
       padding: 12px 14px; margin-bottom: 14px; font-size: 14px; line-height: 24px;
       /* ⚠️ 15.9 — היה #6B7B6B (אותו גוון של --text-muted). על הרקע
-         הגוון #FAFCFB זה 4.36:1, מתחת ל-4.5. #5E6E5E => 5.1:1.
-         ⚠️ המשתנה הגלובלי --text-muted נכשל באותה צורה בכל האתר
-         (4.4962:1 על לבן טהור) — זו הכרעת צבע מותג שממתינה לגיא,
-         ולכן תוקן כאן הערך המקומי בלבד. */
-      color: #5E6E5E;
+         הגוון #FAFCFB זה 4.36:1, מתחת ל-4.5.
+         המשתנה הגלובלי --text-muted הועמק מאז ל-#5A6A5A, והערך המקומי
+         כאן מיושר אליו כדי שיישאר גוון אחד לכל האתר. על #FAFCFB הוא
+         5.59:1. הדף הזה מחזיק CSS משלו ואינו טוען את style.css. */
+      color: #5A6A5A;
     }
 
     /* --- נגישות מקלדת: טבעת מיקוד נראית --- */
@@ -112,8 +147,12 @@
 </head>
 <body>
   <div class="card">
-    <div class="logo">🚚</div>
-    <div class="brand">ROZIC MOVE</div>
+    <div class="logo" aria-hidden="true">🚚</div>
+    <!-- ⚠️ 15.9 — לדף הזה לא הייתה ולו כותרת אחת: הכול היה `div`, וניווט
+         לפי כותרות (דרך הניווט העיקרית של קורא מסך) פשוט לא היה קיים.
+         ה-`div` הפך ל-`h1` בלי לשנות פיקסל: `.brand` קובע גודל, משקל
+         וצבע, ו-`* { margin:0 }` בראש הקובץ מאפס את ברירת המחדל. -->
+    <h1 class="brand">ROZIC MOVE</h1>
     <div class="tagline">מזיזים אותך קדימה</div>
 
     <div id="status">מנסה לפתוח את האפליקציה...</div>
@@ -126,7 +165,10 @@
     <div id="listing-body" style="display:none; text-align:right;">
       <div class="listing-photos" id="listing-photos"></div>
       <div class="free-badge">חינם</div>
-      <div class="listing-title" id="listing-title"></div>
+      <!-- שם המודעה הוא הכותרת האמיתית של התוכן בדף, ולכן `h2` ולא `div`:
+           כך קורא מסך יכול לקפוץ אליו ישירות. `.listing-title` קובע גודל,
+           משקל וצבע, ו-`* { margin:0 }` מאפס — המראה זהה. -->
+      <h2 class="listing-title" id="listing-title"></h2>
       <div class="listing-meta" id="listing-meta"></div>
       <div class="listing-desc" id="listing-desc"></div>
       <div class="listing-disclaimer" id="listing-disclaimer">
@@ -201,6 +243,7 @@
         // textContent ולא innerHTML: כותרת/תיאור/עיר הם טקסט חופשי שמשתמש
         // אחר הקליד, והדף הזה נפתח לכל אדם באינטרנט בלי התחברות.
         document.getElementById('listing-title').textContent = listing.title || 'מוצר';
+        setListingHead(listing);
         document.getElementById('listing-meta').textContent =
           [CATEGORY_INFO[listing.category]?.label, listing.city].filter(Boolean).join(' · ');
         document.getElementById('listing-desc').textContent = listing.description || '';
@@ -216,6 +259,33 @@
 
         renderContact(listing);
       }
+    }
+
+    /**
+     * ⚠️ 15.9 — עד היום **כל** מודעה נשאה את הכותרת `ROZIC MOVE — מוצר`.
+     *
+     * זה הדף שנשלח בוואטסאפ, ולכן הוא גם הדף שנשמר כסימנייה ומופיע
+     * בהיסטוריה — ושם אין שום דרך להבדיל בין מודעה למודעה.
+     *
+     * ה-`canonical` מוזרק כאן ולא סטטית מפני שהוא חייב לכלול את ה-`id`:
+     * `canonical` קבוע ל-`/listing.html` היה מאחד את כל המודעות לכתובת
+     * אחת. הדף `noindex` ממילא, ולכן זו נקייה ולא הכרחית.
+     *
+     * ⚠️ `og:title` **אינו** מתעדכן כאן במכוון: סורקי התצוגה המקדימה של
+     * וואטסאפ ופייסבוק אינם מריצים JavaScript, ולכן עדכון בזמן ריצה לא
+     * היה מגיע אליהם — הוא רק היה יוצר אשליה שהוא עובד.
+     */
+    function setListingHead(listing) {
+      const title = (listing.title || '').trim();
+      document.title = title ? `${title} — חינם ב-ROZIC MOVE` : 'ROZIC MOVE — מוצר';
+
+      let link = document.querySelector('link[rel="canonical"]');
+      if (!link) {
+        link = document.createElement('link');
+        link.rel = 'canonical';
+        document.head.appendChild(link);
+      }
+      link.href = `https://rozicmove.com/listing.html?id=${encodeURIComponent(listing.id || listingId)}`;
     }
 
     function renderContact(listing) {

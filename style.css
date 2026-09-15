@@ -20,7 +20,12 @@
   --card-bg:     #FFFFFF;
   --text:        #142A22;
   --text-mid:    #3A4A3A;
-  --text-muted:  #6B7B6B;
+  /* ⚠️ 15.9 ביקורת נגישות — הגוון היה #6B7B6B, והוא נכשל ב-4.5:1 מול
+     **כל** רקע באתר: 4.28 על --bg, 4.06 על ראש הדפים המשפטיים (#E8F7EF),
+     3.95 על --green-light, ו-4.4962 על לבן טהור (כלומר גם "4.50" המעוגל
+     אינו עובר). #5A6A5A מעביר את כולם בפער: 5.48 / 5.21 / 5.06 / 5.76,
+     ו-4.92 על הרקע הכהה ביותר שנוצר בזרימת ההזמנה. */
+  --text-muted:  #5A6A5A;
   --border:      rgba(20,42,34,0.10);
   --shadow-sm:   0 1px 2px rgba(20,42,34,0.05), 0 2px 10px rgba(20,42,34,0.05);
   --shadow-md:   0 4px 14px rgba(20,42,34,0.07), 0 16px 32px rgba(20,42,34,0.08);
@@ -1085,13 +1090,24 @@ img, svg { display: block; }
 
 .faq-item.open .faq-arrow { transform: rotate(180deg); color: var(--green); }
 
+/* ⚠️ 15.9 — היה `max-height: 0` ← `max-height: 420px` עם `overflow:hidden`.
+   420px הוא מספר קבוע בפיקסלים, והטקסט נמדד ב-rem: בהגדלת תצוגה של 200%
+   התשובה הארוכה בדף (זו שעל נזק לציוד, ~250 תווים) חוצה את התקרה ופשוט
+   **נחתכת בלי שום אינדיקציה** — בלי גלילה, בלי "עוד". זה סותר ישירות את
+   מה שהצהרת הנגישות מבטיחה: "זום ללא פגיעה בתוכן" (WCAG 1.4.4).
+   `grid-template-rows: 0fr ← 1fr` מנפיש אל הגובה הטבעי של התוכן, יהיה
+   אשר יהיה — אין תקרה, ולכן אין מה להיחתך. אותו עקום ואותו משך, ולכן
+   המראה בזום רגיל זהה לחלוטין. בדפדפן שאינו מנפיש grid-template-rows
+   התשובה נפתחת מיידית במקום בהחלקה — פתוחה וקריאה, בלי חיתוך. */
 .faq-a {
-  max-height: 0;
-  overflow: hidden;
-  transition: max-height 0.4s cubic-bezier(0.4,0,0.2,1);
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows 0.4s cubic-bezier(0.4,0,0.2,1);
 }
 
-.faq-item.open .faq-a { max-height: 420px; }
+.faq-a > * { overflow: hidden; min-height: 0; }
+
+.faq-item.open .faq-a { grid-template-rows: 1fr; }
 
 .faq-a p {
   padding: 0 20px 18px;
@@ -1301,7 +1317,12 @@ a.back {
   font-weight: bold;
 }
 
-.updated { color: #999; font-size: 0.85rem; }
+/* ⚠️ 15.9 — הערך היה #999: 2.85:1 על לבן ו-2.58:1 על ראש הדפים
+   המשפטיים, הרחק מתחת ל-4.5. הכלל הזה אינו מנצח היום בשום דף — בכל
+   חמשת הדפים שמשתמשים במחלקה יש `.sub-hero .updated` מקומי בספציפיות
+   גבוהה יותר — אבל הוא מלכודת דרוכה: כל שימוש עתידי ב-`.updated` מחוץ
+   ל-`.sub-hero` היה נוחת ישר על הכשל. מיושר לטוקן. */
+.updated { color: var(--text-muted); font-size: 0.85rem; }
 .bold { font-weight: bold; color: var(--text); }
 
 /* ===== RESPONSIVE ===== */

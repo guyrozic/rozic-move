@@ -212,7 +212,11 @@
         <li><a tabindex="0" href="#faq">שאלות</a></li>
       </ul>
       <a tabindex="0" href="#download" class="nav-cta">הורד עכשיו</a>
-      <button tabindex="0" class="nav-toggle" id="nav-toggle" aria-label="תפריט">
+      <!-- ⚠️ 15.9 — הכפתור הזה פותח וסוגר את תפריט המובייל, ולא היה שום
+           אופן לדעת מקורא מסך אם התפריט פתוח או סגור: היה `aria-label`
+           בלבד. `aria-expanded` הוא המצב, ו-`aria-controls` מקשר אותו
+           לתפריט שהוא פותח. שניהם מתעדכנים ב-JS יחד עם המחלקה `open`. -->
+      <button tabindex="0" class="nav-toggle" id="nav-toggle" aria-label="תפריט" aria-expanded="false" aria-controls="mobile-menu">
         <span></span><span></span><span></span>
       </button>
     </div>
@@ -362,7 +366,11 @@
               <path d="M22 13V9l8 4" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
             </svg>
           </div>
-          <h3>הובלה קטנה</h3>
+          <!-- ⚠️ 15.9 — כאן ובפוטר נכתב "הובלה קטנה", בעוד שכל שאר האתר,
+               ה-JSON-LD שמעל, llms.txt והאפליקציה אומרים "מובילים בקטנה".
+               זה לא רק ניסוח: terms.html סעיף 7.1 תולה כלל כספי (15 דקות
+               אי-הופעה מול 30) בשם "מובילים בקטנה" — שם שהלקוח לא ראה. -->
+          <h3>מובילים בקטנה</h3>
           <p>פריטים בודדים, ריהוט, מוצרי חשמל — מוביל עם טנדר מגיע אליך.</p>
           <div class="feature-tag">טנדר · מגה</div>
         </div>
@@ -601,7 +609,7 @@
       <div class="footer-links">
         <div class="footer-col">
           <div class="footer-col-title">שירותים</div>
-          <a tabindex="0" href="#features">הובלה קטנה</a>
+          <a tabindex="0" href="#features">מובילים בקטנה</a>
           <a tabindex="0" href="#features">מעבר דירה</a>
         </div>
         <div class="footer-col">
@@ -652,6 +660,9 @@
     toggle.addEventListener('click', () => {
       const isOpen = menu.classList.toggle('open');
       toggle.classList.toggle('active', isOpen);
+      // ⚠️ המצב חייב להתעדכן באותה שורה שבה המחלקה מתעדכנת. `aria-expanded`
+      // שנשאר "false" בזמן שהתפריט פתוח גרוע מלא לשים אותו בכלל.
+      toggle.setAttribute('aria-expanded', String(isOpen));
       document.body.classList.toggle('menu-open', isOpen);
     });
 
@@ -659,6 +670,7 @@
       link.addEventListener('click', () => {
         menu.classList.remove('open');
         toggle.classList.remove('active');
+        toggle.setAttribute('aria-expanded', 'false');
         document.body.classList.remove('menu-open');
       });
     });

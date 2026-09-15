@@ -4,6 +4,16 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>ROZIC MOVE — אימות מייל</title>
+  <!--
+    ⚠️ 15.9 — הדף היה חסום ב-robots.txt ב-`Disallow` בלבד.
+    `Disallow` מונע **זחילה**, לא **אינדוקס**: גוגל עדיין מאנדקס כתובת
+    שהגיעה אליו מקישור חיצוני, ומציג אותה בלי תיאור. גרוע מכך — כל עוד
+    הזחילה חסומה, גוגל לעולם לא יקרא `noindex` שיתווסף כאן, כי הוא לא
+    ייכנס לדף כדי לראות אותו. לכן שורת ה-`Disallow` הוסרה מ-robots.txt
+    והחסימה עברה לתגית הזו, שהיא היחידה שבאמת מוציאה מהאינדקס.
+    `follow` — הקישורים המשפטיים שבפוטר כן ראויים למעקב.
+  -->
+  <meta name="robots" content="noindex, follow">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;600;700;900&display=swap" rel="stylesheet">
   <style>
@@ -58,13 +68,17 @@
 
     /* פוטר משפטי — הצהרת הנגישות חייבת להיות נגישה מכל דף.
        יושב בתוך הכרטיס, כי ה-body כאן ממורכז ב-flex. */
+    /* ⚠️ 15.9 — הגוון היה #BBB, כלומר 1.92:1 על לבן. הוא צובע את המפרידים
+       "·" שבין הקישורים — טקסט מרונדר לכל דבר, ולכן כפוף ל-4.5:1 כמו כל
+       טקסט אחר. #767676 הוא הגוון הבהיר ביותר שעדיין עובר (4.54:1).
+       הקישורים עצמם נושאים #40604F ולא הושפעו. */
     .legal-links {
       margin-top: 22px;
       padding-top: 16px;
       border-top: 1px solid #E0F0E8;
       font-size: 13px;
       line-height: 25px;
-      color: #BBB;
+      color: #767676;
     }
     /* ⚠️ 15.9 — יעד הנגיעה היה 19px, מתחת ל-24×24 (WCAG 2.2, 2.5.8) —
        וזה כלל את הקישור להצהרת הנגישות עצמה. אותו תיקון בדיוק נעשה
@@ -84,8 +98,12 @@
 </head>
 <body>
   <div class="card">
-    <div class="logo">✅</div>
-    <div class="brand">ROZIC MOVE</div>
+    <div class="logo" aria-hidden="true">✅</div>
+    <!-- ⚠️ 15.9 — לדף הזה לא הייתה ולו כותרת אחת: הכול היה `div`, וניווט
+         לפי כותרות (דרך הניווט העיקרית של קורא מסך) פשוט לא היה קיים.
+         ה-`div` הפך ל-`h1` בלי לשנות פיקסל: `.brand` קובע גודל, משקל
+         וצבע, ו-`* { margin:0 }` בראש הקובץ מאפס את ברירת המחדל. -->
+    <h1 class="brand">ROZIC MOVE</h1>
     <div class="tagline">מזיזים אותך קדימה</div>
 
     <div id="status">מאמת את המייל שלך...</div>
