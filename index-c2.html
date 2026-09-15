@@ -381,6 +381,42 @@
   }
   /* index-c2: הכרטיסים הם <a> ולא <button> — ביטול קו-תחתי וצבע-קישור כדי לשמר את מראה המוקאפ */
   .scan-picks a.pick, .scan-picks a.pick:hover, .scan-picks a.pick:focus { text-decoration:none; color:var(--text); }
+
+  /* ═══ 59.1 · בורר השירות הדק ══════════════════════════════════════
+     בפריסה הזאת היה רק "מעבר דירה", ושני שירותים איבדו את נקודת הכניסה
+     היחידה שלהם מעמוד הבית — "מובילים בקטנה" ו"מעבירים את זה הלאה"
+     היו נגישים **רק** דרך הבורר.
+     ⚠️ התבנית עצמה אינה חדשה: `.hp-svc` / `.hp-svc-chip` ב-`style.css`
+     הם אותם כללים שמשרתים את `index.html` החי, כולל `role="radiogroup"`
+     עם שלושה `role="radio"`, `aria-checked` אמיתי ו-`min-height:44px`.
+     כאן משתנה **רק** המראה: רצועה דקה יותר (ריפוד, מרווח וגופן קטנים
+     יותר) כדי לא לגזול גובה מהכלי.
+     ⚠️ `min-height:44px` על הצ'יפ לא ירד ואסור שירד — הוא יעד המגע
+     (WCAG 2.5.5), והוא מה שקובע את גובה הרצועה. */
+  .hp-svc { gap:4px; padding-bottom:6px; margin-bottom:11px; }
+  .hp-svc-chip { font-size:clamp(.78rem,.74rem + .18vw,.86rem); padding:5px 12px; }
+  @media (max-width:430px){
+    .hp-svc { gap:3px; }
+    .hp-svc-chip { font-size:.75rem; padding:5px 9px; }
+  }
+
+  /* ═══ 59.1 · הפאנל המוסבר של שני השירותים האחרים ═══════════════════
+     אותה התנהגות בדיוק של `.hp-market` ב-`index.html`: כשנבחר שירות
+     שאין לו כלי בעמוד הבית, הכלי מוחלף בהסבר קצר ובכפתור אמיתי אל
+     הזרימה שלו.
+     ⚠️ הפאנלים יושבים **בתוך** `.hp-panel-top`, מתחת לבורר ולא במקומו —
+     בדיוק מהסיבה שמתועדת ב-`index.html`: הסתרת המכל כולה הייתה נועלת
+     את המבקר בתוך השירות שבחר בלי דרך לחזור.
+     ⚠️ ההסתרה עצמה נשענת על `.hp-stage [hidden]{display:none!important}`
+     שב-`style.css` — `[hidden]` של הדפדפן מפסיד ל-`display:grid` המפורש
+     של `.tool-row`, ובלי הכלל ההוא ההסתרה פשוט לא הייתה קורית. */
+  .svc-panel { padding:2px 0 6px; max-width:52ch; }
+  .svc-panel h2 { font-size:1.05rem; font-weight:800; margin-bottom:6px; }
+  .svc-panel p { font-size:.88rem; color:var(--text-mid); line-height:1.6; margin-bottom:9px; }
+  .svc-panel .hp-go { margin-top:5px; }
+  /* הערה, לא חלק מההסבר — יושבת מתחת לכפתור כדי שהמשפט האחרון שנקרא
+     לפני הלחיצה יהיה ההזמנה עצמה ולא סייג. */
+  .svc-panel .svc-note { font-size:.8rem; color:var(--text-muted); margin:10px 0 0; }
   </style>
 </head>
 <!-- ⚠️ 15.9 — `has-nav-menu` מסמנת שלדף יש תפריט המבורגר. רק כאן.
@@ -388,7 +424,7 @@
      שיחליף אותם; בלי הסימון הזה הם נעלמו גם בחמשת הדפים המשפטיים,
      בלי שום דרך להגיע אליהם (WCAG 1.4.4). -->
 <body class="has-nav-menu hp-home">
-<div data-build-stamp class="build-stamp" aria-hidden="true">עודכן 16.09 · 01:19</div>
+<div data-build-stamp class="build-stamp" aria-hidden="true">עודכן 16.09 · 01:42</div>
   <!-- ⚠️ 15.9 — "דלג לתוכן המרכזי" (WCAG 2.4.1, רמה A). זהו האלמנט הממוקד
        הראשון בדף: מוסתר מהעין, מופיע בפינה ברגע שמגיעים אליו ב-Tab, ומעביר
        את המיקוד אל <main id="main-content" tabindex="-1">. בלי ה-tabindex
@@ -468,8 +504,18 @@
         <div class="hp-banner-slot" data-pilot-banner-slot></div>
 
         <p class="hp-kicker">הובלות · מעברי דירה</p>
-        <h1 class="hp-title">כמה עולה<br>להעביר דירה?<em>מחיר כאן ועכשיו.</em></h1>
-        <p class="hp-lede">בוחרים מה מעבירים ורואים את המחיר מתעדכן. בלי שיחות ובלי &laquo;נחזור אליך&raquo;.</p>
+        <!-- ⚠️ 59.2 — הכותרת רוככה. הנוסח הקודם היה «מחיר כאן ועכשיו» עם
+             לוח שבו «רואים את המחיר מתעדכן» — הבטחה שהייתה נכונה כשרשת
+             הפריטים והמחיר החי ישבו בפאנל הזה. הם עברו ל-`app/apartment.html`,
+             והכותרת נשארה מבטיחה מספר שאין בדף.
+             ⚠️ ההבטחה החדשה היא **בדיוק** מה שגיא הגדיר, ולא יותר: אנחנו
+             לא מבטיחים מספר בלי קלט — ברור שצריך לדעת מה מעבירים, מאיפה
+             ולאן. מה שכן מובטח הוא שלא ממלאים טופס ומחכים יומיים שכמה
+             מובילים שונים יחזרו אליך: הבחירה, המחיר וההזמנה נגמרים אצלנו,
+             עכשיו, בלי שיחת טלפון. לכן «בלי שיחות» ו«בלי נחזור אליך»
+             נשארו, ו«כאן ועכשיו» / «המחיר מתעדכן» ירדו. -->
+        <h1 class="hp-title">כמה עולה<br>להעביר דירה?<em>מחיר סופי בלי שיחות.</em></h1>
+        <p class="hp-lede">בוחרים מה מעבירים, מקבלים מחיר לפני האישור ומזמינים — הכול באתר. בלי &laquo;נחזור אליך&raquo;.</p>
         <ul class="hp-facts">
           <li class="hp-fact"><b id="hp-catalog-count">243</b><span>פריטים בקטלוג</span></li>
           <li class="hp-fact"><b>מחיר סופי</b><span>לא טווח</span></li>
@@ -506,7 +552,23 @@
 
       <div class="hp-panel">
         <div class="hp-panel-top">
-          <div class="tool-row tool-c2">
+          <!-- ══ בורר השירות ══════════════════════════════════════════
+               ⚠️ הועתק מ-`index.html` ולא נכתב מחדש: `role="radiogroup"`
+               עם שלושה `role="radio"` ו-`aria-checked` אמיתי שמתעדכן ב-JS.
+               **לא** `role="button"` על הילדים — ממצא שכבר תוקן באתר פעם
+               אחת ואין להחזיר: קורא מסך היה מכריז שלושה כפתורים
+               בלתי-קשורים במקום "אפשרות 1 מתוך 3, מסומנת".
+               ⚠️ ניווט המקלדת הוא roving tabindex לפי APG: Tab נכנס
+               לקבוצה פעם אחת (אל המסומנת), והחצים/Home/End מזיזים בתוכה.
+               ⚠️ הצ'יפ הנבחר נשאר **מסגרת** ואינו מתמלא — כלל שני
+               הירוקים. הוויזואל היחיד שהשתנה מול `index.html` הוא העובי. -->
+          <div class="hp-svc" role="radiogroup" aria-label="בחירת שירות" id="hp-svc">
+            <button type="button" class="hp-svc-chip" role="radio" aria-checked="true"  data-svc="apartment"   tabindex="0">מעבר דירה</button>
+            <button type="button" class="hp-svc-chip" role="radio" aria-checked="false" data-svc="smallMove"   tabindex="-1">מובילים בקטנה</button>
+            <button type="button" class="hp-svc-chip" role="radio" aria-checked="false" data-svc="marketplace" tabindex="-1">מעבירים את זה הלאה</button>
+          </div>
+
+          <div class="tool-row tool-c2" id="hp-view-apartment">
             <!-- ‏══ עמודה ימנית (רחבה ~66%): סריקה · שאלה · כרטיסים ══ -->
             <div class="tool-main">
               <div class="scan" role="img" aria-label="הדגמה: הסריקה עוברת בין סלון, חדר שינה ומטבח ומסמנת כל פריט בשמו">
@@ -591,6 +653,34 @@
                 <a class="hp-go" id="hp-continue" href="app/apartment.html">המשך להזמנה ←</a>
               </div>
             </div>
+          </div>
+
+          <!-- ══ "מובילים בקטנה" — מחליף את הכלי כששירות זה נבחר ═══════
+               ⚠️ למה פאנל ולא הפניה של שלושת הכרטיסים אל
+               `app/small-move.html`: לזרימה ההיא אין את העוגנים
+               `#start-photo` / `#start-chat` / `#start-list`, ושלושתם היו
+               נוחתים על ראש הדף. וחשוב מזה — הסריקה והרשימה שבכלי הן
+               דירה שלמה על שלושה חדרים, כלומר בדיוק מה ש"מובילים בקטנה"
+               **אינו**. -->
+          <div class="svc-panel" id="hp-view-small" hidden>
+            <h2>מובילים בקטנה</h2>
+            <p>פריטים בודדים ולא דירה שלמה — ספה, מקרר, מכונת כביסה, ארון או כמה ארגזים. מוביל עם טנדר מגיע, מרים ומעביר.</p>
+            <p>בוחרים את הפריטים מהקטלוג או מצלמים אותם, ומוסיפים כתובות, קומות ותאריך — המחיר מתקבל לפני האישור.</p>
+            <a class="hp-go" href="app/small-move.html">לבחירת הפריטים ←</a>
+            <p class="svc-note">גדול מדי לטנדר? מד הנפח בזרימה עוצר, וכדאי לעבור למעבר דירה.</p>
+          </div>
+
+          <!-- ══ לוח "מעבירים את זה הלאה" — מחליף את הכלי כששירות זה נבחר ══
+               ⚠️ הנוסח כאן זהה מילה במילה ל-`.hp-market` ב-`index.html`,
+               כולל נוסח הכפתור שהוכרע ב-59.3. אין כאן ניסוח חדש — הפריסה
+               החדשה לא אמורה לאבד את מה שכבר נכתב ואושר. -->
+          <div class="svc-panel" id="hp-view-market" hidden>
+            <h2>מעבירים את זה הלאה</h2>
+            <p>פריט שכבר לא צריך לא חייב להגיע לפח. מפרסמים אותו כאן, ומי שגר קרוב בא לקחת אותו.</p>
+            <p>אפס כסף — לא מוכרים ולא קונים, ולא עוברים בלוח כספים בכלל.</p>
+            <p>ואם מה שלקחתם גדול מכדי להרים לבד, אפשר להזמין לו הובלה כהזמנת מובילים בקטנה רגילה.</p>
+            <a class="hp-go" href="app/marketplace.html">כנסו לראות מה יש ←</a>
+            <p class="svc-note">לצפייה בלוח לא צריך חשבון. חשבון נדרש רק כשמבקשים פריט או מוסרים אחד.</p>
           </div>
         </div>
       </div>
@@ -987,11 +1077,68 @@
       });
     });
   </script>
+
+  <!-- ══════════════════════════════════════════════════════════════════
+       בורר השירות (59.1) — `<script>` רגיל ובכוונה **לא** המודול שלמטה.
+       המודול מייבא את הקטלוג, וכשל ייבוא אחד (רשת, MIME, דפדפן ישן) היה
+       משתק גם את הבורר ומשאיר שני שירותים בלי נקודת כניסה. כאן אין ייבוא
+       ואין תלות — הבורר עובד גם כשהקטלוג לא נטען.
+       ══════════════════════════════════════════════════════════════════ -->
+  <script>
+    (function () {
+      var group = document.getElementById('hp-svc');
+      if (!group) return;
+      var chips = Array.prototype.slice.call(group.querySelectorAll('[data-svc]'));
+      var views = {
+        apartment:   document.getElementById('hp-view-apartment'),
+        smallMove:   document.getElementById('hp-view-small'),
+        marketplace: document.getElementById('hp-view-market')
+      };
+
+      function select(svc, moveFocus) {
+        chips.forEach(function (b) {
+          var on = b.dataset.svc === svc;
+          /* ⚠️ המצב חייב להתעדכן באותה פעולה שבה התצוגה מתחלפת.
+             `aria-checked` שנשאר על הצ'יפ הישן גרוע מלא לשים אותו בכלל. */
+          b.setAttribute('aria-checked', String(on));
+          b.tabIndex = on ? 0 : -1;
+          if (on && moveFocus) b.focus();
+        });
+        Object.keys(views).forEach(function (k) {
+          if (views[k]) views[k].hidden = (k !== svc);
+        });
+      }
+
+      group.addEventListener('click', function (e) {
+        var b = e.target.closest('[data-svc]');
+        if (b) select(b.dataset.svc, false);
+      });
+
+      /* חצים לפי APG. ⚠️ ב-RTL החץ **ימינה** הוא הקודם — ההיפוך הזה
+         הוא זה של `index.html` ולא נוסח מחדש. */
+      group.addEventListener('keydown', function (e) {
+        var i = chips.indexOf(document.activeElement);
+        if (i === -1) return;
+        var next = null;
+        if (e.key === 'ArrowRight' || e.key === 'ArrowUp') next = (i + chips.length - 1) % chips.length;
+        if (e.key === 'ArrowLeft'  || e.key === 'ArrowDown') next = (i + 1) % chips.length;
+        if (e.key === 'Home') next = 0;
+        if (e.key === 'End') next = chips.length - 1;
+        if (next === null) return;
+        e.preventDefault();
+        select(chips[next].dataset.svc, true);
+      });
+    })();
+  </script>
+
   <!-- ══════════════════════════════════════════════════════════════════
        פריסת c2 — המשפך החדש: סריקה מונפשת + שלוש דרכים להתחיל.
        שלושת הכרטיסים הם קישורים אמיתיים אל app/apartment.html (עוגנים
        #start-photo / #start-chat / #start-list נוחתים על החלק המתאים).
-       ⚠ אין כאן בורר שירות / מחיר חי — זו הכרעת מוצר שרשומה בדוח לגיא.
+       ⚠ המחיר החי אינו כאן במתכוון — רשת הפריטים והמחיר עברו אל
+       `app/apartment.html`, ולכן גם הכותרת רוככה (59.2). בורר השירות כן
+       חזר (59.1): "מעבר דירה" מציג את הכלי, ושני האחרים מציגים פאנל
+       מוסבר עם כפתור אל הזרימה שלהם.
        ══════════════════════════════════════════════════════════════════ -->
   <script type="module">
     /* מספר הפריטים בפס העובדות — מהקטלוג האמיתי, לא מודבק.
