@@ -205,7 +205,7 @@
      ה-CSS מסתיר את קישורי הניווט מתחת ל-680px **רק** בדף שיש בו מה
      שיחליף אותם; בלי הסימון הזה הם נעלמו גם בחמשת הדפים המשפטיים,
      בלי שום דרך להגיע אליהם (WCAG 1.4.4). -->
-<body class="has-nav-menu">
+<body class="has-nav-menu hp-home">
   <!-- ⚠️ 15.9 — "דלג לתוכן המרכזי" (WCAG 2.4.1, רמה A). זהו האלמנט הממוקד
        הראשון בדף: מוסתר מהעין, מופיע בפינה ברגע שמגיעים אליו ב-Tab, ומעביר
        את המיקוד אל <main id="main-content" tabindex="-1">. בלי ה-tabindex
@@ -252,118 +252,124 @@
   </div>
   <main id="main-content" tabindex="-1">
 
-  <!-- Hero -->
-  <section class="hero">
-    <div class="hero-bg">
-      <div class="hero-blob-1"></div>
-      <div class="hero-blob-2"></div>
-    </div>
-    <div class="hero-content">
-      <div class="hero-text">
-        <div class="hero-badge reveal">הובלות · מעברי דירה</div>
-        <h1 class="hero-title reveal">
-          מזיזים אותך<br>
-          <span class="title-accent">קדימה</span>
-        </h1>
-        <p class="hero-desc reveal">
-          הפלטפורמה החכמה שמחברת אותך למובילים מקצועיים בישראל.
-          מחיר מיידי, מעקב בזמן אמת, ביצוע מהיר.
-        </p>
-        <div class="hero-actions reveal">
-          <a tabindex="0" href="https://apps.apple.com/app/id6783814838" target="_blank" class="btn-store btn-apple">
-            <svg width="20" height="24" viewBox="0 0 20 24" fill="none" aria-hidden="true">
-              <path d="M16.5 12.7c0-3.2 2.6-4.7 2.7-4.8-1.5-2.1-3.7-2.4-4.5-2.4-1.9-.2-3.7 1.1-4.7 1.1-1 0-2.5-1.1-4.1-1-2.1 0-4 1.2-5.1 3-2.2 3.8-.6 9.4 1.6 12.5 1 1.5 2.3 3.2 3.9 3.2 1.6-.1 2.2-1 4.1-1s2.4 1 4.1.9c1.7 0 2.8-1.5 3.8-3 1.2-1.7 1.7-3.4 1.7-3.5-.1 0-3.5-1.3-3.5-5zm-3.3-9.5c.9-1 1.4-2.4 1.3-3.8-1.2.1-2.7.8-3.6 1.8-.8.9-1.5 2.3-1.3 3.7 1.3.1 2.7-.7 3.6-1.7z" fill="currentColor"/>
-            </svg>
-            <div>
-              <small>הורד מ-</small>
-              <strong>App Store</strong>
-            </div>
-          </a>
-          <a tabindex="0" href="https://play.google.com/store/apps/details?id=com.rozicmove.app" target="_blank" class="btn-store btn-google">
-            <svg width="20" height="22" viewBox="0 0 20 22" fill="none" aria-hidden="true">
-              <path d="M1.2 1.2c-.3.3-.5.8-.5 1.5v16.6c0 .7.2 1.2.5 1.5l.1.1 9.3-9.3v-.2L1.3 1.1l-.1.1z" fill="#4285F4"/>
-              <path d="M13.7 13.9l-3.1-3.1v-.2l3.1-3.1.1.1 3.7 2.1c1 .6 1 1.5 0 2.1l-3.8 2.1z" fill="#FBBC04"/>
-              <path d="M13.8 13.8L10.6 10.6 1.2 20c.4.3 1 .4 1.7.1l10.9-6.3z" fill="#34A853"/>
-              <path d="M13.8 7.4L2.9 1.1C2.2.8 1.6.9 1.2 1.2l9.4 9.4 3.2-3.2z" fill="#EA4335"/>
-            </svg>
-            <div>
-              <small>הורד מ-</small>
-              <strong>Google Play</strong>
-            </div>
-          </a>
-          <a tabindex="0" href="app/index.html" class="btn-store btn-web">
-            <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
-              <path d="M3 7h12M9 3l6 6-6 6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
-            </svg>
-            <div>
-              <small>בלי הורדה —</small>
-              <strong>הזמינו באתר</strong>
-            </div>
-          </a>
-        </div>
+  <!-- ══════════════════════════════════════════════════════════════════
+       ההירו — מוזג 16.9 משלושה מקורות שכולם נשארו בריפו:
+         · העיצוב        · `preview-heroes.html`, וריאציה `.K`
+         · הפונקציונליות · `preview-home.html` (הכלי והמחיר האמיתי)
+         · המשך הדף      · חמשת המקטעים שמתחת, בדיוק כפי שהיו
+       ה-CSS יושב ב-`style.css` תחת "עמוד הבית: ההירו הכהה", ולא כאן.
+       ══════════════════════════════════════════════════════════════════ -->
+  <section class="hp-stage">
+
+    <!-- קו המסלול ואיור המשאית — טקסטורה בלבד. `currentColor` ולא
+         `stroke="#…"`, כדי שגם הם יבואו מטוקן. -->
+    <svg class="hp-route" viewBox="0 0 1280 520" fill="none" aria-hidden="true" preserveAspectRatio="none">
+      <path d="M-40 400 C 250 400, 300 220, 540 220 S 900 100, 1140 100" stroke="currentColor"
+        stroke-width="2.5" stroke-dasharray="9 12" stroke-linecap="round" opacity=".75"/>
+      <circle cx="-6" cy="400" r="7.5" fill="currentColor" opacity=".85"/>
+      <circle cx="1140" cy="100" r="7.5" fill="currentColor" opacity=".85"/>
+    </svg>
+    <svg class="hp-art" viewBox="0 0 240 150" fill="none" aria-hidden="true">
+      <rect x="6" y="52" width="118" height="72" rx="5" stroke="currentColor" stroke-width="3"/>
+      <path d="M124 74h44l30 30v20h-74z" stroke="currentColor" stroke-width="3" stroke-linejoin="round"/>
+      <circle cx="52" cy="128" r="14" stroke="currentColor" stroke-width="3"/>
+      <circle cx="166" cy="128" r="14" stroke="currentColor" stroke-width="3"/>
+      <path d="M30 70h30M30 86h52" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>
+    </svg>
+
+    <div class="hp-hero">
+      <div class="hp-copy">
+        <!-- ⚠️ שקע באנר שלב ההרצה. `app/pilot-banner.js` מזריק לכאן את
+             הכרטיס כשהנתיב הוא `/` או `/index.html`. הוא **בזרימה** ודוחף
+             את הכותרת למטה — לא שכבה צפה שמכסה אותה. -->
+        <div class="hp-banner-slot" data-pilot-banner-slot></div>
+
+        <p class="hp-kicker">הובלות · מעברי דירה</p>
+        <h1 class="hp-title">כמה עולה<br>להעביר דירה?<em>מחיר כאן ועכשיו.</em></h1>
+        <p class="hp-lede">בוחרים מה מעבירים ורואים את המחיר מתעדכן. בלי שיחות ובלי &laquo;נחזור אליך&raquo;.</p>
+        <ul class="hp-facts">
+          <li class="hp-fact"><b id="hp-catalog-count">243</b><span>פריטים בקטלוג</span></li>
+          <li class="hp-fact"><b>מחיר סופי</b><span>לא טווח</span></li>
+          <li class="hp-fact"><b>מעקב חי</b><span>רואים את המוביל</span></li>
+        </ul>
       </div>
 
-      <div class="hero-phone reveal-right">
-        <div class="phone-glow"></div>
-        <div class="phone-outer">
-          <div class="phone-frame">
-            <div class="phone-notch"></div>
-            <div class="phone-screen">
-              <div class="app-ui">
-                <div class="app-header">
-                  <div>
-                    <div class="app-greeting">שלום, אבי!</div>
-                    <div class="app-sub">לאן מובילים היום?</div>
-                  </div>
-                  <div class="app-avatar"></div>
-                </div>
-                <div class="app-services">
-                  <div class="app-service active">
-                    <div class="svc-emoji">🚐</div>
-                    <div class="svc-name">הובלה</div>
-                  </div>
-                  <div class="app-service">
-                    <div class="svc-emoji">🏠</div>
-                    <div class="svc-name">דירה</div>
-                  </div>
-                </div>
-                <div class="app-movers-label">מובילים באזור</div>
-                <div class="mover-card">
-                  <div class="mover-ava blue"></div>
-                  <div class="mover-info">
-                    <div class="mover-name">דני לוי</div>
-                  </div>
-                  <div class="mover-pick">זמין</div>
-                </div>
-                <div class="mover-card">
-                  <div class="mover-ava orange"></div>
-                  <div class="mover-info">
-                    <div class="mover-name">שחר כהן</div>
-                  </div>
-                  <div class="mover-pick">זמין</div>
-                </div>
-                <div class="app-track-bar">
-                  <div class="track-dot"></div>
-                  <div class="track-line"></div>
-                  <div class="track-dot dest"></div>
-                  <div class="track-label">מעקב בזמן אמת</div>
-                </div>
-              </div>
-            </div>
+      <div class="hp-panel">
+        <div class="hp-panel-top" id="hp-tool">
+          <!-- ══ בורר השירות ══════════════════════════════════════════
+               ⚠️ `role="radiogroup"` עם שלושה `role="radio"` ו-`aria-checked`
+               אמיתי שמתעדכן ב-JS. **לא** `role="button"` על הילדים — ממצא
+               שכבר תוקן באתר פעם אחת ואין להחזיר: קורא מסך היה מכריז שלושה
+               כפתורים בלתי-קשורים במקום "אפשרות 1 מתוך 3, מסומנת".
+               ⚠️ ניווט המקלדת הוא roving tabindex לפי APG: Tab נכנס לקבוצה
+               פעם אחת (אל המסומנת), והחצים/Home/End מזיזים בתוכה. -->
+          <div class="hp-svc" role="radiogroup" aria-label="בחירת שירות" id="hp-svc">
+            <button type="button" class="hp-svc-chip" role="radio" aria-checked="true"  data-svc="apartment"   tabindex="0">מעבר דירה</button>
+            <button type="button" class="hp-svc-chip" role="radio" aria-checked="false" data-svc="smallMove"   tabindex="-1">מובילים בקטנה</button>
+            <button type="button" class="hp-svc-chip" role="radio" aria-checked="false" data-svc="marketplace" tabindex="-1">יד שנייה חינם</button>
           </div>
+
+          <!-- ══ הדרך הראשונה: תיאור חופשי ═══════════════════════════ -->
+          <form class="hp-chat" id="hp-chat-form">
+            <span class="hp-chat-field">
+              <label for="hp-chat-input" class="hp-sr">תיאור חופשי של מה שמעבירים</label>
+              <input type="text" id="hp-chat-input" name="q" autocomplete="off"
+                     placeholder="ספרו לנו מה מעבירים…">
+            </span>
+            <button type="submit" class="hp-go">נתחיל ←</button>
+          </form>
+
+          <p class="hp-sep" id="hp-sep"><span>או בחרו מהנפוצים</span></p>
+
+          <!-- הרשת נבנית ב-JS מהקטלוג האמיתי. -->
+          <div class="hp-grid" id="hp-items"></div>
+
+          <p class="hp-note-line" id="hp-volume-note" hidden></p>
+          <p class="hp-note-line" id="hp-items-hint">טוען את הקטלוג…</p>
+
+          <a class="hp-more" id="hp-more-link" href="app/apartment.html">חיפוש בכל הקטלוג ←</a>
+          <!-- ⚠️ קישור, לא אזור-גרירה. בחירת התמונות וניתוח ה-AI חיים בתוך
+               זרימת ההזמנה ושם הם גם דורשים התחברות. אזור גרירה שמקבל קובץ
+               ולא עושה איתו כלום היה נראה שבור. -->
+          <p class="hp-cam" id="hp-cam">או <a id="hp-photo-link" href="app/apartment.html">צלמו את החדר</a> ונזהה את הפריטים.</p>
         </div>
-        <div class="phone-float-badge">
-          <div class="badge-icon">✓</div>
-          <div class="badge-text">
-            <div class="badge-title">הובלה אושרה!</div>
-            <div class="badge-sub">דני בדרך אליך</div>
+
+        <!-- ══ שורת המחיר ═══════════════════════════════════════════════
+             ⚠️ `aria-live="polite"` + `aria-atomic` יושבים על ראש המחיר
+             בלבד (התווית והמספר), ולא על הרצועה כולה: אזור חי שעוטף גם את
+             הכפתור וגם את הפירוט היה מקריא את הכול מחדש בכל לחיצה. -->
+        <div class="hp-pay" id="hp-price">
+          <div class="hp-sum" aria-live="polite" aria-atomic="true">
+            <b id="hp-price-num">— <small>כולל מע״מ</small></b>
+            <span id="hp-price-label">בחרו פריט כדי לראות מחיר</span>
           </div>
+          <a class="hp-go" id="hp-continue" href="app/apartment.html">המשך להזמנה ←</a>
+          <details>
+            <summary>איך המחיר מחושב?</summary>
+            <div class="hp-breakdown" id="hp-breakdown"></div>
+            <p class="hp-note-line">המחיר מתעדכן עם כל פריט, ונסגר סופית אחרי הכתובות והקומות — ומאותו רגע הוא לא משתנה.</p>
+          </details>
+        </div>
+
+        <!-- ══ לוח יד שנייה — מחליף את הכלי כששירות זה נבחר ═══════════ -->
+        <div class="hp-market" id="hp-market" hidden>
+          <h2>יד שנייה חינם</h2>
+          <p>לוח למסירת פריטים בחינם בלבד: מפרסמים פריט שלא צריך יותר, ומי שגר קרוב לוקח אותו. לא עוברים בו כספים — ולפריט שנלקח אפשר להזמין הובלה כהזמנת מובילים בקטנה.</p>
+          <a class="hp-go" href="app/marketplace.html">ללוח המודעות ←</a>
         </div>
       </div>
     </div>
+  </section>
 
-    <div class="hero-scroll">
-      <div class="scroll-arrow">↓</div>
+  <!-- רצועת האפליקציה — חלק מגוש ההירו בעיצוב שאושר, ולא מקטע חדש. -->
+  <section class="hp-app">
+    <div class="hp-app-text">
+      <h2>אפשר גם מהטלפון — ושם זה נוח יותר</h2>
+      <p>מעקב אחרי המוביל בזמן אמת, והתראה בכל שלב. הזמנה שפתחתם כאן תחכה לכם שם.</p>
+    </div>
+    <div class="hp-app-btns">
+      <a class="hp-a-dark" href="https://apps.apple.com/app/id6783814838" target="_blank" rel="noopener">App&nbsp;Store</a>
+      <a class="hp-a-ghost" href="https://play.google.com/store/apps/details?id=com.rozicmove.app" target="_blank" rel="noopener">Google&nbsp;Play</a>
     </div>
   </section>
 
@@ -756,6 +762,269 @@
         }
       });
     });
+  </script>
+  <!-- ══════════════════════════════════════════════════════════════════
+       כלי ההזמנה שבהירו — בורר השירות, בחירת הפריטים והמחיר.
+       מקורו ב-`preview-home.html`, שנשאר בריפו כרפרנס.
+
+       ⚠️ `type="module"`: הדף **מייבא את מקור התמחור של האתר** ואינו
+       משכפל אותו. אם הייבוא ייכשל, אין נפילה למספר מומצא — הכרטיס מציג
+       הודעה שהמחיר לא נטען (המאזין בסוף הקובץ).
+       ══════════════════════════════════════════════════════════════════ -->
+  <script type="module">
+    import { findItemAnywhere, getItemPriceAnyCategory, getAllItemsFlat } from './app/data/items.js';
+    import { BASE_PRICE, getVolumeDiscount } from './app/data/pricing.js';
+    import { BOX_ITEMS, MAX_VOLUME, estimateVolume } from './app/data/smallMoveItems.js';
+
+    window.__hpReady = true;
+
+    /* ⚠️ המספר היחיד כאן שהועתק ולא יובא. `app/small-move.html` מגדיר
+       אותו בשורה `const BASE = 100;` כקבוע מקומי — הוא **אינו**
+       `BASE_PRICE` של `pricing.js` (150), ואינו מיוצא משום מקום. אם הוא
+       ישתנה שם, הוא חייב להשתנות גם כאן. זו החוליה היחידה שאינה נאכפת
+       מעצמה, ולכן היא מסומנת. */
+    const SMALL_MOVE_BASE = 100;
+
+    /* שישה פריטים לכל שירות — הרשת היא 3×2, ושתי עמודות מתחת ל-620px. */
+    const SERVICES = {
+      apartment: {
+        href: 'app/apartment.html',
+        featured: ['double_bed', 'sofa_3seat', 'fridge_freezer_medium',
+                   'wardrobe_large', 'dining_table_medium', 'washer_dryer_large'],
+      },
+      smallMove: {
+        href: 'app/small-move.html',
+        featured: ['box_m', 'box_l', 'armchair_1seat',
+                   'fridge_freezer_medium', 'washer_dryer_large', 'tv_up_to_55'],
+      },
+      marketplace: { href: 'app/marketplace.html', featured: [] },
+    };
+
+    let service = 'apartment';
+    const qty = { apartment: {}, smallMove: {} };
+
+    /* ---------- קריאת פריט מהמקור האמיתי ---------- */
+
+    /** ארגזי הקרטון חיים ב-`smallMoveItems.js` ולא בקטלוג החדרים. */
+    const boxOf = (key) => BOX_ITEMS.find((b) => b.key === key);
+
+    function itemInfo(key) {
+      const box = boxOf(key);
+      if (box) return { key, label: box.label, price: box.price, volume: box.volume };
+      const item = findItemAnywhere(key);
+      if (!item) return null;
+      return { key, label: item.label, price: getItemPriceAnyCategory(key), volume: estimateVolume(item) };
+    }
+
+    /** שם תצוגה קצר — נגזר מהתווית האמיתית ואינו נכתב מחדש ביד:
+     *  "מיטה זוגית (160×200 ס\"מ)" ⇠ "מיטה זוגית".
+     *  ⚠️ השם הנגיש נשאר התווית **המלאה**, כולל המידות. */
+    const shortLabel = (label) => label.split(/\s*[(—]/)[0].trim();
+
+    /* ---------- המחיר ---------- */
+
+    /**
+     * ⚠️ העתק מדויק של החישוב ב-`app/apartment.html` ו-`app/small-move.html`,
+     * עם שלושת הרכיבים שאי-אפשר לדעת בעמוד הבית מאופסים:
+     *   · `travelCost` — `round(distance * PRICE_PER_KM)`, ואין עדיין כתובות ⇠ 0
+     *   · `floorSurcharge` — דורש קומה ומעלית בשני הקצוות ⇠ 0
+     *   · `surgeAmount` — `getSurgePricing(date)`, ואין עדיין תאריך ⇠ אינו נכלל
+     * שלושתם **נאמרים בפירוש** בפירוט שתחת «איך המחיר מחושב?». הם לא "נשכחו".
+     */
+    function computePrice() {
+      const selected = Object.entries(qty[service] || {})
+        .filter(([, q]) => q > 0)
+        .map(([key, q]) => ({ ...itemInfo(key), qty: q }))
+        .filter((i) => i.label);
+
+      const itemsSubtotal = selected.reduce((s, i) => s + i.price * i.qty, 0);
+      const units = selected.reduce((s, i) => s + i.volume * i.qty, 0);
+
+      if (service === 'smallMove') {
+        // מובילים בקטנה: בלי הנחת נפח, ועלות בסיס נפרדת.
+        return {
+          selected, units, itemsSubtotal, discountRate: 0, discount: 0,
+          base: SMALL_MOVE_BASE, total: SMALL_MOVE_BASE + itemsSubtotal,
+        };
+      }
+      const discountRate = getVolumeDiscount(itemsSubtotal);
+      const discount = Math.round(itemsSubtotal * discountRate);
+      return {
+        selected, units, itemsSubtotal, discountRate, discount,
+        base: BASE_PRICE, total: Math.round(BASE_PRICE + itemsSubtotal - discount),
+      };
+    }
+
+    /* ---------- רינדור ---------- */
+
+    const $ = (id) => document.getElementById(id);
+    const shekel = (n) => '₪' + n.toLocaleString('he-IL');
+
+    /* ⚠️ חובה, לא הידור. תוויות הקטלוג מכילות גרשיים כפולים — 'ס"מ' בכל
+       פריט עם מידות, ו-'טלוויזיה עד 55"' באינצ'ים. בלי בריחה הן סוגרות
+       את `aria-label="…"` באמצע, ומה שיוצא הוא אטריביוט קטוע ותגית
+       שבורה: בדיוק המקרה שבו הקוד "נראה נכון" והדף מתנהג אחרת. */
+    const esc = (s) => String(s)
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+
+    function renderItems() {
+      const cfg = SERVICES[service];
+      $('hp-items').innerHTML = cfg.featured.map((key) => {
+        const info = itemInfo(key);
+        if (!info) return '';
+        const q = (qty[service] || {})[key] || 0;
+        const picked = q > 0;
+        const addLabel = picked
+          ? 'הוסף עוד ' + info.label + ', ' + shekel(info.price) + ' ליחידה, נבחרו ' + q
+          : 'הוסף ' + info.label + ', ' + shekel(info.price);
+        return '<span class="hp-cell" data-picked="' + picked + '">'
+          + (picked
+              ? '<button type="button" class="hp-cell-sub" data-sub="' + esc(key) + '"'
+                + ' aria-label="' + esc('הסר ' + info.label) + '"><span aria-hidden="true">−</span></button>'
+              : '')
+          + '<button type="button" class="hp-cell-add" data-add="' + esc(key) + '"'
+          + ' aria-label="' + esc(addLabel) + '">'
+          + '<span class="hp-cell-name">' + esc(shortLabel(info.label)) + '</span>'
+          + '<span class="hp-cell-q" aria-hidden="true">' + (picked ? q : '+') + '</span>'
+          + '</button>'
+          + '</span>';
+      }).join('');
+    }
+
+    function renderPrice() {
+      const p = computePrice();
+      const count = p.selected.reduce((s, i) => s + i.qty, 0);
+
+      $('hp-price-num').innerHTML = count
+        ? esc(shekel(p.total)) + ' <small>כולל מע״מ</small>'
+        : '— <small>כולל מע״מ</small>';
+      $('hp-price-label').textContent = count
+        ? count + (count === 1 ? ' פריט' : ' פריטים') + ' · נסגר אחרי הכתובות'
+        : 'בחרו פריט כדי לראות מחיר';
+
+      const rows = [];
+      rows.push(['פריטים (' + count + ')', shekel(p.itemsSubtotal)]);
+      if (p.discount > 0) {
+        rows.push(['הנחת נפח (' + Math.round(p.discountRate * 100) + '%)', '−' + shekel(p.discount)]);
+      }
+      rows.push(['עלות בסיס', shekel(p.base)]);
+      rows.push(['נסיעה · קומות · תוספת סוף שבוע', 'אחרי הכתובות והתאריך']);
+      rows.push(['סך הכול עד כה', shekel(p.total)]);
+      $('hp-breakdown').innerHTML = rows
+        .map((r) => '<div><span>' + esc(r[0]) + '</span><span>' + esc(r[1]) + '</span></div>')
+        .join('');
+
+      /* ⚠️ מגבלת נפח הרכב — `MAX_VOLUME` מ-`smallMoveItems.js`, אותו מספר
+         שמגביל את הזרימה עצמה. בלי זה אפשר לבנות כאן הזמנה שלא נכנסת לרכב. */
+      const note = $('hp-volume-note');
+      const over = service === 'smallMove' && p.units > MAX_VOLUME;
+      note.hidden = !over;
+      if (over) note.textContent = 'ההזמנה כבר גדולה מרכב של מובילים בקטנה — כדאי לעבור למעבר דירה.';
+    }
+
+    function renderService() {
+      const cfg = SERVICES[service];
+      const isMarket = service === 'marketplace';
+
+      document.querySelectorAll('[data-svc]').forEach((b) => {
+        const on = b.dataset.svc === service;
+        b.setAttribute('aria-checked', String(on));
+        b.tabIndex = on ? 0 : -1;
+      });
+
+      /* ⚠️ מוסתרים הפריטים שבתוך הכלי, ולא `#hp-tool` עצמו — בורר השירות
+         יושב בתוכו, והסתרתו הייתה נועלת את המבקר בתוך "יד שנייה חינם"
+         בלי דרך לחזור.
+         ⚠️ ולכן גם קיים הכלל `.hp-stage [hidden]{display:none!important}`
+         ב-`style.css`: `[hidden]` של הדפדפן מגיע מגיליון ברירת המחדל
+         ומפסיד לכל `display:flex/grid` מפורש. בלעדיו ההסתרה הזו "נכתבת"
+         ופשוט לא קורית — שקט ובלי שגיאה. */
+      ['hp-chat-form', 'hp-sep', 'hp-items', 'hp-items-hint', 'hp-more-link', 'hp-cam']
+        .forEach((id) => { $(id).hidden = isMarket; });
+      $('hp-price').hidden = isMarket;
+      $('hp-market').hidden = !isMarket;
+      if (isMarket) { $('hp-volume-note').hidden = true; return; }
+
+      $('hp-more-link').href = cfg.href;
+      $('hp-photo-link').href = cfg.href;
+      $('hp-continue').href = cfg.href;
+      $('hp-items-hint').textContent = 'אלה הנפוצים ביותר — בהזמנה עצמה יש '
+        + getAllItemsFlat().length + ' פריטים לבחירה.';
+      renderItems();
+      renderPrice();
+    }
+
+    /* ---------- אירועים ---------- */
+
+    $('hp-items').addEventListener('click', (e) => {
+      const add = e.target.closest('[data-add]');
+      const sub = e.target.closest('[data-sub]');
+      if (!add && !sub) return;
+      const key = (add || sub).dataset.add || (add || sub).dataset.sub;
+      const bag = qty[service];
+      bag[key] = Math.max(0, (bag[key] || 0) + (add ? 1 : -1));
+      if (!bag[key]) delete bag[key];
+      renderItems();
+      renderPrice();
+      /* ⚠️ המיקוד חוזר לצ'יפ שנלחץ. בלי זה כל לחיצה מחזירה את המיקוד
+         ל-<body>, ומשתמש מקלדת מאבד את מקומו אחרי כל פריט. */
+      const again = document.querySelector('[data-add="' + key + '"]');
+      if (again) again.focus();
+    });
+
+    /* בורר השירות — לחיצה, וחצים לפי APG. */
+    const chips = Array.from(document.querySelectorAll('[data-svc]'));
+    $('hp-svc').addEventListener('click', (e) => {
+      const b = e.target.closest('[data-svc]');
+      if (!b) return;
+      service = b.dataset.svc;
+      renderService();
+    });
+    $('hp-svc').addEventListener('keydown', (e) => {
+      const i = chips.indexOf(document.activeElement);
+      if (i === -1) return;
+      let next = null;
+      if (e.key === 'ArrowRight' || e.key === 'ArrowUp') next = (i + chips.length - 1) % chips.length;
+      if (e.key === 'ArrowLeft' || e.key === 'ArrowDown') next = (i + 1) % chips.length;
+      if (e.key === 'Home') next = 0;
+      if (e.key === 'End') next = chips.length - 1;
+      if (next === null) return;
+      e.preventDefault();
+      service = chips[next].dataset.svc;
+      renderService();
+      chips[next].focus();
+    });
+
+    /* התיאור החופשי — מעביר לזרימה הקיימת. הטקסט אינו מעובד כאן. */
+    $('hp-chat-form').addEventListener('submit', (e) => {
+      e.preventDefault();
+      window.location.href = SERVICES[service].href;
+    });
+
+    /* מספר הפריטים בפס העובדות — מהקטלוג, לא מודבק. */
+    $('hp-catalog-count').textContent = getAllItemsFlat().length.toLocaleString('he-IL');
+
+    renderService();
+  </script>
+
+  <!-- ⚠️ רשת ביטחון. אם הייבוא של מודולי התמחור נכשל (רשת, MIME שגוי,
+       דפדפן ישן) — הדף **לא** מציג מספר, הוא אומר שהמחיר לא נטען. מספר
+       מודבק במקום חישוב אמיתי הוא בדיוק מה שאסור שיקרה כאן. -->
+  <script>
+    setTimeout(function () {
+      /* ⚠️ התנאי הוא **הרשת שנבנתה בפועל**, ולא דגל "המודול נטען".
+         נמדד: `id` חסר אחד גרם ל-TypeError אחרי `__hpReady = true`,
+         כלומר הדגל היה דלוק והכלי היה ריק — והרשת ביטחון לא נפתחה. */
+      var grid = document.getElementById('hp-items');
+      if (grid && grid.children.length) return;
+      var num = document.getElementById('hp-price-num');
+      var label = document.getElementById('hp-price-label');
+      var hint = document.getElementById('hp-items-hint');
+      if (num) num.textContent = 'לא זמין';
+      if (label) label.textContent = 'המחיר לא נטען';
+      if (hint) hint.textContent = 'טעינת הקטלוג נכשלה — נסו לרענן את הדף.';
+    }, 4000);
   </script>
 </body>
 </html>

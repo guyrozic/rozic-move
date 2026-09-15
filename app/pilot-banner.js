@@ -72,8 +72,22 @@ function showPilotBanner() {
      שדוחף את מה שמתחתיו; גרסת ה-`position:fixed` הראשונה כאן כיסתה את
      הכותרת "לאן מובילים היום?" בכל רוחב מסך שנמדד — כלומר ההצהרה הסתירה
      בדיוק את מה שהמבקר בא לקרוא. "ממש כמו באפליקציה" הוא כרטיס שדוחף. */
+  /* ⚠️ 16.9 — **שקע אופציונלי.** דף שמצהיר `[data-pilot-banner-slot]`
+     מקבל את הכרטיס לתוך השקע במקום לראש ה-`<main>`. זו תוספת ולא שינוי:
+     דף בלי שקע מתנהג בדיוק כמו קודם.
+     הסיבה שהיא נוספה: בעמוד הבית החדש ראש ה-`<main>` יושב **מתחת
+     לסרגל הניווט הקבוע** (`.nav` הוא `position:fixed` ואינו תופס מקום),
+     ולכן הכרטיס נדפס מתחת ללוגו — נמדד ב-390px, הכותרת "האתר בשלב הרצה"
+     יצאה חופפת ל-"ROZIC MOVE". השקע ממקם אותו בתוך ההירו, אחרי הריפוד
+     שכבר מקזז את הסרגל, כך שהוא **דוחף** את הכותרת במקום לכסות אותה —
+     וזה בדיוק מה ש-`PilotBanner.tsx` עושה במסך הבית באפליקציה.
+     ⚠️ סדר ה-Tab משתנה בהתאם: בשקע הכרטיס בא אחרי הניווט ולא לפניו,
+     וזה **מיישר** את סדר המקלדת לסדר שעל המסך (הכרטיס נראה מתחת
+     לסרגל). קישור הדילוג נשאר בכל מקרה האלמנט הממוקד הראשון. */
+  const slot = document.querySelector('[data-pilot-banner-slot]');
   const main = document.querySelector('main#main-content, main');
-  if (main) main.insertBefore(host, main.firstChild);
+  if (slot) slot.appendChild(host);
+  else if (main) main.insertBefore(host, main.firstChild);
   else document.body.insertBefore(host, document.body.firstChild);
 
   requestAnimationFrame(() => {
@@ -118,6 +132,11 @@ function showPilotBanner() {
     const hadFocus = host.contains(document.activeElement);
     document.removeEventListener('keydown', onKeyDown);
     host.remove();
+    /* ⚠️ 16.9 — `skip` לא היה מוגדר בשום מקום בקובץ, ולכן כל סגירה
+       שהמיקוד היה בתוכה (כלומר **כל לחיצה על כפתור ה-✕**) זרקה
+       ReferenceError וגררה את המיקוד אל <body> במקום להחזירו.
+       נתפס במדידה בדפדפן, לא בקריאת הקוד. */
+    const skip = document.querySelector('a.skip-link');
     if (hadFocus && skip) skip.focus();
   }
 }
