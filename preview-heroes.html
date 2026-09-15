@@ -143,6 +143,154 @@ body{font-family:Heebo,sans-serif;direction:rtl;background:#DDE4DE;color:var(--t
 @media (max-width:860px){.C .hero{grid-template-columns:1fr;gap:26px;
   background:linear-gradient(to bottom,var(--green-deep) 0 52%,var(--bg) 52% 100%)}}
 
+
+/* ===== ד · מפה ומסלול ===== */
+.D .nav{background:var(--white);border-bottom:1px solid var(--border)}
+.D .navlinks{color:var(--text-mid)}
+.D .hero{position:relative;background:#0B3A2A;color:#fff;overflow:hidden;
+  padding:46px clamp(18px,3vw,40px) 40px;display:grid;
+  grid-template-columns:minmax(0,.88fr) minmax(0,1.12fr);gap:40px;align-items:center}
+.D .hero::before{content:'';position:absolute;inset:0;opacity:.5;pointer-events:none;
+  background-image:
+    linear-gradient(rgba(78,218,169,.075) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(78,218,169,.075) 1px,transparent 1px);
+  background-size:52px 52px}
+.D .route{position:absolute;inset-block-start:0;inset-inline-start:0;width:100%;height:100%;
+  pointer-events:none;opacity:.55}
+.D .kicker{color:var(--green-on-dark);position:relative}
+.D h3{font-size:clamp(2.1rem,4.2vw,3.6rem);line-height:1;font-weight:900;
+  letter-spacing:-.025em;position:relative}
+.D h3 em{display:block;font-style:normal;color:var(--green-on-dark);
+  font-size:clamp(1.4rem,2.5vw,2.2rem);margin-top:10px}
+.D .lede,.D .facts{position:relative}
+.D .lede{color:rgba(255,255,255,.76)}
+.D .facts{border-top:1px solid rgba(255,255,255,.15)}
+.D .fact b{color:#fff}.D .fact span{color:rgba(255,255,255,.6)}
+.D .panel{position:relative;box-shadow:0 26px 60px -22px rgba(0,0,0,.5)}
+@media (max-width:860px){.D .hero{grid-template-columns:1fr;gap:26px}}
+
+/* ===== ה · קרטון ===== */
+.E{--paper:#F5EFE3;--ink:#2E2317;--tape:#C8A063;
+   --ink-soft:#6B5B49;   /* 5.02:1 על --paper */
+   --ink-mid:#4A3C2C;    /* 8.04:1 על --paper */
+   --ink-faint:#6B5B49}  /* זהה ל-soft — לא לרדת מתחת ל-4.5:1 */
+.E .nav{background:var(--paper);border-bottom:1.5px solid rgba(46,35,23,.14)}
+.E .logo{color:var(--ink)}.E .navlinks{color:var(--ink-soft)}
+.E .hero{background:var(--paper);color:var(--ink);padding:46px clamp(18px,3vw,40px) 40px;
+  display:grid;grid-template-columns:minmax(0,.95fr) minmax(0,1.05fr);gap:40px;align-items:start}
+.E .kicker{color:#8A6520}
+.E h3{font-size:clamp(2.2rem,4.5vw,3.9rem);line-height:.99;font-weight:900;letter-spacing:-.025em}
+.E h3 em{display:block;font-style:normal;color:var(--green);margin-top:9px;
+  font-size:clamp(1.5rem,2.7vw,2.4rem)}
+.E .lede{color:var(--ink-mid)}
+.E .facts{border-top:1.5px dashed rgba(46,35,23,.3)}
+.E .fact b{color:var(--ink)}.E .fact span{color:var(--ink-faint)}
+.E .panel{border:1.5px solid rgba(46,35,23,.16);box-shadow:0 14px 34px rgba(46,35,23,.13);
+  position:relative}
+.E .panel::before{content:'';position:absolute;inset-block-start:-11px;inset-inline-start:26px;
+  width:104px;height:22px;background:var(--tape);opacity:.62;transform:rotate(-2.4deg);
+  border-radius:2px}
+.E .p-pay{background:#EFE7D8}
+@media (max-width:860px){.E .hero{grid-template-columns:1fr;gap:26px}}
+
+/* ===== ו · המחיר הוא הגיבור ===== */
+.F .nav{background:var(--white);border-bottom:1px solid var(--border)}
+.F .navlinks{color:var(--text-mid)}
+.F .hero{background:var(--white);padding:40px clamp(18px,3vw,40px) 36px;text-align:center}
+.F .kicker{color:var(--pine-text)}
+.F h3{font-size:clamp(1.9rem,3.6vw,3.1rem);line-height:1.04;font-weight:900;letter-spacing:-.02em}
+.F .big{font-size:clamp(4.2rem,11vw,9rem);font-weight:900;color:var(--green);
+  line-height:.9;letter-spacing:-.05em;margin:14px 0 4px}
+.F .bigsub{font-size:.98rem;color:var(--text-muted);margin-bottom:26px}
+.F .panel{max-width:720px;margin-inline:auto;text-align:start;
+  border:1.5px solid var(--border);box-shadow:0 16px 40px rgba(20,42,34,.1)}
+.F .facts{justify-content:center;border-top:1px solid var(--border);margin-top:26px}
+.F .fact b{color:var(--text)}.F .fact span{color:var(--text-muted)}
+.F .p-sum{display:none}
+.F .p-pay{justify-content:center}
+
+/* ===== ז · חשבונית ===== */
+.G{--rule:rgba(20,42,34,.16)}
+.G .nav{background:var(--text);color:#fff}
+.G .logo{color:#fff}.G .navlinks{color:rgba(255,255,255,.65)}
+.G .hero{background:var(--white);padding:42px clamp(18px,3vw,40px) 38px;
+  display:grid;grid-template-columns:minmax(0,.82fr) minmax(0,1.18fr);gap:40px;align-items:start}
+.G .kicker{color:var(--text-muted);letter-spacing:.14em}
+.G h3{font-size:clamp(2rem,4vw,3.4rem);line-height:1.02;font-weight:900;letter-spacing:-.02em}
+.G h3 em{display:block;font-style:normal;color:var(--green);margin-top:8px}
+.G .lede{color:var(--text-mid)}
+.G .facts{border-top:2px solid var(--text)}
+.G .fact b{color:var(--text);font-variant-numeric:tabular-nums}
+.G .fact span{color:var(--text-muted)}
+.G .panel{border:1px solid var(--rule);border-radius:0;box-shadow:none;
+  background:repeating-linear-gradient(var(--white) 0 43px,#FAFCFA 43px 86px)}
+.G .grid{border-radius:0;border-inline:0}
+.G .cell{background:transparent}
+.G .ask{border-radius:0;background:var(--white)}
+.G .ask button{border-radius:0}
+.G .p-pay{border-radius:0;background:var(--text);color:#fff;border-top:2px solid var(--text)}
+.G .p-sum b{color:#fff;font-variant-numeric:tabular-nums}
+.G .p-sum span{color:rgba(255,255,255,.66)}
+.G .p-go{background:var(--green-on-dark);color:var(--green-deep);border-radius:0}
+@media (max-width:860px){.G .hero{grid-template-columns:1fr;gap:26px}}
+
+/* ===== ח · איור קווי ===== */
+.H .nav{background:var(--green-deep)}
+.H .logo{color:#fff}.H .navlinks{color:rgba(255,255,255,.7)}
+.H .hero{position:relative;background:linear-gradient(160deg,#0A4433,#07301F 70%);
+  color:#fff;overflow:hidden;padding:44px clamp(18px,3vw,40px) 38px;
+  display:grid;grid-template-columns:minmax(0,.9fr) minmax(0,1.1fr);gap:40px;align-items:center}
+.H .art{position:absolute;inset-block-end:-14px;inset-inline-start:-30px;width:min(430px,42%);
+  opacity:.16;pointer-events:none}
+.H .kicker{color:var(--green-on-dark);position:relative}
+.H h3{font-size:clamp(2.1rem,4.3vw,3.7rem);line-height:1;font-weight:900;
+  letter-spacing:-.025em;position:relative}
+.H h3 em{display:block;font-style:normal;color:var(--green-on-dark);margin-top:10px;
+  font-size:clamp(1.4rem,2.6vw,2.3rem)}
+.H .lede,.H .facts{position:relative}
+.H .lede{color:rgba(255,255,255,.75)}
+.H .facts{border-top:1px solid rgba(255,255,255,.15)}
+.H .fact b{color:#fff}.H .fact span{color:rgba(255,255,255,.6)}
+.H .panel{position:relative;box-shadow:0 26px 62px -22px rgba(0,0,0,.55)}
+@media (max-width:860px){.H .hero{grid-template-columns:1fr;gap:26px}.H .art{display:none}}
+
+/* ===== ט · מינימלי ===== */
+.I .nav{background:var(--white);border-bottom:1px solid var(--border)}
+.I .navlinks{color:var(--text-mid)}
+.I .hero{background:var(--white);padding:56px clamp(18px,3vw,40px) 44px;
+  display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:48px;align-items:start}
+.I .kicker{display:none}
+.I h3{font-size:clamp(2.4rem,5vw,4.3rem);line-height:.96;font-weight:900;letter-spacing:-.035em}
+.I h3 em{display:block;font-style:normal;color:var(--text-muted);margin-top:10px;
+  font-size:clamp(1.3rem,2.3vw,2rem);font-weight:700;letter-spacing:-.01em}
+.I .lede{color:var(--text-mid);font-size:1rem}
+.I .facts{border-top:1px solid var(--border);gap:26px}
+.I .fact b{color:var(--text);font-size:1.3rem}.I .fact span{color:var(--text-muted)}
+.I .panel{border:0;box-shadow:none;background:transparent}
+.I .p-top{padding-inline:0}
+.I .svc{margin-inline:0;padding-inline:0}
+.I .grid{border-radius:0;border-inline:0;border-block-end:0}
+.I .p-pay{background:transparent;border-radius:0;padding-inline:0}
+@media (max-width:860px){.I .hero{grid-template-columns:1fr;gap:30px}}
+
+/* ===== י · פס צבע ===== */
+.J .nav{background:var(--white);border-bottom:1px solid var(--border)}
+.J .navlinks{color:var(--text-mid)}
+.J .hero{position:relative;background:var(--white);
+  padding:44px clamp(18px,3vw,40px) 38px;padding-inline-end:calc(clamp(18px,3vw,40px) + 26px);
+  display:grid;grid-template-columns:minmax(0,.9fr) minmax(0,1.1fr);gap:40px;align-items:start}
+.J .hero::before{content:'';position:absolute;inset-block:0;inset-inline-end:0;width:18px;
+  background:linear-gradient(var(--green),var(--green-border));pointer-events:none}
+.J .kicker{color:var(--pine-text)}
+.J h3{font-size:clamp(2.2rem,4.4vw,3.8rem);line-height:.99;font-weight:900;letter-spacing:-.028em}
+.J h3 em{display:block;font-style:normal;color:var(--green);margin-top:9px;
+  font-size:clamp(1.45rem,2.6vw,2.35rem)}
+.J .lede{color:var(--text-mid)}
+.J .facts{border-top:1px solid var(--border)}
+.J .fact b{color:var(--green)}.J .fact span{color:var(--text-muted)}
+.J .panel{border:1.5px solid var(--border);box-shadow:0 18px 44px rgba(20,42,34,.1)}
+@media (max-width:860px){.J .hero{grid-template-columns:1fr;gap:26px}}
+
 .app{background:var(--green-light);padding:20px clamp(18px,3vw,40px);display:flex;
   align-items:center;justify-content:space-between;gap:18px;flex-wrap:wrap}
 .app b{font-size:.98rem}.app p{font-size:.86rem;color:var(--text-mid);margin-top:2px}
@@ -161,11 +309,11 @@ body{font-family:Heebo,sans-serif;direction:rtl;background:#DDE4DE;color:var(--t
 <main id="main-content" tabindex="-1">
 
 <div class="lead">
-  <h1>שלושה כיוונים לראש עמוד הבית</h1>
+  <h1>עשרה כיוונים לראש עמוד הבית</h1>
   <p>שלושתם נושאים בדיוק את אותו תוכן ואת אותו כלי — ההבדל הוא בטיפול החזותי בלבד.
      גללו, והשוו. בטלפון הם נערמים לטור אחד.</p>
   <nav class="jump" aria-label="מעבר מהיר">
-    <a href="#A">א · ירוק עמוק</a><a href="#B">ב · בהיר וגרפי</a><a href="#C">ג · מפוצל</a>
+    <a href="#A">א · ירוק עמוק</a><a href="#B">ב · בהיר וגרפי</a><a href="#C">ג · מפוצל</a><a href="#D">ד · מפה</a><a href="#E">ה · קרטון</a><a href="#F">ו · מחיר</a><a href="#G">ז · חשבונית</a><a href="#H">ח · איור</a><a href="#I">ט · מינימלי</a><a href="#J">י · פס צבע</a>
   </nav>
 </div>
 </main>
@@ -283,6 +431,263 @@ body{font-family:Heebo,sans-serif;direction:rtl;background:#DDE4DE;color:var(--t
   <div class="after"><b>כל מה שצריך כדי לזוז</b>↓ וכאן ממשיכים כל המקטעים הקיימים</div>
 </div>
 
+
+<div class="label"><h2 id="D">ד · מפה ומסלול</h2><span>רשת עדינה וקו מסלול מקווקו — שפה של הובלה, לא של תבנית.</span></div>
+<div class="frame D">
+  <div class="nav"><span class="logo">ROZIC MOVE</span>
+    <div class="navlinks"><span>שירותים</span><span>איך זה עובד</span><span>למובילים</span><span>שאלות</span></div></div>
+  <div class="hero"><svg class="route" viewBox="0 0 1280 560" fill="none" aria-hidden="true">
+      <path d="M-40 430 C 240 430, 300 250, 520 250 S 880 120, 1120 120" stroke="#4EDAA9"
+        stroke-width="2.5" stroke-dasharray="9 11" stroke-linecap="round"/>
+      <circle cx="-10" cy="430" r="8" fill="#4EDAA9"/><circle cx="1120" cy="120" r="8" fill="#4EDAA9"/>
+    </svg>
+    <div>
+      <p class="kicker">הובלות · מעברי דירה</p>
+      <h3>כמה עולה<br>להעביר דירה?<em>מחיר כאן ועכשיו.</em></h3>
+      <p class="lede">בוחרים מה מעבירים ורואים את המחיר מתעדכן. בלי שיחות ובלי &laquo;נחזור אליך&raquo;.</p>
+      <div class="facts">
+        <div class="fact"><b>243</b><span>פריטים בקטלוג</span></div>
+        <div class="fact"><b>מחיר סופי</b><span>לא טווח</span></div>
+        <div class="fact"><b>מעקב חי</b><span>רואים את המוביל</span></div>
+      </div>
+    </div>
+    <div class="panel">
+      <div class="p-top">
+        <div class="svc"><button class="on">מעבר דירה</button><button>מובילים בקטנה</button><button>יד שנייה חינם</button></div>
+        <div class="ask"><input placeholder="ספרו לנו מה מעבירים…" aria-label="תיאור חופשי"><button>נתחיל</button></div>
+        <p class="sep">או בחרו מהנפוצים</p>
+        <div class="grid">
+          <span class="cell on">מיטה זוגית <i>2</i></span><span class="cell on">ספה תלת <i>1</i></span><span class="cell">מקרר <i>+</i></span>
+          <span class="cell">ארון 4 דלתות <i>+</i></span><span class="cell">שולחן אוכל <i>+</i></span><span class="cell">מכונת כביסה <i>+</i></span>
+        </div>
+        <a class="p-more" href="#D">חיפוש בכל הקטלוג ←</a>
+        <p class="p-cam">או <a href="#D">צלמו את החדר</a> ונזהה את הפריטים.</p>
+      </div>
+      <div class="p-pay"><div class="p-sum"><b>₪660</b><span>3 פריטים · נסגר אחרי הכתובות</span></div>
+        <button class="p-go">המשך להזמנה ←</button></div>
+    </div>
+  </div>
+  <div class="app"><div><b>אפשר גם מהטלפון — ושם זה נוח יותר</b>
+    <p>מעקב בזמן אמת. הזמנה שפתחתם כאן תחכה לכם שם.</p></div>
+    <div class="btns"><a class="a-dark" href="#D">App Store</a><a class="a-ghost" href="#D">Google Play</a></div></div>
+  <div class="after"><b>כל מה שצריך כדי לזוז</b>↓ וכאן ממשיכים כל המקטעים הקיימים</div>
+</div>
+<div class="label"><h2 id="E">ה · קרטון</h2><span>פלטה חמה של קרטון אריזה, מסקינג-טייפ בפינה. חומרי, לא דיגיטלי.</span></div>
+<div class="frame E">
+  <div class="nav"><span class="logo">ROZIC MOVE</span>
+    <div class="navlinks"><span>שירותים</span><span>איך זה עובד</span><span>למובילים</span><span>שאלות</span></div></div>
+  <div class="hero">
+    <div>
+      <p class="kicker">הובלות · מעברי דירה</p>
+      <h3>כמה עולה<br>להעביר דירה?<em>מחיר כאן ועכשיו.</em></h3>
+      <p class="lede">בוחרים מה מעבירים ורואים את המחיר מתעדכן. בלי שיחות ובלי &laquo;נחזור אליך&raquo;.</p>
+      <div class="facts">
+        <div class="fact"><b>243</b><span>פריטים בקטלוג</span></div>
+        <div class="fact"><b>מחיר סופי</b><span>לא טווח</span></div>
+        <div class="fact"><b>מעקב חי</b><span>רואים את המוביל</span></div>
+      </div>
+    </div>
+    <div class="panel">
+      <div class="p-top">
+        <div class="svc"><button class="on">מעבר דירה</button><button>מובילים בקטנה</button><button>יד שנייה חינם</button></div>
+        <div class="ask"><input placeholder="ספרו לנו מה מעבירים…" aria-label="תיאור חופשי"><button>נתחיל</button></div>
+        <p class="sep">או בחרו מהנפוצים</p>
+        <div class="grid">
+          <span class="cell on">מיטה זוגית <i>2</i></span><span class="cell on">ספה תלת <i>1</i></span><span class="cell">מקרר <i>+</i></span>
+          <span class="cell">ארון 4 דלתות <i>+</i></span><span class="cell">שולחן אוכל <i>+</i></span><span class="cell">מכונת כביסה <i>+</i></span>
+        </div>
+        <a class="p-more" href="#E">חיפוש בכל הקטלוג ←</a>
+        <p class="p-cam">או <a href="#E">צלמו את החדר</a> ונזהה את הפריטים.</p>
+      </div>
+      <div class="p-pay"><div class="p-sum"><b>₪660</b><span>3 פריטים · נסגר אחרי הכתובות</span></div>
+        <button class="p-go">המשך להזמנה ←</button></div>
+    </div>
+  </div>
+  <div class="app"><div><b>אפשר גם מהטלפון — ושם זה נוח יותר</b>
+    <p>מעקב בזמן אמת. הזמנה שפתחתם כאן תחכה לכם שם.</p></div>
+    <div class="btns"><a class="a-dark" href="#E">App Store</a><a class="a-ghost" href="#E">Google Play</a></div></div>
+  <div class="after"><b>כל מה שצריך כדי לזוז</b>↓ וכאן ממשיכים כל המקטעים הקיימים</div>
+</div>
+<div class="label"><h2 id="F">ו · המחיר הוא הגיבור</h2><span>המספר ענק במרכז, הכלי מתחתיו. הכי ישיר.</span></div>
+<div class="frame F">
+  <div class="nav"><span class="logo">ROZIC MOVE</span>
+    <div class="navlinks"><span>שירותים</span><span>איך זה עובד</span><span>למובילים</span><span>שאלות</span></div></div>
+  <div class="hero">
+    <p class="kicker">הובלות · מעברי דירה</p>
+    <h3>כמה עולה להעביר דירה?</h3>
+    <p class="big">₪660</p>
+    <p class="bigsub">לשלושה פריטים · מחיר סופי, לא טווח</p>
+    <div class="panel">
+      <div class="p-top">
+        <div class="svc"><button class="on">מעבר דירה</button><button>מובילים בקטנה</button><button>יד שנייה חינם</button></div>
+        <div class="ask"><input placeholder="ספרו לנו מה מעבירים…" aria-label="תיאור חופשי"><button>נתחיל</button></div>
+        <p class="sep">או בחרו מהנפוצים</p>
+        <div class="grid">
+          <span class="cell on">מיטה זוגית <i>2</i></span><span class="cell on">ספה תלת <i>1</i></span><span class="cell">מקרר <i>+</i></span>
+          <span class="cell">ארון 4 דלתות <i>+</i></span><span class="cell">שולחן אוכל <i>+</i></span><span class="cell">מכונת כביסה <i>+</i></span>
+        </div>
+        <a class="p-more" href="#F">חיפוש בכל הקטלוג ←</a>
+        <p class="p-cam">או <a href="#F">צלמו את החדר</a> ונזהה את הפריטים.</p>
+      </div>
+      <div class="p-pay"><div class="p-sum"><b>₪660</b><span>3 פריטים · נסגר אחרי הכתובות</span></div>
+        <button class="p-go">המשך להזמנה ←</button></div>
+    </div>
+  </div>
+  <div class="app"><div><b>אפשר גם מהטלפון — ושם זה נוח יותר</b>
+    <p>מעקב בזמן אמת. הזמנה שפתחתם כאן תחכה לכם שם.</p></div>
+    <div class="btns"><a class="a-dark" href="#F">App Store</a><a class="a-ghost" href="#F">Google Play</a></div></div>
+  <div class="after"><b>כל מה שצריך כדי לזוז</b>↓ וכאן ממשיכים כל המקטעים הקיימים</div>
+</div>
+<div class="label"><h2 id="G">ז · חשבונית</h2><span>שורות מחליפות צבע, ספרות בעמודה, פינות חדות. נראה ככלי חישוב.</span></div>
+<div class="frame G">
+  <div class="nav"><span class="logo">ROZIC MOVE</span>
+    <div class="navlinks"><span>שירותים</span><span>איך זה עובד</span><span>למובילים</span><span>שאלות</span></div></div>
+  <div class="hero">
+    <div>
+      <p class="kicker">הובלות · מעברי דירה</p>
+      <h3>כמה עולה<br>להעביר דירה?<em>מחיר כאן ועכשיו.</em></h3>
+      <p class="lede">בוחרים מה מעבירים ורואים את המחיר מתעדכן. בלי שיחות ובלי &laquo;נחזור אליך&raquo;.</p>
+      <div class="facts">
+        <div class="fact"><b>243</b><span>פריטים בקטלוג</span></div>
+        <div class="fact"><b>מחיר סופי</b><span>לא טווח</span></div>
+        <div class="fact"><b>מעקב חי</b><span>רואים את המוביל</span></div>
+      </div>
+    </div>
+    <div class="panel">
+      <div class="p-top">
+        <div class="svc"><button class="on">מעבר דירה</button><button>מובילים בקטנה</button><button>יד שנייה חינם</button></div>
+        <div class="ask"><input placeholder="ספרו לנו מה מעבירים…" aria-label="תיאור חופשי"><button>נתחיל</button></div>
+        <p class="sep">או בחרו מהנפוצים</p>
+        <div class="grid">
+          <span class="cell on">מיטה זוגית <i>2</i></span><span class="cell on">ספה תלת <i>1</i></span><span class="cell">מקרר <i>+</i></span>
+          <span class="cell">ארון 4 דלתות <i>+</i></span><span class="cell">שולחן אוכל <i>+</i></span><span class="cell">מכונת כביסה <i>+</i></span>
+        </div>
+        <a class="p-more" href="#G">חיפוש בכל הקטלוג ←</a>
+        <p class="p-cam">או <a href="#G">צלמו את החדר</a> ונזהה את הפריטים.</p>
+      </div>
+      <div class="p-pay"><div class="p-sum"><b>₪660</b><span>3 פריטים · נסגר אחרי הכתובות</span></div>
+        <button class="p-go">המשך להזמנה ←</button></div>
+    </div>
+  </div>
+  <div class="app"><div><b>אפשר גם מהטלפון — ושם זה נוח יותר</b>
+    <p>מעקב בזמן אמת. הזמנה שפתחתם כאן תחכה לכם שם.</p></div>
+    <div class="btns"><a class="a-dark" href="#G">App Store</a><a class="a-ghost" href="#G">Google Play</a></div></div>
+  <div class="after"><b>כל מה שצריך כדי לזוז</b>↓ וכאן ממשיכים כל המקטעים הקיימים</div>
+</div>
+<div class="label"><h2 id="H">ח · איור קווי</h2><span>משאית בקווים ברקע, בשקיפות נמוכה.</span></div>
+<div class="frame H">
+  <div class="nav"><span class="logo">ROZIC MOVE</span>
+    <div class="navlinks"><span>שירותים</span><span>איך זה עובד</span><span>למובילים</span><span>שאלות</span></div></div>
+  <div class="hero"><svg class="art" viewBox="0 0 240 150" fill="none" aria-hidden="true">
+      <rect x="6" y="52" width="118" height="72" rx="5" stroke="#4EDAA9" stroke-width="3"/>
+      <path d="M124 74h44l30 30v20h-74z" stroke="#4EDAA9" stroke-width="3" stroke-linejoin="round"/>
+      <circle cx="52" cy="128" r="14" stroke="#4EDAA9" stroke-width="3"/>
+      <circle cx="166" cy="128" r="14" stroke="#4EDAA9" stroke-width="3"/>
+      <path d="M30 70h30M30 86h52" stroke="#4EDAA9" stroke-width="3" stroke-linecap="round"/>
+    </svg>
+    <div>
+      <p class="kicker">הובלות · מעברי דירה</p>
+      <h3>כמה עולה<br>להעביר דירה?<em>מחיר כאן ועכשיו.</em></h3>
+      <p class="lede">בוחרים מה מעבירים ורואים את המחיר מתעדכן. בלי שיחות ובלי &laquo;נחזור אליך&raquo;.</p>
+      <div class="facts">
+        <div class="fact"><b>243</b><span>פריטים בקטלוג</span></div>
+        <div class="fact"><b>מחיר סופי</b><span>לא טווח</span></div>
+        <div class="fact"><b>מעקב חי</b><span>רואים את המוביל</span></div>
+      </div>
+    </div>
+    <div class="panel">
+      <div class="p-top">
+        <div class="svc"><button class="on">מעבר דירה</button><button>מובילים בקטנה</button><button>יד שנייה חינם</button></div>
+        <div class="ask"><input placeholder="ספרו לנו מה מעבירים…" aria-label="תיאור חופשי"><button>נתחיל</button></div>
+        <p class="sep">או בחרו מהנפוצים</p>
+        <div class="grid">
+          <span class="cell on">מיטה זוגית <i>2</i></span><span class="cell on">ספה תלת <i>1</i></span><span class="cell">מקרר <i>+</i></span>
+          <span class="cell">ארון 4 דלתות <i>+</i></span><span class="cell">שולחן אוכל <i>+</i></span><span class="cell">מכונת כביסה <i>+</i></span>
+        </div>
+        <a class="p-more" href="#H">חיפוש בכל הקטלוג ←</a>
+        <p class="p-cam">או <a href="#H">צלמו את החדר</a> ונזהה את הפריטים.</p>
+      </div>
+      <div class="p-pay"><div class="p-sum"><b>₪660</b><span>3 פריטים · נסגר אחרי הכתובות</span></div>
+        <button class="p-go">המשך להזמנה ←</button></div>
+    </div>
+  </div>
+  <div class="app"><div><b>אפשר גם מהטלפון — ושם זה נוח יותר</b>
+    <p>מעקב בזמן אמת. הזמנה שפתחתם כאן תחכה לכם שם.</p></div>
+    <div class="btns"><a class="a-dark" href="#H">App Store</a><a class="a-ghost" href="#H">Google Play</a></div></div>
+  <div class="after"><b>כל מה שצריך כדי לזוז</b>↓ וכאן ממשיכים כל המקטעים הקיימים</div>
+</div>
+<div class="label"><h2 id="I">ט · מינימלי</h2><span>בלי מסגרות ובלי צללים. רק טיפוגרפיה וקווים.</span></div>
+<div class="frame I">
+  <div class="nav"><span class="logo">ROZIC MOVE</span>
+    <div class="navlinks"><span>שירותים</span><span>איך זה עובד</span><span>למובילים</span><span>שאלות</span></div></div>
+  <div class="hero">
+    <div>
+      <p class="kicker">הובלות · מעברי דירה</p>
+      <h3>כמה עולה<br>להעביר דירה?<em>מחיר כאן ועכשיו.</em></h3>
+      <p class="lede">בוחרים מה מעבירים ורואים את המחיר מתעדכן. בלי שיחות ובלי &laquo;נחזור אליך&raquo;.</p>
+      <div class="facts">
+        <div class="fact"><b>243</b><span>פריטים בקטלוג</span></div>
+        <div class="fact"><b>מחיר סופי</b><span>לא טווח</span></div>
+        <div class="fact"><b>מעקב חי</b><span>רואים את המוביל</span></div>
+      </div>
+    </div>
+    <div class="panel">
+      <div class="p-top">
+        <div class="svc"><button class="on">מעבר דירה</button><button>מובילים בקטנה</button><button>יד שנייה חינם</button></div>
+        <div class="ask"><input placeholder="ספרו לנו מה מעבירים…" aria-label="תיאור חופשי"><button>נתחיל</button></div>
+        <p class="sep">או בחרו מהנפוצים</p>
+        <div class="grid">
+          <span class="cell on">מיטה זוגית <i>2</i></span><span class="cell on">ספה תלת <i>1</i></span><span class="cell">מקרר <i>+</i></span>
+          <span class="cell">ארון 4 דלתות <i>+</i></span><span class="cell">שולחן אוכל <i>+</i></span><span class="cell">מכונת כביסה <i>+</i></span>
+        </div>
+        <a class="p-more" href="#I">חיפוש בכל הקטלוג ←</a>
+        <p class="p-cam">או <a href="#I">צלמו את החדר</a> ונזהה את הפריטים.</p>
+      </div>
+      <div class="p-pay"><div class="p-sum"><b>₪660</b><span>3 פריטים · נסגר אחרי הכתובות</span></div>
+        <button class="p-go">המשך להזמנה ←</button></div>
+    </div>
+  </div>
+  <div class="app"><div><b>אפשר גם מהטלפון — ושם זה נוח יותר</b>
+    <p>מעקב בזמן אמת. הזמנה שפתחתם כאן תחכה לכם שם.</p></div>
+    <div class="btns"><a class="a-dark" href="#I">App Store</a><a class="a-ghost" href="#I">Google Play</a></div></div>
+  <div class="after"><b>כל מה שצריך כדי לזוז</b>↓ וכאן ממשיכים כל המקטעים הקיימים</div>
+</div>
+<div class="label"><h2 id="J">י · פס צבע</h2><span>פס ירוק אנכי בקצה. לבן ונקי עם סימן אחד.</span></div>
+<div class="frame J">
+  <div class="nav"><span class="logo">ROZIC MOVE</span>
+    <div class="navlinks"><span>שירותים</span><span>איך זה עובד</span><span>למובילים</span><span>שאלות</span></div></div>
+  <div class="hero">
+    <div>
+      <p class="kicker">הובלות · מעברי דירה</p>
+      <h3>כמה עולה<br>להעביר דירה?<em>מחיר כאן ועכשיו.</em></h3>
+      <p class="lede">בוחרים מה מעבירים ורואים את המחיר מתעדכן. בלי שיחות ובלי &laquo;נחזור אליך&raquo;.</p>
+      <div class="facts">
+        <div class="fact"><b>243</b><span>פריטים בקטלוג</span></div>
+        <div class="fact"><b>מחיר סופי</b><span>לא טווח</span></div>
+        <div class="fact"><b>מעקב חי</b><span>רואים את המוביל</span></div>
+      </div>
+    </div>
+    <div class="panel">
+      <div class="p-top">
+        <div class="svc"><button class="on">מעבר דירה</button><button>מובילים בקטנה</button><button>יד שנייה חינם</button></div>
+        <div class="ask"><input placeholder="ספרו לנו מה מעבירים…" aria-label="תיאור חופשי"><button>נתחיל</button></div>
+        <p class="sep">או בחרו מהנפוצים</p>
+        <div class="grid">
+          <span class="cell on">מיטה זוגית <i>2</i></span><span class="cell on">ספה תלת <i>1</i></span><span class="cell">מקרר <i>+</i></span>
+          <span class="cell">ארון 4 דלתות <i>+</i></span><span class="cell">שולחן אוכל <i>+</i></span><span class="cell">מכונת כביסה <i>+</i></span>
+        </div>
+        <a class="p-more" href="#J">חיפוש בכל הקטלוג ←</a>
+        <p class="p-cam">או <a href="#J">צלמו את החדר</a> ונזהה את הפריטים.</p>
+      </div>
+      <div class="p-pay"><div class="p-sum"><b>₪660</b><span>3 פריטים · נסגר אחרי הכתובות</span></div>
+        <button class="p-go">המשך להזמנה ←</button></div>
+    </div>
+  </div>
+  <div class="app"><div><b>אפשר גם מהטלפון — ושם זה נוח יותר</b>
+    <p>מעקב בזמן אמת. הזמנה שפתחתם כאן תחכה לכם שם.</p></div>
+    <div class="btns"><a class="a-dark" href="#J">App Store</a><a class="a-ghost" href="#J">Google Play</a></div></div>
+  <div class="after"><b>כל מה שצריך כדי לזוז</b>↓ וכאן ממשיכים כל המקטעים הקיימים</div>
+</div>
 <p class="foot">שלושתם מציגים את אותו תוכן בדיוק. ההבדל הוא בטיפול החזותי בלבד —
   ולכן אפשר להחליף ביניהם בלי לגעת בתוכן, ואפשר גם לקחת חלק מאחד ולשלב באחר.</p>
 </body>
