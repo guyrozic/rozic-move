@@ -340,8 +340,8 @@
              הכפתור וגם את הפירוט היה מקריא את הכול מחדש בכל לחיצה. -->
         <div class="hp-pay" id="hp-price">
           <div class="hp-sum" aria-live="polite" aria-atomic="true">
-            <b id="hp-price-num">— <small>כולל מע״מ</small></b>
-            <span id="hp-price-label">בחרו פריט כדי לראות מחיר</span>
+            <b id="hp-price-num" hidden></b>
+            <span id="hp-price-label">בחרו פריט כדי לראות מחיר סופי</span>
           </div>
           <a class="hp-go" id="hp-continue" href="app/apartment.html">המשך להזמנה ←</a>
           <details>
@@ -896,12 +896,16 @@
       const p = computePrice();
       const count = p.selected.reduce((s, i) => s + i.qty, 0);
 
-      $('hp-price-num').innerHTML = count
-        ? esc(shekel(p.total)) + ' <small>כולל מע״מ</small>'
-        : '— <small>כולל מע״מ</small>';
+      /* ⚠️ 15.9 — במצב ריק הוצג מקף בגודל המחיר ובצבעו, והוא נקרא על המסך
+         כקו ירוק מרחף מעל הטקסט. עכשיו ראש השורה מוסתר לגמרי והמשפט לבדו
+         נושא את ההסבר. `hidden` ולא מחרוזת ריקה, כדי שקורא מסך לא יכריז
+         אלמנט ריק בכל שינוי כמות. */
+      const numEl = $('hp-price-num');
+      numEl.hidden = !count;
+      numEl.innerHTML = count ? esc(shekel(p.total)) + ' <small>כולל מע״מ</small>' : '';
       $('hp-price-label').textContent = count
         ? count + (count === 1 ? ' פריט' : ' פריטים') + ' · נסגר אחרי הכתובות'
-        : 'בחרו פריט כדי לראות מחיר';
+        : 'בחרו פריט כדי לראות מחיר סופי';
 
       const rows = [];
       rows.push(['פריטים (' + count + ')', shekel(p.itemsSubtotal)]);

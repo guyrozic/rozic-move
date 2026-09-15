@@ -46,6 +46,10 @@
      צרה ודחוסה לעמודה, והרוחב הוא מה שמאפשר לשורות התיאור להיות
      ארוכות יותר ומעטות יותר במקום קצרות ורבות. */
   --container:   1240px;
+  /* ⚠️ 15.9 — רוחב נפרד לניווט ולהירו. גיא: "אני רוצה את הכול יותר פרוס
+     על כל הדף הרוחבי". התוכן הקריא במקטעים שלמטה נשאר ב-1240 בכוונה —
+     שורת טקסט רחבה מכך קשה לעקוב אחריה. */
+  --container-wide: 1640px;
   --transition:  0.25s cubic-bezier(0.4,0,0.2,1);
 
   /* ── צבעי מצב וטקסט משני ───────────────────────────────────────────
@@ -178,7 +182,7 @@ img, svg { display: block; }
 }
 
 .nav-inner {
-  max-width: var(--container);
+  max-width: var(--container-wide);
   margin: 0 auto;
   padding: 0 24px;
   height: 100%;
@@ -1876,15 +1880,21 @@ body.menu-open .pilot-banner {
   position: relative;
   z-index: 2;
   color: var(--white);
-  max-width: var(--container);
+  /* ⚠️ 15.9 — רוחב מלא יותר וגובה גדול יותר, לפי משוב גיא: הכול היה
+     ממורכז בעמודה של 1240px, והירוק "נגמר" מוקדם מדי. הלוגו נדחף ימינה
+     והניווט שמאלה מעצם ההרחבה — אין כאן ערכים ידניים לכל צד. */
+  max-width: var(--container-wide);
   margin: 0 auto;
-  padding-block-start: calc(var(--nav-h) + clamp(18px, 2.5vw, 34px));
-  padding-block-end: clamp(28px, 3.5vw, 44px);
-  padding-inline: clamp(16px, 3vw, 40px);
+  padding-block-start: calc(var(--nav-h) + clamp(22px, 3vw, 46px));
+  padding-block-end: clamp(40px, 5vw, 76px);
+  padding-inline: clamp(16px, 3.4vw, 64px);
   display: grid;
-  grid-template-columns: minmax(0, 0.88fr) minmax(0, 1.12fr);
-  gap: clamp(26px, 3vw, 40px);
+  grid-template-columns: minmax(0, 0.82fr) minmax(0, 1.18fr);
+  gap: clamp(26px, 3.4vw, 56px);
   align-items: center;
+  /* הירוק תופס יותר מסך כלפי מטה. `min-height` ולא `height` כדי שתוכן
+     ארוך מהצפוי (פאנל הלוח, הערת נפח) יאריך אותו ולא ייחתך. */
+  min-height: min(88vh, 1020px);
 }
 
 @media (max-width: 900px) {
@@ -2317,3 +2327,18 @@ body.hp-home .nav:not(.scrolled) :is(a, button, summary, [tabindex]):focus-visib
 
 /* "כולל מע״מ" שליד המספר. */
 .hp-sum b small { font-size: 0.78rem; font-weight: 600; color: var(--text-muted); }
+
+
+/* ── סידור פנימי בכלי (15.9, משוב גיא: "מרגיש מבולגן") ──────────────
+   שלוש שורות טקסט עוקבות — הערת הקטלוג, קישור החיפוש, וקישור הצילום —
+   ישבו זו מתחת לזו וקראו ככתלה. השתיים האחרונות אוחדו לשורה אחת. */
+/* שתי שורות הקישורים נדחסות זו לצד זו כשיש מקום, ונערמות כשאין —
+   בלי לשנות את המבנה ב-HTML, כי `hp-cam` יושב ברשימת האלמנטים
+   ש-`applyService` מסתיר, ושינוי התג שם היה שובר אותה בשקט. */
+.hp-more { display: inline-block; }
+.hp-cam  { display: inline-block; margin-inline-start: 16px; }
+@media (max-width: 620px) { .hp-cam { display: block; margin-inline-start: 0; } }
+
+/* ראש שורת המחיר — ההסתרה במצב ריק היא `hidden` מה-JS, וזה מבטל את
+   ה-flex. בלי הכלל הזה האלמנט היה חוזר להיות גלוי. */
+.hp-sum > b[hidden] { display: none; }
