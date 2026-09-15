@@ -67,8 +67,13 @@ function showPilotBanner() {
   host.setAttribute('role', 'status');
   host.setAttribute('aria-atomic', 'true');
 
-  const skip = document.querySelector('a.skip-link');
-  if (skip) skip.after(host);
+  /* ⚠️ 15.9 — הכרטיס נכנס **לתוך הזרימה** בראש התוכן הראשי, ולא כשכבה
+     צפה אחרי קישור הדילוג. `PilotBanner.tsx` באפליקציה הוא `View` רגיל
+     שדוחף את מה שמתחתיו; גרסת ה-`position:fixed` הראשונה כאן כיסתה את
+     הכותרת "לאן מובילים היום?" בכל רוחב מסך שנמדד — כלומר ההצהרה הסתירה
+     בדיוק את מה שהמבקר בא לקרוא. "ממש כמו באפליקציה" הוא כרטיס שדוחף. */
+  const main = document.querySelector('main#main-content, main');
+  if (main) main.insertBefore(host, main.firstChild);
   else document.body.insertBefore(host, document.body.firstChild);
 
   requestAnimationFrame(() => {

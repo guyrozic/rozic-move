@@ -1592,12 +1592,11 @@ textarea:focus-visible,
    משני הצדדים בכל רוחב, ומרכוז כשיש מקום. זה מה שמונע גלישה אופקית
    ב-390px בלי שום media query. */
 .pilot-banner {
-  position: fixed;
-  top: calc(var(--nav-h) + 12px);
-  inset-inline: 16px;
-  margin-inline: auto;
+  /* ⚠️ בזרימה, לא `fixed` — ראו ההערה ב-app/pilot-banner.js. */
+  position: relative;
+  margin: 16px auto 0;
+  inset-inline: auto;
   max-width: 520px;
-  z-index: 500;
   display: flex;
   align-items: flex-start;
   gap: 10px;
@@ -1605,13 +1604,7 @@ textarea:focus-visible,
   border-radius: var(--radius);
   background: var(--pilot-bg);
   border: 1px solid var(--pilot-border);
-  /* הצללה כדי שייקרא כשכבה מעל התוכן ולא כחלק ממנו — אותו נימוק
-     בדיוק כמו ב-PilotBanner.tsx. */
-  box-shadow: var(--shadow-md);
-  animation: pilot-banner-in 0.28s cubic-bezier(0.16, 1, 0.3, 1) both;
-  visibility: visible;
-  /* ההשהיה היא זמן הסגירה של תפריט המובייל — ראו הכלל שמתחת. */
-  transition: visibility 0s linear 0.35s;
+  box-shadow: var(--shadow-sm);
 }
 
 /* ⚠️ 16.9 — **נתפס במדידה, לא בקוד.** ב-390px תפריט המובייל נפתח ב-68px
