@@ -23,17 +23,9 @@
   padding-bottom: 0;
 }
 
-/* --- Under-construction notice (see under-construction-banner.js) --- */
-.construction-banner {
-  width: 100%;
-  background: #F5A623;
-  color: var(--brown-deep);
-  text-align: center;
-  font-weight: 800;
-  font-size: 0.82rem;
-  padding: 10px 16px;
-  line-height: 1.5;
-}
+/* 16.9 — `.construction-banner` (השורה הכתומה הקבועה בראש כל דף) הוסרה.
+   ההצהרה על שלב ההרצה הפכה לכרטיס צף במסכי הבית בלבד — `.pilot-banner`
+   ב-style.css, ו-`pilot-banner.js` שמזריק אותו. */
 
 /* --- Top bar --- */
 .app-topbar {

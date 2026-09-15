@@ -61,7 +61,6 @@
   --purple:       #6B4FA0;  /* אייקון כרטיס שירות      · 4.71:1 על #E1D8F3 */
   --amber-strong: #8A5A08;  /* תג "ממתין לתמחור"      · 5.20:1 על #FBEFD9 */
   --amber-deep:   #856008;  /* תג "ממתין לתשלום"      · 5.18:1 על #FFF3D6 */
-  --brown-deep:   #3A2400;  /* באנר ההרצה             · 7.23:1 על #F5A623 */
   --text-body:    #444444;  /* גוף הדפים המשפטיים      · 9.74:1 על לבן */
   --text-plain:   #555555;  /* גוף דפי המעבר, תג הושלם · 7.46:1 על לבן */
   --text-gray:    #656565;  /* תג "טיוטה"             · 5.02:1 על #EEEEEE */
@@ -69,6 +68,17 @@
   --text-note:    #767676;  /* הערת שוליים ופוטר       · 4.54:1 על לבן */
   --link-pine:    #40604F;  /* קישורי פוטר בדפי המעבר  · 6.99:1 על לבן */
   --ink:          #1A2E1A;  /* כותרת מודעה            · 14.49:1 על לבן */
+
+  /* ── באנר שלב ההרצה ────────────────────────────────────────────────
+     16.9 — ארבעת הערכים לקוחים **כמות שהם** מ-`PilotBanner.tsx`
+     באפליקציה, כדי שהבאנר ייראה בשני המשטחים אותו דבר. הם יושבים כאן
+     ולא בכלל עצמו כי `scripts/check-a11y.mjs` אוכף שכל `color:` יבוא
+     מטוקן — וזה גם המקום היחיד שבו כתובה המדידה.
+     ⚠️ שניהם נמדדו מול --pilot-bg, ושניהם עוברים AA. */
+  --pilot-bg:     #FFF8EC;  /* רקע הכרטיס */
+  --pilot-border: #F1DDB6;  /* מסגרת, וגם ה-hover של כפתור הסגירה */
+  --pilot-title:  #7A4E05;  /* כותרת הבאנר וסמל הסגירה · 6.81:1 על --pilot-bg */
+  --pilot-body:   #8A6520;  /* גוף הבאנר               · 5.02:1 על --pilot-bg */
 }
 
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -126,7 +136,9 @@ img, svg { display: block; }
 /* ===== NAVIGATION ===== */
 .nav {
   position: fixed;
-  top: var(--banner-h, 0px); left: 0; right: 0;
+  /* 16.9 — היה `top: var(--banner-h, 0px)`. השורה הכתומה הקבועה שדחפה
+     את הדף למטה הוסרה, ובמקומה כרטיס צף שאינו תופס מקום בפריסה. */
+  top: 0; left: 0; right: 0;
   z-index: 100;
   height: var(--nav-h);
   transition: background var(--transition), box-shadow var(--transition);
@@ -233,11 +245,13 @@ img, svg { display: block; }
 .mobile-menu {
   position: fixed;
   /* ⚠️ 15.9 — היה `top: var(--nav-h)` בלבד, בלי גובה הבאנר. ה-nav עצמו
-     יושב ב-`top: var(--banner-h)` וה-body מרפד ב-`nav-h + banner-h`,
+     ישב ב-`top: var(--banner-h)` וה-body ריפד ב-`nav-h + banner-h`,
      כלומר התפריט היה האלמנט **היחיד** שלא ספר את הבאנר — ולכן נפתח
      61px גבוה מדי, וה-nav (z-index 100) כיסה את הפריט הראשון.
-     התוצאה: "שירותים" לא היה לחיץ במובייל. אומת ב-elementFromPoint. */
-  top: calc(var(--nav-h) + var(--banner-h, 0px));
+     התוצאה: "שירותים" לא היה לחיץ במובייל. אומת ב-elementFromPoint.
+     16.9 — `--banner-h` עצמו ירד עם השורה הקבועה (ראו .nav), ושלושת
+     המקומות שספרו אותו חזרו ל-`--nav-h` בלבד. */
+  top: var(--nav-h);
   left: 0; right: 0;
   background: var(--white);
   z-index: 99;
@@ -291,7 +305,7 @@ img, svg { display: block; }
 .hero {
   position: relative;
   min-height: 100vh;
-  padding-top: calc(var(--nav-h) + var(--banner-h, 0px));
+  padding-top: var(--nav-h);
   display: flex;
   flex-direction: column;
   overflow: hidden;
@@ -1561,6 +1575,111 @@ textarea:focus-visible,
 
 @media (prefers-reduced-motion: reduce) {
   .skip-link { transition: none; }
+}
+
+/* --- 16.9 — באנר שלב ההרצה (ראו app/pilot-banner.js) --- */
+/* הכרטיס הצף שהחליף את השורה הכתומה הקבועה שהייתה בראש כל דף. הוא יושב
+   כאן, צמוד לקישור הדילוג, כי השניים **שכנים גם ב-DOM וגם על המסך**
+   ושלושה מספרים ביניהם חייבים להסכים:
+
+   ⚠️ `z-index: 500` — מעל ה-nav (100) ומעל הסרגל של ממשק ההזמנה (50),
+   אבל **מתחת לקישור הדילוג (10000)**. הקישור נצבע ב-`top: 0` ברגע
+   שממקדים אותו, והבאנר לא יכול לכסות אותו.
+   ⚠️ `top: calc(var(--nav-h) + 12px)` — הכרטיס מתחיל ב-80px, והקישור
+   הממוקד תופס את 48 הפיקסלים הראשונים. הם אינם נוגעים זה בזה גם לולא
+   ה-z-index.
+   ⚠️ `inset-inline: 16px` + `margin-inline: auto` — שוליים של 16px
+   משני הצדדים בכל רוחב, ומרכוז כשיש מקום. זה מה שמונע גלישה אופקית
+   ב-390px בלי שום media query. */
+.pilot-banner {
+  position: fixed;
+  top: calc(var(--nav-h) + 12px);
+  inset-inline: 16px;
+  margin-inline: auto;
+  max-width: 520px;
+  z-index: 500;
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 12px 16px;
+  border-radius: var(--radius);
+  background: var(--pilot-bg);
+  border: 1px solid var(--pilot-border);
+  /* הצללה כדי שייקרא כשכבה מעל התוכן ולא כחלק ממנו — אותו נימוק
+     בדיוק כמו ב-PilotBanner.tsx. */
+  box-shadow: var(--shadow-md);
+  animation: pilot-banner-in 0.28s cubic-bezier(0.16, 1, 0.3, 1) both;
+  visibility: visible;
+  /* ההשהיה היא זמן הסגירה של תפריט המובייל — ראו הכלל שמתחת. */
+  transition: visibility 0s linear 0.35s;
+}
+
+/* ⚠️ 16.9 — **נתפס במדידה, לא בקוד.** ב-390px תפריט המובייל נפתח ב-68px
+   ונמתח כ-290px למטה, והבאנר (z-index 500) צף בדיוק מעליו: `elementFromPoint`
+   על "שירותים" החזיר `P.pilot-banner-title`, כלומר הפריט הראשון בתפריט
+   **לא היה לחיץ**. זו אותה תקלה בדיוק שתוקנה ב-15.9 מכיוון אחר, וזו הסיבה
+   שהיא נבדקת אמפירית ולא נגזרת ממספרי z-index.
+
+   ⚠️ `visibility` ולא `opacity` ולא `z-index` נמוך: היא מוציאה את כפתור
+   הסגירה גם מסדר ה-Tab וגם מ-hit-testing, כלומר כשהתפריט פתוח אין מאחוריו
+   פקד ממוקד ובלתי-נראה. זה בדיוק הנימוק שכתוב על `.mobile-menu` עצמו. */
+body.menu-open .pilot-banner {
+  visibility: hidden;
+  transition: visibility 0s linear 0s;
+}
+
+@keyframes pilot-banner-in {
+  from { opacity: 0; transform: translateY(-10px); }
+  to   { opacity: 1; transform: none; }
+}
+
+.pilot-banner-texts { flex: 1; min-width: 0; }
+
+.pilot-banner-title {
+  font-size: 0.95rem;
+  font-weight: 800;
+  line-height: 1.4;
+  color: var(--pilot-title);
+  margin-bottom: 3px;
+}
+
+.pilot-banner-body {
+  font-size: 0.85rem;
+  line-height: 1.5;
+  color: var(--pilot-body);
+}
+
+/* ⚠️ 44×44 הוא יעד המגע המינימלי (WCAG 2.5.5), והוא נקבע על הכפתור
+   עצמו ולא על הסמל — `✕` בגודל הזה הוא יעד של ~14px.
+   ⚠️ והשוליים השליליים הם מה שמאפשר את שניהם יחד: הם מושכים את הריבוע
+   פנימה אל תוך ריפוד הכרטיס כך שהסמל מתיישר עם **שורת הכותרת** (בלעדיהם
+   הוא יושב 9px נמוך ממנה, כי 44px מתמרכזים מול שורה של 26), ובלי לגרוע
+   פיקסל מיעד המגע עצמו — הוא נשאר 44×44 בתוך גבולות הכרטיס. */
+.pilot-banner-close {
+  flex-shrink: 0;
+  width: 44px;
+  height: 44px;
+  margin-block: -10px;
+  margin-inline-end: -10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 0;
+  border-radius: 50%;
+  background: none;
+  color: var(--pilot-title);
+  font-family: inherit;
+  font-size: 1rem;
+  line-height: 1;
+  cursor: pointer;
+  transition: background var(--transition);
+}
+.pilot-banner-close:hover { background: var(--pilot-border); }
+.pilot-banner-close:focus-visible { outline: 3px solid var(--green); outline-offset: 2px; }
+
+@media (prefers-reduced-motion: reduce) {
+  .pilot-banner { animation: none; }
+  .pilot-banner-close { transition: none; }
 }
 
 /* --- 15.9 — רשימות תבליט במסמכים המשפטיים (WCAG 1.3.1) --- */
