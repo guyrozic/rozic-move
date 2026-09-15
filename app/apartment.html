@@ -721,6 +721,28 @@
         return;
       }
       btn.disabled = true; btn.textContent = 'יוצר הזמנה...';
+      /**
+       * ⚠️ 16.9 — **כשל שקט השאיר את הכפתור "יוצר הזמנה..." לנצח.**
+       *
+       * `addDoc` של Firestore לא זורק כשאין רשת — הכתיבה נשמרת מקומית
+       * וה-promise **פשוט לא נפתר**. כלומר אין `catch`, אין שגיאה, ואין
+       * דרך לנסות שוב: הכפתור מושבת, והלקוח יושב מול מסך שלא זז.
+       *
+       * ⚠️ ורענון לא מציל אותו — הוא מאבד את ההזמנה כולה, כי
+       * `saveOrderDraft` נקראת **רק** מתוך `goRegister` ואין שמירה
+       * תקופתית. אומת: לקוח בשלב 4 עם הזמנה של ₪150 → רענון → שלב 1
+       * ריק.
+       *
+       * הטיימר משחרר את הכפתור ומסביר. הוא **אינו מבטל** את הכתיבה —
+       * היא עשויה עדיין להיסגר כשהרשת חוזרת, ולכן הניסוח מדבר על
+       * "לא קיבלנו אישור" ולא על "נכשל".
+       */
+      const stuckTimer = setTimeout(() => {
+        if (!btn.disabled) return;
+        btn.disabled = false; btn.textContent = 'מעבר לתשלום ←';
+        errBox.innerHTML = '<div class="alert alert-error">לא קיבלנו אישור מהשרת. '
+          + 'בדקו את החיבור ונסו שוב — ההזמנה לא נוצרה פעמיים גם אם תלחצו שוב.</div>';
+      }, 20000);
       const p = computePrice();
       try {
         const orderId = await createOrder({
@@ -751,9 +773,11 @@
           // שלא ניתנה בפועל. ראו legal.js.
           ...orderTermsConsent(),
         });
+        clearTimeout(stuckTimer);
         clearOrderDraft('apartment');
         location.href = `order-status.html?id=${orderId}`;
       } catch (err) {
+        clearTimeout(stuckTimer);
         errBox.innerHTML = '<div class="alert alert-error">יצירת ההזמנה נכשלה. נסה שוב.</div>';
         btn.disabled = false; btn.textContent = 'מעבר לתשלום ←';
       }

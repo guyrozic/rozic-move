@@ -107,6 +107,23 @@
   <script type="module">
     import { requireAuth, resendVerificationEmail, refreshEmailVerified, sendPhoneVerificationCode, confirmPhoneVerificationCode, logout } from './auth.js';
     import { subscribeToUserOrders, customerTotalOf, STATUS_LABELS } from './orders.js';
+
+    /**
+     * בריחת HTML לכל ערך שמגיע ממסמך ההזמנה. **זו לא הגנה תיאורטית:**
+     * חוקי Firestore על `orders` הם denylist — שדה שאינו ברשימה החסומה
+     * פתוח לכתיבה, ו-`title`/`notes`/`itemsSummary`/`fromAddress`/
+     * `toAddress`/`scheduledDate`/`timeSlot`/`manualPricingItems`/`status`
+     * אינם באף אחת מהן. כלומר **המוביל המשובץ** יכול לכתוב אותם על
+     * ההזמנה של הלקוח, והדף הזה הוא שמרנדר אותם אצל הלקוח.
+     *
+     * זהה ל-`esc` ב-marketplace.html. כולל `"` ו-`'` כי חלק מהערכים
+     * יושבים בתוך מאפיין (`class=`), ושם גרש סוגר את המאפיין ופותח
+     * מאפיין חדש — `onerror` למשל — בלי שום תו `<`.
+     */
+    const esc = (v) => String(v ?? '')
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+
     import { createSupportTicket } from './support.js';
 
     const state = await requireAuth();
@@ -124,9 +141,22 @@
       } else {
         emailBox.innerHTML = '<div class="alert alert-info">האימייל טרם אומת. <button class="btn-text" id="resend-email-btn">שלח שוב קישור אימות</button></div>';
         document.getElementById('resend-email-btn')?.addEventListener('click', async (e) => {
-          e.target.textContent = 'נשלח...';
-          await resendVerificationEmail();
-          e.target.textContent = 'נשלח! בדוק את תיבת המייל';
+          // ⚠️ 16.9 — היה כאן `await` בלי `try`. בכשל
+          // (`auth/too-many-requests` — Firebase זורק אותו כבר אחרי
+          // שתי שליחות) הכפתור **נתקע על "נשלח..."** והלקוח מאמין
+          // שהמייל יצא. זה גרוע מתקיעה שקטה: זו הודעת הצלחה על כשל.
+          const btn = e.target;
+          btn.disabled = true; btn.textContent = 'נשלח...';
+          try {
+            await resendVerificationEmail();
+            btn.textContent = 'נשלח! בדוק את תיבת המייל';
+          } catch (err) {
+            btn.disabled = false; btn.textContent = 'שלח שוב קישור אימות';
+            emailBox.insertAdjacentHTML('beforeend',
+              err?.code === 'auth/too-many-requests'
+                ? '<div class="alert alert-error">נשלחו יותר מדי בקשות. נסו שוב בעוד כמה דקות.</div>'
+                : '<div class="alert alert-error">השליחה נכשלה. נסו שוב.</div>');
+          }
         });
       }
 
@@ -176,6 +206,29 @@
       btn.disabled = true; btn.textContent = 'מאמת...';
       try {
         await confirmPhoneVerificationCode(verificationId, code, phone);
+        /**
+         * ⚠️ 16.9 — **לא היה כאן ענף הצלחה בכלל.** האימות הצליח,
+         * `users/{uid}` נכתב עם `phoneVerified: true` — והמסך קפא:
+         * הכפתור נשאר "מאמת..." מושבת לצמיתות, והשורה למעלה המשיכה
+         * לומר "הטלפון עדיין לא אומת".
+         *
+         * הסיבה שאיש לא שם לב: **הנתונים תקינים.** רענון מציג
+         * "✓ טלפון מאומת". רק הלקוח שיושב מול המסך לא יודע, וסביר
+         * שינסה קוד נוסף — שייכשל, כי הראשון כבר נוצל.
+         *
+         * ⚠️ ולמה המאזין החי לא עדכן מעצמו: `requireAuth()` קורא
+         * `unsub()` בשורה הראשונה של ה-callback, כלומר מאזין הפרופיל
+         * שנבנה **בדיוק** בשביל המקרה הזה (ראו ההערה ב-`auth.js`:
+         * "keeps firing on profile doc changes, e.g. phoneVerified
+         * flips after SMS confirm") נהרג מיד. עדכון ידני כאן במקום
+         * להסתמך עליו.
+         */
+        phoneError.innerHTML = '';
+        phoneBox.innerHTML = '<div class="alert alert-success">✓ הטלפון מאומת</div>';
+        // ⚠️ הכרטיס נשלט ב-style.display (ראו phoneCard למעלה) ולא
+        // ב-hidden — תכונת hidden הייתה נדרסת ע"י ה-inline style.
+        if (phoneCard) phoneCard.style.display = 'none';
+        btn.textContent = 'אומת ✓';
       } catch (err) {
         phoneError.innerHTML = `<div class="alert alert-error">קוד שגוי או שפג תוקפו. נסה שוב.</div>`;
         btn.disabled = false; btn.textContent = 'אשר קוד';
@@ -216,12 +269,12 @@
       if (orders.length === 0) { list.innerHTML = ''; empty.style.display = 'block'; return; }
       empty.style.display = 'none';
       list.innerHTML = orders.map(o => `
-        <a class="order-row-card" href="order-status.html?id=${o.id}">
+        <a class="order-row-card" href="order-status.html?id=${encodeURIComponent(o.id)}">
           <div>
-            <div class="order-row-title">${o.title || 'הזמנה'}</div>
-            <div class="order-row-meta"><span class="status-badge ${o.status}">${STATUS_LABELS[o.status] || o.status}</span></div>
+            <div class="order-row-title">${esc(o.title || 'הזמנה')}</div>
+            <div class="order-row-meta"><span class="status-badge ${esc(o.status)}">${esc(STATUS_LABELS[o.status] || o.status)}</span></div>
           </div>
-          <div class="order-row-price">₪${customerTotalOf(o)}</div>
+          <div class="order-row-price">₪${esc(customerTotalOf(o))}</div>
         </a>
       `).join('');
     });

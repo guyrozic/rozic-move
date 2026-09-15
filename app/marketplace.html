@@ -92,7 +92,7 @@
   </footer>
 
   <script type="module">
-    import { requireAuth } from './auth.js';
+    import { requireAuth, normalizePhone } from './auth.js';
     import { subscribeToActiveListings, subscribeToUserListings, markListingSold, deleteListing, getListingContact, CATEGORY_INFO } from './listings.js';
 
     const authState = await requireAuth();
@@ -205,16 +205,30 @@
 
       const contactBox = document.getElementById('modal-contact');
       if (!contactBox || listing.status === 'sold' || isOwner) return;
-      if (!phone) {
+      /**
+       * ⚠️ הנרמול חייב להיות כאן, בצד הקריאה, ולא רק בצד הכתיבה.
+       *
+       * `normalizePhone` נוסף ב-15.9 ל-`registerCustomer` ול-`setProfilePhone`,
+       * וזה סגר את הפורמט של **חשבונות חדשים בלבד**. חשבונות שכבר קיימים
+       * נושאים את מה שנכתב להם אז — ובפרט `setProfilePhone` כתב `toE164`,
+       * כלומר `+972508811085`. הנוסחה הקודמת כאן הייתה
+       * `phone.replace(/\D/g,'').replace(/^0/,'')`: על `+972508811085` היא
+       * מייצרת `972508811085`, ה-`^0` לא תופס כלום, והקישור יוצא
+       * `wa.me/972972508811085` — **שבור**. אומת בבדיקה (15.9, כרום וספארי).
+       *
+       * `normalizePhone` מטפלת בשלוש הצורות בבת אחת: מקפים/רווחים,
+       * תחילית `972`/`+972`, ומספר בלי 0 מוביל. היא **מנרמלת ואינה מאמתת** —
+       * קלט שאינו מספר כלל חוזר כמחרוזת ריקה, ולכן הבדיקה למטה היא על
+       * התוצאה המנורמלת ולא על הגלם: כך "טלפון" שהוא טקסט מקבל את אותה
+       * הודעה כמו טלפון חסר, במקום קישור `wa.me/972` ריק.
+       */
+      const localPhone = normalizePhone(phone);
+      if (!localPhone) {
         contactBox.innerHTML = '<div class="alert alert-info">למודעה הזו לא נשמר טלפון ליצירת קשר.</div>';
         return;
       }
-      // `replace(/\D/g,'')` לפני הסרת ה-0 המובילה — בדיוק כמו ב-listing.html.
-      // הטלפון נשמר כפי שהמשתמש הקליד אותו בהרשמה (ה-placeholder שם הוא
-      // "050-1234567", עם מקפים), ובלי הניקוי הזה נבנתה כתובת שבורה:
-      // "050-881-1085" הפך ל-https://wa.me/97250-881-1085.
-      const whatsapp = `https://wa.me/972${phone.replace(/\D/g, '').replace(/^0/, '')}?text=${encodeURIComponent(`היי ${listing.userName}, ראיתי את "${listing.title}" ב-ROZIC MOVE ואשמח לקחת אותו. האם עדיין זמין?`)}`;
-      contactBox.innerHTML = `<a class="btn btn-primary btn-block" href="${esc(whatsapp)}" target="_blank">💬 יצירת קשר בוואטסאפ</a>`;
+      const whatsapp = `https://wa.me/972${localPhone.slice(1)}?text=${encodeURIComponent(`היי ${listing.userName}, ראיתי את "${listing.title}" ב-ROZIC MOVE ואשמח לקחת אותו. האם עדיין זמין?`)}`;
+      contactBox.innerHTML = `<a class="btn btn-primary btn-block" href="${esc(whatsapp)}" target="_blank" rel="noopener">💬 יצירת קשר בוואטסאפ</a>`;
     }
     document.getElementById('modal-close').addEventListener('click', () => { document.getElementById('modal-overlay').style.display = 'none'; });
     document.getElementById('modal-overlay').addEventListener('click', (e) => { if (e.target.id === 'modal-overlay') e.currentTarget.style.display = 'none'; });

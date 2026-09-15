@@ -175,6 +175,7 @@
     import { auth } from './app/firebase.js';
     import { onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/12.16.0/firebase-auth.js';
     import { getListing, getListingContact, CATEGORY_INFO } from './app/listings.js';
+    import { normalizePhone } from './app/auth.js';
 
     const listingId = new URLSearchParams(location.search).get('id') || '';
     if (listingId) {
@@ -235,9 +236,23 @@
         // ה-fallback לשדות שעל המודעה עצמה הוא עבור מודעות שנוצרו לפני מעבר
         // פרטי הקשר — אותו fallback כמו ListingDetailsScreen באפליקציה.
         const contact = await getListingContact(listing.id).catch(() => null);
-        const phone   = contact?.userPhone   ?? listing.userPhone   ?? '';
-        const address = contact?.fromAddress ?? listing.fromAddress ?? '';
+        const rawPhone = contact?.userPhone   ?? listing.userPhone   ?? '';
+        const address  = contact?.fromAddress ?? listing.fromAddress ?? '';
 
+        /**
+         * ⚠️ הנרמול חייב להיות כאן, בצד הקריאה, ולא רק בצד הכתיבה.
+         *
+         * `normalizePhone` נוסף ב-15.9 ל-`registerCustomer` ול-
+         * `setProfilePhone`, וזה סגר את הפורמט של **חשבונות חדשים בלבד**.
+         * חשבונות קיימים נושאים את מה שנכתב להם אז — ובפרט `setProfilePhone`
+         * כתב `toE164`, כלומר `+972508811085`. הנוסחה הקודמת כאן הייתה
+         * `phone.replace(/\D/g,'').replace(/^0/,'')`: עליו היא מייצרת
+         * `972508811085`, ה-`^0` לא תופס כלום, והקישור יוצא
+         * `wa.me/972972508811085` — **שבור**. אומת בבדיקה (15.9, כרום וספארי).
+         *
+         * הטלפון **המוצג** נשאר הגלם שהמשתמש הקליד; רק הקישור מנורמל.
+         */
+        const phone = normalizePhone(rawPhone);
         if (!phone) {
           box.innerHTML = '<div class="info-box">למודעה הזו לא נשמר טלפון ליצירת קשר. אפשר לפנות דרך האפליקציה.</div>';
           return;
@@ -257,7 +272,7 @@
         row.className = 'contact-row';
         row.append('טלפון: ');
         const strong = document.createElement('strong');
-        strong.textContent = phone;
+        strong.textContent = rawPhone;
         row.appendChild(strong);
         box.appendChild(row);
 
@@ -267,7 +282,7 @@
         wa.style.marginTop = '12px';
         wa.target = '_blank';
         wa.rel = 'noopener';
-        wa.href = `https://wa.me/972${phone.replace(/\D/g, '').replace(/^0/, '')}?text=${encodeURIComponent(text)}`;
+        wa.href = `https://wa.me/972${phone.slice(1)}?text=${encodeURIComponent(text)}`;
         wa.textContent = '💬 יצירת קשר בוואטסאפ';
         box.appendChild(wa);
       });
