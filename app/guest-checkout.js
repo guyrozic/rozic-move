@@ -206,6 +206,25 @@ export function applyDraftToForm(state) {
   check('has-insurance', state.hasInsurance);
   check('has-packing', state.hasPacking);
 
+  /**
+   * ⚠️ 15.9 — המנוף **לא שוחזר**, וזה עלה ללקוח ₪600 על שדה שנראה כבוי.
+   *
+   * `state.needsCrane` חזר מהטיוטה ל-`true`, אבל הצ'קבוקס הוצג לא-מסומן
+   * ואזור המנוף נשאר מוסתר. התוצאה: מסך הסיכום גובה "מנוף הרמה ₪600",
+   * הלקוח מסתכל על טופס שבו המנוף כבוי, **ואין לו דרך להסיר את החיוב**
+   * בלי לסמן את התיבה ואז לבטל אותה.
+   *
+   * ⚠️ והצגה בלבד אינה מספיקה — הבורר והאזור הנסתר נשלטים ע"י מאזין
+   * `change` שלא נורה משינוי תכנותי. לכן `dispatchEvent`, אחרת התיבה
+   * מסומנת והאזור עדיין מוסתר.
+   */
+  const crane = document.getElementById('needs-crane');
+  if (crane) {
+    crane.checked = !!state.needsCrane;
+    crane.dispatchEvent(new Event('change', { bubbles: true }));
+    if (state.needsCrane) set('crane-floor', state.craneFloor || 'קרקע');
+  }
+
   // התאריך נשמר בתצוגה העברית של האפליקציה, וה-input דורש YYYY-MM-DD.
   // תאריך שכבר עבר אינו משוחזר — לקוח שחוזר מחר לטיוטה של אתמול צריך
   // לבחור מועד חדש, לא לגלות בסוף שהזמין ליום שחלף.

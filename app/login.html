@@ -348,6 +348,14 @@
         document.getElementById('reg-phone').focus();
         return;
       }
+      // ⚠️ בלי זה ההרשמה מייצרת חשבון יתום. subscribeToAuth מאזין ל-onSnapshot
+      // על users/{uid}, ו-setDoc מחיל את הכתיבה **מקומית** מיד — כך שהמאזין
+      // בתחתית הקובץ קיבל פרופיל וניווט החוצה ~540ms לפני שהשרת אישר את
+      // הכתיבה, הדף נפרק והכתיבה אבדה. התוצאה: משתמש ב-Auth בלי מסמך
+      // ב-Firestore, ש-subscribeToAuth מחזיר עליו null לנצח — כלומר לקוח
+      // שנרשם בסוף זרימת ההזמנה חוזר ל-login שוב ושוב ולא יכול לשלם.
+      // (שוחזר 3/3 ב-15.9; עם השורה הזאת 2/2 תקין.) ראו holdRedirect ב-OAuth.
+      holdRedirect = true;
       const btn = document.getElementById('register-submit');
       btn.disabled = true; btn.textContent = 'נרשם...';
       try {
