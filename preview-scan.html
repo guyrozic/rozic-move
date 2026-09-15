@@ -1,0 +1,443 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<title>הסורק — שש הרחבות</title>
+<!-- ⚠️ דף השוואה ממוקד. noindex, לא מקושר, נמחק אחרי ההכרעה.
+     גיא: "מדהים! תפתח את אופציה א, ה אני רוצה עוד דברים בסגנון."
+     ההירו נעול על הנוסח שאישר (1/2/6). ⚠️ אין באתר צילומי דירות, וכל
+     מה שכאן הוא SVG — לא תמונה מומצאת. אין כאן שום מספר שאינו אמיתי:
+     243 = הקטלוג; מוני הפריטים שייכים להדגמה ולא נטענים כסטטיסטיקה. -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css?v=ea009cc6">
+<style>
+  body { background:#DDE4DE; }
+  .cc-lead { max-width:900px; margin:0 auto; padding:28px 20px 4px; text-align:center; }
+  .cc-lead h1 { font-size:1.6rem; font-weight:900; }
+  .cc-lead p { font-size:.96rem; color:var(--text-mid); margin-top:8px; line-height:1.6; }
+  .cc-jump { display:flex; gap:7px; justify-content:center; flex-wrap:wrap; margin-top:15px; }
+  .cc-jump a { font-size:.86rem; font-weight:800; padding:8px 15px; border-radius:999px;
+    background:var(--white); border:1.5px solid var(--border); color:var(--text); text-decoration:none; }
+  .cc-jump a:focus-visible { outline:3px solid var(--green); outline-offset:2px; }
+  .cc-label { max-width:1240px; margin:40px auto 10px; padding:0 20px;
+    display:flex; align-items:baseline; gap:12px; flex-wrap:wrap; }
+  .cc-label h2 { font-size:1.26rem; font-weight:900; }
+  .cc-label span { font-size:.9rem; color:var(--text-mid); }
+  .why { max-width:1240px; margin:0 auto 4px; padding:11px 20px 0; font-size:.86rem;
+    color:var(--text-mid); line-height:1.6; }
+  .why b { color:var(--text); }
+  .cc-frame { max-width:1240px; margin:0 auto 8px; border-radius:14px; overflow:hidden;
+    box-shadow:0 10px 30px rgba(20,42,34,.13); }
+
+  /* ===== במה והירו — נעולים ===== */
+  .cc-stage { position:relative; overflow:hidden; padding:34px clamp(16px,2.4vw,40px) 40px;
+    background:radial-gradient(120% 95% at 50% 8%, var(--green-bright) 0%, var(--green) 45%, var(--green-dark) 100%);
+    display:grid; grid-template-columns:minmax(0,.78fr) minmax(0,1.22fr);
+    gap:clamp(22px,3vw,54px); align-items:center; color:var(--white); }
+  .cc-stage::before { content:''; position:absolute; inset:0; pointer-events:none; opacity:.12;
+    background-image:radial-gradient(circle at 1px 1px, var(--green-wash) 1px, transparent 1px);
+    background-size:15px 15px; }
+  .cc-copy { position:relative; }
+  .cc-copy .k { font-size:.78rem; font-weight:800; letter-spacing:.09em; color:var(--green-on-dark); margin-bottom:12px; }
+  .cc-copy h3 { font-size:clamp(1.8rem,3.2vw,2.9rem); line-height:1; font-weight:900; letter-spacing:-.025em; }
+  .cc-copy h3 em { display:block; font-style:normal; color:var(--green-on-dark); font-size:.72em; margin-top:9px; }
+  .cc-copy p { font-size:.96rem; line-height:1.6; color:var(--green-wash); margin-top:15px; max-width:25em; }
+  @media (max-width:880px){ .cc-stage { grid-template-columns:1fr; gap:24px; } }
+
+  .cc-card { position:relative; background:var(--white); border-radius:18px; color:var(--text);
+    box-shadow:0 30px 68px -22px rgba(0,0,0,.6); overflow:hidden; }
+  .cc-in { padding:20px clamp(14px,1.8vw,24px); }
+  .cc-foot { border-top:1px solid var(--border); background:var(--bg);
+    padding:14px clamp(14px,1.8vw,24px); display:flex; align-items:center;
+    justify-content:space-between; gap:14px; flex-wrap:wrap; }
+  .cc-foot span { font-size:.82rem; color:var(--text-muted); }
+  .cc-go { border:0; background:var(--green); color:#fff; font-family:inherit; font-weight:800;
+    font-size:.97rem; padding:13px 24px; border-radius:12px; cursor:pointer; white-space:nowrap; }
+
+  /* ===== שלוש הדרכים ===== */
+  .grid3 { display:grid; grid-template-columns:repeat(3,1fr); gap:11px; }
+  @media (max-width:620px){ .grid3 { grid-template-columns:1fr; } }
+  .pick { border:1.5px solid var(--border); border-radius:14px; padding:15px 10px;
+    background:var(--white); cursor:pointer; text-align:center; position:relative; display:block;
+    width:100%; font-family:inherit; }
+  .pick .ic { width:38px; height:38px; margin:0 auto 8px; border-radius:11px; background:var(--green-light);
+    display:flex; align-items:center; justify-content:center; }
+  .pick .ic svg { width:19px; height:19px; stroke:var(--green); fill:none; stroke-width:1.9; }
+  .pick b { display:block; font-size:.94rem; font-weight:800; }
+  .pick i { display:block; font-style:normal; font-size:.76rem; color:var(--text-muted); margin-top:3px; line-height:1.35; }
+  .pick.ai { border-color:var(--green-line); border-width:2.5px; background:var(--green-tint); }
+  .pick.ai .ic { background:var(--green); }
+  .pick.ai .ic svg { stroke:#fff; }
+  .pick.ai b { color:var(--green-ink); }
+  .tag2 { position:absolute; top:-11px; right:50%; transform:translateX(50%);
+    background:var(--green); color:#fff; font-size:.68rem; font-weight:800;
+    padding:3px 12px; border-radius:999px; white-space:nowrap; }
+  .q-line { font-size:.84rem; font-weight:700; color:var(--text-muted); margin:0 0 10px; text-align:center; }
+
+  /* ===== הבמה של הסורק — משותפת לחמש הראשונות ===== */
+  .scan { position:relative; border-radius:14px; overflow:hidden; height:190px;
+    background:linear-gradient(170deg,#EEF5F0,#DEEAE2); border:1px solid var(--border); margin-bottom:14px; }
+  .scan .room { position:absolute; inset:0; width:100%; height:100%; }
+  .scan .room * { stroke:#8FA89A; fill:none; stroke-width:2.1; vector-effect:non-scaling-stroke; stroke-linecap:round; stroke-linejoin:round; }
+  .beam { position:absolute; inset-inline:0; height:54px; pointer-events:none; z-index:2;
+    background:linear-gradient(to bottom, transparent, rgba(78,218,169,.40) 62%, var(--green-on-dark));
+    box-shadow:0 0 22px rgba(78,218,169,.7); animation:beam var(--cyc,3.6s) cubic-bezier(.5,0,.5,1) infinite; }
+  @keyframes beam { 0%,8%{top:-54px} 55%,100%{top:190px} }
+  .scanN { position:absolute; top:9px; right:9px; z-index:3; font-size:.7rem; font-weight:800;
+    color:var(--green-ink); background:rgba(255,255,255,.93); padding:3px 10px; border-radius:999px; }
+  .found { position:absolute; z-index:3; width:max-content; display:flex; align-items:center; gap:5px;
+    background:rgba(255,255,255,.97); border:1.5px solid var(--green-line); color:var(--green-ink);
+    font-size:.72rem; font-weight:800; padding:4px 10px; border-radius:999px;
+    box-shadow:0 4px 12px rgba(0,0,0,.14); white-space:nowrap;
+    opacity:0; animation:pop var(--cyc,3.6s) ease-out infinite both; }
+  .found::before { content:'✓'; font-size:.68rem; }
+  @keyframes pop { 0%,24%{opacity:0;transform:scale(.7) translateY(7px)}
+    34%,88%{opacity:1;transform:none} 100%{opacity:0;transform:none} }
+
+  /* ═══ 1 · מסגרות זיהוי ═══ */
+  .boxes { position:absolute; inset:0; width:100%; height:100%; z-index:2; }
+  /* ⚠️ preserveAspectRatio="none" מותח את ה-SVG פי ~2 לרוחב — ולכן גם
+     <text> וגם עובי הקו נמתחים איתו. התוויות היו מעוותות וגלשו מהמלבן.
+     הפתרון: המלבנים נשארים ב-SVG עם vector-effect, והתוויות הן HTML. */
+  .boxes rect { fill:rgba(78,218,169,.10); stroke:var(--green-line); stroke-width:2;
+    vector-effect:non-scaling-stroke; rx:4; opacity:0; animation:bx 4s ease-out infinite both; }
+  .bxl { position:absolute; z-index:3; width:max-content; background:var(--green-line); color:#fff;
+    font-size:.68rem; font-weight:800; padding:2px 8px; border-radius:5px; white-space:nowrap;
+    opacity:0; animation:bx 4s ease-out infinite both; }
+  @keyframes bx { 0%,20%{opacity:0} 30%,90%{opacity:1} 100%{opacity:0} }
+  .d1 { animation-delay:.85s } .d2 { animation-delay:1.2s } .d3 { animation-delay:1.55s } .d4 { animation-delay:1.9s }
+  .conf { position:absolute; bottom:9px; left:9px; z-index:3; font-size:.69rem; font-weight:700;
+    color:var(--text-muted); background:rgba(255,255,255,.9); padding:3px 9px; border-radius:999px; }
+
+  /* ═══ 2 · שלושה חדרים ═══ */
+  .rooms .room { opacity:0; animation:swap 10.8s linear infinite both; }
+  .rooms .r1 { animation-delay:0s } .rooms .r2 { animation-delay:3.6s } .rooms .r3 { animation-delay:7.2s }
+  @keyframes swap { 0%{opacity:0} 2%,34%{opacity:1} 37%,100%{opacity:0} }
+  .rooms .found { animation-duration:10.8s; }
+  .rooms .g1 { animation-delay:1.1s } .rooms .g2 { animation-delay:4.7s } .rooms .g3 { animation-delay:8.3s }
+  @keyframes pop3 { 0%,9%{opacity:0;transform:scale(.7) translateY(7px)}
+    12%,30%{opacity:1;transform:none} 33%,100%{opacity:0;transform:none} }
+  .rooms .found { animation-name:pop3 }
+  .rooms .beam { --cyc:3.6s }
+  .tick { position:absolute; bottom:9px; left:9px; z-index:3; display:flex; gap:6px; align-items:center;
+    font-size:.72rem; font-weight:800; color:var(--green-ink);
+    background:rgba(255,255,255,.94); padding:4px 11px; border-radius:999px; }
+  .tick u { text-decoration:none; position:relative; display:inline-block; width:2.1em; height:1.2em; vertical-align:middle; }
+  .tick u b { position:absolute; inset:0; display:flex; align-items:center; justify-content:center;
+    opacity:0; animation:cnt 10.8s linear infinite both; font-weight:800; }
+  .tick u b:nth-child(1){animation-delay:1.1s} .tick u b:nth-child(2){animation-delay:4.7s} .tick u b:nth-child(3){animation-delay:8.3s}
+  @keyframes cnt { 0%,1%{opacity:0} 3%,32%{opacity:1} 34%,100%{opacity:0} }
+
+  /* ═══ 3 · סריקה שנגמרת ברשימה ═══ */
+  .toList .room { animation:fadeRoom 7s ease-in-out infinite both; }
+  @keyframes fadeRoom { 0%,44%{opacity:1} 54%,92%{opacity:.14} 100%{opacity:1} }
+  .toList .beam { --cyc:7s; }
+  .toList .scanN { animation:fadeRoom 7s ease-in-out infinite both; }
+  @keyframes beamSlow { 0%,4%{top:-54px} 42%,100%{top:190px} }
+  .toList .beam { animation-name:beamSlow; }
+  .sheet { position:absolute; inset:16px; z-index:3; background:rgba(255,255,255,.97);
+    border:1.5px solid var(--green-line); border-radius:12px; padding:12px 14px;
+    opacity:0; animation:sheet 7s ease-out infinite both; }
+  @keyframes sheet { 0%,48%{opacity:0;transform:translateY(9px)} 57%,92%{opacity:1;transform:none} 100%{opacity:0} }
+  .sheet h4 { font-size:.73rem; font-weight:800; color:var(--green-ink); margin-bottom:7px; }
+  .sheet ul { list-style:none; display:grid; grid-template-columns:1fr 1fr; gap:4px 12px; }
+  .sheet li { font-size:.78rem; font-weight:700; color:var(--text); display:flex; gap:5px; align-items:center; }
+  .sheet li::before { content:'✓'; color:var(--green-line); font-size:.7rem; }
+
+  /* ═══ 4 · הסורק מדבר ═══ */
+  .says { display:flex; gap:12px; align-items:center; background:var(--green-tint);
+    border:1.5px solid var(--green-line); border-radius:14px; padding:12px 14px; margin-bottom:13px; }
+  .face { width:42px; height:42px; flex:none; border-radius:50%; background:var(--green);
+    display:flex; align-items:center; justify-content:center; position:relative; }
+  .face svg { width:22px; height:22px; stroke:#fff; fill:none; stroke-width:1.8; }
+  .face::after { content:''; position:absolute; inset:-5px; border-radius:50%;
+    border:2px solid var(--green-glow); opacity:.5; animation:ring 2.6s ease-out infinite; }
+  @keyframes ring { 0%{transform:scale(.88);opacity:.6} 70%,100%{transform:scale(1.22);opacity:0} }
+  .says p { font-size:.87rem; line-height:1.5; color:var(--text-mid); }
+  .says b { color:var(--green-ink); font-weight:900; }
+
+  /* ═══ 5+6 · הדגמות בתוך הכרטיסים ═══ */
+  .liveP .pick { padding-block:13px; display:flex; flex-direction:column; }
+  .mini { border-radius:10px; margin:0 auto 9px; background:var(--white); width:100%; flex:none;
+    border:1.5px solid rgba(20,42,34,.13); position:relative; overflow:hidden; height:var(--mh,48px); }
+  .mini svg { position:absolute; inset:0; width:100%; height:100%; }
+  .mini svg path { stroke:#A7BCAF; fill:none; stroke-width:2.4; vector-effect:non-scaling-stroke; stroke-linecap:round; stroke-linejoin:round; }
+  .m1 .bar { position:absolute; inset-inline:0; height:16px; top:-16px; z-index:2;
+    background:linear-gradient(transparent, rgba(78,218,169,.6)); animation:beamM 2.8s ease-in-out infinite; }
+  @keyframes beamM { 0%,10%{top:-16px} 60%,100%{top:var(--mh,48px)} }
+  .m1 .dot { position:absolute; z-index:3; width:8px; height:8px; border-radius:50%;
+    background:var(--green-line); box-shadow:0 0 0 2.5px rgba(255,255,255,.85);
+    opacity:0; animation:pop2 2.8s ease-out infinite both; }
+  .m1 .dot:nth-of-type(1){ right:24%; top:54%; animation-delay:.8s }
+  .m1 .dot:nth-of-type(2){ left:26%; top:28%; animation-delay:1.2s }
+  @keyframes pop2 { 0%,26%{opacity:0;transform:scale(.4)} 36%,88%{opacity:1;transform:none} 100%{opacity:0} }
+  .m2 { display:flex; align-items:center; justify-content:center; gap:4px; }
+  .m2 span { width:7px; height:7px; border-radius:50%; background:var(--green-glow);
+    animation:blink 1.3s ease-in-out infinite both; }
+  .m2 span:nth-child(2){animation-delay:.18s} .m2 span:nth-child(3){animation-delay:.36s}
+  @keyframes blink { 0%,60%,100%{opacity:.25;transform:translateY(0)} 30%{opacity:1;transform:translateY(-3px)} }
+  .m3 { display:flex; flex-direction:column; justify-content:center; gap:6px; padding:0 12px; }
+  .m3 u { display:block; height:5px; border-radius:99px; background:#C6D6CC; text-decoration:none;
+    transform-origin:right center; animation:fill 3s ease-out infinite both; }
+  .m3 u:nth-child(1){ animation-delay:.2s } .m3 u:nth-child(2){ animation-delay:.7s } .m3 u:nth-child(3){ animation-delay:1.2s }
+  @keyframes fill { 0%,8%{transform:scaleX(.1);background:#C6D6CC}
+    24%,90%{transform:scaleX(1);background:var(--green-glow)} 100%{transform:scaleX(.1);background:#C6D6CC} }
+  .tall .mini { --mh:92px; }
+  .tall .m2 span { width:9px; height:9px; }
+
+  @media (prefers-reduced-motion:reduce){
+    .beam, .m1 .bar { display:none; }
+    .found,.boxes rect,.bxl,.sheet,.m1 .dot,.m2 span,.face::after,.tick u b,.m3 u,.rooms .room,.toList .scanN
+      { animation:none; opacity:1; transform:none; }
+    .face::after { opacity:.4; }
+    .rooms .r2, .rooms .r3 { display:none; }
+    .tick u b:not(:last-child) { opacity:0; }
+    .sheet { opacity:0; }
+    .m3 u { background:var(--green-glow); }
+  }
+</style>
+</head>
+<body>
+<div data-build-stamp class="build-stamp" aria-hidden="true">עודכן 15.09 · 22:41</div>
+<a class="skip-link" href="#main-content">דלג לתוכן המרכזי</a>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false"><defs>
+  <symbol id="ic-cam" viewBox="0 0 24 24"><path d="M4 8V6a2 2 0 0 1 2-2h2M16 4h2a2 2 0 0 1 2 2v2M20 16v2a2 2 0 0 1-2 2h-2M8 20H6a2 2 0 0 1-2-2v-2" stroke-linecap="round"/><circle cx="12" cy="12" r="3.2"/></symbol>
+  <symbol id="ic-chat" viewBox="0 0 24 24"><path d="M21 11.5a8.4 8.4 0 0 1-9 8.4 9 9 0 0 1-3.6-.8L3 21l1.9-5.4A8.4 8.4 0 0 1 12 3a8.4 8.4 0 0 1 9 8.5z" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+  <symbol id="ic-list" viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h10" stroke-linecap="round"/></symbol>
+
+  <!-- שלושה חדרים, אותו viewBox 330×190 -->
+  <symbol id="rm-living" viewBox="0 0 330 190"><path d="M14 156h302"/>
+    <path d="M196 156v-30a9 9 0 0 1 9-9h86a9 9 0 0 1 9 9v30"/>
+    <path d="M205 117v-14a9 9 0 0 1 9-9h68a9 9 0 0 1 9 9v14"/>
+    <path d="M248 117v-23M205 129h86"/>
+    <path d="M150 156v-14h40v14M156 142v14M184 142v14"/>
+    <path d="M40 156V56a7 7 0 0 1 7-7h36a7 7 0 0 1 7 7v100"/><path d="M40 92h50M76 72v14M76 100v16"/>
+    <path d="M108 156h26M121 156V78"/><path d="m106 78 8-22h14l8 22z"/></symbol>
+
+  <symbol id="rm-bed" viewBox="0 0 330 190"><path d="M14 156h302"/>
+    <path d="M44 156v-26h150v26"/>
+    <path d="M44 130V72a7 7 0 0 1 7-7h11v65"/>
+    <path d="M70 130v-17h32v17M110 130v-17h32v17"/>
+    <path d="M62 141h132"/>
+    <path d="M200 156v-30h32v30M206 138h20"/>
+    <path d="M246 156V46h60v110"/><path d="M276 46v110M268 96v15M284 96v15"/></symbol>
+  <symbol id="rm-kitchen" viewBox="0 0 330 190"><path d="M14 156h302"/>
+    <path d="M36 84V38h122v46zM97 38v46"/>
+    <path d="M36 110h122v10H36zM36 120v36h122v-36M97 120v36"/>
+    <path d="M62 136h14M118 136h14"/>
+    <path d="M206 156V46h62v110"/><path d="M206 96h62M258 70v16M258 106v16"/></symbol>
+</defs></svg>
+
+<main id="main-content" tabindex="-1">
+  <div class="cc-lead">
+    <h1>הסורק — שש הרחבות</h1>
+    <p>פיתוח של <b>א׳ ו-ה׳</b> באותה שפה. ההירו נעול על הנוסח שאישרת,
+       ושלוש הדרכים נשארות בכולן — מה שמשתנה הוא <b>כמה רחוק ההדגמה לוקחת את הסיפור</b>.</p>
+    <p style="font-size:.9rem">1–3 מרחיבות את <b>הסריקה</b> · 4–5 <b>משלבות</b> אותה עם שכבה נוספת ·
+       6 מפתחת את <b>ה׳ לבד</b>.</p>
+    <nav class="cc-jump" aria-label="מעבר מהיר">
+      <a href="#S1">1 · מסגרות זיהוי</a><a href="#S2">2 · שלושה חדרים</a>
+      <a href="#S3">3 · נגמר ברשימה</a><a href="#S4">4 · הסורק מדבר</a>
+      <a href="#S5">5 · סורק + כרטיסים</a><a href="#S6">6 · כרטיסים בגדול</a>
+    </nav>
+  </div>
+</main>
+
+<!-- ═══ 1 ═══ -->
+<div class="cc-label"><h2 id="S1">1 · מסגרות זיהוי</h2><span>התוויות המרחפות הוחלפו בתיבות סביב הפריט עצמו.</span></div>
+<p class="why">זה <b>הפלט האמיתי של מודל ראייה</b>, ולכן הוא נקרא כטכנולוגיה ולא כאיור. הוא גם קושר כל תווית לפריט שלה במקום להשאיר אותה מרחפת — מי שמסתכל רואה <b>מה בדיוק זוהה</b>.</p>
+<div class="cc-frame"><div class="cc-stage">
+  <div class="cc-copy"><p class="k">הובלות · מעברי דירה</p>
+    <h3>כמה עולה<br>להעביר דירה?<em>מחיר כאן ועכשיו.</em></h3>
+    <p>צלמו את הבית, וה-AI שלנו יזהה את הפריטים במקומכם.</p></div>
+  <div class="cc-card"><div class="cc-in">
+    <div class="scan" role="img" aria-label="הדגמה: מסגרות זיהוי מסומנות סביב מקרר, מנורה, שולחן וספה בחדר מצויר">
+      <span class="scanN">מזהה פריטים…</span>
+      <svg class="room" viewBox="0 0 330 190" preserveAspectRatio="none" aria-hidden="true" focusable="false"><use href="#rm-living"/></svg>
+      <svg class="boxes" viewBox="0 0 330 190" preserveAspectRatio="none" aria-hidden="true" focusable="false">
+        <rect class="d1" x="36" y="45" width="58" height="113"/>
+        <rect class="d2" x="100" y="52" width="40" height="106"/>
+        <rect class="d3" x="146" y="138" width="48" height="20"/>
+        <rect class="d4" x="192" y="90" width="112" height="68"/>
+      </svg>
+      <span class="bxl d1" style="left:10.9%;bottom:77.4%">מקרר</span>
+      <span class="bxl d2" style="left:30.3%;bottom:73.7%">מנורה</span>
+      <span class="bxl d3" style="left:44.2%;bottom:28.4%">שולחן</span>
+      <span class="bxl d4" style="left:58.2%;bottom:53.7%">ספה תלת</span>
+      <span class="beam"></span>
+      <span class="conf">4 פריטים בתמונה הזו</span>
+    </div>
+    <p class="q-line">כך זה עובד. איך תרצו להתחיל?</p>
+    <div class="grid3">
+      <button class="pick ai"><span class="tag2">הכי מהיר</span>
+        <span class="ic"><svg aria-hidden="true"><use href="#ic-cam"/></svg></span>
+        <b>צלמו את הבית</b><i>נזהה את הפריטים</i></button>
+      <button class="pick"><span class="ic"><svg aria-hidden="true"><use href="#ic-chat"/></svg></span>
+        <b>ספרו במילים</b><i>«דירת 3 עם ספה»</i></button>
+      <button class="pick"><span class="ic"><svg aria-hidden="true"><use href="#ic-list"/></svg></span>
+        <b>בחרו מרשימה</b><i>243 פריטים</i></button>
+    </div>
+  </div>
+  <div class="cc-foot"><span>כל פריט שזוהה ניתן לתיקון</span><button class="cc-go">המשך ←</button></div></div>
+</div></div>
+
+<!-- ═══ 2 ═══ -->
+<div class="cc-label"><h2 id="S2">2 · שלושה חדרים</h2><span>סלון ← חדר שינה ← מטבח, והמונה עולה.</span></div>
+<p class="why">התשובה לשאלה ש-א׳ משאיר פתוחה: <b>«יופי, זיהית ספה — ודירה שלמה?»</b> המונה שעולה מ-4 ל-15 הוא מה שהופך הדגמה נחמדה למוצר שסופר דירה. ⚠️ מחזור של 11 שניות — ארוך יותר ממה שרוב המבקרים נשארים.</p>
+<div class="cc-frame"><div class="cc-stage">
+  <div class="cc-copy"><p class="k">הובלות · מעברי דירה</p>
+    <h3>כמה עולה<br>להעביר דירה?<em>מחיר כאן ועכשיו.</em></h3>
+    <p>צלמו חדר אחרי חדר, וה-AI יאסוף את כל הדירה לרשימה אחת.</p></div>
+  <div class="cc-card"><div class="cc-in">
+    <div class="scan rooms" role="img" aria-label="הדגמה: הסריקה עוברת בין סלון, חדר שינה ומטבח, ומונה הפריטים עולה">
+      <span class="scanN">סורק חדר אחרי חדר…</span>
+      <svg class="room r1" viewBox="0 0 330 190" preserveAspectRatio="none" aria-hidden="true" focusable="false"><use href="#rm-living"/></svg>
+      <svg class="room r2" viewBox="0 0 330 190" preserveAspectRatio="none" aria-hidden="true" focusable="false"><use href="#rm-bed"/></svg>
+      <svg class="room r3" viewBox="0 0 330 190" preserveAspectRatio="none" aria-hidden="true" focusable="false"><use href="#rm-kitchen"/></svg>
+      <span class="beam"></span>
+      <span class="found g1" style="right:8%;bottom:52%">סלון · 4 פריטים</span>
+      <span class="found g2" style="right:8%;bottom:52%">חדר שינה · 5 פריטים</span>
+      <span class="found g3" style="right:8%;bottom:52%">מטבח · 6 פריטים</span>
+      <span class="tick">סה״כ <u><b>4</b><b>9</b><b>15</b></u> פריטים</span>
+    </div>
+    <p class="q-line">כך זה עובד. איך תרצו להתחיל?</p>
+    <div class="grid3">
+      <button class="pick ai"><span class="tag2">הכי מהיר</span>
+        <span class="ic"><svg aria-hidden="true"><use href="#ic-cam"/></svg></span>
+        <b>צלמו את הבית</b><i>חדר אחרי חדר</i></button>
+      <button class="pick"><span class="ic"><svg aria-hidden="true"><use href="#ic-chat"/></svg></span>
+        <b>ספרו במילים</b><i>«דירת 3 עם ספה»</i></button>
+      <button class="pick"><span class="ic"><svg aria-hidden="true"><use href="#ic-list"/></svg></span>
+        <b>בחרו מרשימה</b><i>243 פריטים</i></button>
+    </div>
+  </div>
+  <div class="cc-foot"><span>אין הגבלה על מספר החדרים</span><button class="cc-go">המשך ←</button></div></div>
+</div></div>
+
+<!-- ═══ 3 ═══ -->
+<div class="cc-label"><h2 id="S3">3 · הסריקה נגמרת ברשימה</h2><span>החדר דוהה, והרשימה שנבנתה עולה מעליו.</span></div>
+<p class="why">היחיד שסוגר את המעגל ומראה את <b>התוצר</b> ולא רק את התהליך. מה שמוכר בהובלה הוא הרשימה המוכנה, לא הסריקה — וזו ההדגמה היחידה כאן שבאמת מראה אותה.</p>
+<div class="cc-frame"><div class="cc-stage">
+  <div class="cc-copy"><p class="k">הובלות · מעברי דירה</p>
+    <h3>כמה עולה<br>להעביר דירה?<em>מחיר כאן ועכשיו.</em></h3>
+    <p>צלמו את הבית, וקבלו רשימת הובלה מוכנה — בלי להקליד דבר.</p></div>
+  <div class="cc-card"><div class="cc-in">
+    <div class="scan toList" role="img" aria-label="הדגמה: סריקת חדר שמסתיימת ברשימת הפריטים שזוהו">
+      <span class="scanN">בונה רשימה…</span>
+      <svg class="room" viewBox="0 0 330 190" preserveAspectRatio="none" aria-hidden="true" focusable="false"><use href="#rm-living"/></svg>
+      <span class="beam"></span>
+      <div class="sheet"><h4>הרשימה שלכם · מוכנה</h4>
+        <ul><li>ספה תלת־מושבית</li><li>מקרר</li><li>שולחן סלון</li><li>מנורת עמידה</li>
+            <li>כורסה</li><li>שטיח</li></ul></div>
+    </div>
+    <p class="q-line">כך זה עובד. איך תרצו להתחיל?</p>
+    <div class="grid3">
+      <button class="pick ai"><span class="tag2">הכי מהיר</span>
+        <span class="ic"><svg aria-hidden="true"><use href="#ic-cam"/></svg></span>
+        <b>צלמו את הבית</b><i>נזהה את הפריטים</i></button>
+      <button class="pick"><span class="ic"><svg aria-hidden="true"><use href="#ic-chat"/></svg></span>
+        <b>ספרו במילים</b><i>«דירת 3 עם ספה»</i></button>
+      <button class="pick"><span class="ic"><svg aria-hidden="true"><use href="#ic-list"/></svg></span>
+        <b>בחרו מרשימה</b><i>243 פריטים</i></button>
+    </div>
+  </div>
+  <div class="cc-foot"><span>הרשימה מולכם לאישור לפני המחיר</span><button class="cc-go">המשך ←</button></div></div>
+</div></div>
+
+<!-- ═══ 4 ═══ -->
+<div class="cc-label"><h2 id="S4">4 · הסורק מדבר</h2><span>הסריקה, ומתחתיה משפט בגוף ראשון.</span></div>
+<p class="why">הצירוף שהצעתי: <b>הסריקה מרשימה, והמשפט מרגיע</b>. «אם אני לא בטוח — אני שואל» מרשה ל-AI לטעות מראש, ולכן טעות אחת לא שוברת את ההבטחה. זה מה שהופך «מתקדם» ל<b>«מסביר פנים»</b>.</p>
+<div class="cc-frame"><div class="cc-stage">
+  <div class="cc-copy"><p class="k">הובלות · מעברי דירה</p>
+    <h3>כמה עולה<br>להעביר דירה?<em>מחיר כאן ועכשיו.</em></h3>
+    <p>צלמו את הבית, וה-AI שלנו יזהה את הפריטים במקומכם.</p></div>
+  <div class="cc-card"><div class="cc-in">
+    <div class="scan" role="img" aria-label="הדגמה: סריקה עוברת על חדר ומזהה מקרר, מנורה וספה">
+      <span class="scanN">מזהה פריטים…</span>
+      <svg class="room" viewBox="0 0 330 190" preserveAspectRatio="none" aria-hidden="true" focusable="false"><use href="#rm-living"/></svg>
+      <span class="beam"></span>
+      <span class="found" style="right:6%;bottom:41%;animation-delay:1s">מקרר</span>
+      <span class="found" style="left:6%;bottom:60%;animation-delay:1.4s">ספה תלת</span>
+      <span class="found" style="right:35%;bottom:74%;animation-delay:1.8s">מנורת עמידה</span>
+    </div>
+    <div class="says">
+      <span class="face"><svg aria-hidden="true"><use href="#ic-cam"/></svg></span>
+      <p><b>אני הסורק של ROZIC MOVE.</b> מזהה 243 סוגי פריטים מתמונה,
+         ואם אני לא בטוח במשהו — אני שואל אתכם.</p>
+    </div>
+    <div class="grid3">
+      <button class="pick ai"><span class="tag2">הכי מהיר</span>
+        <span class="ic"><svg aria-hidden="true"><use href="#ic-cam"/></svg></span>
+        <b>צלמו את הבית</b><i>נזהה את הפריטים</i></button>
+      <button class="pick"><span class="ic"><svg aria-hidden="true"><use href="#ic-chat"/></svg></span>
+        <b>ספרו במילים</b><i>«דירת 3 עם ספה»</i></button>
+      <button class="pick"><span class="ic"><svg aria-hidden="true"><use href="#ic-list"/></svg></span>
+        <b>בחרו מרשימה</b><i>243 פריטים</i></button>
+    </div>
+  </div>
+  <div class="cc-foot"><span>אתם מאשרים את הרשימה לפני שממשיכים</span><button class="cc-go">המשך ←</button></div></div>
+</div></div>
+
+<!-- ═══ 5 ═══ -->
+<div class="cc-label"><h2 id="S5">5 · סורק + כרטיסים חיים</h2><span>א׳ ו-ה׳ יחד, שתי השכבות.</span></div>
+<p class="why">בדיוק מה שביקשת — <b>שתיהן</b>. הסריקה למעלה מסבירה את השיטה, ושלושת הכרטיסים מתחת מראים שלכל דרך יש מנוע משלה. ⚠️ וזו גם הגרסה <b>הגבוהה ביותר כאן</b>; שווה להסתכל עליה בנייד לפני שמחליטים.</p>
+<div class="cc-frame"><div class="cc-stage">
+  <div class="cc-copy"><p class="k">הובלות · מעברי דירה</p>
+    <h3>כמה עולה<br>להעביר דירה?<em>מחיר כאן ועכשיו.</em></h3>
+    <p>צלמו את הבית, וה-AI שלנו יזהה את הפריטים במקומכם.</p></div>
+  <div class="cc-card"><div class="cc-in">
+    <div class="scan" role="img" aria-label="הדגמה: סריקה עוברת על חדר ומזהה מקרר, מנורה וספה">
+      <span class="scanN">מזהה פריטים…</span>
+      <svg class="room" viewBox="0 0 330 190" preserveAspectRatio="none" aria-hidden="true" focusable="false"><use href="#rm-living"/></svg>
+      <span class="beam"></span>
+      <span class="found" style="right:6%;bottom:41%;animation-delay:1s">מקרר</span>
+      <span class="found" style="left:6%;bottom:60%;animation-delay:1.4s">ספה תלת</span>
+      <span class="found" style="right:35%;bottom:74%;animation-delay:1.8s">מנורת עמידה</span>
+    </div>
+    <p class="q-line">שלוש דרכים — ושתיים מהן ה-AI עושה בשבילכם</p>
+    <div class="grid3 liveP">
+      <button class="pick ai"><span class="tag2">הכי מהיר</span>
+        <span class="mini m1"><svg viewBox="0 0 96 48" aria-hidden="true" focusable="false"><path d="M18 36v-9a5 5 0 0 1 5-5h50a5 5 0 0 1 5 5v9"/><path d="M25 22v-5a5 5 0 0 1 5-5h36a5 5 0 0 1 5 5v5"/><path d="M48 22v-10M25 28h46"/></svg><span class="bar"></span><span class="dot"></span><span class="dot"></span></span>
+        <b>צלמו את הבית</b><i>סריקה מזהה פריטים</i></button>
+      <button class="pick ai"><span class="mini m2" aria-hidden="true"><span></span><span></span><span></span></span>
+        <b>ספרו במילים</b><i>הצ׳אט מבין ומשלים</i></button>
+      <button class="pick"><span class="mini m3" aria-hidden="true"><u></u><u></u><u></u></span>
+        <b>בחרו מרשימה</b><i>243 פריטים, ידני</i></button>
+    </div>
+  </div>
+  <div class="cc-foot"><span>הרשימה תמיד מולכם לאישור</span><button class="cc-go">המשך ←</button></div></div>
+</div></div>
+
+<!-- ═══ 6 ═══ -->
+<div class="cc-label"><h2 id="S6">6 · הכרטיסים בגדול</h2><span>ה׳ לבד, בהדגמות כפולות בגובה.</span></div>
+<p class="why">הפיתוח של ה׳: אותו רעיון בדיוק, אבל 92 פיקסל במקום 48 — <b>וההבדל הוא בין עיטור לבין הדגמה</b>. הכרטיס נשאר נמוך משמעותית מכל האחרים, וזה היתרון היחיד שאי אפשר לקבל בשום גרסה אחרת.</p>
+<div class="cc-frame"><div class="cc-stage">
+  <div class="cc-copy"><p class="k">הובלות · מעברי דירה</p>
+    <h3>כמה עולה<br>להעביר דירה?<em>מחיר כאן ועכשיו.</em></h3>
+    <p>שלוש דרכים להגיד לנו מה עובר — ושתיים מהן אנחנו עושים בשבילכם.</p></div>
+  <div class="cc-card"><div class="cc-in">
+    <p class="q-line">איך נוח לכם להתחיל?</p>
+    <div class="grid3 liveP tall">
+      <button class="pick ai"><span class="tag2">הכי מהיר</span>
+        <span class="mini m1"><svg viewBox="0 0 96 92" aria-hidden="true" focusable="false"><path d="M14 74h68"/><path d="M40 74V50a5 5 0 0 1 5-5h26a5 5 0 0 1 5 5v24"/><path d="M46 45v-7a5 5 0 0 1 5-5h14a5 5 0 0 1 5 5v7"/><path d="M58 45V33M46 56h30"/><path d="M18 74V34a4 4 0 0 1 4-4h8a4 4 0 0 1 4 4v40"/><path d="M18 52h16"/></svg><span class="bar"></span><span class="dot"></span><span class="dot"></span></span>
+        <b>צלמו את הבית</b><i>הסריקה מזהה כל פריט</i></button>
+      <button class="pick ai"><span class="mini m2" aria-hidden="true"><span></span><span></span><span></span></span>
+        <b>ספרו במילים</b><i>הצ׳אט מבין ומשלים פערים</i></button>
+      <button class="pick"><span class="mini m3" aria-hidden="true"><u></u><u></u><u></u></span>
+        <b>בחרו מרשימה</b><i>243 פריטים, ידני</i></button>
+    </div>
+  </div>
+  <div class="cc-foot"><span>הרשימה תמיד מולכם לאישור</span><button class="cc-go">המשך ←</button></div></div>
+</div></div>
+
+<p style="max-width:900px;margin:0 auto;padding:30px 20px 64px;text-align:center;font-size:.9rem;color:var(--text-mid);line-height:1.75">
+  <b>הפער האמיתי בין השש הוא זמן.</b> 1 ו-4 מספרים את כל הסיפור בשלוש שניות;
+  3 צריך שבע; 2 צריך אחת־עשרה. ככל שההדגמה ארוכה יותר, כך גדל הסיכוי
+  שמי שנחת בדף <b>יגלול לפני שהיא סיימה</b> — ויראה חצי הדגמה.
+</p>
+</body>
+</html>
