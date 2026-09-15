@@ -22,7 +22,15 @@ import { serverTimestamp } from 'https://www.gstatic.com/firebasejs/12.16.0/fire
  *   3. שורת "עודכן לאחרונה" ב-terms.html, privacy.html, accessibility.html,
  *      ובשני המסכים המקבילים באפליקציה (TermsOfServiceScreen/PrivacyPolicyScreen).
  */
-export const TERMS_VERSION = '2026-09';
+/**
+ * ⚠️ 16.9 — `-2`: הנוסח **השני** בספטמבר 2026. ראו את ההערה המלאה
+ * ב-`Hovalot/src/constants/legal.ts`. הסיומת היא מונה בתוך החודש ולא
+ * תאריך, ושורת "עודכן לאחרונה" נשארת "ספטמבר 2026".
+ *
+ * ⚠️ **חייב להיות זהה בדיוק לערך שם** — `check-terms-version-sync`
+ * נופל אחרת, וזו כל מטרתו.
+ */
+export const TERMS_VERSION = '2026-09-2';
 
 /**
  * בונה את ראיית ההסכמה שמוצמדת להזמנה חדשה באתר — מראה של
