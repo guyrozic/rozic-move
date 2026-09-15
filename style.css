@@ -1894,10 +1894,17 @@ body.menu-open .pilot-banner {
   margin: 0 auto;
   padding-block-start: calc(var(--nav-h) + clamp(22px, 3vw, 46px));
   padding-block-end: clamp(40px, 5vw, 76px);
-  padding-inline: clamp(16px, 3.4vw, 64px);
+  /* ⚠️ 15.9, סבב רביעי — **זו הייתה הסיבה שגיא לא הרגיש שינוי.** הרחבתי
+     שלוש פעמים את ה-max-width ואת הניווט, אבל הריפוד הפנימי של ההירו
+     נשאר 64px — כלומר הכותרת והלוח ישבו 60px מהקצוות בזמן שהמסגרת
+     סביבם כבר הגיעה ל-11px. המדידה הראתה מספר שמשתפר והעין לא ראתה
+     דבר, כי מה שהעין רואה הוא התוכן ולא המסגרת. */
+  padding-inline: clamp(14px, 1vw, 22px);
   display: grid;
   grid-template-columns: minmax(0, 0.82fr) minmax(0, 1.18fr);
-  gap: clamp(26px, 3.4vw, 56px);
+  /* הרווח גדל יחד — בלעדיו הקטנת הריפוד הייתה רק מרחיבה את שני הטורים
+     זה לעבר זה, במקום להרחיק אותם לקצוות. */
+  gap: clamp(26px, 6vw, 110px);
   align-items: center;
   /* הירוק תופס יותר מסך כלפי מטה. `min-height` ולא `height` כדי שתוכן
      ארוך מהצפוי (פאנל הלוח, הערת נפח) יאריך אותו ולא ייחתך. */
