@@ -1905,7 +1905,7 @@ body.menu-open .pilot-banner {
      וזה נתן לו יותר משטח מעמודת הטקסט. `max-width` בנוסף ליחס, כדי
      שבמסכים רחבים מאוד הוא לא יימתח — כרטיס טופס שמתרחב ללא גבול
      מקשה על סריקת השורות בתוכו. */
-  grid-template-columns: minmax(0, 0.95fr) minmax(0, 1.05fr);
+  grid-template-columns: minmax(0, 1.18fr) minmax(0, 0.82fr);
   /* הרווח גדל יחד — בלעדיו הקטנת הריפוד הייתה רק מרחיבה את שני הטורים
      זה לעבר זה, במקום להרחיק אותם לקצוות. */
   gap: clamp(26px, 6vw, 110px);
@@ -2076,7 +2076,11 @@ body.menu-open .pilot-banner {
    מאפסים אותה. */
 .hp-grid {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  /* ⚠️ 15.9 — שתי עמודות ולא שלוש. אחרי שהלוח צומצם ל-534px, תא של
+     161px הכריח שמות כמו "מכונת כביסה/מייבש גדול" לשלוש שורות — נמדד:
+     גבהים 72 ו-100 באותה רשת. שתי עמודות נותנות ~250px לתא, והשורה
+     חוזרת להיות אחת. הרשת מתארכת בשורה, וזה המחיר הנכון. */
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   border: 1px solid var(--border);
   border-radius: 12px;
   overflow: hidden;
@@ -2089,15 +2093,12 @@ body.menu-open .pilot-banner {
   border-inline-start: 1px solid var(--border);
   border-block-start: 1px solid var(--border);
 }
-.hp-cell:nth-child(3n + 1) { border-inline-start: 0; }
-.hp-cell:nth-child(-n + 3) { border-block-start: 0; }
+.hp-cell:nth-child(2n + 1) { border-inline-start: 0; }
+.hp-cell:nth-child(-n + 2) { border-block-start: 0; }
 
-@media (max-width: 620px) {
-  .hp-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  .hp-cell:nth-child(3n + 1) { border-inline-start: 1px solid var(--border); }
-  .hp-cell:nth-child(2n + 1) { border-inline-start: 0; }
-  .hp-cell:nth-child(3) { border-block-start: 1px solid var(--border); }
-}
+/* ⚠️ 15.9 — כאן ישב media query שהעביר ל-2 עמודות מתחת ל-620px וביטל
+   את כללי הגבולות של 3 העמודות. מרגע ש-2 היא ברירת המחדל הוא לא רק
+   מיותר — שלושת כללי הגבולות שבו היו **מוסיפים** קווים שגויים. הוסר. */
 
 .hp-cell-add {
   flex: 1;
@@ -2407,7 +2408,9 @@ body.hp-home .nav:not(.scrolled) :is(a, button, summary, [tabindex]):focus-visib
   padding-inline: 1.5em;
 }
 
-.hp-panel { max-width: 700px; margin-inline-start: auto; }
+/* ⚠️ 15.9 — צמצום אמיתי. הסבב הקודם ירד מ-750 ל-684 (9%) וגיא לא
+   הרגיש דבר, בצדק. היחס התהפך: עכשיו עמודת הטקסט היא הרחבה. */
+.hp-panel { max-width: 560px; margin-inline-start: auto; }
 
 /* שם פריט ארוך ("מכונת כביסה/מייבש גדול") נשבר לשתי שורות ברשת הצרה
    יותר. `balance` מחלק אותן שווה במקום להשאיר מילה בודדת בשורה השנייה.
