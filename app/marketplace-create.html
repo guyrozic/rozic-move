@@ -30,13 +30,29 @@
     .banned-details ul { margin: 10px 0 0; padding-inline-start: 18px; font-size: 0.87rem; color: var(--text); line-height: 1.95; }
     .banned-note { font-size: 0.82rem; color: var(--text-muted); line-height: 1.7; margin-top: 12px; }
     .consent-note { font-size: 0.8rem; color: var(--text-muted); line-height: 1.7; margin-bottom: 10px; text-align: center; }
+
+    /* --- נגישות מקלדת --- */
+    /* טבעת מיקוד נראית על כל מה שהפך ממוקד. `outline` בלבד ומחוץ לקופסה
+       (`outline-offset`) — הוא אינו תופס מקום בפריסה, ולכן שום דבר לא זז
+       כשהמיקוד עובר. הצבע הוא --green הקיים; אין כאן צבע חדש. */
+    .photo-add:focus-visible,
+    .photo-remove:focus-visible,
+    .room-tab:focus-visible,
+    .app-body summary:focus-visible,
+    .app-body a:focus-visible,
+    .app-body button:focus-visible { outline: 3px solid var(--green); outline-offset: 2px; }
   </style>
 </head>
 <body class="app-body">
   <script src="under-construction-banner.js"></script>
   <div class="step-hero">
     <div class="step-hero-inner">
-      <a href="marketplace.html" class="btn-text" style="padding:0; margin-bottom:10px; display:inline-block;">→ יד שנייה חינם</a>
+      <!-- ⚠️ `tabindex="0"` על לינקים וכפתורים לאורך הדף אינו מיותר.
+           בספארי במק, ברירת המחדל של המערכת ("Tab מדגיש כל פריט" כבוי)
+           משאירה בסדר ה-Tab **שדות טקסט בלבד** — לינקים וכפתורים נשמטים,
+           וכפתור "פרסם מודעה" לא היה נגיש כלל. נמדד: אלמנט עם `tabindex="0"`
+           מפורש **כן** נכנס לסדר גם במצב הזה (WebKit, 15.9). -->
+      <a href="marketplace.html" class="btn-text" tabindex="0" style="padding:0; margin-bottom:10px; display:inline-block;">→ יד שנייה חינם</a>
       <h1>פרסום מודעה</h1>
       <p>כמה פרטים קטנים, ותוכלו למסור בקלות למי שגר קרוב.</p>
     </div>
@@ -47,13 +63,20 @@
       <h2>תמונות</h2>
       <p class="app-card-desc">עד 10 תמונות — תמונה ראשונה תוצג ברשימה.</p>
       <div class="photo-grid" id="photo-grid">
-        <label class="photo-add" title="הוספת תמונות"><span aria-hidden="true">＋</span><span class="sr-only">הוספת תמונות</span><input type="file" id="photo-input" accept="image/*" multiple style="display:none;"></label>
+        <!-- ⚠️ ה-`label` הזה הוא הפקד היחיד שמוסיף תמונות, ותמונה אחת היא
+             תנאי לפרסום. `input#photo-input` הוא `display:none` ולכן אינו
+             ממוקד, ו-`label` אינו ממוקד מטבעו — כלומר עד התיקון הזה הפקד
+             לא היה בסדר ה-Tab **כלל**, ואי אפשר היה לפרסם מודעה בלי עכבר.
+             `tabindex="0"` + `role="button"` מכניסים אותו לסדר, וה-keydown
+             למטה פותח את בורר הקבצים ב-Enter/Space. -->
+        <label class="photo-add" id="photo-add-label" for="photo-input" tabindex="0" role="button" title="הוספת תמונות"><span aria-hidden="true">＋</span><span class="sr-only">הוספת תמונות</span></label>
+        <input type="file" id="photo-input" accept="image/*" multiple style="display:none;">
       </div>
       <div id="ai-listing-progress-wrap" class="ai-upload-progress" style="display:none; margin-top:10px;">
         <div class="ai-upload-progress-fill" id="ai-listing-progress-fill" style="width:0%"></div>
       </div>
       <div id="ai-listing-error"></div>
-      <button class="btn btn-secondary" id="ai-analyze-listing-btn" style="margin-top:6px;" disabled>נתח תמונות עם AI ✨</button>
+      <button class="btn btn-secondary" id="ai-analyze-listing-btn" tabindex="0" style="margin-top:6px;" disabled>נתח תמונות עם AI ✨</button>
     </div>
 
     <div class="app-card">
@@ -84,7 +107,7 @@
       <div class="ai-chat-thread" id="listing-chat-thread"></div>
       <div class="ai-chat-input-row">
         <input type="text" id="listing-chat-input" placeholder="שאלו כאן..." aria-label="הודעה לעוזר ה-AI">
-        <button class="btn btn-primary" id="listing-chat-send-btn">שלח</button>
+        <button class="btn btn-primary" id="listing-chat-send-btn" tabindex="0">שלח</button>
       </div>
     </div>
 
@@ -108,7 +131,7 @@
       <p class="legal-text">המסירה, התיאום וההובלה הם באחריות הצדדים בלבד. מומלץ להיפגש במקום ציבורי ולאפשר למקבל לבדוק את הפריט לפני נטילתו.</p>
 
       <details class="banned-details">
-        <summary>
+        <summary tabindex="0">
           <span class="banned-title">פריטים אסורים לפרסום</span>
           <span class="banned-teaser">בעלי חיים · נשק · חומרים מסוכנים · תרופות · טבק ואלכוהול · מוצרים מזויפים או גנובים · ועוד</span>
         </summary>
@@ -130,8 +153,8 @@
 
     <div id="submit-error"></div>
     <p class="consent-note">בפרסום המודעה אני מאשר/ת שהפריט אינו מהפריטים האסורים, שהפרטים שמסרתי נכונים, ושהמסירה היא באחריותי ובאחריות מקבל הפריט בלבד.</p>
-    <button class="btn btn-primary btn-block" id="submit-btn">פרסם מודעה</button>
-    <p class="terms-note">בלחיצה על הכפתור אתם מאשרים את <a href="/terms.html" target="_blank" rel="noopener">תנאי השימוש</a> ו<a href="/privacy.html" target="_blank" rel="noopener">מדיניות הפרטיות</a></p>
+    <button class="btn btn-primary btn-block" id="submit-btn" tabindex="0">פרסם מודעה</button>
+    <p class="terms-note">בלחיצה על הכפתור אתם מאשרים את <a href="/terms.html" tabindex="0" target="_blank" rel="noopener">תנאי השימוש</a> ו<a href="/privacy.html" tabindex="0" target="_blank" rel="noopener">מדיניות הפרטיות</a></p>
   </div>
 
   <footer class="footer">
@@ -144,10 +167,10 @@
       <div class="footer-links">
         <div class="footer-col">
           <div class="footer-col-title">משפטי</div>
-          <a href="/privacy.html">מדיניות פרטיות</a>
-          <a href="/terms.html">תנאי שימוש</a>
-          <a href="/accessibility.html">הצהרת נגישות</a>
-          <a href="/delete-account.html">מחיקת חשבון</a>
+          <a href="/privacy.html" tabindex="0">מדיניות פרטיות</a>
+          <a href="/terms.html" tabindex="0">תנאי שימוש</a>
+          <a href="/accessibility.html" tabindex="0">הצהרת נגישות</a>
+          <a href="/delete-account.html" tabindex="0">מחיקת חשבון</a>
         </div>
       </div>
     </div>
@@ -177,16 +200,49 @@
       { key: 'fair', label: 'מצב סביר' },
     ];
 
+    /**
+     * מפעיל ב-Enter/Space אלמנט שאינו כפתור אמיתי.
+     *
+     * Space חייב `preventDefault` — אחרת הדפדפן גם מפעיל **וגם** גולל את
+     * הדף מתחת למשתמש. Enter לא גולל, אבל מונעים אותו באותה נשימה כדי
+     * שהתנהגות שני המקשים תהיה זהה.
+     *
+     * הקריאה היא ל-`handler` ולא ל-`el.click()`, כדי שלא ייווצר אירוע
+     * `click` סינתטי שיעבור שוב במאזין הקיים — לחיצת עכבר ולחיצת מקלדת
+     * מגיעות לאותו קוד בדיוק, פעם אחת כל אחת.
+     */
+    function activateOnKey(el, handler) {
+      el.addEventListener('keydown', (e) => {
+        if (e.key !== 'Enter' && e.key !== ' ' && e.key !== 'Spacebar') return;
+        e.preventDefault();
+        handler(e);
+      });
+    }
+
+    /** מסמן צ'יפ כממוקד-נגיש: כפתור-מיתוג עם מצב לחוץ/לא-לחוץ לקורא מסך. */
+    function makeChipAccessible(chip, pressed) {
+      chip.tabIndex = 0;
+      chip.setAttribute('role', 'button');
+      chip.setAttribute('aria-pressed', pressed ? 'true' : 'false');
+    }
+
     const tabsEl = document.getElementById('category-tabs');
     Object.entries(CATEGORY_INFO).forEach(([key, info]) => {
       const chip = document.createElement('div');
       chip.className = 'room-tab' + (key === category ? ' active' : '');
       chip.textContent = `${info.icon} ${info.label}`;
       chip.dataset.cat = key;
-      chip.addEventListener('click', () => {
+      makeChipAccessible(chip, key === category);
+      const selectCat = () => {
         category = key;
-        [...tabsEl.children].forEach(c => c.classList.toggle('active', c.dataset.cat === key));
-      });
+        [...tabsEl.children].forEach(c => {
+          const on = c.dataset.cat === key;
+          c.classList.toggle('active', on);
+          c.setAttribute('aria-pressed', on ? 'true' : 'false');
+        });
+      };
+      chip.addEventListener('click', selectCat);
+      activateOnKey(chip, selectCat);
       tabsEl.appendChild(chip);
     });
 
@@ -196,15 +252,31 @@
       chip.className = 'room-tab';
       chip.textContent = opt.label;
       chip.dataset.cond = opt.key;
-      chip.addEventListener('click', () => {
+      makeChipAccessible(chip, false);
+      const toggleCond = () => {
         condition = condition === opt.key ? null : opt.key;
-        [...conditionTabsEl.children].forEach(c => c.classList.toggle('active', c.dataset.cond === condition));
-      });
+        [...conditionTabsEl.children].forEach(c => {
+          const on = c.dataset.cond === condition;
+          c.classList.toggle('active', on);
+          c.setAttribute('aria-pressed', on ? 'true' : 'false');
+        });
+      };
+      chip.addEventListener('click', toggleCond);
+      activateOnKey(chip, toggleCond);
       conditionTabsEl.appendChild(chip);
     });
 
     const photoGrid = document.getElementById('photo-grid');
     const photoInput = document.getElementById('photo-input');
+    /**
+     * Enter/Space על ה-label פותחים את בורר הקבצים.
+     *
+     * הקריאה היא `photoInput.click()` ישירות ולא `label.click()`: כך יש
+     * בדיוק פתיחה אחת, ולא שתיים (label שמפנה ל-input שכבר נלחץ). בעכבר
+     * שום דבר לא השתנה — ה-`for` ממשיך להפנות את הלחיצה ל-input כמו קודם.
+     */
+    const photoAddLabel = document.getElementById('photo-add-label');
+    activateOnKey(photoAddLabel, () => photoInput.click());
     photoInput.addEventListener('change', () => {
       const files = Array.from(photoInput.files || []).slice(0, MAX_PHOTOS - photos.length);
       photos.push(...files);
@@ -216,8 +288,15 @@
       photos.forEach((file, i) => {
         const thumb = document.createElement('div');
         thumb.className = 'photo-thumb';
-        thumb.innerHTML = `<img src="${URL.createObjectURL(file)}" alt="תמונה ${i + 1} למודעה"><button class="photo-remove" data-i="${i}" aria-label="הסר תמונה ${i + 1}">✕</button>`;
-        thumb.querySelector('.photo-remove').addEventListener('click', () => { photos.splice(i, 1); renderPhotos(); });
+        thumb.innerHTML = `<img src="${URL.createObjectURL(file)}" alt="תמונה ${i + 1} למודעה"><button class="photo-remove" tabindex="0" data-i="${i}" aria-label="הסר תמונה ${i + 1}">✕</button>`;
+        thumb.querySelector('.photo-remove').addEventListener('click', () => {
+          const cameFromKeyboard = document.activeElement === thumb.querySelector('.photo-remove');
+          photos.splice(i, 1);
+          renderPhotos();
+          // הכפתור שנלחץ נמחק מה-DOM ברענון, והמיקוד היה נופל ל-body.
+          // מחזירים אותו לפקד ההוספה — הדבר הקרוב ביותר למקום שממנו יצאנו.
+          if (cameFromKeyboard) document.getElementById('photo-add-label').focus();
+        });
         photoGrid.insertBefore(thumb, photoGrid.querySelector('.photo-add'));
       });
       photoGrid.querySelector('.photo-add').style.display = photos.length >= MAX_PHOTOS ? 'none' : 'flex';
@@ -261,12 +340,20 @@
         if (result.description) document.getElementById('description').value = result.description;
         if (result.category) {
           category = result.category;
-          [...tabsEl.children].forEach(c => c.classList.toggle('active', c.dataset.cat === category));
+          [...tabsEl.children].forEach(c => {
+            const on = c.dataset.cat === category;
+            c.classList.toggle('active', on);
+            c.setAttribute('aria-pressed', on ? 'true' : 'false');
+          });
         }
         const mappedCond = mapAICondition(result.condition);
         if (mappedCond) {
           condition = mappedCond;
-          [...conditionTabsEl.children].forEach(c => c.classList.toggle('active', c.dataset.cond === condition));
+          [...conditionTabsEl.children].forEach(c => {
+            const on = c.dataset.cond === condition;
+            c.classList.toggle('active', on);
+            c.setAttribute('aria-pressed', on ? 'true' : 'false');
+          });
         }
         guidingQuestions = result.guidingQuestions || [];
         renderGuidingQuestions();
@@ -317,7 +404,7 @@
     document.getElementById('listing-chat-send-btn').addEventListener('click', sendListingChat);
     document.getElementById('listing-chat-input').addEventListener('keydown', (e) => { if (e.key === 'Enter') sendListingChat(); });
 
-    document.getElementById('submit-btn').addEventListener('click', async () => {
+    async function submitListing() {
       const errBox = document.getElementById('submit-error');
       errBox.innerHTML = '';
       const title = document.getElementById('title').value.trim();
@@ -357,6 +444,29 @@
         errBox.innerHTML = '<div class="alert alert-error">פרסום המודעה נכשל. נסה שוב.</div>';
         btn.disabled = false; btn.textContent = 'פרסם מודעה';
       }
+    }
+    document.getElementById('submit-btn').addEventListener('click', submitListing);
+
+    /**
+     * Enter בשדה טקסט חד-שורתי = פרסום — בדיוק מה ש-`<form>` היה עושה.
+     *
+     * אין `<form>` בדף, ולכן עד כאן Enter בשדה כלשהו פשוט לא עשה כלום, בלי
+     * שום רשת ביטחון. המאזין הוא delegation על כל המכל, כדי שיתפוס גם את
+     * שדות "עוד כמה פרטים" שנוצרים דינמית אחרי ניתוח ה-AI.
+     *
+     * ⚠️ שני חריגים מכוונים:
+     * • `textarea` התיאור — שם Enter הוא ירידת שורה, ולא שליחה.
+     * • `#listing-chat-input` — שם Enter כבר שולח הודעה לעוזר ה-AI, ואסור
+     *   שלחיצה על Enter בצ'אט תפרסם מודעה.
+     */
+    document.querySelector('.app-container').addEventListener('keydown', (e) => {
+      if (e.key !== 'Enter') return;
+      const el = e.target;
+      if (!el || el.tagName !== 'INPUT' || el.type !== 'text') return;
+      if (el.id === 'listing-chat-input') return;
+      e.preventDefault();
+      const btn = document.getElementById('submit-btn');
+      if (!btn.disabled) submitListing();
     });
   </script>
 </body>

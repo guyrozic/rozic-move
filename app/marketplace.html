@@ -26,13 +26,32 @@
     /* דיסקליימר — יושב בין פרטי המודעה לכפתור יצירת הקשר, כלומר בשורה
        האחרונה שנקראת לפני הפנייה למפרסם. */
     .listing-disclaimer { background: var(--bg); border: 1px solid var(--border); border-radius: 12px; padding: 12px 14px; margin: 14px 0 12px; font-size: 0.8rem; color: var(--text-muted); line-height: 1.75; }
+
+    /* --- נגישות מקלדת --- */
+    /* טבעת מיקוד נראית על כל מה שהפך ממוקד. `outline` בלבד ומחוץ לקופסה
+       (`outline-offset`) — הוא אינו תופס מקום בפריסה, ולכן שום דבר לא זז
+       כשהמיקוד עובר. הצבע הוא --green הקיים; אין כאן צבע חדש. */
+    .listing-card:focus-visible,
+    .room-tab:focus-visible,
+    .modal-close:focus-visible,
+    .app-body a:focus-visible,
+    .app-body button:focus-visible { outline: 3px solid var(--green); outline-offset: 2px; }
+    /* המודל עצמו מקבל מיקוד תוכניתי בפתיחה (ראו openModal) רק כדי שקוראי
+       מסך יכריזו על החלון ושה-Tab הבא ייפול בתוכו — זו אינה "תחנת מקלדת"
+       שהמשתמש ניווט אליה, ולכן בלי טבעת סביב כל הקופסה. */
+    .modal-box:focus { outline: none; }
   </style>
 </head>
 <body class="app-body">
   <script src="under-construction-banner.js"></script>
   <div class="step-hero">
     <div class="step-hero-inner">
-      <a href="index.html" class="btn-text" style="padding:0; margin-bottom:10px; display:inline-block;">→ בחירת שירות</a>
+      <!-- ⚠️ `tabindex="0"` על לינקים וכפתורים לאורך הדף אינו מיותר.
+           בספארי במק, ברירת המחדל של המערכת ("Tab מדגיש כל פריט" כבוי)
+           משאירה בסדר ה-Tab **שדות טקסט בלבד** — לינקים וכפתורים נשמטים.
+           נמדד: אלמנט עם `tabindex="0"` מפורש **כן** נכנס לסדר גם במצב הזה
+           (WebKit, 15.9). בלי זה אי אפשר היה להגיע מהלוח למסך הפרסום כלל. -->
+      <a href="index.html" class="btn-text" tabindex="0" style="padding:0; margin-bottom:10px; display:inline-block;">→ בחירת שירות</a>
       <h1>יד שנייה חינם</h1>
       <p>תנו פריטים שאינכם צריכים, וקבלו בחינם ממי שגר קרוב.</p>
     </div>
@@ -40,7 +59,7 @@
 
   <div class="app-container wide">
     <div style="display:flex; justify-content:flex-end; margin-bottom:16px;">
-      <a href="marketplace-create.html" class="btn btn-primary">＋ פרסם מודעה</a>
+      <a href="marketplace-create.html" class="btn btn-primary" tabindex="0">＋ פרסם מודעה</a>
     </div>
 
     <div class="form-group">
@@ -62,8 +81,11 @@
   </div>
 
   <div class="modal-overlay" id="modal-overlay" style="display:none;">
-    <div class="modal-box">
-      <button class="modal-close" id="modal-close" aria-label="סגירה">✕</button>
+    <!-- `role="dialog"` + `aria-modal` כדי שקורא מסך יכריז על החלון ויתייחס
+         לשאר הדף כמוסתר; `tabindex="-1"` כדי ש-openModal יוכל להעביר לכאן
+         את המיקוד בפתיחה (ולא להשאיר אותו על body, כפי שהיה). -->
+    <div class="modal-box" id="modal-box" role="dialog" aria-modal="true" aria-labelledby="modal-title" tabindex="-1">
+      <button class="modal-close" id="modal-close" tabindex="0" aria-label="סגירה">✕</button>
       <div id="modal-content"></div>
     </div>
   </div>
@@ -78,10 +100,10 @@
       <div class="footer-links">
         <div class="footer-col">
           <div class="footer-col-title">משפטי</div>
-          <a href="/privacy.html">מדיניות פרטיות</a>
-          <a href="/terms.html">תנאי שימוש</a>
-          <a href="/accessibility.html">הצהרת נגישות</a>
-          <a href="/delete-account.html">מחיקת חשבון</a>
+          <a href="/privacy.html" tabindex="0">מדיניות פרטיות</a>
+          <a href="/terms.html" tabindex="0">תנאי שימוש</a>
+          <a href="/accessibility.html" tabindex="0">הצהרת נגישות</a>
+          <a href="/delete-account.html" tabindex="0">מחיקת חשבון</a>
         </div>
       </div>
     </div>
@@ -118,6 +140,25 @@
     let activeCategory = 'all';
     let searchQuery = '';
 
+    /**
+     * מפעיל ב-Enter/Space אלמנט שאינו כפתור אמיתי.
+     *
+     * Space חייב `preventDefault` — אחרת הדפדפן גם מפעיל **וגם** גולל את
+     * הדף מתחת למשתמש. Enter לא גולל, אבל מונעים אותו באותה נשימה כדי
+     * שהתנהגות שני המקשים תהיה זהה.
+     *
+     * הקריאה היא ל-`handler` ולא ל-`el.click()`, כדי שלא ייווצר אירוע
+     * `click` סינתטי שיעבור שוב במאזין הקיים — לחיצת עכבר ולחיצת מקלדת
+     * מגיעות לאותו קוד בדיוק, פעם אחת כל אחת.
+     */
+    function activateOnKey(el, handler) {
+      el.addEventListener('keydown', (e) => {
+        if (e.key !== 'Enter' && e.key !== ' ' && e.key !== 'Spacebar') return;
+        e.preventDefault();
+        handler(e);
+      });
+    }
+
     const tabsEl = document.getElementById('category-tabs');
     const categories = ['all', ...Object.keys(CATEGORY_INFO)];
     categories.forEach(cat => {
@@ -125,17 +166,42 @@
       chip.className = 'room-tab' + (cat === 'all' ? ' active' : '');
       chip.textContent = cat === 'all' ? '🎁 הכל' : `${CATEGORY_INFO[cat].icon} ${CATEGORY_INFO[cat].label}`;
       chip.dataset.cat = cat;
-      chip.addEventListener('click', () => {
+      // הצ'יפ הוא `div` שמתנהג ככפתור-מיתוג: `role="button"` + `aria-pressed`
+      // מוסרים לקורא מסך גם מה הוא, וגם אם הפילטר הזה דלוק כרגע.
+      chip.tabIndex = 0;
+      chip.setAttribute('role', 'button');
+      chip.setAttribute('aria-pressed', cat === 'all' ? 'true' : 'false');
+      const selectCat = () => {
         activeCategory = cat;
-        [...tabsEl.children].forEach(c => c.classList.toggle('active', c.dataset.cat === cat));
+        [...tabsEl.children].forEach(c => {
+          const on = c.dataset.cat === cat;
+          c.classList.toggle('active', on);
+          c.setAttribute('aria-pressed', on ? 'true' : 'false');
+        });
         renderGrid();
-      });
+      };
+      chip.addEventListener('click', selectCat);
+      activateOnKey(chip, selectCat);
       tabsEl.appendChild(chip);
     });
 
-    document.getElementById('search-input').addEventListener('input', (e) => {
+    const searchInput = document.getElementById('search-input');
+    searchInput.addEventListener('input', (e) => {
       searchQuery = e.target.value.trim().toLowerCase();
       renderGrid();
+    });
+    /**
+     * Enter בתיבת החיפוש = "בצע חיפוש": המיקוד קופץ לתוצאה הראשונה.
+     *
+     * הסינון עצמו כבר קורה ב-`input`, ולכן בעכבר Enter לא עשה כלום. במקלדת
+     * זו הפעולה הרפלקסיבית — ובספארי במק תיבת החיפוש היא נקודת הכניסה
+     * הטבעית לדף, כך שמכאן אפשר להגיע לרשת בלחיצה אחת במקום בגלגול Tab.
+     */
+    searchInput.addEventListener('keydown', (e) => {
+      if (e.key !== 'Enter') return;
+      e.preventDefault();
+      const first = document.querySelector('#listing-grid .listing-card');
+      if (first) first.focus();
     });
 
     subscribeToActiveListings((listings) => {
@@ -151,8 +217,12 @@
 
       const grid = document.getElementById('listing-grid');
       document.getElementById('empty-state').style.display = filtered.length === 0 ? 'block' : 'none';
+      // הכרטיס הוא `div` שכל תפקידו להיפתח — בלי `tabindex`/`role` הוא היה
+      // בלתי-נגיש למקלדת לחלוטין (אי אפשר היה לפתוח מודעה בלי עכבר).
+      // ה-`aria-label` נבנה כאן ולא מסתמך על צירוף הטקסטים, כדי ש"חינם"
+      // והעיר לא יישמעו כמחרוזת אחת דבוקה.
       grid.innerHTML = filtered.map(l => `
-        <div class="listing-card" data-id="${esc(l.id)}">
+        <div class="listing-card" data-id="${esc(l.id)}" tabindex="0" role="button" aria-label="פתיחת המודעה ${esc(l.title)}${l.city ? `, ${esc(l.city)}` : ''}, חינם">
           ${l.photos?.[0] ? `<img class="listing-photo" src="${esc(l.photos[0])}" alt="${esc(l.title)}">` : `<div class="listing-photo">${CATEGORY_INFO[l.category]?.icon || '📦'}</div>`}
           <div class="listing-info">
             <div class="listing-title">${esc(l.title)}</div>
@@ -162,7 +232,9 @@
         </div>
       `).join('');
       grid.querySelectorAll('.listing-card').forEach(card => {
-        card.addEventListener('click', () => openModal(filtered.find(l => l.id === card.dataset.id)));
+        const open = () => openModal(filtered.find(l => l.id === card.dataset.id), card);
+        card.addEventListener('click', open);
+        activateOnKey(card, open);
       });
     }
 
@@ -172,14 +244,18 @@
     // הטוקן מונע מקריאה איטית של מודעה אחת לדרוס את החלון של מודעה אחרת
     // שהמשתמש כבר פתח בינתיים.
     let modalToken = 0;
+    // האלמנט שממנו נפתח החלון — המיקוד חוזר אליו בסגירה, כדי שמשתמש מקלדת
+    // ימצא את עצמו בדיוק במקום שממנו יצא ולא בראש הדף.
+    let modalOpener = null;
 
-    async function openModal(listing) {
+    async function openModal(listing, opener = null) {
       const overlay = document.getElementById('modal-overlay');
       const isOwner = listing.userId === authState.authUser.uid;
       const token = ++modalToken;
+      modalOpener = opener || (document.activeElement !== document.body ? document.activeElement : null);
       document.getElementById('modal-content').innerHTML = `
         ${listing.photos?.length ? `<div class="modal-photos">${listing.photos.map((p, i) => `<img src="${esc(p)}" alt="${esc(listing.title)} — תמונה ${i + 1}">`).join('')}</div>` : ''}
-        <h2>${esc(listing.title)}</h2>
+        <h2 id="modal-title">${esc(listing.title)}</h2>
         <p class="app-card-desc">${esc(listing.description || '')}</p>
         <div class="price-line"><span>קטגוריה</span><span>${CATEGORY_INFO[listing.category]?.label || 'שונות'}</span></div>
         <div class="price-line"><span>עיר</span><span>${esc(listing.city || '')}</span></div>
@@ -192,6 +268,10 @@
         </div>
       `;
       overlay.style.display = 'flex';
+      // המיקוד עובר אל החלון עצמו ולא אל הכפתור הראשון שבו: כך קורא מסך
+      // מכריז על הכותרת (aria-labelledby) לפני שהמשתמש מתחיל לגלול פקדים,
+      // וה-Tab הבא נופל בתוך החלון ולא מאחוריו.
+      document.getElementById('modal-box').focus();
 
       const contact = await getListingContact(listing.id).catch(() => null);
       if (token !== modalToken) return;
@@ -228,10 +308,48 @@
         return;
       }
       const whatsapp = `https://wa.me/972${localPhone.slice(1)}?text=${encodeURIComponent(`היי ${listing.userName}, ראיתי את "${listing.title}" ב-ROZIC MOVE ואשמח לקחת אותו. האם עדיין זמין?`)}`;
-      contactBox.innerHTML = `<a class="btn btn-primary btn-block" href="${esc(whatsapp)}" target="_blank" rel="noopener">💬 יצירת קשר בוואטסאפ</a>`;
+      contactBox.innerHTML = `<a class="btn btn-primary btn-block" tabindex="0" href="${esc(whatsapp)}" target="_blank" rel="noopener">💬 יצירת קשר בוואטסאפ</a>`;
     }
-    document.getElementById('modal-close').addEventListener('click', () => { document.getElementById('modal-overlay').style.display = 'none'; });
-    document.getElementById('modal-overlay').addEventListener('click', (e) => { if (e.target.id === 'modal-overlay') e.currentTarget.style.display = 'none'; });
+
+    const overlayEl = document.getElementById('modal-overlay');
+    const modalBoxEl = document.getElementById('modal-box');
+    const isModalOpen = () => overlayEl.style.display === 'flex';
+
+    function closeModal() {
+      if (!isModalOpen()) return;
+      overlayEl.style.display = 'none';
+      // ההחזרה מותנית ב-isConnected: אם הרשת צוירה מחדש בזמן שהחלון היה
+      // פתוח (subscribeToActiveListings חי), הכרטיס שממנו נפתח כבר לא קיים
+      // ב-DOM, ו-focus() עליו היה שקט לגמרי ומשאיר את המיקוד על body.
+      if (modalOpener && modalOpener.isConnected) modalOpener.focus();
+      else document.getElementById('search-input').focus();
+      modalOpener = null;
+    }
+
+    document.getElementById('modal-close').addEventListener('click', closeModal);
+    overlayEl.addEventListener('click', (e) => { if (e.target === overlayEl) closeModal(); });
+
+    /**
+     * Escape סוגר, ו-Tab לא יוצא מהחלון.
+     *
+     * המאזין יושב על document ב-capture כדי שיתפוס גם כשהמיקוד על
+     * `.modal-box` עצמו, וגם על כל פקד שבתוכו — ובודק `isModalOpen()`
+     * בכל פעם, כך שכשהחלון סגור הוא לא עושה כלום ולא משנה שום התנהגות
+     * קיימת בדף.
+     */
+    document.addEventListener('keydown', (e) => {
+      if (!isModalOpen()) return;
+      if (e.key === 'Escape') { e.preventDefault(); closeModal(); return; }
+      if (e.key !== 'Tab') return;
+      const focusables = [...modalBoxEl.querySelectorAll('a[href], button:not(:disabled), input, select, textarea, [tabindex]:not([tabindex="-1"])')]
+        .filter(el => el.offsetParent !== null || el === document.activeElement);
+      if (focusables.length === 0) { e.preventDefault(); modalBoxEl.focus(); return; }
+      const first = focusables[0], last = focusables[focusables.length - 1];
+      const active = document.activeElement;
+      if (!modalBoxEl.contains(active)) { e.preventDefault(); (e.shiftKey ? last : first).focus(); return; }
+      if (!e.shiftKey && active === last) { e.preventDefault(); first.focus(); }
+      else if (e.shiftKey && (active === first || active === modalBoxEl)) { e.preventDefault(); last.focus(); }
+    }, true);
 
     // My listings management
     subscribeToUserListings(authState.authUser.uid, (listings) => {
@@ -246,8 +364,8 @@
             <div class="order-row-meta">${l.status === 'sold' ? 'נמסר' : 'פעיל'}</div>
           </div>
           <div style="display:flex; gap:8px;">
-            ${l.status !== 'sold' ? `<button class="btn-text" data-action="sold" data-id="${esc(l.id)}">סמן כנמסר</button>` : ''}
-            <button class="btn-text" data-action="delete" data-id="${esc(l.id)}" style="color:#C0392B;">מחק</button>
+            ${l.status !== 'sold' ? `<button class="btn-text" tabindex="0" data-action="sold" data-id="${esc(l.id)}" aria-label="סמן כנמסר את המודעה ${esc(l.title)}">סמן כנמסר</button>` : ''}
+            <button class="btn-text" tabindex="0" data-action="delete" data-id="${esc(l.id)}" aria-label="מחק את המודעה ${esc(l.title)}" style="color:#C0392B;">מחק</button>
           </div>
         </div>
       `).join('');
