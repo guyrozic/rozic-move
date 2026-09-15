@@ -1471,3 +1471,22 @@ input:focus-visible,
 select:focus-visible,
 textarea:focus-visible,
 [tabindex]:focus-visible { outline: 3px solid var(--green); outline-offset: 2px; }
+
+/* ⚠️ 15.9 — הטבעת הירוקה **נעלמת** על משטח כהה. נמדד בדפדפן:
+   1.43:1 על רקע הפוטר (#1C4035) ו-1.55:1 על ה-navy של מקטע המובילים
+   ומקטע ההורדה. הפוטר סוגר כמעט כל דף באתר — כלומר מי שמנווט במקלדת
+   מאבד את מקומו בדיוק בקצה של כל עמוד, בכל עמוד.
+   --green-on-dark הוא אותו ירוק שנוסף לתג "פעיל" מאותה סיבה בדיוק:
+   6.50:1 על הפוטר, 7.02:1 על ה-navy.
+
+   ⚠️ ה-`:is()` כאן אינו קיצור נוחות, הוא הסלקטור: דפי app/ מגדירים
+   `.app-body a:focus-visible` ב-<style> משלהם — (0,2,1), ומאוחר יותר
+   במקור, ולכן הוא גובר על `.footer a:focus-visible` שהוא באותה מידה
+   בדיוק. `:is(a, button, summary, [tabindex])` מקבל את הסגוליות של
+   הארגומנט הגבוה ביותר ([tabindex] ברמת class), והכלל כולו עולה
+   ל-(0,3,0) — גובר, בלי `!important`. */
+.footer :is(a, button, summary, [tabindex]):focus-visible,
+.movers-section :is(a, button, summary, [tabindex]):focus-visible,
+.download-section :is(a, button, summary, [tabindex]):focus-visible {
+  outline-color: var(--green-on-dark);
+}
