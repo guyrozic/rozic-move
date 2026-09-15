@@ -6,7 +6,7 @@ import {
   addDoc, collection, deleteDoc, doc, getDoc, getDocs, onSnapshot,
   query, serverTimestamp, setDoc, updateDoc, where,
 } from 'https://www.gstatic.com/firebasejs/12.16.0/firebase-firestore.js';
-import { db } from './firebase.js';
+import { db, auth } from './firebase.js';
 
 export const STATUS_LABELS = {
   draft: 'טיוטה',
@@ -117,53 +117,53 @@ export function subscribeToOrder(orderId, callback, onError) {
   }, onError);
 }
 
+const CUSTOMER_CANCEL_URL = 'https://us-central1-hovalot-6cf65.cloudfunctions.net/customerCancelOrder';
+
 /**
- * ⚠️ **הפונקציה הזו אינה מקבילה עוד לביטול שבאפליקציה, והפער עולה כסף.**
+ * ביטול הזמנה ע"י הלקוח — **דרך אותה Cloud Function שהאפליקציה קוראת לה.**
  *
- * ## מה חסר, ומה התוצאה
- * באפליקציה ביטול לקוח עבר לשרת ב-12.9 (`customerCancelOrder`), והוא
- * כותב שלושה שדות שהקריאה כאן אינה כותבת:
+ * ## ⚠️ 16.9 — מה היה כאן, ולמה זה עלה כסף
+ * עד היום זה היה `updateDoc` ישיר שכתב `status:'cancelled'` ותו לא.
+ * שלושה שדות שהאפליקציה כותבת חסרו:
  *
  * | חסר | התוצאה בפועל |
  * |---|---|
- * | `refundDue` / `refundStatus` | `ordersWithRefundDue` מסנן `refundDue > 0`, ולכן **הזמנה שבוטלה מהאתר לא מופיעה ב-AdminRefundsScreen לעולם**. הכסף נשאר אצלנו, ואיש לא יודע שיש חוב ולא כמה |
- * | `cancelledAt` | הדוח החשבונאי נופל חזרה ל-`createdAt`, והביטול נספר בחודש היצירה |
- * | דמי ביטול | האתר מעביר `0` תמיד; האפליקציה גובה לפי המדרג |
+ * | `refundDue` / `refundStatus` | `ordersWithRefundDue` מסנן `refundDue > 0`, ולכן **הזמנה שבוטלה מהאתר לא הופיעה ב-AdminRefundsScreen לעולם.** הכסף נשאר אצלנו ואיש לא ידע שיש חוב ולא כמה |
+ * | `cancelledAt` | הדוח החשבונאי נפל ל-`createdAt`, והביטול נספר בחודש היצירה |
+ * | דמי ביטול | האתר העביר `0` תמיד; האפליקציה גובה לפי המדרג |
  *
- * ⚠️ **וזה לא תיאורטי:** `order-status.html` מתיר ביטול ב-`pending`
- * וב-`assigned` — ושני אלה הם **אחרי תשלום** (הזמנה מגיעה ל-`pending`
- * רק כש-`growNotify` מאשר את התשלום). `firestore.rules` אינם תופסים
- * את זה: `refundDueIsDerived()` מאמת את `refundDue` רק אם הוא **נכתב**.
+ * ⚠️ **ולא היה תיאורטי:** `order-status.html` מתיר ביטול ב-`pending`
+ * וב-`assigned` — **שניהם אחרי תשלום**. והחוקים לא תפסו את זה, כי
+ * `refundDueIsDerived()` מאמת את `refundDue` רק אם הוא **נכתב**.
  *
- * ## ⚠️ למה זה עדיין לא תוקן — ואיך מתקנים
- * **התיקון אינו לחשב כאן.** זה בדיוק מה שיצר את הפער: `customerCancelOrder`
- * כבר מחשבת את המדרג בשעון ישראל (לקוח שמכשירו בחו"ל מקבל היסט מלא —
- * נמדד שם ₪0 מוצג מול ₪1,500 שנגבים), כותבת `refundDue`, ומנקה את שדות
- * המוביל. האתר צריך לקרוא לה, לא לשכפל אותה.
+ * ## למה קריאה לשרת ולא חישוב כאן
+ * ⚠️ **חישוב בצד-לקוח הוא בדיוק מה שיצר את הפער.** `customerCancelOrder`
+ * מחשבת את המדרג **בשעון ישראל** — לקוח שמכשירו מוגדר לאזור זמן אחר
+ * קיבל היסט מלא, ונמדד ₪0 מוצג מול ₪1,500 שנגבים. היא גם כותבת את
+ * `refundDue` ומנקה את שדות המוביל. האתר קורא לה, לא משכפל אותה.
  *
- * **החיבור חסום ב-CORS, וההסרה אינה בידי האתר.** הפונקציה מוגדרת
- * `onRequest(async (req, res) => …)` **בלי** `{ cors: true }`
- * (`Hovalot/functions/src/customerCancelOrder.ts`), ולכן הדפדפן חוסם
- * את הקריאה מ-rozicmove.com לפני שהיא יוצאת. נמדד מול הפונקציה החיה
- * (15.9), preflight מ-`Origin: https://rozicmove.com`:
+ * החסם היה CORS — הפונקציה נפרסה בלי `{ cors: true }`, ולכן הדפדפן
+ * חסם את הקריאה לפני שיצאה. ⚠️ **נפתר ואומת מול הפונקציה החיה (16.9):**
+ * preflight מ-`Origin: https://rozicmove.com` מחזיר 204 עם
+ * `access-control-allow-origin`.
  *
- *   customerCancelOrder → 405, בלי `access-control-allow-origin`
- *   createGrowCheckout  → 204 + `access-control-allow-origin: https://rozicmove.com`
+ * `shownFee` נשלח כדי שהשרת ירשום ללוג פער בין מה שהוצג לבין מה שנגבה —
+ * הסימן היחיד ששני החישובים נפרדו. האתר אינו מציג מדרג לפני האישור
+ * (ראו `order-status.html`), ולכן הוא שולח `0` ומסמן בכך "לא הוצג דבר".
  *
- * שלוש הפונקציות שהאתר כן קורא להן (`createGrowCheckout`, `geocodeAddress`,
- * `geminiProxy`) כולן מוגדרות `{ cors: true }`. זה **שינוי של שורה אחת
- * בריפו Hovalot + פריסה של הפונקציה** — ופריסה אסורה לסוכן הזה.
- *
- * עד אז הקריאה נשארת כפי שהיא **במכוון**: היא לפחות מסמנת את ההזמנה
- * כמבוטלת. כתיבת `refundDue` מכאן בלי חישוב שרת היא בדיוק החישוב
- * בצד-לקוח שהועבר לשרת מלכתחילה.
+ * @returns {Promise<{fee:number, refundDue:number}>} מה נגבה בפועל ומה חייבים להחזיר.
  */
-export async function cancelOrder(orderId, cancellationFee = 0) {
-  await updateDoc(doc(db, 'orders', orderId), {
-    status: 'cancelled',
-    cancelledBy: 'customer',
-    ...(cancellationFee > 0 ? { cancellationFee } : {}),
+export async function cancelOrder(orderId) {
+  if (!auth.currentUser) throw new Error('NOT_LOGGED_IN');
+  const token = await auth.currentUser.getIdToken();
+  const res = await fetch(CUSTOMER_CANCEL_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+    body: JSON.stringify({ orderId, shownFee: 0 }),
   });
+  const data = await res.json().catch(() => null);
+  if (!res.ok) throw new Error(data?.error ?? 'לא הצלחנו לבטל את ההזמנה');
+  return { fee: data?.fee ?? 0, refundDue: data?.refundDue ?? 0 };
 }
 
 /** Autosaves in-progress wizard state — mirrors saveDraftOrder() in orders.ts. */

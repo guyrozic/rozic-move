@@ -181,12 +181,36 @@
         }
       });
 
-      document.getElementById('cancel-btn')?.addEventListener('click', async () => {
-        if (!confirm('לבטל את ההזמנה?')) return;
+      /**
+       * ⚠️ 16.9 — **הלקוח לא ידע שייגבו ממנו דמי ביטול.**
+       *
+       * `confirm('לבטל את ההזמנה?')` לא הזכיר אותם במילה, והתוצאה לא
+       * הוצגה אחר כך. כלומר לקוח שביטל הזמנה משולמת יום לפני המועד
+       * חויב 50% **וגילה את זה מדף החשבון**. באפליקציה מוצגת טבלת
+       * המדרג לפני האישור.
+       *
+       * ⚠️ **התיקון אינו לחשב את המדרג כאן** — זה בדיוק מה שהועבר
+       * לשרת. הפונקציה מחזירה את מה שנגבה בפועל ואת חוב ההחזר, והם
+       * מוצגים מיד. האזהרה שלפני האישור מנוסחת כללית ("ייתכן חיוב
+       * לפי מדיניות הביטול") ולא כמספר, כי מספר שיוצג כאן יהיה חישוב
+       * שני שיכול להיפרד מהשרת.
+       */
+      document.getElementById('cancel-btn')?.addEventListener('click', async (e) => {
+        if (!confirm('לבטל את ההזמנה?\n\nלפי מדיניות הביטול ייתכן חיוב דמי ביטול, בהתאם לזמן שנותר עד מועד ההובלה.')) return;
+        const btn = e.currentTarget;
+        const box = document.getElementById('cancel-error');
+        btn.disabled = true; btn.textContent = 'מבטל…';
         try {
-          await cancelOrder(order.id);
+          const { fee, refundDue } = await cancelOrder(order.id);
+          const parts = ['ההזמנה בוטלה.'];
+          if (fee > 0) parts.push(`נגבו דמי ביטול בסך ₪${fee}.`);
+          if (refundDue > 0) parts.push(`יוחזרו לך ₪${refundDue} — ההחזר מבוצע ידנית ע"י הצוות.`);
+          box.innerHTML = `<div class="alert alert-success" role="status">${parts.join(' ')}</div>`;
         } catch (err) {
-          document.getElementById('cancel-error').innerHTML = '<div class="alert alert-error">ביטול ההזמנה נכשל.</div>';
+          // ⚠️ הודעה שאומרת מה הצעד הבא. "נכשל" לבדו משאיר את הלקוח
+          // בלי לדעת אם ההזמנה עדיין פעילה.
+          box.innerHTML = '<div class="alert alert-error" role="alert">לא הצלחנו לבטל את ההזמנה. ההזמנה עדיין פעילה — אפשר לנסות שוב, או לפנות לתמיכה.</div>';
+          btn.disabled = false; btn.textContent = 'ביטול הזמנה';
         }
       });
     }
