@@ -51,6 +51,23 @@
   <script type="module">
     import { requireAuth } from './auth.js';
     import { subscribeToOrder, cancelOrder, customerTotalOf, STATUS_LABELS } from './orders.js';
+
+    /**
+     * בריחת HTML לכל ערך שמגיע ממסמך ההזמנה. **זו לא הגנה תיאורטית:**
+     * חוקי Firestore על `orders` הם denylist — שדה שאינו ברשימה החסומה
+     * פתוח לכתיבה, ו-`title`/`notes`/`itemsSummary`/`fromAddress`/
+     * `toAddress`/`scheduledDate`/`timeSlot`/`manualPricingItems`/`status`
+     * אינם באף אחת מהן. כלומר **המוביל המשובץ** יכול לכתוב אותם על
+     * ההזמנה של הלקוח, והדף הזה הוא שמרנדר אותם אצל הלקוח.
+     *
+     * זהה ל-`esc` ב-marketplace.html. כולל `"` ו-`'` כי חלק מהערכים
+     * יושבים בתוך מאפיין (`class=`), ושם גרש סוגר את המאפיין ופותח
+     * מאפיין חדש — `onerror` למשל — בלי שום תו `<`.
+     */
+    const esc = (v) => String(v ?? '')
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+
     import { startGrowCheckout } from './payments.js';
 
     const authState = await requireAuth();
@@ -94,8 +111,8 @@
 
       contentEl.innerHTML = `
         <div class="app-card">
-          <h2>${order.title || 'הזמנה'}</h2>
-          <p><span class="status-badge ${order.status}">${STATUS_LABELS[order.status] || order.status}</span></p>
+          <h2>${esc(order.title || 'הזמנה')}</h2>
+          <p><span class="status-badge ${esc(order.status)}">${esc(STATUS_LABELS[order.status] || order.status)}</span></p>
         </div>
 
         ${order.status === 'pending_pricing' ? `
@@ -110,22 +127,22 @@
         ${order.status === 'pending_payment' ? `
         <div class="app-card">
           <div class="alert alert-info">ההזמנה נוצרה — נשאר רק לשלם כדי שמוביל יוכל לקחת אותה.</div>
-          <button class="btn btn-primary btn-block" id="pay-btn">שלם עכשיו — ₪${total}</button>
+          <button class="btn btn-primary btn-block" id="pay-btn">שלם עכשיו — ₪${esc(total)}</button>
           <div id="pay-error"></div>
         </div>` : ''}
 
         <div class="app-card">
           <h2>פרטי ההזמנה</h2>
-          ${order.fromAddress ? `<div class="price-line"><span>מוצא</span><span>${order.fromAddress}</span></div>` : ''}
-          ${order.toAddress ? `<div class="price-line"><span>יעד</span><span>${order.toAddress}</span></div>` : ''}
-          ${order.scheduledDate ? `<div class="price-line"><span>תאריך</span><span>${order.scheduledDate}${order.timeSlot ? ' · ' + order.timeSlot : ''}</span></div>` : ''}
-          ${order.itemsSummary ? `<div class="price-line"><span>פריטים</span><span>${order.itemsSummary}</span></div>` : ''}
-          ${order.notes ? `<div class="price-line"><span>הערות</span><span>${order.notes}</span></div>` : ''}
+          ${order.fromAddress ? `<div class="price-line"><span>מוצא</span><span>${esc(order.fromAddress)}</span></div>` : ''}
+          ${order.toAddress ? `<div class="price-line"><span>יעד</span><span>${esc(order.toAddress)}</span></div>` : ''}
+          ${order.scheduledDate ? `<div class="price-line"><span>תאריך</span><span>${esc(order.scheduledDate)}${order.timeSlot ? ' · ' + esc(order.timeSlot) : ''}</span></div>` : ''}
+          ${order.itemsSummary ? `<div class="price-line"><span>פריטים</span><span>${esc(order.itemsSummary)}</span></div>` : ''}
+          ${order.notes ? `<div class="price-line"><span>הערות</span><span>${esc(order.notes)}</span></div>` : ''}
           ${manualItems.length ? `
           <div class="price-line"><span>פריטים לתמחור ידני</span><span>${
-            manualItems.map(mi => `${mi.label} ×${mi.qty}${mi.price !== undefined ? ` — ₪${mi.price}` : ' — ממתין לתמחור'}`).join('<br>')
+            manualItems.map(mi => `${esc(mi.label)} ×${esc(mi.qty)}${mi.price !== undefined ? ` — ₪${esc(mi.price)}` : ' — ממתין לתמחור'}`).join('<br>')
           }</span></div>` : ''}
-          <div class="price-total"><span>${order.status === 'pending_pricing' ? 'סה"כ עד כה' : 'סה"כ'}</span><strong>₪${total}</strong></div>
+          <div class="price-total"><span>${order.status === 'pending_pricing' ? 'סה"כ עד כה' : 'סה"כ'}</span><strong>₪${esc(total)}</strong></div>
         </div>
 
         ${cancellable ? `

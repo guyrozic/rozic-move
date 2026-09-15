@@ -1405,3 +1405,14 @@ a.back {
   .phone-frame { width: 13.125rem; height: 26.25rem; }
   .faq-q { font-size: 0.88rem; }
 }
+
+/* --- נגישות מקלדת: טבעת מיקוד נראית --- */
+/* `outline` בלבד ומחוץ לקופסה — אינו תופס מקום בפריסה, ולכן שום דבר לא זז
+   כשהמיקוד עובר. משתמש ב---green הקיים, בלי צבע חדש. */
+a:focus-visible,
+button:focus-visible,
+summary:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible,
+[tabindex]:focus-visible { outline: 3px solid var(--green); outline-offset: 2px; }

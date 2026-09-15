@@ -14,7 +14,7 @@
   <script src="under-construction-banner.js"></script>
   <div class="step-hero">
     <div class="step-hero-inner">
-      <a href="index.html" class="btn-text" style="padding:0; margin-bottom:10px; display:inline-block;">→ בחירת שירות</a>
+      <a tabindex="0" href="index.html" class="btn-text" style="padding:0; margin-bottom:10px; display:inline-block;">→ בחירת שירות</a>
       <h1>החשבון שלי</h1>
       <p>פרופיל, אימות, והיסטוריית ההזמנות שלך.</p>
     </div>
@@ -40,14 +40,14 @@
             <label for="phone-input">מספר טלפון</label>
             <input id="phone-input" type="tel" placeholder="050-1234567">
           </div>
-          <button class="btn btn-primary" id="send-code-btn">שלח קוד אימות</button>
+          <button tabindex="0" class="btn btn-primary" id="send-code-btn">שלח קוד אימות</button>
         </div>
         <div id="phone-step-code" style="display:none;">
           <div class="form-group">
             <label for="code-input">קוד שהתקבל ב-SMS</label>
             <input id="code-input" type="text" inputmode="numeric" placeholder="123456">
           </div>
-          <button class="btn btn-primary" id="confirm-code-btn">אשר קוד</button>
+          <button tabindex="0" class="btn btn-primary" id="confirm-code-btn">אשר קוד</button>
         </div>
         <div id="phone-error"></div>
         <div id="recaptcha-container"></div>
@@ -72,12 +72,12 @@
             <textarea id="support-message" rows="4" placeholder="למשל: לא הצלחתי לשלם על ההזמנה שלי..."></textarea>
           </div>
           <div id="support-error"></div>
-          <button class="btn btn-primary" id="support-submit-btn">שלח פנייה</button>
-          <p class="terms-note">בלחיצה על הכפתור אתם מאשרים את <a href="/terms.html" target="_blank" rel="noopener">תנאי השימוש</a> ו<a href="/privacy.html" target="_blank" rel="noopener">מדיניות הפרטיות</a></p>
+          <button tabindex="0" class="btn btn-primary" id="support-submit-btn">שלח פנייה</button>
+          <p class="terms-note">בלחיצה על הכפתור אתם מאשרים את <a tabindex="0" href="/terms.html" target="_blank" rel="noopener">תנאי השימוש</a> ו<a tabindex="0" href="/privacy.html" target="_blank" rel="noopener">מדיניות הפרטיות</a></p>
         </div>
       </div>
 
-      <button class="btn btn-danger btn-block" id="logout-btn">התנתק</button>
+      <button tabindex="0" class="btn btn-danger btn-block" id="logout-btn">התנתק</button>
     </div>
   </div>
 
@@ -91,10 +91,10 @@
       <div class="footer-links">
         <div class="footer-col">
           <div class="footer-col-title">משפטי</div>
-          <a href="/privacy.html">מדיניות פרטיות</a>
-          <a href="/terms.html">תנאי שימוש</a>
-          <a href="/accessibility.html">הצהרת נגישות</a>
-          <a href="/delete-account.html">מחיקת חשבון</a>
+          <a tabindex="0" href="/privacy.html">מדיניות פרטיות</a>
+          <a tabindex="0" href="/terms.html">תנאי שימוש</a>
+          <a tabindex="0" href="/accessibility.html">הצהרת נגישות</a>
+          <a tabindex="0" href="/delete-account.html">מחיקת חשבון</a>
         </div>
       </div>
     </div>
@@ -139,7 +139,7 @@
       if (state.authUser.emailVerified) {
         emailBox.innerHTML = '<div class="alert alert-success">✓ האימייל מאומת</div>';
       } else {
-        emailBox.innerHTML = '<div class="alert alert-info">האימייל טרם אומת. <button class="btn-text" id="resend-email-btn">שלח שוב קישור אימות</button></div>';
+        emailBox.innerHTML = '<div class="alert alert-info">האימייל טרם אומת. <button tabindex="0" class="btn-text" id="resend-email-btn">שלח שוב קישור אימות</button></div>';
         document.getElementById('resend-email-btn')?.addEventListener('click', async (e) => {
           // ⚠️ 16.9 — היה כאן `await` בלי `try`. בכשל
           // (`auth/too-many-requests` — Firebase זורק אותו כבר אחרי
@@ -269,7 +269,7 @@
       if (orders.length === 0) { list.innerHTML = ''; empty.style.display = 'block'; return; }
       empty.style.display = 'none';
       list.innerHTML = orders.map(o => `
-        <a class="order-row-card" href="order-status.html?id=${encodeURIComponent(o.id)}">
+        <a tabindex="0" class="order-row-card" href="order-status.html?id=${encodeURIComponent(o.id)}">
           <div>
             <div class="order-row-title">${esc(o.title || 'הזמנה')}</div>
             <div class="order-row-meta"><span class="status-badge ${esc(o.status)}">${esc(STATUS_LABELS[o.status] || o.status)}</span></div>

@@ -72,6 +72,14 @@
        padding אנכי, לא min-height, כדי לא לשנות פריסה. */
     .legal-links a { color: #40604F; text-decoration: none; display: inline-block; padding-block: 4px; }
     .legal-links a:hover { text-decoration: underline; }
+
+    /* --- נגישות מקלדת: טבעת מיקוד נראית --- */
+    /* אותה טבעת בדיוק כמו בשאר האתר (`--green` = #0E5C43). הדף הזה מחזיק
+       CSS משלו ואינו טוען את style.css, ולכן הכלל נוסף כאן מקומית.
+       `outline` בלבד — אינו תופס מקום בפריסה, ולכן שום דבר לא זז. */
+    a:focus-visible,
+    button:focus-visible,
+    [tabindex]:focus-visible { outline: 3px solid #0E5C43; outline-offset: 2px; }
   </style>
 </head>
 <body>
@@ -89,21 +97,21 @@
     <div class="divider"></div>
 
     <div id="app-buttons">
-      <button class="btn btn-primary" onclick="openApp()">פתח באפליקציה ←</button>
-      <a class="btn btn-apple" href="https://apps.apple.com/app/id6783814838">📱 הורד ל-iPhone</a>
-      <a class="btn btn-android" href="https://play.google.com/store/apps/details?id=com.rozicmove.app">🤖 הורד לאנדרואיד</a>
+      <button tabindex="0" class="btn btn-primary" onclick="openApp()">פתח באפליקציה ←</button>
+      <a tabindex="0" class="btn btn-apple" href="https://apps.apple.com/app/id6783814838">📱 הורד ל-iPhone</a>
+      <a tabindex="0" class="btn btn-android" href="https://play.google.com/store/apps/details?id=com.rozicmove.app">🤖 הורד לאנדרואיד</a>
     </div>
     <div id="web-buttons" style="display:none;">
-      <a class="btn btn-primary" id="order-status-link" href="#">צפה בהזמנה שלך ←</a>
+      <a tabindex="0" class="btn btn-primary" id="order-status-link" href="#">צפה בהזמנה שלך ←</a>
     </div>
 
     <div class="note" id="note">האפליקציה לא נפתחה אוטומטית? לחץ למעלה ↑</div>
 
     <footer class="legal-links">
-      <a href="/privacy.html">מדיניות פרטיות</a> ·
-      <a href="/terms.html">תנאי שימוש</a> ·
-      <a href="/accessibility.html">הצהרת נגישות</a> ·
-      <a href="/delete-account.html">מחיקת חשבון</a>
+      <a tabindex="0" href="/privacy.html">מדיניות פרטיות</a> ·
+      <a tabindex="0" href="/terms.html">תנאי שימוש</a> ·
+      <a tabindex="0" href="/accessibility.html">הצהרת נגישות</a> ·
+      <a tabindex="0" href="/delete-account.html">מחיקת חשבון</a>
     </footer>
   </div>
 

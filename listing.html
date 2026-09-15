@@ -100,6 +100,14 @@
          ולכן תוקן כאן הערך המקומי בלבד. */
       color: #5E6E5E;
     }
+
+    /* --- נגישות מקלדת: טבעת מיקוד נראית --- */
+    /* אותה טבעת בדיוק כמו בשאר האתר (`--green` = #0E5C43). הדף הזה מחזיק
+       CSS משלו ואינו טוען את style.css, ולכן הכלל נוסף כאן מקומית.
+       `outline` בלבד — אינו תופס מקום בפריסה, ולכן שום דבר לא זז. */
+    a:focus-visible,
+    button:focus-visible,
+    [tabindex]:focus-visible { outline: 3px solid #0E5C43; outline-offset: 2px; }
   </style>
 </head>
 <body>
@@ -130,17 +138,17 @@
 
     <div class="divider"></div>
 
-    <button class="btn btn-primary" onclick="openApp()">פתח באפליקציה ←</button>
-    <a class="btn btn-apple" href="https://apps.apple.com/app/id6783814838">📱 הורד ל-iPhone</a>
-    <a class="btn btn-android" href="https://play.google.com/store/apps/details?id=com.rozicmove.app">🤖 הורד לאנדרואיד</a>
+    <button tabindex="0" class="btn btn-primary" onclick="openApp()">פתח באפליקציה ←</button>
+    <a tabindex="0" class="btn btn-apple" href="https://apps.apple.com/app/id6783814838">📱 הורד ל-iPhone</a>
+    <a tabindex="0" class="btn btn-android" href="https://play.google.com/store/apps/details?id=com.rozicmove.app">🤖 הורד לאנדרואיד</a>
 
     <div class="note">אין לך את האפליקציה? הורד בחינם ↑</div>
 
     <footer class="legal-links">
-      <a href="/privacy.html">מדיניות פרטיות</a> ·
-      <a href="/terms.html">תנאי שימוש</a> ·
-      <a href="/accessibility.html">הצהרת נגישות</a> ·
-      <a href="/delete-account.html">מחיקת חשבון</a>
+      <a tabindex="0" href="/privacy.html">מדיניות פרטיות</a> ·
+      <a tabindex="0" href="/terms.html">תנאי שימוש</a> ·
+      <a tabindex="0" href="/accessibility.html">הצהרת נגישות</a> ·
+      <a tabindex="0" href="/delete-account.html">מחיקת חשבון</a>
     </footer>
   </div>
 
@@ -229,7 +237,7 @@
           const next = encodeURIComponent(`../listing.html?id=${listing.id}`);
           box.innerHTML = `
             <div class="info-box">פרטי הקשר של המפרסם מוצגים למשתמשים מחוברים בלבד.</div>
-            <a class="btn btn-primary" href="app/login.html?next=${next}">התחבר כדי לראות טלפון ←</a>`;
+            <a tabindex="0" class="btn btn-primary" href="app/login.html?next=${next}">התחבר כדי לראות טלפון ←</a>`;
           return;
         }
 
@@ -279,6 +287,9 @@
         const text = `היי ${listing.userName || ''}, ראיתי את "${listing.title || ''}" ב-ROZIC MOVE ואשמח לקחת אותו. האם עדיין זמין?`;
         const wa = document.createElement('a');
         wa.className = 'btn btn-primary';
+        // ספארי במק אינה מכניסה `<a href>` לסדר ה-Tab בברירת המחדל; tabindex
+        // מפורש כן נכנס. הקישור הזה נוצר ב-JS ולכן לא נכלל ב-HTML הסטטי.
+        wa.tabIndex = 0;
         wa.style.marginTop = '12px';
         wa.target = '_blank';
         wa.rel = 'noopener';

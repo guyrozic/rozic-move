@@ -13,6 +13,14 @@
     .van-gauge { height: 8px; border-radius: 4px; background: var(--border); overflow: hidden; margin-bottom: 4px; }
     .van-gauge-fill { height: 100%; background: var(--green); transition: width 0.25s ease; }
     .van-gauge-fill.full { background: #C0392B; }
+  
+    /* ⚠️ 16.9 — בספארי ה-Tab מדלג על <button>, <a> ו-input[type=file]
+       כברירת מחדל, **אבל מכבד tabindex="0" מפורש**. בלי זה הדף הזה
+       עמד על תחנת Tab אחת מול 136 בכרום. רק outline — אינו תופס מקום
+       בפריסה, כך ששום דבר לא זז. */
+    a:focus-visible, button:focus-visible, summary:focus-visible,
+    input:focus-visible, select:focus-visible, textarea:focus-visible,
+    [tabindex]:focus-visible { outline: 3px solid #0E5C43; outline-offset: 2px; }
   </style>
 </head>
 <body class="app-body">
@@ -20,7 +28,7 @@
 
   <div class="step-hero" id="step-hero">
     <div class="step-hero-inner">
-      <a href="index.html" class="btn-text" style="padding:0; margin-bottom:10px; display:inline-block;">→ בחירת שירות</a>
+      <a tabindex="0" href="index.html" class="btn-text" style="padding:0; margin-bottom:10px; display:inline-block;">→ בחירת שירות</a>
       <div class="stepper">
         <div class="step-dot active" data-step="1"></div>
         <div class="step-dot" data-step="2"></div>
@@ -49,11 +57,18 @@
               </div>
               <div id="ai-progress-text" class="form-hint" style="display:none; margin-bottom:10px;"></div>
               <div id="ai-error"></div>
-              <label class="btn btn-secondary" style="cursor:pointer;">
+              <!-- ⚠️ 16.9 — label שעוטף input ב-display:none **אינו נגיש
+                   למקלדת בשום דפדפן**: ה-label אינו מקבל מיקוד, וה-input
+                   המוסתר אינו ניתן למיקוד. כלומר אי אפשר היה להוסיף תמונות
+                   בלי עכבר — בכרום, בספארי, בכל מקום.
+                   tabindex + role + מאזין Enter/Space פותרים, וה-for מחבר
+                   את ה-input שיצא החוצה. -->
+              <label class="btn btn-secondary" for="ai-photo-input"
+                     id="ai-photo-label" tabindex="0" role="button" style="cursor:pointer;">
                 ＋ הוסיפו תמונות
-                <input type="file" id="ai-photo-input" accept="image/*" multiple style="display:none;">
               </label>
-              <button class="btn btn-primary" id="ai-analyze-btn" style="margin-right:10px;" disabled>נתח עם AI ✨</button>
+              <input type="file" id="ai-photo-input" accept="image/*" multiple style="display:none;">
+              <button tabindex="0" class="btn btn-primary" id="ai-analyze-btn" style="margin-right:10px;" disabled>נתח עם AI ✨</button>
             </div>
           </div>
 
@@ -66,7 +81,7 @@
             <div id="ai-free-items" class="ai-free-items"></div>
             <div class="ai-chat-input-row">
               <input type="text" id="ai-chat-input" placeholder="כתבו כאן..." aria-label="הודעה לעוזר ה-AI">
-              <button class="btn btn-primary" id="ai-chat-send-btn">שלח</button>
+              <button tabindex="0" class="btn btn-primary" id="ai-chat-send-btn">שלח</button>
             </div>
           </div>
 
@@ -85,10 +100,10 @@
             <h2>📦 רוצים גם שירות אריזה?</h2>
             <p class="app-card-desc">הצוות שלנו יארוז את כל הפריטים שנבחרו לפני ההובלה.</p>
             <div id="packing-preview" class="alert alert-info"></div>
-            <button class="btn btn-primary btn-block" id="packing-add-btn" style="margin-bottom:10px;">הוסף שירות אריזה</button>
-            <button class="btn btn-secondary btn-block" id="packing-skip-btn">דלג, אני אארוז בעצמי</button>
+            <button tabindex="0" class="btn btn-primary btn-block" id="packing-add-btn" style="margin-bottom:10px;">הוסף שירות אריזה</button>
+            <button tabindex="0" class="btn btn-secondary btn-block" id="packing-skip-btn">דלג, אני אארוז בעצמי</button>
           </div>
-          <button class="btn-text" id="back-to-1">→ חזרה לפריטים</button>
+          <button tabindex="0" class="btn-text" id="back-to-1">→ חזרה לפריטים</button>
         </section>
 
         <!-- Step 3: delivery details -->
@@ -158,8 +173,8 @@
           </div>
 
           <div id="delivery-error"></div>
-          <button class="btn btn-primary btn-block" id="delivery-continue-btn">המשך</button>
-          <button class="btn-text" id="back-to-2">→ חזרה</button>
+          <button tabindex="0" class="btn btn-primary btn-block" id="delivery-continue-btn">המשך</button>
+          <button tabindex="0" class="btn-text" id="back-to-2">→ חזרה</button>
         </section>
 
         <!-- Step 4: summary -->
@@ -189,12 +204,12 @@
           <div class="form-group">
             <label class="terms-label" for="terms-accept">
               <input type="checkbox" id="terms-accept" required aria-describedby="terms-error">
-              <span>קראתי ואני מאשר/ת את <a href="/terms.html" target="_blank" rel="noopener">תנאי השימוש</a> ו<a href="/privacy.html" target="_blank" rel="noopener">מדיניות הפרטיות</a></span>
+              <span>קראתי ואני מאשר/ת את <a tabindex="0" href="/terms.html" target="_blank" rel="noopener">תנאי השימוש</a> ו<a tabindex="0" href="/privacy.html" target="_blank" rel="noopener">מדיניות הפרטיות</a></span>
             </label>
             <div class="terms-error" id="terms-error" role="alert"></div>
           </div>
-          <button class="btn btn-primary btn-block" id="submit-btn" disabled>מעבר לתשלום ←</button>
-          <button class="btn-text" id="back-to-3">→ חזרה</button>
+          <button tabindex="0" class="btn btn-primary btn-block" id="submit-btn" disabled>מעבר לתשלום ←</button>
+          <button tabindex="0" class="btn-text" id="back-to-3">→ חזרה</button>
         </section>
 
       </div>
@@ -219,10 +234,10 @@
       <div class="footer-links">
         <div class="footer-col">
           <div class="footer-col-title">משפטי</div>
-          <a href="/privacy.html">מדיניות פרטיות</a>
-          <a href="/terms.html">תנאי שימוש</a>
-          <a href="/accessibility.html">הצהרת נגישות</a>
-          <a href="/delete-account.html">מחיקת חשבון</a>
+          <a tabindex="0" href="/privacy.html">מדיניות פרטיות</a>
+          <a tabindex="0" href="/terms.html">תנאי שימוש</a>
+          <a tabindex="0" href="/accessibility.html">הצהרת נגישות</a>
+          <a tabindex="0" href="/delete-account.html">מחיקת חשבון</a>
         </div>
       </div>
     </div>
@@ -234,7 +249,7 @@
 
   <div class="app-bottom-bar" id="bottom-bar" style="display:none;">
     <div class="bottom-price" id="bottom-price">₪0</div>
-    <button class="btn btn-primary" id="next-btn">המשך</button>
+    <button tabindex="0" class="btn btn-primary" id="next-btn">המשך</button>
   </div>
 
   <script type="module">
@@ -358,6 +373,13 @@
       document.getElementById('ai-error').innerHTML = '<div class="alert alert-info">סריקת AI תהיה זמינה בקרוב.</div>';
     }
 
+    // ⚠️ ה-label אינו מפעיל את הבורר מהמקלדת מעצמו. `click()` ישיר על
+    // ה-input, ו-`preventDefault` כדי שרווח לא יגלול את הדף.
+    document.getElementById('ai-photo-label')?.addEventListener('keydown', (ev) => {
+      if (ev.key !== 'Enter' && ev.key !== ' ') return;
+      ev.preventDefault();
+      document.getElementById('ai-photo-input').click();
+    });
     document.getElementById('ai-photo-input').addEventListener('change', (e) => {
       aiPhotos.push(...Array.from(e.target.files || []));
       e.target.value = '';
@@ -369,7 +391,7 @@
       box.innerHTML = aiPhotos.map((file, i) => `
         <div class="ai-thumb">
           <img src="${URL.createObjectURL(file)}" alt="תמונה ${i + 1} לניתוח">
-          <button class="ai-thumb-remove" data-i="${i}" aria-label="הסר תמונה ${i + 1}">✕</button>
+          <button tabindex="0" class="ai-thumb-remove" data-i="${i}" aria-label="הסר תמונה ${i + 1}">✕</button>
         </div>
       `).join('');
       box.querySelectorAll('.ai-thumb-remove').forEach(btn => btn.addEventListener('click', () => {
@@ -425,7 +447,7 @@
         <div class="question-card">
           <div class="question-text">${q.text}</div>
           <div class="question-options">
-            ${q.options.map((o, i) => `<button class="question-option" data-qid="${q.id}" data-oi="${i}">${o.label}</button>`).join('')}
+            ${q.options.map((o, i) => `<button tabindex="0" class="question-option" data-qid="${q.id}" data-oi="${i}">${o.label}</button>`).join('')}
           </div>
         </div>
       `).join('');
@@ -497,7 +519,7 @@
       box.innerHTML = state.freeItems.map((f, i) => `
         <div class="ai-free-item-row">
           <span>${f.label} × ${f.qty} <span class="form-hint">(מחיר ייקבע ידנית)</span></span>
-          <button class="ai-free-item-remove" data-i="${i}" aria-label="הסר ${String(f.label).replace(/"/g, '&quot;')}">✕</button>
+          <button tabindex="0" class="ai-free-item-remove" data-i="${i}" aria-label="הסר ${String(f.label).replace(/"/g, '&quot;')}">✕</button>
         </div>
       `).join('');
       box.querySelectorAll('.ai-free-item-remove').forEach(btn => btn.addEventListener('click', () => {
@@ -580,9 +602,9 @@
         ${size ? `<div class="item-card-size">${size}</div>` : ''}
         <div class="item-card-price">₪${price} ליחידה</div>
         <div class="qty-control">
-          <button data-action="dec" aria-label="הפחת">−</button>
+          <button tabindex="0" data-action="dec" aria-label="הפחת">−</button>
           <span class="qty-value">${qty}</span>
-          <button data-action="inc" aria-label="הוסף" ${full && qty === 0 ? 'disabled' : ''}>+</button>
+          <button tabindex="0" data-action="inc" aria-label="הוסף" ${full && qty === 0 ? 'disabled' : ''}>+</button>
         </div>`;
       card.querySelector('[data-action="inc"]').addEventListener('click', () => {
         if (currentVolume() + itemVolume(key) > MAX_VOLUME) return;
@@ -764,7 +786,7 @@
       // לפני ההפניה — בלי זה הלקוח חוזר מההרשמה לדף ריק.
       if (!authState) { goRegister('smallMove', state); return; }
       if (!authState.authUser.emailVerified && !authState.profile.phoneVerified) {
-        errBox.innerHTML = '<div class="alert alert-error">נדרש אימות מייל או טלפון לפני אישור הזמנה. <a href="account.html">לאימות</a></div>';
+        errBox.innerHTML = '<div class="alert alert-error">נדרש אימות מייל או טלפון לפני אישור הזמנה. <a tabindex="0" href="account.html">לאימות</a></div>';
         return;
       }
       btn.disabled = true; btn.textContent = 'יוצר הזמנה...';
