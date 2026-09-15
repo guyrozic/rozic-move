@@ -13,21 +13,36 @@ import { auth } from './firebase.js';
 const PROXY_URL = 'https://us-central1-hovalot-6cf65.cloudfunctions.net/geminiProxy';
 
 /**
- * ⚠️ 16.9 — **החזירה `true` קשיח, וזה שיקר.**
+ * ⚠️ **השער אינו כאן — הוא בשרת.** `geminiProxy` פותח ב-
+ * `verifyIdToken` ומחזיר 401 לכל בקשה בלי טוקן Firebase, ומפתח
+ * ה-Gemini יושב רק אצלו. כלומר אין שום שינוי בצד הלקוח שיפתח את
+ * ה-AI לאורח — הפונקציה הזאת רק **מדווחת** על מצב שנקבע במקום אחר.
+ * (היא כבר החזירה פעם `true` קשיח, וכל אורח קיבל כישלון + הודעה
+ * שהאשימה את האתר בתקלה שאינה קיימת. זה מה שנמנע כאן.)
  *
- * `callGemini` פותח ב-`if (!auth.currentUser) throw 'AI_NOT_CONFIGURED'`,
- * ואין `signInAnonymously` בשום מקום בפרויקט. כלומר מאז שזרימת ההזמנה
- * נפתחה לאורחים, **כל אורח** שניסה לסרוק חדר קיבל כישלון — והודעה
- * שאומרת *"AI לא מוגדר כרגע באתר"*, כלומר מאשימה את האתר בתקלה
- * שאינה קיימת.
+ * ## 16.9 — גיא הכריע לפתוח את ה-AI לאורחים (תזכיר #59, שאלה 5). זה נבדק, וזה חסום.
  *
- * זה לא מקרה קצה אלא 100% מהאורחים, בפיצ'ר המרכזי, בדיוק במסלול
- * שנפתח כדי להוריד חיכוך.
+ * שתי הדרכים היחידות, ושתיהן מחוץ לריפו הזה:
  *
- * ⚠️ הפונקציה עכשיו אומרת את האמת. **היא אינה פותרת את החיכוך** —
- * ההכרעה אם לפתוח את ה-AI לאורחים (דרך `signInAnonymously` או
- * הרחבת `geminiProxy`) היא של גיא, כי היא נוגעת בעלות: כל קריאה
- * עולה כסף, והמכסה היום היא per-uid.
+ * 1. **`signInAnonymously`.** הספק Anonymous **כבוי** בפרויקט (נבדק
+ *    16.9 מול `identitytoolkit/admin/v2/.../config`: `signIn` מכיל
+ *    `email` ו-`phoneNumber` בלבד), כלומר הקריאה נכשלת ב-
+ *    `auth/admin-restricted-operation`. ⚠️ **והדלקתו אינה "AI לאורחים"
+ *    אלא שינוי הרשאות כלל-מערכתי:** שום חוק ב-`firestore.rules`/
+ *    `storage.rules` אינו מבחין בין אנונימי לרשום, ולכן כל `isAuth()`
+ *    חשוף נפתח למי שאין לו חשבון — `users/{uid}` `allow get`
+ *    (שם, מייל וטלפון לפי uid שמופיע בלוח הפומבי), כתיבת תמונות
+ *    10MB ל-`orders/` ול-`ai_chat_logs/`, ויצירת מודעות בלוח.
+ *
+ * 2. **להרחיב את `geminiProxy` לאורחים** — וזו הדרך שכבר קיימת
+ *    בפרויקט: `geocodeAddress`, `mapsProxy` ו-`submitAccessibilityRequest`
+ *    כולם משרתים מי שאינו מחובר עם Origin allowlist + מגבלת קצב לכל IP
+ *    + תקרות גודל. המכסה היום היא `ai_rate_limits/{uid}` (60/שעה);
+ *    לאורח היא צריכה להיות לפי IP ונמוכה בהרבה.
+ *    ⚠️ **רק אז** משתנה הקובץ הזה: `isAIConfigured` מחזירה `true`,
+ *    ו-`callGemini` מצרפת `Authorization` רק כשיש `currentUser`.
+ *
+ * עד אז — האמת. ראו הדוח לגיא מ-16.9.
  */
 export function isAIConfigured() {
   return Boolean(auth.currentUser);
@@ -298,11 +313,22 @@ Respond with JSON only, no markdown: {"reply": "<your answer in Hebrew>"}`;
   return typeof parsed.reply === 'string' ? parsed.reply : 'לא הצלחתי לענות';
 }
 
-export function friendlyAIError(err) {
+/**
+ * @param {unknown} err
+ * @param {string} [notConfiguredMessage] נוסח חלופי למצב "צריך להתחבר".
+ *
+ * ⚠️ הפרמטר השני נוסף ב-16.9 אחרי מדידה בדפדפן: עוזר הכתיבה ב-
+ * `marketplace-create.html` **אינו מושבת לאורח**, ולכן אורח ששאל בו
+ * שאלה קיבל את הנוסח של מסך סריקת החדרים — *"כדי **לסרוק תמונות**
+ * צריך להתחבר. אפשר להמשיך להוסיף **פריטים** ידנית"* — שתי מילים
+ * ממסך אחר לגמרי, בתשובה לשאלה על ניסוח מודעה. ברירת המחדל נשארה
+ * זהה בדיוק, ומסכי החדרים לא נגעו.
+ */
+export function friendlyAIError(err, notConfiguredMessage) {
   const msg = String(err && err.message || err);
   // ⚠️ ההודעה הקודמת ('AI לא מוגדר כרגע באתר') האשימה את האתר בתקלה
   // שאינה קיימת. הסיבה האמיתית היא תמיד היעדר התחברות.
-  if (msg.includes('AI_NOT_CONFIGURED')) return 'כדי לסרוק תמונות צריך להתחבר. אפשר להמשיך להוסיף פריטים ידנית, ולהתחבר בהמשך.';
+  if (msg.includes('AI_NOT_CONFIGURED')) return notConfiguredMessage || 'כדי לסרוק תמונות צריך להתחבר. אפשר להמשיך להוסיף פריטים ידנית, ולהתחבר בהמשך.';
   if (msg.includes('AI_RATE_LIMITED')) return 'הגענו למגבלת השימוש החינמית של ה-AI לכמה דקות. נסה שוב עוד רגע.';
   return 'לא הצלחנו לנתח את התמונות. בדוק את החיבור לאינטרנט ונסה שוב.';
 }

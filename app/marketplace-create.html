@@ -64,7 +64,7 @@
   </style>
 </head>
 <body class="app-body">
-<div data-build-stamp class="build-stamp" aria-hidden="true">עודכן 16.09 · 00:06</div>
+<div data-build-stamp class="build-stamp" aria-hidden="true">עודכן 16.09 · 01:34</div>
   <!-- ⚠️ 15.9 — "דלג לתוכן המרכזי" (WCAG 2.4.1, רמה A). זהו האלמנט הממוקד
        הראשון בדף: מוסתר מהעין, מופיע בפינה ברגע שמגיעים אליו ב-Tab, ומעביר
        את המיקוד אל <main id="main-content" tabindex="-1">. בלי ה-tabindex
@@ -106,13 +106,16 @@
       </div>
       <div id="ai-listing-error" role="alert"></div>
       <button class="btn btn-secondary" id="ai-analyze-listing-btn" tabindex="0" style="margin-top:6px;" disabled>נתח תמונות עם AI ✨</button>
-      <!-- ⚠️ `isAIConfigured()` הוא `Boolean(auth.currentUser)` — כלומר אצל
-           אורח הכפתור שמעל **נשאר כבוי גם אחרי שהוא מוסיף תמונות**, בלי
-           מילה. כפתור מושתק בלי הסבר נראה כמו תקלה בדף. מוצג ב-JS
-           לאורחים בלבד (ראו סוף הסקריפט).
-           ⚠️ זו הודעה בלבד — **ההכרעה אם לפתוח את ה-AI לאורחים** (דרך
-           `signInAnonymously` או הרחבת `geminiProxy`) היא של גיא, כי כל
-           קריאה עולה כסף והמכסה היא per-uid. ראו ההערה ב-`ai-vision.js`. -->
+      <!-- ⚠️ אצל אורח הכפתור שמעל **נשאר כבוי גם אחרי שהוא מוסיף תמונות**,
+           בלי מילה. כפתור מושתק בלי הסבר נראה כמו תקלה בדף. ההודעה מוצגת
+           ב-JS לאורחים בלבד (ראו סוף הסקריפט).
+           ⚠️ **ההודעה הזאת נכונה, ולכן היא נשארת.** גיא הכריע ב-16.9
+           לפתוח את ה-AI לאורחים (תזכיר #59, שאלה 5), אבל השער אינו כאן
+           אלא ב-`geminiProxy` — `verifyIdToken`, 401 בלי טוקן Firebase.
+           **אין שינוי בדף הזה שפותח אותו**, ו"לפתוח" את הכפתור לפני
+           שהשרת נפתח פירושו אורח שלוחץ, מחכה, ונכשל. הסרת ההודעה בלי
+           זה היא הסתרה של מגבלה אמיתית, לא פתיחה שלה.
+           שתי הדרכים האפשריות ומה שכל אחת עולה — ב-`ai-vision.js`. -->
       <p class="app-card-desc" id="ai-guest-note" hidden style="margin-top:8px;">ניתוח התמונות ב-AI נפתח אחרי ההתחברות. עד אז אפשר למלא את הפרטים ידנית — זה עובד בדיוק אותו דבר.</p>
     </div>
 
@@ -418,7 +421,8 @@
         renderGuidingQuestions();
         document.getElementById('ai-filled-badge').style.display = result.title ? 'block' : 'none';
       } catch (err) {
-        errBox.innerHTML = `<div class="alert alert-error">${friendlyAIError(err)}</div>`;
+        // הנוסח זהה ל-`#ai-guest-note` שמתחת לכפתור — אותה מגבלה, אותן מילים.
+        errBox.innerHTML = `<div class="alert alert-error">${friendlyAIError(err, 'ניתוח התמונות ב-AI נפתח אחרי ההתחברות. אפשר למלא את הפרטים ידנית — זה עובד בדיוק אותו דבר.')}</div>`;
       } finally {
         clearInterval(tick);
         progressFill.style.width = '100%';
@@ -453,7 +457,14 @@
         const reply = await askListingAI(question, context);
         listingChatHistory.push({ role: 'assistant', text: reply });
       } catch (err) {
-        listingChatHistory.push({ role: 'assistant', text: friendlyAIError(err) });
+        /**
+         * ⚠️ 16.9 — **כאן אורח קיבל את הנוסח של מסך סריקת החדרים.** שדה
+         * הצ'אט וכפתור "שלח" אינם מושבתים לאורח (בשונה מכפתור הניתוח),
+         * כלומר זה לא מקרה קצה: כל אורח ששאל שאלה על ניסוח המודעה קיבל
+         * *"כדי לסרוק תמונות צריך להתחבר… להוסיף פריטים ידנית"* — נמדד
+         * בדפדפן. אין כאן "סריקה" ואין "פריטים"; יש מודעה שכותבים.
+         */
+        listingChatHistory.push({ role: 'assistant', text: friendlyAIError(err, 'עוזר הכתיבה נפתח אחרי ההתחברות. אפשר לכתוב את המודעה ידנית עכשיו — זה עובד בדיוק אותו דבר.') });
       } finally {
         listingChatThinking = false;
         renderListingChat();
