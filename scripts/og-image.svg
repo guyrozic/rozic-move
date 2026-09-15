@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ROZIC MOVE — תמונת שיתוף (Open Graph / Twitter), 1200×630.
+
+  זהו המקור. הקובץ שמוגש בפועל הוא /og-image.png שבשורש הריפו, כי סורקי
+  התצוגה המקדימה (פייסבוק, ווטסאפ, טוויטר, לינקדאין) אינם מרנדרים SVG.
+
+  לייצור מחדש אחרי עריכה:
+    node scripts/make-og-image.mjs
+
+  הקומפוזיציה ממורכזת בכוונה: כל רשת חברתית חותכת את התמונה ביחס אחר
+  (1.91:1 בפייסבוק, כמעט ריבוע בתצוגה המקדימה של ווטסאפ), ומרכז שורד חיתוך.
+
+  הצבעים לקוחים מהפלטה ב-style.css בלבד:
+    --green #0E5C43 · --green-dark #0A4433 · --green-mid #1B7F5C
+    --green-light #E7F3ED · --orange #F56A00 · --white #FFFFFF
+-->
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630" role="img" aria-labelledby="og-title">
+  <title id="og-title">ROZIC MOVE — הזמנת הובלה ומעבר דירה אונליין בישראל</title>
+
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#0E5C43"/>
+      <stop offset="100%" stop-color="#0A4433"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="0.5" cy="0.1" r="0.7">
+      <stop offset="0%" stop-color="#1B7F5C" stop-opacity="0.55"/>
+      <stop offset="100%" stop-color="#1B7F5C" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+
+  <rect width="1200" height="630" fill="url(#bg)"/>
+  <rect width="1200" height="630" fill="url(#glow)"/>
+
+  <!-- פסי מבטא כתומים בשני הקצוות — שורדים כל חיתוך צדדי -->
+  <rect x="0" y="0" width="14" height="630" fill="#F56A00"/>
+  <rect x="1186" y="0" width="14" height="630" fill="#F56A00"/>
+
+  <!-- חץ הלוגו, אותו path כמו .logo-arrow שבניווט, מוסב לכיוון RTL -->
+  <g transform="translate(556 108) scale(4.9) rotate(180 9 9)" fill="none"
+     stroke="#FFFFFF" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M3 9h12M9 3l6 6-6 6"/>
+  </g>
+
+  <!-- שם המותג -->
+  <text x="600" y="330" text-anchor="middle"
+        font-family="Heebo, 'Arial Hebrew', Arial, Helvetica, sans-serif"
+        font-size="108" font-weight="900" letter-spacing="3" fill="#FFFFFF">ROZIC MOVE</text>
+
+  <!-- סלוגן -->
+  <text x="600" y="406" text-anchor="middle" direction="rtl"
+        font-family="Heebo, 'Arial Hebrew', Arial, Helvetica, sans-serif"
+        font-size="46" font-weight="700" fill="#E7F3ED">מזיזים אותך קדימה</text>
+
+  <!-- קו מפריד -->
+  <rect x="510" y="446" width="180" height="4" rx="2" fill="#F56A00"/>
+
+  <!-- תיאור -->
+  <text x="600" y="508" text-anchor="middle" direction="rtl"
+        font-family="Heebo, 'Arial Hebrew', Arial, Helvetica, sans-serif"
+        font-size="33" font-weight="500" fill="#BFE0D1">הזמנת הובלה, מעבר דירה ומובילים בקטנה — אונליין</text>
+
+  <text x="600" y="570" text-anchor="middle"
+        font-family="Heebo, 'Arial Hebrew', Arial, Helvetica, sans-serif"
+        font-size="27" font-weight="600" letter-spacing="1.5" fill="#9FD3BC">rozicmove.com</text>
+</svg>

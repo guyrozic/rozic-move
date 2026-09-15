@@ -25,13 +25,23 @@
        וואטסאפ/פייסבוק אינם מריצים JavaScript, ולכן og שמוזרק ב-JS לא
        יגיע אליהם לעולם. שם המודעה הספציפי כן מתעדכן ב-`document.title`,
        שמשרת את הלשונית, ההיסטוריה והסימנייה של המשתמש.
-       ⚠️ אין `og:image` — אין בריפו קובץ תמונה כלשהו. ראו הדוח. -->
+       15.9 — `og:image` חובר לתמונת המותג הכללית. היא **אינה** תמונת המוצר:
+       סורק התצוגה המקדימה אינו מריץ JS, ולכן תמונת המודעה הספציפית לא
+       זמינה לו. תמונת מותג עדיפה על קישור בלי תצוגה מקדימה כלל. -->
   <meta property="og:type" content="website">
   <meta property="og:site_name" content="ROZIC MOVE">
   <meta property="og:locale" content="he_IL">
   <meta property="og:title" content="מוצר בחינם ב-ROZIC MOVE">
   <meta property="og:description" content="מודעת מסירה חינם ב-ROZIC MOVE — פריט יד שנייה שמישהו מוסר בחינם. פתחו את המודעה כדי לראות פרטים וליצור קשר עם המפרסם.">
-  <meta name="twitter:card" content="summary">
+  <meta name="twitter:card" content="summary_large_image">
+  <!-- 15.9 — תמונת השיתוף. המקור: scripts/og-image.svg, נבנית מחדש ב-node scripts/make-og-image.mjs -->
+  <meta property="og:image" content="https://rozicmove.com/og-image.png">
+  <meta property="og:image:type" content="image/png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="לוגו ROZIC MOVE על רקע ירוק כהה, עם הסלוגן &quot;מזיזים אותך קדימה&quot;">
+  <meta name="twitter:image" content="https://rozicmove.com/og-image.png">
+  <meta name="twitter:image:alt" content="לוגו ROZIC MOVE על רקע ירוק כהה, עם הסלוגן &quot;מזיזים אותך קדימה&quot;">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;600;700;900&display=swap" rel="stylesheet">
   <style>

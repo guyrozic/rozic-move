@@ -15,6 +15,15 @@
   --navy:        #1D3557;
   --navy-light:  #2A4A73;
   --orange:      #F56A00;
+  /* ⚠️ 15.9 ביקורת נגישות — #F56A00 עם טקסט לבן נותן 3.02:1 בלבד, מתחת
+     ל-AA. הגוון נשמר כמעט זהה (25.4° לעומת 25.96°) והבהירות הועמקה עד
+     4.87:1. משמש בטקסט לבן על מילוי כתום מלא בלבד — --orange עצמו נשאר
+     כפי שהוא לנקודות ולאייקונים דקורטיביים. */
+  --orange-deep: #BD5000;
+  /* ⚠️ 15.9 — ירוק קריא על הרקע הכהה של כרטיס המוביל. --green-mid נתן שם
+     1.79:1 (כמעט בלתי-קריא לכל אדם). על רקע כהה אי-אפשר להכהות, רק
+     להבהיר: אותה גוון (159°) ואותה רוויה, בהירות 58% => 5.04:1. */
+  --green-on-dark: #4EDAA9;
   --bg:          #F7FAF7;
   --white:       #FFFFFF;
   --card-bg:     #FFFFFF;
@@ -978,7 +987,9 @@ img, svg { display: block; }
 .driver-badge-online {
   margin-right: auto;
   background: rgba(27,127,92,0.18);
-  color: var(--green-mid);
+  /* 15.9 — היה var(--green-mid) = 1.79:1 מול הרקע בפועל rgb(42,78,98)
+     (navy + שכבת הכרטיס 7% + מילוי הגלולה 18%). עכשיו 5.04:1. */
+  color: var(--green-on-dark);
   font-size: 0.7rem;
   font-weight: 700;
   padding: 3px 10px;
@@ -1025,7 +1036,8 @@ img, svg { display: block; }
 
 .new-badge {
   display: inline-block;
-  background: var(--orange);
+  /* 15.9 — היה var(--orange) = 3.02:1 מול הטקסט הלבן. עכשיו 4.87:1. */
+  background: var(--orange-deep);
   color: white;
   font-size: 0.58rem;
   font-weight: 700;
