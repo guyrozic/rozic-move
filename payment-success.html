@@ -3,7 +3,14 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>ROZIC MOVE — התשלום התקבל</title>
+  <!--
+    ⚠️ 16.9 — הכותרת כאן הייתה "התשלום התקבל" — מחרוזת קשיחה
+    שהכריזה הצלחה לפני שבדקנו דבר. גוף הדף כבר תוקן, אבל לשונית הדפדפן,
+    ההיסטוריה והסימנייה המשיכו לומר "התשלום התקבל" גם במסלול שבו
+    התשלום נכשל — וכל חזרה מהסליקה נוחתת כאן.
+    הכותרת כאן נייטרלית, ו-`setStatus` מעדכן אותה לפי התוצאה בפועל.
+  -->
+  <title>ROZIC MOVE — מצב התשלום</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;600;700;900&display=swap" rel="stylesheet">
   <style>
@@ -120,6 +127,20 @@
       return new URLSearchParams(window.location.search).get(name);
     }
 
+    /**
+     * מעדכן את הודעת המצב **ואת כותרת הדף** באותה נשימה.
+     *
+     * שניהם אומרים ללקוח אם שילם או לא, ולכן הם חייבים להשתנות
+     * יחד: כותרת שנשארת מאחור היא הצהרה שגויה על כסף — בלשונית,
+     * בהיסטוריה ובסימנייה — גם אחרי שהדף עצמו תיקן את עצמו.
+     *
+     * `titleText` נפרד מהטקסט שעל המסך כדי שלשונית תיכנס גרסה קצרה.
+     */
+    function setStatus(statusText, titleText) {
+      document.getElementById('status').textContent = statusText;
+      document.title = 'ROZIC MOVE — ' + (titleText || statusText);
+    }
+
     function openApp() {
       var orderId = getParam('orderId');
       window.location.href = 'rozicmove://payment-success' + (orderId ? ('?orderId=' + encodeURIComponent(orderId)) : '');
@@ -152,7 +173,7 @@
       document.getElementById('order-status-link').href = 'app/order-status.html' + (orderId ? ('?id=' + encodeURIComponent(orderId)) : '');
       if (orderId) verifyPayment(orderId);
       else {
-        document.getElementById('status').textContent = 'התשלום נשלח';
+        setStatus('התשלום נשלח');
         document.getElementById('opening').textContent = 'אפשר לבדוק את מצב ההזמנה בעמוד ההזמנות.';
       }
     } else {
@@ -166,7 +187,6 @@
      * עשוי בהחלט להיות תקין, רק האישור טרם הגיע.
      */
     async function verifyPayment(orderId) {
-      var statusEl = document.getElementById('status');
       var openEl = document.getElementById('opening');
       try {
         var fb = await import('./app/firebase.js');
@@ -186,19 +206,19 @@
           var snap = await fs.getDoc(fs.doc(fb.db, 'orders', orderId));
           var d = snap.exists() ? snap.data() : null;
           if (d && d.paymentStatus === 'paid') {
-            statusEl.textContent = 'התשלום התקבל בהצלחה!';
+            setStatus('התשלום התקבל בהצלחה!', 'התשלום התקבל');
             openEl.textContent = 'ההזמנה שלך אושרה.';
             return;
           }
           await new Promise(function (r) { setTimeout(r, 2000); });
         }
-        statusEl.textContent = 'התשלום נשלח — עדיין מאשרים';
+        setStatus('התשלום נשלח — עדיין מאשרים', 'עדיין מאשרים את התשלום');
         openEl.textContent = 'האישור מהסליקה יכול לקחת עוד רגע. '
           + 'אפשר לבדוק את מצב ההזמנה בעמוד ההזמנות, ואם היא עדיין מופיעה '
           + 'כממתינה לתשלום בעוד כמה דקות — כדאי לפנות לתמיכה לפני שמשלמים שוב.';
       } catch (e) {
         // ⚠️ כשל קריאה אינו כשל תשלום. הניסוח לא מכריז לשום כיוון.
-        statusEl.textContent = 'התשלום נשלח';
+        setStatus('התשלום נשלח', 'מצב התשלום');
         openEl.textContent = 'לא הצלחנו לאמת את המצב מכאן. אפשר לבדוק בעמוד ההזמנות.';
       }
     }
