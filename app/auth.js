@@ -208,7 +208,20 @@ async function upsertOAuthProfile(user) {
 
   const profile = {
     uid: user.uid,
-    name: user.displayName || '',
+    /**
+     * ⚠️ 16.9 — היה `user.displayName || ''`, ועם Apple זה מייצר חשבון בלי שם.
+     * Apple מוסר את השם **רק בהרשאה הראשונה** ורק אם המשתמש לא בחר להסתיר
+     * אותו, כלומר `displayName` ריק הוא מצב שכיח ולא חריג. הנפילה חוזרת
+     * במורד הזרם: מסכי האדמין והמוביל באפליקציה מציגים `user.name`, והמוביל
+     * מקבל הזמנה של "" — הוא לא יודע למי הוא מתקשר.
+     *
+     * הנוסחה זהה ל-`completeOAuthProfile` באפליקציה (AuthContext.tsx):
+     * שם → החלק שלפני ה-@ במייל → `'משתמש'`. ⚠️ עם "הסתר את הכתובת שלי"
+     * המייל הוא `xxxx@privaterelay.appleid.com`, ולכן החלק שלפני ה-@ הוא
+     * מזהה חסר משמעות — אבל הוא עדיין ייחוד שמבדיל בין שני חשבונות
+     * במסך אדמין, וזה עדיף על מחרוזת ריקה. המשתמש מתקן שם במסך החשבון.
+     */
+    name: user.displayName || user.email?.split('@')[0] || 'משתמש',
     email: user.email || '',
     // ⚠️ ריק במכוון. ראו ההערה למעלה — `needsPhone` הוא מה שמסמן את זה.
     phone: '',
@@ -236,6 +249,19 @@ export async function signInWithProvider(kind) {
     provider = new OAuthProvider('apple.com');
     provider.addScope('email');
     provider.addScope('name');
+    /**
+     * מסך ההתחברות של Apple הוא דף של Apple ולא שלנו, והוא נפתח בשפת
+     * ה-Accept-Language של הדפדפן — כלומר לקוח ישראלי עם דפדפן באנגלית
+     * קיבל מסך אנגלי בתוך זרימה עברית. `locale` הוא הפרמטר שמתועד
+     * ב-Firebase לשליטה על השפה של המסך הזה.
+     * ⚠️ הצורה היא `he_IL` ולא `he`: התיעוד של Firebase מדגים `'fr'`,
+     * אבל חבילת השפה של Apple עצמה קיימת תחת `he_IL` בלבד —
+     * `appleid.cdn-apple.com/.../1/he_IL/appleid.auth.js` מחזיר 200
+     * ו-`.../1/he/...` מחזיר 404 (נבדק 16.9). ⚠️ זו ראיה עקיפה
+     * (נתיב חבילת ה-JS, לא הפרמטר עצמו) — **לאמת במסך אמיתי** אחרי
+     * שהספק יופעל. Apple עצמה קובעת את הנוסח בדף שלה; זה מבקש ולא מבטיח.
+     */
+    provider.setCustomParameters({ locale: 'he_IL' });
   }
   const { user } = await signInWithPopup(auth, provider);
   const { profile, isNew } = await upsertOAuthProfile(user);
