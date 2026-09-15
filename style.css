@@ -1901,7 +1901,11 @@ body.menu-open .pilot-banner {
      דבר, כי מה שהעין רואה הוא התוכן ולא המסגרת. */
   padding-inline: clamp(14px, 1vw, 22px);
   display: grid;
-  grid-template-columns: minmax(0, 0.82fr) minmax(0, 1.18fr);
+  /* ⚠️ 15.9 — הלוח צומצם לבקשת גיא. היה 0.82/1.18 (הלוח 750px ב-1440),
+     וזה נתן לו יותר משטח מעמודת הטקסט. `max-width` בנוסף ליחס, כדי
+     שבמסכים רחבים מאוד הוא לא יימתח — כרטיס טופס שמתרחב ללא גבול
+     מקשה על סריקת השורות בתוכו. */
+  grid-template-columns: minmax(0, 0.95fr) minmax(0, 1.05fr);
   /* הרווח גדל יחד — בלעדיו הקטנת הריפוד הייתה רק מרחיבה את שני הטורים
      זה לעבר זה, במקום להרחיק אותם לקצוות. */
   gap: clamp(26px, 6vw, 110px);
@@ -2402,3 +2406,10 @@ body.hp-home .nav:not(.scrolled) :is(a, button, summary, [tabindex]):focus-visib
   padding-block: 0.42em;
   padding-inline: 1.5em;
 }
+
+.hp-panel { max-width: 700px; margin-inline-start: auto; }
+
+/* שם פריט ארוך ("מכונת כביסה/מייבש גדול") נשבר לשתי שורות ברשת הצרה
+   יותר. `balance` מחלק אותן שווה במקום להשאיר מילה בודדת בשורה השנייה.
+   ⚠️ ויזואלי בלבד — הטקסט מגיע מהקטלוג ולא נגעתי בו. */
+.hp-cell { text-wrap: balance; }
