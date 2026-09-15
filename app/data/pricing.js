@@ -242,6 +242,7 @@ export const ITEM_PRICES = {
         lawnmower: 50,
         elliptical: 100,
         multi_trainer: 130,
+        pilates_reformer: 150,
         ping_pong_table: 100,
         hammock_chair: 40,
         drying_rack_stand: 25,
