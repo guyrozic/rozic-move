@@ -90,12 +90,13 @@
             </div>
           </div>
 
-          <div id="ai-questions"></div>
-
           <div class="ai-chat-card" id="start-chat" style="scroll-margin-top:90px">
             <h2>💬 או כתבו לנו מה יש לכם</h2>
             <p>למשל: "יש לי מיטה זוגית ושתי ספות" — נוסיף את זה בעצמנו.</p>
             <div class="ai-chat-thread" id="ai-chat-thread"></div>
+            <!-- ⚠️ 16.9 — שאלות ההמשך יורדו לכאן, מתחת לשיחה (היו מעליה),
+                 כדי להתאים ל-AIItemChat באפליקציה: השאלה נפתחת מתחת לצ'אט. -->
+            <div id="ai-questions"></div>
             <div id="ai-free-items" class="ai-free-items"></div>
             <div class="ai-chat-input-row">
               <input type="text" id="ai-chat-input" placeholder="כתבו כאן..." aria-label="הודעה לעוזר ה-AI">
@@ -559,6 +560,11 @@
     }
 
     function answerQuestion(question, option) {
+      // ⚠️ 16.9 — שומרים את השאלה והבחירה בתוך השיחה, בדיוק כמו
+      // AIItemChat באפליקציה (שורה 171): טקסט השאלה כבועת AI, והתשובה
+      // שנבחרה כבועת משתמש. עד כה התשובה נעלמה ולא נשאר לה זכר.
+      chatHistory.push({ role: 'assistant', text: question.text }, { role: 'user', text: option.label });
+      renderChatThread();
       pendingQuestions = pendingQuestions.filter(q => q.id !== question.id);
       if (option.itemKey === null) { renderQuestions(); return; }
       const siblings = getSizeSiblings(option.itemKey);
