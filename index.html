@@ -315,7 +315,11 @@
      ⚠️ אין נגיעה בהדגמה עצמה: aspect-ratio:52/19, ה-keyframes והתזמונים
      נשארו כפי שהיו. רק המיקום בגריד השתנה. */
   /* ה-.hp-pay הוסר, לכן הכרטיס צריך ריפוד תחתון משלו (במקור היה 0) */
-  .hp-panel-top { padding-bottom:clamp(14px,1.6vw,20px); }
+  /* ⚠️ min-height על .hp-panel יוצר את הגובה האחיד, אבל בלי שהאזור
+     הפנימי נמתח — justify-content בתוך .svc-panel אין לו על מה לפעול,
+     והתוכן נצמד למעלה עם זנב ריק מתחת. */
+  .hp-panel-top { padding-bottom:clamp(14px,1.6vw,20px);
+    flex:1 1 auto; display:flex; flex-direction:column; }
   .tool-row { display:grid; gap:clamp(12px,1.4vw,20px); align-items:stretch; }
   /* RTL — הילד הראשון (הרחב) יושב מימין, השני (הרשימה) משמאל.
      16.9 — היחס הורחב מ-1.5:1 ל-1.95:1 אחרי הסרת הסטטוס-בר וקיפול הרשימה
@@ -345,14 +349,32 @@
   .tool-list .accgrid { gap:7px; }
   .tool-list .acc ul { gap:2px; }
   .tool-list .coln { margin-bottom:3px; padding-bottom:2px; }
-  /* מובילים בקטנה — "מנקודה לנקודה". השדות בחזית כי הם שקובעים מחיר. */
-  .sm-lede { font-size:.93rem; color:var(--text-mid); line-height:1.55; margin:0 0 14px; }
-  .sm-fields { display:grid; grid-template-columns:1fr 1fr; gap:9px; margin-bottom:15px; }
-  @media (max-width:560px){ .sm-fields { grid-template-columns:1fr; } }
-  .sm-f { border:1.5px solid var(--border); border-radius:11px; padding:10px 12px;
-    background:var(--bg); }
-  .sm-f span { display:block; font-size:.74rem; font-weight:800; color:var(--text-muted); }
-  .sm-f b { display:block; font-size:.88rem; font-weight:700; margin-top:2px; }
+  /* מובילים בקטנה — "מנקודה לנקודה". שלושת גורמי המחיר בחזית, והפריטים
+     כשדה אחד לצידם. ⚠️ בלי האיור שגיא פסל. */
+  .svc-panel.sm-route { max-width:none; }
+  .sm-lede { font-size:.93rem; color:var(--text-mid); line-height:1.55; margin:0 0 15px; }
+  .sm-grid { display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr);
+    gap:clamp(12px,1.6vw,20px); align-items:start; }
+  @media (max-width:720px){ .sm-grid { grid-template-columns:1fr; } }
+  .sm-steps { display:flex; flex-direction:column; gap:9px; }
+  .sm-step { display:grid; grid-template-columns:auto 1fr; gap:0 11px;
+    align-items:center; border:1.5px solid var(--border); border-radius:12px;
+    padding:11px 13px; background:var(--bg); }
+  .sm-step .ic { grid-row:1/3; width:36px; height:36px; border-radius:10px;
+    background:var(--green-light); display:flex; align-items:center; justify-content:center; }
+  .sm-step .ic svg { width:19px; height:19px; stroke:var(--green); fill:none; stroke-width:1.8; }
+  .sm-step b { grid-column:2; font-size:.92rem; font-weight:800; }
+  .sm-step i { grid-column:2; font-style:normal; font-size:.78rem; color:var(--text-muted); }
+  .sm-side { display:flex; flex-direction:column; }
+  .sm-list { border:1.5px solid var(--green-line); border-radius:12px;
+    background:var(--green-tint); padding:12px 13px; margin-bottom:12px; }
+  .sm-list-t { font-size:.82rem; font-weight:800; color:var(--green-ink); margin:0 0 9px; }
+  .sm-ways { display:flex; gap:7px; flex-wrap:wrap; }
+  .sm-way { display:inline-flex; align-items:center; gap:6px; min-height:44px;
+    padding:8px 13px; border-radius:999px; background:var(--white);
+    border:1.5px solid var(--border); font-size:.85rem; font-weight:700;
+    color:var(--text); text-decoration:none; }
+  .sm-way svg { width:16px; height:16px; stroke:var(--green); fill:none; stroke-width:1.9; }
   .list-foot { margin-top:auto; padding-top:11px; display:flex;
     flex-direction:column; align-items:stretch;
     /* 13.5px = מסגרת 1.5 + ריפוד 12 של .acc — כדי שהמחיר והכפתור
@@ -424,7 +446,10 @@
      ⚠️ ההסתרה עצמה נשענת על `.hp-stage [hidden]{display:none!important}`
      שב-`style.css` — `[hidden]` של הדפדפן מפסיד ל-`display:grid` המפורש
      של `.tool-row`, ובלי הכלל ההוא ההסתרה פשוט לא הייתה קורית. */
-  .svc-panel { padding:2px 0 6px; max-width:52ch; }
+  .svc-panel { padding:2px 0 6px; max-width:52ch;
+    /* ⚠️ sm-route דורס — הוא פריסת שתי עמודות שממלאת את הכרטיס */
+    display:flex; flex-direction:column; justify-content:center;
+    flex:1 1 auto; }
   .svc-panel h2 { font-size:1.05rem; font-weight:800; margin-bottom:6px; }
   .svc-panel p { font-size:.88rem; color:var(--text-mid); line-height:1.6; margin-bottom:9px; }
   .svc-panel .hp-go { margin-top:5px; }
@@ -438,7 +463,7 @@
      שיחליף אותם; בלי הסימון הזה הם נעלמו גם בחמשת הדפים המשפטיים,
      בלי שום דרך להגיע אליהם (WCAG 1.4.4). -->
 <body class="has-nav-menu hp-home">
-<div data-build-stamp class="build-stamp" aria-hidden="true">עודכן 16.09 · 12:45</div>
+<div data-build-stamp class="build-stamp" aria-hidden="true">עודכן 16.09 · 13:03</div>
   <!-- ⚠️ 15.9 — "דלג לתוכן המרכזי" (WCAG 2.4.1, רמה A). זהו האלמנט הממוקד
        הראשון בדף: מוסתר מהעין, מופיע בפינה ברגע שמגיעים אליו ב-Tab, ומעביר
        את המיקוד אל <main id="main-content" tabindex="-1">. בלי ה-tabindex
@@ -681,24 +706,34 @@
                דירה שלמה על שלושה חדרים, כלומר בדיוק מה ש"מובילים בקטנה"
                **אינו**. -->
           <div class="svc-panel sm-route" id="hp-view-small" hidden>
-            <!-- ⚠️ 16.9 — כיוון "מנקודה לנקודה" שגיא בחר. מה שקובע את המחיר
-                 ואת הכאב בהעברת ספה אחת הוא לא הרשימה אלא **הקומה, המעלית
-                 והמרחק** — ובזרימה הקיימת הם נשאלים רק בשלב השלישי. כאן הם
-                 בחזית, וזה גם מה שמסביר במשפט אחד למה השירות הזה שונה
-                 ממעבר דירה: נסיעה אחת בין שתי כתובות, לא פינוי בית.
-                 ⚠️ בלי איור — גיא פסל את המשאית שנוסעת בין בניינים. -->
-            <h2>מנקודה לנקודה</h2>
-            <p class="sm-lede">נסיעה אחת בין שתי כתובות — לא פינוי בית. מה שקובע
-              את המחיר הוא הקומה, המעלית והמרחק, ולכן שואלים אותם ראשונים.</p>
-            <div class="sm-fields">
-              <div class="sm-f"><span>מאיפה</span><b>כתובת, קומה, מעלית</b></div>
-              <div class="sm-f"><span>לאן</span><b>כתובת, קומה, מעלית</b></div>
-              <div class="sm-f"><span>מתי</span><b>תאריך</b></div>
-              <div class="sm-f"><span>מה מעבירים</span><b>מהרשימה, בצילום או במילים</b></div>
+            <!-- ⚠️ 16.9 — כיוון ב׳ מסבב "שני השירותים": "מנקודה לנקודה —
+                 המסלול הוא הסיפור". הרעיון: כשמעבירים ספה אחת, מה שקובע את
+                 המחיר ואת הכאב הוא לא הרשימה אלא הקומה, המעלית והמרחק —
+                 ובזרימה הקיימת הם נשאלים רק בשלב השלישי. כאן הם בחזית.
+                 ⚠️ האיור (טנדר בין שני בניינים) **הושמט** — גיא פסל אותו
+                 במפורש בסבב הביקורת. כל השאר נאמן למקור. -->
+            <h2>מאיפה לאן?</h2>
+            <p class="sm-lede">פריט בודד או כמה — טנדר אחד מגיע, מרים ומעביר.
+              שלושת הדברים שקובעים את המחיר נשאלים לפני הכול.</p>
+            <div class="sm-grid">
+              <div class="sm-steps">
+                <div class="sm-step"><span class="ic"><svg aria-hidden="true" focusable="false"><use href="#ic-floors"/></svg></span><b>קומה ומעלית</b><i>בשני הצדדים</i></div>
+                <div class="sm-step"><span class="ic"><svg aria-hidden="true" focusable="false"><use href="#ic-route"/></svg></span><b>המרחק</b><i>בין שתי הכתובות</i></div>
+                <div class="sm-step"><span class="ic"><svg aria-hidden="true" focusable="false"><use href="#ic-cal"/></svg></span><b>התאריך</b><i>ושעת האיסוף</i></div>
+              </div>
+              <div class="sm-side">
+                <div class="sm-list">
+                  <p class="sm-list-t">ואת הפריטים עצמם — איך שנוח</p>
+                  <div class="sm-ways">
+                    <a class="sm-way" href="app/small-move.html"><svg aria-hidden="true" focusable="false"><use href="#ic-cam"/></svg>צילום</a>
+                    <a class="sm-way" href="app/small-move.html"><svg aria-hidden="true" focusable="false"><use href="#ic-chat"/></svg>במילים</a>
+                    <a class="sm-way" href="app/small-move.html#start-list"><svg aria-hidden="true" focusable="false"><use href="#ic-list"/></svg>מהקטלוג</a>
+                  </div>
+                </div>
+                <p class="svc-note">המחיר הסופי נקבע בהזמנה — לפי פריטים, כתובות ותאריך.</p>
+                <a class="hp-go" href="app/small-move.html">לבחירת הפריטים</a>
+              </div>
             </div>
-            <a class="hp-go" href="app/small-move.html">להתחלה</a>
-            <p class="svc-note">עד מה שנכנס לטנדר אחד — כ-3 פריטים גדולים או עשרה קטנים.
-              יותר מזה הוא מעבר דירה, ויש לו מסך משלו.</p>
           </div>
 
           <!-- ══ לוח "מעבירים את זה הלאה" — מחליף את הכלי כששירות זה נבחר ══
@@ -1140,6 +1175,27 @@
         });
       }
 
+      /* ⚠️ גיא ביקש שכל שלושת השירותים יציגו כרטיס באותו גודל. בלי זה
+         המעבר בין הצ'יפים מקפיץ את הדף: מעבר דירה 630px, בקטנה 524,
+         והלוח 425. הגובה של מעבר דירה נגזר מיחס הסריקה ולכן משתנה עם
+         הרוחב — אין ערך קבוע לכתוב ב-CSS, וצריך למדוד אותו בפועל.
+         נמדד פעם אחת בטעינה, וב-resize מחדש. */
+      var panel = document.querySelector('.hp-panel');
+      function lockPanelHeight() {
+        if (!panel || !views.apartment) return;
+        panel.style.minHeight = '';
+        var wasHidden = views.apartment.hidden;
+        if (wasHidden) views.apartment.hidden = false;
+        var h = panel.getBoundingClientRect().height;
+        if (wasHidden) views.apartment.hidden = true;
+        /* מתחת ל-900 הפריסה נערמת וגובה אחיד רק היה מוסיף חלל ריק. */
+        if (window.innerWidth > 900 && h > 0) panel.style.minHeight = Math.round(h) + 'px';
+      }
+      lockPanelHeight();
+      var rt; window.addEventListener('resize', function () {
+        clearTimeout(rt); rt = setTimeout(lockPanelHeight, 150);
+      });
+
       group.addEventListener('click', function (e) {
         var b = e.target.closest('[data-svc]');
         if (b) select(b.dataset.svc, false);
@@ -1186,6 +1242,9 @@
   <symbol id="rm-living" viewBox="0 0 520 190"><path d="M20 156h480"/><path d="M52 156V54a8 8 0 0 1 8-8h42a8 8 0 0 1 8 8v102"/><path d="M52 94h58M96 72v16M96 102v18"/><path d="M158 156h30M173 156V78"/><path d="m156 78 9-24h16l9 24z"/><path d="M234 156v-16h58v16M241 140v16M285 140v16"/><path d="M334 156v-32a10 10 0 0 1 10-10h112a10 10 0 0 1 10 10v32"/><path d="M344 114v-16a10 10 0 0 1 10-10h92a10 10 0 0 1 10 10v16"/><path d="M400 114V88M344 128h112"/></symbol>
   <symbol id="rm-bed" viewBox="0 0 520 190"><path d="M20 156h480"/><path d="M70 156v-28h200v28"/><path d="M70 128V74a8 8 0 0 1 8-8h14v62"/><path d="M100 128v-18h44v18M154 128v-18h44v18"/><path d="M92 140h178"/><path d="M304 156v-34h42v34M312 138h26"/><path d="M384 156V46h84v110"/><path d="M426 46v110M416 98v18M436 98v18"/></symbol>
   <symbol id="rm-kitchen" viewBox="0 0 520 190"><path d="M20 156h480"/><path d="M54 110h130v10H54zM64 120v36M174 120v36"/><path d="M214 156v-24M248 156v-24M208 132h46v-9h-46zM213 123V86h8v37"/><path d="M286 156v-52h58v52M286 124h58M296 116h38"/><path d="M394 156V48h72v108"/><path d="M394 100h72M452 74v18M452 110v18"/></symbol>
+  <symbol id="ic-floors" viewBox="0 0 24 24"><path d="M3 20h4v-4h5v-4h5V8h4"/></symbol>
+  <symbol id="ic-route" viewBox="0 0 24 24"><path d="M6.5 3a2.5 2.5 0 0 1 2.5 2.5C9 7.5 6.5 10 6.5 10S4 7.5 4 5.5A2.5 2.5 0 0 1 6.5 3zM17.5 14a2.5 2.5 0 0 1 2.5 2.5c0 2-2.5 4.5-2.5 4.5s-2.5-2.5-2.5-4.5a2.5 2.5 0 0 1 2.5-2.5zM9 6.5h4.5a3.5 3.5 0 0 1 0 7H10"/></symbol>
+  <symbol id="ic-cal" viewBox="0 0 24 24"><path d="M4 6h16v15H4zM4 11h16M8 3v4M16 3v4"/></symbol>
 </defs></svg>
 
 </body>
