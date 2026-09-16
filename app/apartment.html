@@ -28,7 +28,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="../style.css?v=93d67ba9">
-  <link rel="stylesheet" href="style-app.css?v=9bcae682">
+  <link rel="stylesheet" href="style-app.css?v=d27add7a">
   <link rel="stylesheet" href="address-autocomplete.css?v=aa414fa6">
   <style>
     /* ⚠️ 16.9 — "הפריטים שנבחרו" בראש אזור ההזמנה, בדיוק כמו ב-
@@ -44,7 +44,7 @@
   </style>
 </head>
 <body class="app-body">
-<div data-build-stamp class="build-stamp" aria-hidden="true">עודכן 16.09 · 22:24</div>
+<div data-build-stamp class="build-stamp" aria-hidden="true">עודכן 16.09 · 23:02</div>
   <!-- ⚠️ 15.9 — "דלג לתוכן המרכזי" (WCAG 2.4.1, רמה A). זהו האלמנט הממוקד
        הראשון בדף: מוסתר מהעין, מופיע בפינה ברגע שמגיעים אליו ב-Tab, ומעביר
        את המיקוד אל <main id="main-content" tabindex="-1">. בלי ה-tabindex
@@ -361,6 +361,7 @@
              showDraftDiscardedNotice } from './guest-checkout.js';
     import { createOrder } from './orders.js';
     import { orderTermsConsent } from './legal.js';
+    import { isValidFullName, FULL_NAME_ERROR } from './auth.js';
     import { ALL_ROOMS, findItemAnywhere, getItemPriceAnyCategory, getFullAICatalog, getSizeSiblings } from './data/items.js';
     import { BASE_PRICE, PRICE_PER_KM, FLOOR_SURCHARGE_PER_FLOOR, getVolumeDiscount, getSurgePricing, calculatePackingFromItems, INSURANCE_PRICE_APARTMENT } from './data/pricing.js';
     import { FLOORS, craneCostFor, distanceAndCoords, formatDateApp, parseDateApp } from './geo.js';
@@ -1176,6 +1177,17 @@
        */
       if (!authState.profile.phoneVerified) {
         errBox.innerHTML = '<div class="alert alert-error">נדרש אימות טלפון לפני אישור הזמנה — המוביל צריך דרך ליצור איתך קשר. <a tabindex="0" href="account.html">לאימות</a></div>';
+        return;
+      }
+      /**
+       * ⚠️ 16.9 (פאזה 3) — שער שם מלא, זהה ל-`proceedToPayment` ב-
+       * `SummaryScreen.tsx`. Grow (ספק הסליקה) דוחה שם חד-מילי בדף
+       * התשלום שלו — תקרית ייצור אמיתית (`name:"Aj"`) שקדמה לתיקון הזה
+       * באפליקציה. `isValidFullName`/`FULL_NAME_ERROR` זהים ל-
+       * `~/Hovalot/src/utils/validation.ts`, וכבר משמשים את `edit-profile.html`.
+       */
+      if (!isValidFullName(authState.profile.name)) {
+        errBox.innerHTML = `<div class="alert alert-error">${FULL_NAME_ERROR} <a tabindex="0" href="edit-profile.html">לעריכת הפרופיל</a></div>`;
         return;
       }
       btn.disabled = true; btn.textContent = 'יוצר הזמנה...';
