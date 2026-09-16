@@ -28,10 +28,10 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="../style.css?v=93d67ba9">
-  <link rel="stylesheet" href="style-app.css?v=51e8347f">
+  <link rel="stylesheet" href="style-app.css?v=9396b585">
 </head>
 <body class="app-body">
-<div data-build-stamp class="build-stamp" aria-hidden="true">עודכן 16.09 · 13:40</div>
+<div data-build-stamp class="build-stamp" aria-hidden="true">עודכן 15.09 · 23:56</div>
   <!-- ⚠️ 15.9 — "דלג לתוכן המרכזי" (WCAG 2.4.1, רמה A). זהו האלמנט הממוקד
        הראשון בדף: מוסתר מהעין, מופיע בפינה ברגע שמגיעים אליו ב-Tab, ומעביר
        את המיקוד אל <main id="main-content" tabindex="-1">. בלי ה-tabindex
@@ -45,7 +45,7 @@
     <div class="step-hero-inner">
       <a tabindex="0" href="index.html" class="btn-text" style="padding:0; margin-bottom:10px; display:inline-block;">→ בחירת שירות</a>
       <h1>החשבון שלי</h1>
-      <p>פרופיל, אימות, והיסטוריית ההזמנות שלך.</p>
+      <p>פרופיל, אימות, כתובות שמורות והיסטוריית ההזמנות שלך.</p>
     </div>
   </div>
 
@@ -61,6 +61,8 @@
              המייל והטלפון). בלי aria-live הם מופיעים בשקט מוחלט. -->
         <div id="email-status" aria-live="polite"></div>
         <div id="phone-status" aria-live="polite"></div>
+
+        <a tabindex="0" href="edit-profile.html" class="btn btn-secondary btn-block" style="margin-top:6px;">ערוך פרופיל</a>
       </div>
 
       <div class="app-card" id="phone-verify-card" style="display:none;">
@@ -84,12 +86,53 @@
         <div id="recaptcha-container"></div>
       </div>
 
+      <!-- 16.9 — קוד הפניה, פאזה 2 של האזור האישי. נוצר ב-auth.js
+           (generateReferralCode) ולא הוצג עד היום בשום מקום, לא באתר
+           ולא באפליקציה. -->
+      <div class="app-card" id="referral">
+        <h2>הזמינו חברים</h2>
+        <p class="app-card-desc">שתפו את הקוד האישי שלכם. כשחבר יזין אותו בהרשמה לאפליקציה ויבצע איתנו הובלה ראשונה, תקבלו ₪50 — זיכוי לארנק למובילים, קופון ללקוחות.</p>
+        <div class="referral-code-box">
+          <span class="referral-code-text" id="referral-code-text">—</span>
+          <button tabindex="0" type="button" class="btn btn-secondary" id="referral-copy-btn">העתק קוד</button>
+        </div>
+      </div>
+
       <div class="app-card" id="orders">
         <h2>ההזמנות שלי</h2>
+        <div class="order-tabs" role="tablist" aria-label="סינון ההזמנות שלי">
+          <button tabindex="0" type="button" class="order-tab active" role="tab" aria-selected="true" data-tab="active" id="tab-active">פעילות</button>
+          <button tabindex="0" type="button" class="order-tab" role="tab" aria-selected="false" data-tab="draft" id="tab-draft">בתהליך</button>
+          <button tabindex="0" type="button" class="order-tab" role="tab" aria-selected="false" data-tab="history" id="tab-history">היסטוריה</button>
+        </div>
         <div id="orders-list" class="order-list"></div>
         <div id="orders-empty" class="empty-state" style="display:none;">
-          <div class="empty-icon">📦</div>
-          <div>עדיין אין הזמנות</div>
+          <div class="empty-icon" aria-hidden="true">📦</div>
+          <div id="orders-empty-text">עדיין אין הזמנות</div>
+        </div>
+      </div>
+
+      <div class="hub-section">
+        <h2 class="hub-section-title">ניהול החשבון</h2>
+        <div class="account-links">
+          <a tabindex="0" href="settings.html" class="account-link">
+            <div class="account-link-icon">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <circle cx="12" cy="12" r="3.2" stroke="currentColor" stroke-width="2"/>
+                <path d="M12 3v2.5M12 18.5V21M21 12h-2.5M5.5 12H3M18.4 5.6l-1.8 1.8M7.4 16.6l-1.8 1.8M18.4 18.4l-1.8-1.8M7.4 7.4L5.6 5.6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+              </svg>
+            </div>
+            <div class="account-link-name">הגדרות</div>
+          </a>
+          <a tabindex="0" href="saved-addresses.html" class="account-link">
+            <div class="account-link-icon">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <path d="M12 21s7-7.5 7-12a7 7 0 10-14 0c0 4.5 7 12 7 12z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
+                <circle cx="12" cy="9" r="2.3" stroke="currentColor" stroke-width="2"/>
+              </svg>
+            </div>
+            <div class="account-link-name">כתובות שמורות</div>
+          </a>
         </div>
       </div>
 
@@ -138,9 +181,11 @@
   </footer>
 
   <script type="module">
-    import { requireAuth, resendVerificationEmail, refreshEmailVerified, sendPhoneVerificationCode, confirmPhoneVerificationCode, logout } from './auth.js';
-    import { subscribeToUserOrders, customerTotalOf, STATUS_LABELS } from './orders.js';
-    import { clearAllOrderDrafts } from './guest-checkout.js';
+    import { requireAuth, resendVerificationEmail, refreshEmailVerified, sendPhoneVerificationCode, confirmPhoneVerificationCode, logout, generateReferralCode } from './auth.js';
+    import { subscribeToUserOrders, customerTotalOf, STATUS_LABELS, OPEN_CUSTOMER_STATUSES, HISTORY_STATUSES } from './orders.js';
+    import { clearAllOrderDrafts, loadOrderDraft, clearOrderDraft } from './guest-checkout.js';
+    import { doc, updateDoc } from 'https://www.gstatic.com/firebasejs/12.16.0/firebase-firestore.js';
+    import { db } from './firebase.js';
 
     /**
      * בריחת HTML לכל ערך שמגיע ממסמך ההזמנה. **זו לא הגנה תיאורטית:**
@@ -164,6 +209,7 @@
     document.getElementById('loading').style.display = 'none';
     document.getElementById('content').style.display = 'block';
     render(state.profile);
+    renderReferralCode(state.profile, state.authUser.uid);
 
     function render(profile) {
       document.getElementById('profile-name').textContent = profile.name || 'ללא שם';
@@ -204,6 +250,28 @@
         phoneCard.style.display = 'block';
         document.getElementById('phone-input').value = profile.phone || '';
       }
+    }
+
+    /** מציג את קוד ההפניה, ומשלים אותו לחשבונות ישנים שנוצרו לפני שהוא נוסף. */
+    function renderReferralCode(profile, uid) {
+      let code = profile.referralCode;
+      if (!code) {
+        // אותה נוסחה בדיוק כמו auth.js — חשבון ותיק שנוצר לפני קוד ההפניה
+        // מקבל אחד עכשיו, במקום להישאר בלי לצמיתות.
+        code = generateReferralCode(uid);
+        updateDoc(doc(db, 'users', uid), { referralCode: code }).catch(() => {});
+      }
+      document.getElementById('referral-code-text').textContent = code;
+      const copyBtn = document.getElementById('referral-copy-btn');
+      copyBtn.addEventListener('click', async () => {
+        try {
+          await navigator.clipboard.writeText(code);
+          copyBtn.textContent = 'הועתק!';
+        } catch {
+          copyBtn.textContent = code;
+        }
+        setTimeout(() => { copyBtn.textContent = 'העתק קוד'; }, 2000);
+      });
     }
 
     // Refresh emailVerified once on load (Firebase doesn't push this live).
@@ -308,22 +376,136 @@
       document.querySelector(location.hash)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
 
-    // Order history
-    subscribeToUserOrders(state.authUser.uid, (orders) => {
-      const list = document.getElementById('orders-list');
-      const empty = document.getElementById('orders-empty');
-      if (orders.length === 0) { list.innerHTML = ''; empty.style.display = 'block'; return; }
-      empty.style.display = 'none';
-      list.innerHTML = orders.map(o => `
+    /* ══════════════════════════════════════════════════════════════
+       ההזמנות שלי — טאבים (פעילות / בתהליך / היסטוריה)
+       ══════════════════════════════════════════════════════════════
+
+       ⚠️ **"בתהליך" אינו מגיע מ-Firestore, ומכוון.** לאפליקציה יש
+       הזמנת-טיוטה אמיתית בפיירסטור (draftPayload/draftStep, ראו
+       saveDraftOrder ב-orders.js) — אבל שום מסך באתר לא כותב אליה:
+       apartment.html/small-move.html שומרים טיוטת אורח ב-localStorage
+       (guest-checkout.js) ורק ברגע שנחסמים בקיר ההרשמה, לא כרצף שוטף.
+       כלומר טאב שממתין להזמנת-טיוטה בפיירסטור תמיד היה ריק.
+
+       הטאב הזה קורא במקום זה את מה שכן קיים בפועל: טיוטת המכשיר הנוכחי
+       ב-localStorage (אם יש), עם קישור "המשך הזמנה" לדף שמשחזר אותה
+       אוטומטית בטעינה (loadOrderDraft רץ שם ללא תלות בהתחברות). זה
+       משקף מכשיר, לא חשבון מכל מקום — בדיוק כמו guest-checkout.js עצמו. */
+    const DRAFT_SERVICES = [
+      { key: 'apartment', label: 'הובלת דירה', href: 'apartment.html' },
+      { key: 'smallMove', label: 'מובילים בקטנה', href: 'small-move.html' },
+    ];
+
+    let allOrders = [];
+    let currentTab = 'active';
+
+    function summarizeDraftState(draftState) {
+      const parts = [];
+      const itemCount = Object.values(draftState.items || {}).reduce((sum, q) => sum + (Number(q) || 0), 0);
+      if (itemCount > 0) parts.push(itemCount === 1 ? 'פריט אחד נבחר' : `${itemCount} פריטים נבחרו`);
+      if (draftState.fromAddress || draftState.toAddress) parts.push('כתובת מולאה');
+      if (draftState.date) parts.push('תאריך נבחר');
+      return parts.length ? parts.join(' · ') : 'טרם מולאו פרטים';
+    }
+
+    function getLocalDrafts() {
+      return DRAFT_SERVICES
+        .map(svc => ({ ...svc, draftState: loadOrderDraft(svc.key) }))
+        .filter(d => !!d.draftState);
+    }
+
+    function renderOrderRow(o) {
+      return `
         <a tabindex="0" class="order-row-card" href="order-status.html?id=${encodeURIComponent(o.id)}">
           <div>
             <div class="order-row-title">${esc(o.title || 'הזמנה')}</div>
             <div class="order-row-meta"><span class="status-badge ${esc(o.status)}">${esc(STATUS_LABELS[o.status] || o.status)}</span></div>
           </div>
           <div class="order-row-price">₪${esc(customerTotalOf(o))}</div>
-        </a>
-      `).join('');
+        </a>`;
+    }
+
+    function renderDraftCard(d) {
+      return `
+        <div class="draft-card">
+          <div class="draft-card-head">
+            <div class="draft-card-title">${esc(d.label)}</div>
+            <span class="status-badge pending_payment">בתהליך</span>
+          </div>
+          <p class="draft-card-desc">מילאת חלק מהפרטים ולא סיימת להזמין — אפשר להמשיך בדיוק מאיפה שהפסקת, במכשיר הזה.</p>
+          <p class="draft-card-progress">${esc(summarizeDraftState(d.draftState))}</p>
+          <div class="draft-card-actions">
+            <button tabindex="0" type="button" class="btn btn-secondary draft-delete-btn" data-service="${esc(d.key)}">מחק</button>
+            <a tabindex="0" class="btn btn-primary" href="${esc(d.href)}">המשך הזמנה</a>
+          </div>
+        </div>`;
+    }
+
+    function renderOrdersTab() {
+      const list = document.getElementById('orders-list');
+      const empty = document.getElementById('orders-empty');
+      const emptyText = document.getElementById('orders-empty-text');
+
+      if (currentTab === 'draft') {
+        const drafts = getLocalDrafts();
+        if (drafts.length === 0) {
+          list.innerHTML = '';
+          empty.style.display = 'block';
+          emptyText.textContent = 'אין הזמנה בתהליך במכשיר הזה כרגע';
+          return;
+        }
+        empty.style.display = 'none';
+        list.innerHTML = drafts.map(renderDraftCard).join('');
+        list.querySelectorAll('.draft-delete-btn').forEach(btn => {
+          btn.addEventListener('click', () => {
+            clearOrderDraft(btn.dataset.service);
+            renderOrdersTab();
+            updateTabCounts();
+          });
+        });
+        return;
+      }
+
+      const statuses = currentTab === 'history' ? HISTORY_STATUSES : OPEN_CUSTOMER_STATUSES;
+      const filtered = allOrders.filter(o => statuses.includes(o.status));
+      if (filtered.length === 0) {
+        list.innerHTML = '';
+        empty.style.display = 'block';
+        emptyText.textContent = currentTab === 'history' ? 'עוד אין היסטוריית הזמנות' : 'אין הזמנות פעילות כרגע';
+        return;
+      }
+      empty.style.display = 'none';
+      list.innerHTML = filtered.map(renderOrderRow).join('');
+    }
+
+    function updateTabCounts() {
+      const activeCount = allOrders.filter(o => OPEN_CUSTOMER_STATUSES.includes(o.status)).length;
+      const historyCount = allOrders.filter(o => HISTORY_STATUSES.includes(o.status)).length;
+      const draftCount = getLocalDrafts().length;
+      document.getElementById('tab-active').textContent = `פעילות${activeCount ? ` (${activeCount})` : ''}`;
+      document.getElementById('tab-draft').textContent = `בתהליך${draftCount ? ` (${draftCount})` : ''}`;
+      document.getElementById('tab-history').textContent = `היסטוריה${historyCount ? ` (${historyCount})` : ''}`;
+    }
+
+    document.querySelectorAll('.order-tab').forEach(btn => {
+      btn.addEventListener('click', () => {
+        currentTab = btn.dataset.tab;
+        document.querySelectorAll('.order-tab').forEach(b => {
+          const active = b === btn;
+          b.classList.toggle('active', active);
+          b.setAttribute('aria-selected', String(active));
+        });
+        renderOrdersTab();
+      });
     });
+
+    subscribeToUserOrders(state.authUser.uid, (orders) => {
+      allOrders = orders;
+      updateTabCounts();
+      renderOrdersTab();
+    });
+    updateTabCounts();
+    renderOrdersTab();
   </script>
 </body>
 </html>

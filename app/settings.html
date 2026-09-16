@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>הגדרות — ROZIC MOVE</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../style.css?v=93d67ba9">
+  <link rel="stylesheet" href="style-app.css?v=9396b585">
+</head>
+<body class="app-body">
+<div data-build-stamp class="build-stamp" aria-hidden="true">עודכן 15.09 · 23:56</div>
+  <a class="skip-link" href="#main-content">דלג לתוכן המרכזי</a>
+  <script type="module" src="pilot-banner.js?v=14a0e537"></script>
+  <main id="main-content" tabindex="-1">
+
+  <div class="step-hero">
+    <div class="step-hero-inner">
+      <a tabindex="0" href="account.html" class="btn-text" style="padding:0; margin-bottom:10px; display:inline-block;">→ החשבון שלי</a>
+      <h1>הגדרות</h1>
+      <p>התראות, אבטחת חשבון ומשתמשים חסומים.</p>
+    </div>
+  </div>
+
+  <div class="app-container">
+    <div id="loading" class="center-loading"><span class="spinner"></span></div>
+
+    <div id="content" style="display:none;">
+
+      <div class="app-card">
+        <h2>התראות</h2>
+        <div class="switch-row">
+          <div class="switch-row-text">
+            <span class="switch-row-label">קבלת התראות</span>
+            <span class="switch-row-hint" id="notif-hint">עדכונים על סטטוס ההזמנה שלך.</span>
+          </div>
+          <label class="switch">
+            <input type="checkbox" id="notif-toggle" aria-label="קבלת התראות">
+            <span class="switch-track" aria-hidden="true"></span>
+          </label>
+        </div>
+        <p class="form-hint">
+          ⚠️ ההגדרה הזו משותפת לכל המכשירים שמחוברים לחשבון הזה — כיבוי כאן
+          מכבה גם התראות באפליקציה הנייטיבית, לא רק באתר.
+        </p>
+      </div>
+
+      <div class="app-card" id="password-card" style="display:none;">
+        <h2>שינוי סיסמה</h2>
+        <div id="password-error" role="alert"></div>
+        <div id="password-success" style="display:none;"></div>
+        <div id="password-form">
+          <div class="form-group">
+            <label for="current-password">סיסמה נוכחית</label>
+            <input id="current-password" type="password" autocomplete="current-password">
+          </div>
+          <div class="form-group">
+            <label for="new-password">סיסמה חדשה</label>
+            <input id="new-password" type="password" autocomplete="new-password">
+            <p class="form-hint">לפחות 8 תווים, כולל אותיות באנגלית וגם ספרות.</p>
+          </div>
+          <div class="form-group">
+            <label for="confirm-password">אימות סיסמה חדשה</label>
+            <input id="confirm-password" type="password" autocomplete="new-password">
+          </div>
+          <button tabindex="0" type="button" class="btn btn-primary btn-block" id="password-save-btn">עדכן סיסמה</button>
+        </div>
+      </div>
+
+      <div class="app-card" id="oauth-password-note" style="display:none;">
+        <h2>שינוי סיסמה</h2>
+        <p class="app-card-desc">החשבון שלך מחובר דרך Google/Apple — אין סיסמה נפרדת לשינוי באתר.</p>
+      </div>
+
+      <div class="app-card">
+        <h2>משתמשים חסומים</h2>
+        <p class="app-card-desc">מי שחסמת בעבר (למשל בלוח "מעבירים את זה הלאה"). ביטול חסימה מחזיר את הגלוי ההדדי.</p>
+        <div class="settings-list" id="blocked-list"></div>
+        <div id="blocked-empty" class="empty-state" style="display:none; padding:24px 20px;">
+          <div>לא חסמת אף אחד</div>
+        </div>
+      </div>
+
+      <div class="app-card">
+        <h2>מחיקת חשבון</h2>
+        <p class="app-card-desc">מחיקת חשבון היא פעולה סופית ובלתי הפיכה — לא ניתן לשחזר אותה.</p>
+        <a tabindex="0" href="/delete-account.html" class="btn btn-danger btn-block">איך מוחקים את החשבון לצמיתות</a>
+      </div>
+
+    </div>
+  </div>
+
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner container">
+      <div class="footer-brand">
+        <div class="footer-logo">ROZIC MOVE</div>
+        <p class="footer-tagline">מזיזים אותך קדימה</p>
+        <p class="footer-copy">ROZIC MOVE © 2026</p>
+      </div>
+      <div class="footer-links">
+        <div class="footer-col">
+          <div class="footer-col-title">משפטי</div>
+          <a tabindex="0" href="/privacy.html">מדיניות פרטיות</a>
+          <a tabindex="0" href="/terms.html">תנאי שימוש</a>
+          <a tabindex="0" href="/accessibility.html">הצהרת נגישות</a>
+          <a tabindex="0" href="/delete-account.html">מחיקת חשבון</a>
+        </div>
+      </div>
+    </div>
+    <div class="footer-divider"></div>
+    <div class="footer-bottom container">
+      <p>כל הזכויות שמורות · מדינת ישראל</p>
+    </div>
+  </footer>
+
+  <script type="module">
+    import { requireAuth, changePassword } from './auth.js';
+    import { setNotificationPreference, subscribeToBlockedUsers, unblockUser } from './account.js';
+    import { subscribeToUserOrders, ACTIVE_CUSTOMER_STATUSES } from './orders.js';
+    import { auth } from './firebase.js';
+
+    const esc = (v) => String(v ?? '')
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+
+    const state = await requireAuth();
+    document.getElementById('loading').style.display = 'none';
+    document.getElementById('content').style.display = 'block';
+
+    /* ---------- התראות ----------
+       ⚠️ מראה את `ProfileScreen.toggleNotifications` באפליקציה: לא ניתן
+       לכבות בזמן שיש הזמנה פעילה, כדי שלא יפספסו עדכון קריטי (שיבוץ
+       מוביל, יציאה לדרך). "פעיל" כאן הוא ACTIVE_CUSTOMER_STATUSES —
+       אחרי תשלום, לפני סיום — אותה קבוצה בדיוק. */
+    const notifToggle = document.getElementById('notif-toggle');
+    const notifHint = document.getElementById('notif-hint');
+    let hasActiveOrder = false;
+    notifToggle.checked = state.profile.notificationsEnabled ?? true;
+
+    function renderNotifHint() {
+      notifToggle.disabled = hasActiveOrder && notifToggle.checked;
+      notifHint.textContent = hasActiveOrder
+        ? 'נעולות כרגע — יש לך הזמנה פעילה, כדי שלא תפספס עדכונים עליה.'
+        : 'עדכונים על סטטוס ההזמנה שלך.';
+    }
+    renderNotifHint();
+
+    subscribeToUserOrders(state.authUser.uid, (orders) => {
+      hasActiveOrder = orders.some(o => ACTIVE_CUSTOMER_STATUSES.includes(o.status));
+      renderNotifHint();
+    });
+
+    notifToggle.addEventListener('change', async () => {
+      const enabled = notifToggle.checked;
+      if (!enabled && hasActiveOrder) {
+        notifToggle.checked = true;
+        return;
+      }
+      notifToggle.disabled = true;
+      try {
+        await setNotificationPreference(state.authUser.uid, enabled);
+      } catch {
+        notifToggle.checked = !enabled;
+      } finally {
+        renderNotifHint();
+      }
+    });
+
+    /* ---------- שינוי סיסמה ----------
+       ⚠️ רק לחשבון שנרשם באימייל+סיסמה. חשבון Google/Apple אין לו סיסמה
+       לאמת מולה מחדש (auth.currentUser.email קיים גם אז, אבל reauthenticate
+       עם EmailAuthProvider ייכשל) — ראו changePassword ב-auth.js. */
+    const isPasswordAccount = auth.currentUser?.providerData?.[0]?.providerId === 'password';
+    document.getElementById(isPasswordAccount ? 'password-card' : 'oauth-password-note').style.display = 'block';
+
+    if (isPasswordAccount) {
+      const pwError = document.getElementById('password-error');
+      const pwSuccess = document.getElementById('password-success');
+      document.getElementById('password-save-btn').addEventListener('click', async () => {
+        pwError.innerHTML = '';
+        pwSuccess.style.display = 'none';
+        const current = document.getElementById('current-password').value;
+        const next = document.getElementById('new-password').value;
+        const confirm = document.getElementById('confirm-password').value;
+
+        if (!current || !next || !confirm) {
+          pwError.innerHTML = '<div class="alert alert-error">נא למלא את כל השדות</div>';
+          return;
+        }
+        if (next.length < 8) {
+          pwError.innerHTML = '<div class="alert alert-error">הסיסמה החדשה חייבת להכיל לפחות 8 תווים</div>';
+          return;
+        }
+        // "אותיות" בלבד היה מלכודת באפליקציה — אבגד1234 הן אותיות בעברית.
+        // הכלל הוא אותיות לטיניות, ונאמר במפורש. ראו ChangePasswordScreen.
+        if (!/[a-zA-Z]/.test(next) || !/[0-9]/.test(next)) {
+          pwError.innerHTML = '<div class="alert alert-error">הסיסמה החדשה חייבת לכלול אותיות באנגלית וגם ספרות</div>';
+          return;
+        }
+        if (next !== confirm) {
+          pwError.innerHTML = '<div class="alert alert-error">הסיסמה החדשה ואימות הסיסמה אינם תואמים</div>';
+          return;
+        }
+
+        const btn = document.getElementById('password-save-btn');
+        btn.disabled = true; btn.textContent = 'מעדכן...';
+        try {
+          await changePassword(current, next);
+          document.getElementById('password-form').style.display = 'none';
+          pwSuccess.style.display = 'block';
+          pwSuccess.innerHTML = '<div class="alert alert-success">✓ הסיסמה עודכנה בהצלחה</div>';
+        } catch (err) {
+          pwError.innerHTML = err?.code === 'auth/wrong-password' || err?.code === 'auth/invalid-credential'
+            ? '<div class="alert alert-error">הסיסמה הנוכחית שגויה</div>'
+            : '<div class="alert alert-error">לא הצלחנו לעדכן את הסיסמה. נסו שוב.</div>';
+          btn.disabled = false; btn.textContent = 'עדכן סיסמה';
+        }
+      });
+    }
+
+    /* ---------- משתמשים חסומים ---------- */
+    subscribeToBlockedUsers(state.authUser.uid, (blocked) => {
+      const list = document.getElementById('blocked-list');
+      const empty = document.getElementById('blocked-empty');
+      const entries = Object.entries(blocked);
+      if (entries.length === 0) {
+        list.innerHTML = '';
+        empty.style.display = 'block';
+        return;
+      }
+      empty.style.display = 'none';
+      list.innerHTML = entries.map(([targetId, entry]) => `
+        <div class="settings-row">
+          <span class="settings-row-label">${esc(entry?.name || 'משתמש')}</span>
+          <button tabindex="0" type="button" class="settings-row-remove" data-uid="${esc(targetId)}">בטל חסימה</button>
+        </div>`).join('');
+      list.querySelectorAll('.settings-row-remove').forEach(btn => {
+        btn.addEventListener('click', async () => {
+          btn.disabled = true; btn.textContent = 'מבטל...';
+          try {
+            await unblockUser(state.authUser.uid, btn.dataset.uid);
+          } catch {
+            btn.disabled = false; btn.textContent = 'בטל חסימה';
+          }
+        });
+      });
+    });
+  </script>
+</body>
+</html>

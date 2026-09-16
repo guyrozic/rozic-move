@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>עריכת פרופיל — ROZIC MOVE</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../style.css?v=93d67ba9">
+  <link rel="stylesheet" href="style-app.css?v=9396b585">
+</head>
+<body class="app-body">
+<div data-build-stamp class="build-stamp" aria-hidden="true">עודכן 15.09 · 23:56</div>
+  <a class="skip-link" href="#main-content">דלג לתוכן המרכזי</a>
+  <script type="module" src="pilot-banner.js?v=14a0e537"></script>
+  <main id="main-content" tabindex="-1">
+
+  <div class="step-hero">
+    <div class="step-hero-inner">
+      <a tabindex="0" href="account.html" class="btn-text" style="padding:0; margin-bottom:10px; display:inline-block;">→ החשבון שלי</a>
+      <h1>עריכת פרופיל</h1>
+      <p>עדכנו את השם והטלפון שלכם.</p>
+    </div>
+  </div>
+
+  <div class="app-container">
+    <div id="loading" class="center-loading"><span class="spinner"></span></div>
+
+    <div id="content" style="display:none;">
+      <div class="app-card">
+        <h2>הפרטים שלך</h2>
+        <p class="app-card-desc">
+          שינוי מספר הטלפון מבטל את האימות הקיים שלו — אפשר לאמת את המספר
+          החדש ב<a tabindex="0" href="account.html#phone-verify-card">החשבון שלי</a> אחרי השמירה.
+        </p>
+
+        <div id="form-error" role="alert"></div>
+        <div id="form-success" style="display:none;"></div>
+
+        <div class="form-group">
+          <label for="name-input">שם מלא</label>
+          <input id="name-input" type="text" required placeholder="השם שלך">
+        </div>
+
+        <div class="form-group">
+          <label for="phone-input">טלפון</label>
+          <input id="phone-input" type="tel" placeholder="050-1234567">
+        </div>
+
+        <div class="form-group">
+          <label for="email-input">אימייל (לא ניתן לשינוי)</label>
+          <input id="email-input" type="email" disabled>
+        </div>
+
+        <button tabindex="0" type="button" class="btn btn-primary btn-block" id="save-btn">שמור שינויים</button>
+      </div>
+    </div>
+  </div>
+
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner container">
+      <div class="footer-brand">
+        <div class="footer-logo">ROZIC MOVE</div>
+        <p class="footer-tagline">מזיזים אותך קדימה</p>
+        <p class="footer-copy">ROZIC MOVE © 2026</p>
+      </div>
+      <div class="footer-links">
+        <div class="footer-col">
+          <div class="footer-col-title">משפטי</div>
+          <a tabindex="0" href="/privacy.html">מדיניות פרטיות</a>
+          <a tabindex="0" href="/terms.html">תנאי שימוש</a>
+          <a tabindex="0" href="/accessibility.html">הצהרת נגישות</a>
+          <a tabindex="0" href="/delete-account.html">מחיקת חשבון</a>
+        </div>
+      </div>
+    </div>
+    <div class="footer-divider"></div>
+    <div class="footer-bottom container">
+      <p>כל הזכויות שמורות · מדינת ישראל</p>
+    </div>
+  </footer>
+
+  <script type="module">
+    import { requireAuth, updateProfileFields, isValidFullName, FULL_NAME_ERROR } from './auth.js';
+
+    const state = await requireAuth();
+    document.getElementById('loading').style.display = 'none';
+    document.getElementById('content').style.display = 'block';
+
+    const profile = state.profile;
+    document.getElementById('name-input').value = profile.name || '';
+    document.getElementById('phone-input').value = profile.phone || '';
+    document.getElementById('email-input').value = profile.email || '';
+
+    const errBox = document.getElementById('form-error');
+    const successBox = document.getElementById('form-success');
+
+    document.getElementById('save-btn').addEventListener('click', async () => {
+      errBox.innerHTML = '';
+      successBox.style.display = 'none';
+      const name = document.getElementById('name-input').value.trim();
+      const phone = document.getElementById('phone-input').value.trim();
+
+      if (!name) {
+        errBox.innerHTML = '<div class="alert alert-error">שם לא יכול להיות ריק</div>';
+        return;
+      }
+      // זהה ל-`isValidFullName` באפליקציה: שם מלא הוא לפחות שתי מילים.
+      // ⚠️ לא קישוט — Grow דוחה שם של מילה אחת בעת יצירת קישור תשלום,
+      // תקרית ייצור אמיתית שכבר קרתה (ראו auth.js). זו אותה מניעה בדיוק.
+      if (!isValidFullName(name)) {
+        errBox.innerHTML = `<div class="alert alert-error">${FULL_NAME_ERROR}</div>`;
+        return;
+      }
+
+      const btn = document.getElementById('save-btn');
+      btn.disabled = true; btn.textContent = 'שומר...';
+      try {
+        await updateProfileFields(state.authUser.uid, { name, phone, currentPhone: profile.phone });
+        successBox.style.display = 'block';
+        successBox.innerHTML = '<div class="alert alert-success">✓ הפרטים עודכנו. חוזרים לחשבון שלך...</div>';
+        setTimeout(() => { location.href = 'account.html'; }, 1200);
+      } catch (err) {
+        errBox.innerHTML = '<div class="alert alert-error">לא הצלחנו לשמור. נסו שוב.</div>';
+        btn.disabled = false; btn.textContent = 'שמור שינויים';
+      }
+    });
+  </script>
+</body>
+</html>

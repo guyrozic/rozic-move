@@ -21,6 +21,18 @@ export const STATUS_LABELS = {
 };
 
 /**
+ * מראה את `OPEN_CUSTOMER_STATUSES`/`ACTIVE_CUSTOMER_STATUSES` ב-
+ * Hovalot's src/services/orders.ts — נוספו 16.9 לטובת הטאבים ב-account.html.
+ *
+ * `OPEN` (כולל שלבים לפני תשלום) הוא טאב "פעילות"; `ACTIVE` (הצר יותר,
+ * אחרי תשלום) הוא מה שמגדיר "יש הזמנה פעילה" בשביל נעילת מתג ההתראות
+ * ב-settings.html — אותה הבחנה בדיוק כמו ProfileScreen/OrdersScreen באפליקציה.
+ */
+export const OPEN_CUSTOMER_STATUSES = ['pending_pricing', 'pending_payment', 'pending', 'assigned', 'en_route', 'in_progress'];
+export const ACTIVE_CUSTOMER_STATUSES = ['pending', 'assigned', 'en_route', 'in_progress'];
+export const HISTORY_STATUSES = ['completed', 'cancelled'];
+
+/**
  * הסכום שהלקוח רואה — פורט מ-customerTotalOf() ב-orders.ts.
  *
  * תוספת התמחור הידני נכנסת ל-`price` **בדיוק פעם אחת**, ברגע היציאה מ-

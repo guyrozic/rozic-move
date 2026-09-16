@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>כתובות שמורות — ROZIC MOVE</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../style.css?v=93d67ba9">
+  <link rel="stylesheet" href="style-app.css?v=9396b585">
+</head>
+<body class="app-body">
+<div data-build-stamp class="build-stamp" aria-hidden="true">עודכן 15.09 · 23:56</div>
+  <a class="skip-link" href="#main-content">דלג לתוכן המרכזי</a>
+  <script type="module" src="pilot-banner.js?v=14a0e537"></script>
+  <main id="main-content" tabindex="-1">
+
+  <div class="step-hero">
+    <div class="step-hero-inner">
+      <a tabindex="0" href="account.html" class="btn-text" style="padding:0; margin-bottom:10px; display:inline-block;">→ החשבון שלי</a>
+      <h1>כתובות שמורות</h1>
+      <p>שמרו כתובות לשימוש מהיר בהזמנה הבאה.</p>
+    </div>
+  </div>
+
+  <div class="app-container">
+    <div id="loading" class="center-loading"><span class="spinner"></span></div>
+
+    <div id="content" style="display:none;">
+      <div class="app-card">
+        <h2>הכתובות שלך</h2>
+        <p class="app-card-desc">
+          כתובת חופשית לחלוטין — בדיוק כמו שדות הכתובת בזרימת ההזמנה. אין כאן
+          השלמה אוטומטית, כדי שהאתר לא ישלח כתובות ללקוח לספק חיצוני.
+        </p>
+
+        <div id="addresses-error" role="alert"></div>
+
+        <div class="settings-list" id="addresses-list"></div>
+        <div id="addresses-empty" class="empty-state" style="display:none; padding:24px 20px;">
+          <div>אין כתובות שמורות עדיין</div>
+        </div>
+
+        <div id="add-form-wrap" style="margin-top:16px;">
+          <div class="inline-form-row">
+            <div class="form-group">
+              <label for="new-address-input">הוספת כתובת</label>
+              <input id="new-address-input" type="text" placeholder="לדוגמה: הגבעה 42, כפר האורנים">
+            </div>
+            <button tabindex="0" type="button" class="btn btn-primary" id="add-address-btn" style="margin-top:22px;">הוסף</button>
+          </div>
+          <p class="form-hint" id="addresses-limit-hint"></p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner container">
+      <div class="footer-brand">
+        <div class="footer-logo">ROZIC MOVE</div>
+        <p class="footer-tagline">מזיזים אותך קדימה</p>
+        <p class="footer-copy">ROZIC MOVE © 2026</p>
+      </div>
+      <div class="footer-links">
+        <div class="footer-col">
+          <div class="footer-col-title">משפטי</div>
+          <a tabindex="0" href="/privacy.html">מדיניות פרטיות</a>
+          <a tabindex="0" href="/terms.html">תנאי שימוש</a>
+          <a tabindex="0" href="/accessibility.html">הצהרת נגישות</a>
+          <a tabindex="0" href="/delete-account.html">מחיקת חשבון</a>
+        </div>
+      </div>
+    </div>
+    <div class="footer-divider"></div>
+    <div class="footer-bottom container">
+      <p>כל הזכויות שמורות · מדינת ישראל</p>
+    </div>
+  </footer>
+
+  <script type="module">
+    import { requireAuth } from './auth.js';
+    import { subscribeToSavedAddresses, saveAddress, removeSavedAddress, MAX_SAVED_ADDRESSES } from './account.js';
+
+    const esc = (v) => String(v ?? '')
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+
+    const state = await requireAuth();
+    document.getElementById('loading').style.display = 'none';
+    document.getElementById('content').style.display = 'block';
+
+    const errBox = document.getElementById('addresses-error');
+    let currentAddresses = [];
+
+    function renderAddresses(addresses) {
+      currentAddresses = addresses;
+      const list = document.getElementById('addresses-list');
+      const empty = document.getElementById('addresses-empty');
+
+      if (addresses.length === 0) {
+        list.innerHTML = '';
+        empty.style.display = 'block';
+      } else {
+        empty.style.display = 'none';
+        list.innerHTML = addresses.map(addr => `
+          <div class="settings-row">
+            <span class="settings-row-label">${esc(addr)}</span>
+            <button tabindex="0" type="button" class="settings-row-remove" data-addr="${esc(addr)}">מחק</button>
+          </div>`).join('');
+        list.querySelectorAll('.settings-row-remove').forEach(btn => {
+          btn.addEventListener('click', async () => {
+            btn.disabled = true; btn.textContent = 'מוחק...';
+            try {
+              await removeSavedAddress(state.authUser.uid, btn.dataset.addr);
+            } catch {
+              btn.disabled = false; btn.textContent = 'מחק';
+              errBox.innerHTML = '<div class="alert alert-error">לא הצלחנו למחוק את הכתובת. נסו שוב.</div>';
+            }
+          });
+        });
+      }
+
+      const atLimit = addresses.length >= MAX_SAVED_ADDRESSES;
+      document.getElementById('add-form-wrap').style.display = atLimit ? 'none' : 'block';
+      document.getElementById('addresses-limit-hint').textContent = atLimit
+        ? `הגעת ל-${MAX_SAVED_ADDRESSES} הכתובות השמורות. כדי להוסיף כתובת חדשה יש למחוק אחת מהרשימה קודם.`
+        : '';
+    }
+
+    subscribeToSavedAddresses(state.authUser.uid, renderAddresses);
+
+    document.getElementById('add-address-btn').addEventListener('click', async () => {
+      errBox.innerHTML = '';
+      const input = document.getElementById('new-address-input');
+      const value = input.value.trim();
+      if (!value) {
+        errBox.innerHTML = '<div class="alert alert-error">נא להזין כתובת</div>';
+        return;
+      }
+      if (currentAddresses.includes(value)) {
+        errBox.innerHTML = '<div class="alert alert-error">הכתובת הזו כבר שמורה</div>';
+        return;
+      }
+      const btn = document.getElementById('add-address-btn');
+      btn.disabled = true; btn.textContent = 'שומר...';
+      try {
+        await saveAddress(state.authUser.uid, value);
+        input.value = '';
+      } catch {
+        errBox.innerHTML = '<div class="alert alert-error">לא הצלחנו לשמור את הכתובת. נסו שוב.</div>';
+      } finally {
+        btn.disabled = false; btn.textContent = 'הוסף';
+      }
+    });
+  </script>
+</body>
+</html>

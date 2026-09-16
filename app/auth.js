@@ -7,6 +7,7 @@ import {
   onAuthStateChanged, updateProfile as fbUpdateProfile, sendEmailVerification,
   RecaptchaVerifier, PhoneAuthProvider, updatePhoneNumber,
   GoogleAuthProvider, OAuthProvider, signInWithPopup,
+  EmailAuthProvider, reauthenticateWithCredential, updatePassword as fbUpdatePassword,
 } from 'https://www.gstatic.com/firebasejs/12.16.0/firebase-auth.js';
 import { doc, setDoc, getDoc, updateDoc, onSnapshot, serverTimestamp } from 'https://www.gstatic.com/firebasejs/12.16.0/firebase-firestore.js';
 import { auth, db } from './firebase.js';
@@ -26,6 +27,26 @@ const EMAIL_VERIFICATION_SETTINGS = { url: 'https://rozicmove.com/app/account.ht
 export function generateReferralCode(uid) {
   return `ROZIC-${uid.slice(0, 6).toUpperCase()}`;
 }
+
+/**
+ * מראה `INVISIBLE`/`cleanName`/`isValidFullName`/`FULL_NAME_ERROR` ב-
+ * Hovalot's src/utils/validation.ts. **לא קישוט נגישות — מניעת כשל תשלום
+ * אמיתי:** Grow דוחה `fullName` שהוא מילה אחת בלבד (תקרית ייצור אמיתית,
+ * ראו הערת המקור), ותווים חסרי רוחב/מסמני כיווניות עוברים `.trim()` רגיל
+ * ומייצרים שם שנראה ריק (או הפוך) בכל מסך שמציג אותו. אותה בדיקה בדיוק,
+ * כדי שהאתר לא ישחזר את התקרית שכבר נמצאה ותוקנה באפליקציה.
+ */
+const INVISIBLE = /[​-‏‪-‮⁠-⁯﻿]/g;
+
+export function cleanName(name) {
+  return String(name ?? '').replace(INVISIBLE, '').replace(/\s+/g, ' ').trim();
+}
+
+export function isValidFullName(name) {
+  return cleanName(name).split(' ').filter(Boolean).length >= 2;
+}
+
+export const FULL_NAME_ERROR = 'יש להזין שם מלא — שם פרטי ושם משפחה';
 
 export function toE164(localPhone) {
   const digits = localPhone.replace(/\D/g, '');
@@ -304,4 +325,49 @@ export async function signInWithProvider(kind) {
  */
 export async function setProfilePhone(uid, localPhone) {
   await updateDoc(doc(db, 'users', uid), { phone: normalizePhone(localPhone) });
+}
+
+
+/* ══════════════════════════════════════════════════════════════════
+   עריכת פרופיל ושינוי סיסמה — פאזה 2 של האזור האישי (16.9)
+   ══════════════════════════════════════════════════════════════════ */
+
+/**
+ * שם וטלפון — מראה את `editProfile` ב-Hovalot's AuthContext.tsx (השדות
+ * הרלוונטיים ללקוח באתר; לא רכב/ניווט, שהם שדות מוביל בלבד).
+ *
+ * ⚠️ **זו לא אותה פעולה כמו אימות טלפון ב-SMS** (`confirmPhoneVerificationCode`
+ * למעלה). זו עריכת טקסט חופשי — בדיוק כמו EditProfileScreen באפליקציה,
+ * ששני המסכים שלה (עריכה חופשית מול אימות OTP) קיימים זה לצד זה. שינוי
+ * המספר כאן מפיל `phoneVerified` בחזרה ל-`false`, כי המספר החדש עדיין לא
+ * עבר אימות — בדיוק אותו כלל.
+ *
+ * `currentPhone` מגיע מהקורא (לא נקרא כאן מ-Firestore) כדי שהפונקציה
+ * תישאר קריאה בודדת, בלי round-trip נוסף על פעולת שמירה רגישה לזמן תגובה.
+ */
+export async function updateProfileFields(uid, { name, phone, currentPhone }) {
+  const updates = {};
+  const trimmedName = cleanName(name);
+  if (trimmedName) updates.name = trimmedName;
+  if (phone !== undefined) {
+    const normalized = normalizePhone(phone);
+    updates.phone = normalized;
+    if (normalized !== normalizePhone(currentPhone ?? '')) updates.phoneVerified = false;
+  }
+  if (Object.keys(updates).length === 0) return;
+  await updateDoc(doc(db, 'users', uid), updates);
+  // מסמך ה-Firestore הוא מקור האמת שממנו שאר האתר קורא (state.profile),
+  // אבל auth.currentUser.displayName הוא מה שמופיע ב-Firebase Console
+  // ובכל מקום שקורא ישירות מאובייקט ה-Auth — לא להשאיר אותו מיותם.
+  if (updates.name && auth.currentUser) {
+    await fbUpdateProfile(auth.currentUser, { displayName: updates.name });
+  }
+}
+
+/** מראה את `changePassword` ב-AuthContext.tsx — דורש סיסמה נוכחית (Firebase לא מאפשר שינוי סיסמה בלי אימות מחדש טרי). לא ישים לחשבון Google/Apple (אין סיסמה לאמת מולה); הקורא אחראי לבדוק providerData לפני הצגת הטופס. */
+export async function changePassword(currentPassword, newPassword) {
+  if (!auth.currentUser || !auth.currentUser.email) throw new Error('NOT_LOGGED_IN');
+  const credential = EmailAuthProvider.credential(auth.currentUser.email, currentPassword);
+  await reauthenticateWithCredential(auth.currentUser, credential);
+  await fbUpdatePassword(auth.currentUser, newPassword);
 }
