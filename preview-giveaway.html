@@ -91,7 +91,7 @@
   .lane-main { border:1.5px solid var(--border); border-radius:14px; background:var(--bg);
     padding:13px 13px 14px; display:flex; flex-direction:column; }
   .lane-side { border:2px solid var(--green-line); border-radius:14px; background:var(--green-tint);
-    padding:15px 14px; display:flex; flex-direction:column; }
+    padding:15px 14px; display:flex; flex-direction:column; justify-content:center; }
   .lane-head { display:flex; align-items:baseline; justify-content:space-between;
     gap:8px; margin-bottom:10px; }
   .lane-head b { font-size:.98rem; font-weight:900; }
@@ -103,8 +103,7 @@
   .lane-side p.d { font-size:.83rem; color:var(--text-mid); line-height:1.55; margin:0 0 12px; }
   .side-go { display:flex; width:100%; justify-content:center; align-items:center;
     background:var(--green); color:#fff; font-family:inherit; font-weight:800;
-    font-size:.92rem; padding:12px 14px; border-radius:11px; border:0; min-height:44px;
-    margin-top:auto; }
+    font-size:.92rem; padding:12px 14px; border-radius:11px; border:0; min-height:44px; }
   .side-fine { font-size:.75rem; color:var(--text-muted); line-height:1.5;
     margin:9px 0 0; text-align:center; }
   .want { display:flex; width:100%; justify-content:center; align-items:center;
@@ -123,9 +122,11 @@
   .haul .ic { flex:0 0 auto; width:38px; height:38px; border-radius:10px;
     background:var(--green-tint); display:flex; align-items:center; justify-content:center; }
   .haul .ic svg { width:21px; height:21px; stroke:var(--green-ink); fill:none; stroke-width:1.7; }
-  .haul p { margin:0; font-size:.86rem; color:var(--text-mid); line-height:1.55; }
-  .haul p b { color:var(--text); font-weight:800; }
-  .haul p em { font-style:normal; color:var(--green-ink); font-weight:800; }
+  .haul .tx { min-width:0; }
+  .haul .tx b { display:block; font-size:.9rem; font-weight:800; color:var(--text); line-height:1.4; }
+  .haul .tx i { display:block; font-style:normal; font-size:.83rem; color:var(--text-mid);
+    line-height:1.45; margin-top:2px; }
+  .haul .tx i em { font-style:normal; color:var(--green-ink); font-weight:800; }
 </style>
 </head>
 <body>
@@ -235,7 +236,7 @@
       <p class="side-fine">פרסום פריט אחד פותח גם את הבקשות בלוח</p>
     </div>
   </div>
-  <div class="haul"><div class="ic"><svg aria-hidden="true" focusable="false"><use href="#i-truck"/></svg></div><p>מצאתם משהו שאהבתם? <b>אנחנו יכולים לעזור לכם להוביל אותו.</b> מעדיפים בעצמכם? <em>לגמרי סבבה — ובחינם.</em></p></div>
+  <div class="haul"><div class="ic"><svg aria-hidden="true" focusable="false"><use href="#i-truck"/></svg></div><div class="tx"><b>מצאתם משהו שאהבתם? אנחנו יכולים לעזור לכם להוביל אותו.</b><i>מעדיפים בעצמכם? <em>לגמרי סבבה — ובחינם.</em></i></div></div>
 </div>
 
 <!-- ═══ ד2 ═══ -->
@@ -261,7 +262,7 @@
       <p class="side-fine">אפשר גם רק לתת, בלי לקחת כלום</p>
     </div>
   </div>
-  <div class="haul"><div class="ic"><svg aria-hidden="true" focusable="false"><use href="#i-truck"/></svg></div><p>מצאתם משהו שאהבתם? <b>אנחנו יכולים לעזור לכם להוביל אותו.</b> מעדיפים בעצמכם? <em>לגמרי סבבה — ובחינם.</em></p></div>
+  <div class="haul"><div class="ic"><svg aria-hidden="true" focusable="false"><use href="#i-truck"/></svg></div><div class="tx"><b>מצאתם משהו שאהבתם? אנחנו יכולים לעזור לכם להוביל אותו.</b><i>מעדיפים בעצמכם? <em>לגמרי סבבה — ובחינם.</em></i></div></div>
 </div>
 
 <div class="close">
