@@ -349,32 +349,33 @@
   .tool-list .accgrid { gap:7px; }
   .tool-list .acc ul { gap:2px; }
   .tool-list .coln { margin-bottom:3px; padding-bottom:2px; }
-  /* מובילים בקטנה — "מנקודה לנקודה". שלושת גורמי המחיר בחזית, והפריטים
-     כשדה אחד לצידם. ⚠️ בלי האיור שגיא פסל. */
+  /* מובילים בקטנה — "מנקודה לנקודה", נאמן ל-.pv-* שבסבב ההצגה.
+     ⚠️ בלי האיור שגיא פסל; המבנה עצמו זהה. */
   .svc-panel.sm-route { max-width:none; }
-  .sm-lede { font-size:.93rem; color:var(--text-mid); line-height:1.55; margin:0 0 15px; }
-  .sm-grid { display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr);
-    gap:clamp(12px,1.6vw,20px); align-items:start; }
-  @media (max-width:720px){ .sm-grid { grid-template-columns:1fr; } }
-  .sm-steps { display:flex; flex-direction:column; gap:9px; }
-  .sm-step { display:grid; grid-template-columns:auto 1fr; gap:0 11px;
-    align-items:center; border:1.5px solid var(--border); border-radius:12px;
-    padding:11px 13px; background:var(--bg); }
-  .sm-step .ic { grid-row:1/3; width:36px; height:36px; border-radius:10px;
+  .sm-2col { display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr);
+    gap:clamp(12px,1.6vw,20px); align-items:stretch; }
+  @media (max-width:720px){ .sm-2col { grid-template-columns:1fr; } }
+  .sm-col { display:flex; flex-direction:column; min-width:0; }
+  .sm-h { font-size:clamp(1rem,.94rem + .34vw,1.16rem); font-weight:900; margin:0 0 4px; line-height:1.3; }
+  .sm-sub { font-size:.85rem; color:var(--text-muted); line-height:1.55; margin:0 0 12px; }
+  .sm-steps { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:10px; }
+  .sm-step { border:1.5px solid var(--border); border-radius:12px; padding:11px 9px;
+    background:var(--bg); text-align:center; }
+  .sm-step .ic { width:34px; height:34px; margin:0 auto 7px; border-radius:10px;
     background:var(--green-light); display:flex; align-items:center; justify-content:center; }
-  .sm-step .ic svg { width:19px; height:19px; stroke:var(--green); fill:none; stroke-width:1.8; }
-  .sm-step b { grid-column:2; font-size:.92rem; font-weight:800; }
-  .sm-step i { grid-column:2; font-style:normal; font-size:.78rem; color:var(--text-muted); }
-  .sm-side { display:flex; flex-direction:column; }
+  .sm-step .ic svg { width:18px; height:18px; stroke:var(--green); fill:none; stroke-width:1.8; }
+  .sm-step b { display:block; font-size:.86rem; font-weight:800; }
+  .sm-step i { display:block; font-style:normal; font-size:.75rem; color:var(--text-muted); margin-top:2px; }
   .sm-list { border:1.5px solid var(--green-line); border-radius:12px;
-    background:var(--green-tint); padding:12px 13px; margin-bottom:12px; }
-  .sm-list-t { font-size:.82rem; font-weight:800; color:var(--green-ink); margin:0 0 9px; }
-  .sm-ways { display:flex; gap:7px; flex-wrap:wrap; }
+    background:var(--green-tint); padding:10px 12px 11px; }
+  .sm-list-t { font-size:.82rem; font-weight:800; color:var(--green-ink); margin:0; }
+  .sm-ways { display:flex; gap:8px; flex-wrap:wrap; margin-top:11px; }
   .sm-way { display:inline-flex; align-items:center; gap:6px; min-height:44px;
     padding:8px 13px; border-radius:999px; background:var(--white);
     border:1.5px solid var(--border); font-size:.85rem; font-weight:700;
     color:var(--text); text-decoration:none; }
   .sm-way svg { width:16px; height:16px; stroke:var(--green); fill:none; stroke-width:1.9; }
+  .sm-foot { margin-top:auto; padding-top:12px; }
   .list-foot { margin-top:auto; padding-top:11px; display:flex;
     flex-direction:column; align-items:stretch;
     /* 13.5px = מסגרת 1.5 + ריפוד 12 של .acc — כדי שהמחיר והכפתור
@@ -463,7 +464,7 @@
      שיחליף אותם; בלי הסימון הזה הם נעלמו גם בחמשת הדפים המשפטיים,
      בלי שום דרך להגיע אליהם (WCAG 1.4.4). -->
 <body class="has-nav-menu hp-home">
-<div data-build-stamp class="build-stamp" aria-hidden="true">עודכן 16.09 · 13:03</div>
+<div data-build-stamp class="build-stamp" aria-hidden="true">עודכן 16.09 · 13:25</div>
   <!-- ⚠️ 15.9 — "דלג לתוכן המרכזי" (WCAG 2.4.1, רמה A). זהו האלמנט הממוקד
        הראשון בדף: מוסתר מהעין, מופיע בפינה ברגע שמגיעים אליו ב-Tab, ומעביר
        את המיקוד אל <main id="main-content" tabindex="-1">. בלי ה-tabindex
@@ -706,22 +707,23 @@
                דירה שלמה על שלושה חדרים, כלומר בדיוק מה ש"מובילים בקטנה"
                **אינו**. -->
           <div class="svc-panel sm-route" id="hp-view-small" hidden>
-            <!-- ⚠️ 16.9 — כיוון ב׳ מסבב "שני השירותים": "מנקודה לנקודה —
-                 המסלול הוא הסיפור". הרעיון: כשמעבירים ספה אחת, מה שקובע את
-                 המחיר ואת הכאב הוא לא הרשימה אלא הקומה, המעלית והמרחק —
-                 ובזרימה הקיימת הם נשאלים רק בשלב השלישי. כאן הם בחזית.
-                 ⚠️ האיור (טנדר בין שני בניינים) **הושמט** — גיא פסל אותו
-                 במפורש בסבב הביקורת. כל השאר נאמן למקור. -->
-            <h2>מאיפה לאן?</h2>
-            <p class="sm-lede">פריט בודד או כמה — טנדר אחד מגיע, מרים ומעביר.
-              שלושת הדברים שקובעים את המחיר נשאלים לפני הכול.</p>
-            <div class="sm-grid">
-              <div class="sm-steps">
-                <div class="sm-step"><span class="ic"><svg aria-hidden="true" focusable="false"><use href="#ic-floors"/></svg></span><b>קומה ומעלית</b><i>בשני הצדדים</i></div>
-                <div class="sm-step"><span class="ic"><svg aria-hidden="true" focusable="false"><use href="#ic-route"/></svg></span><b>המרחק</b><i>בין שתי הכתובות</i></div>
-                <div class="sm-step"><span class="ic"><svg aria-hidden="true" focusable="false"><use href="#ic-cal"/></svg></span><b>התאריך</b><i>ושעת האיסוף</i></div>
+            <!-- ⚠️ 16.9 — כיוון ב׳ מסבב "שני השירותים", נאמן למבנה המקורי:
+                 שתי עמודות שוות. הימנית — הכותרת, ההסבר ושלושת גורמי המחיר
+                 **בשורה אחת**. השמאלית — הפריטים, ההערה והכפתור.
+                 ⚠️ האיור (טנדר בין שני בניינים) הושמט: גיא פסל אותו במפורש
+                 ("לא אהבתי את האילוסטרציה בחלק העליון"). כל השאר כמו במקור. -->
+            <div class="sm-2col">
+              <div class="sm-col">
+                <h2 class="sm-h">מאיפה לאן?</h2>
+                <p class="sm-sub">פריט בודד או כמה — טנדר אחד מגיע, מרים ומעביר.
+                  שלושת הדברים שקובעים את המחיר נשאלים לפני הכול.</p>
+                <div class="sm-steps">
+                  <div class="sm-step"><span class="ic"><svg aria-hidden="true" focusable="false"><use href="#ic-floors"/></svg></span><b>קומה ומעלית</b><i>בשני הצדדים</i></div>
+                  <div class="sm-step"><span class="ic"><svg aria-hidden="true" focusable="false"><use href="#ic-route"/></svg></span><b>המרחק</b><i>בין שתי הכתובות</i></div>
+                  <div class="sm-step"><span class="ic"><svg aria-hidden="true" focusable="false"><use href="#ic-cal"/></svg></span><b>התאריך</b><i>ושעת האיסוף</i></div>
+                </div>
               </div>
-              <div class="sm-side">
+              <div class="sm-col">
                 <div class="sm-list">
                   <p class="sm-list-t">ואת הפריטים עצמם — איך שנוח</p>
                   <div class="sm-ways">
@@ -730,9 +732,13 @@
                     <a class="sm-way" href="app/small-move.html#start-list"><svg aria-hidden="true" focusable="false"><use href="#ic-list"/></svg>מהקטלוג</a>
                   </div>
                 </div>
-                <p class="svc-note">המחיר הסופי נקבע בהזמנה — לפי פריטים, כתובות ותאריך.</p>
-                <a class="hp-go" href="app/small-move.html">לבחירת הפריטים</a>
+                <div class="sm-foot">
+                  <p class="svc-note">המחיר הסופי נקבע בהזמנה — לפי פריטים, כתובות ותאריך.</p>
+                  <a class="hp-go" href="app/small-move.html">לבחירת הפריטים</a>
+                </div>
               </div>
+            </div>
+          </div>
             </div>
           </div>
 
