@@ -346,14 +346,14 @@
   .tool-list .acc ul { gap:2px; }
   .tool-list .coln { margin-bottom:3px; padding-bottom:2px; }
   .list-foot { margin-top:auto; padding-top:11px; display:flex;
-    flex-direction:column; align-items:flex-start;
+    flex-direction:column; align-items:stretch;
     /* 13.5px = מסגרת 1.5 + ריפוד 12 של .acc — כדי שהמחיר והכפתור
        יתיישרו לטקסט שבתוך הרובריקה ולא לקצה החיצוני שלה. */
     padding-inline:13.5px; }
   .list-price { font-size:.78rem; color:var(--text-muted); margin:0 0 9px;
     line-height:1.35; }
   /* 16.9 — כפתור צר לפי תוכן, מיושר לתחילת העמודה (לא רוחב מלא) */
-  .list-foot .hp-go { display:inline-flex; width:fit-content; align-self:flex-start;
+  .list-foot .hp-go { display:flex; width:100%; justify-content:center;
     justify-content:center; box-sizing:border-box; }
   @media (max-width:900px){
     .list-foot { padding-top:11px; }
@@ -430,7 +430,7 @@
      שיחליף אותם; בלי הסימון הזה הם נעלמו גם בחמשת הדפים המשפטיים,
      בלי שום דרך להגיע אליהם (WCAG 1.4.4). -->
 <body class="has-nav-menu hp-home">
-<div data-build-stamp class="build-stamp" aria-hidden="true">עודכן 16.09 · 11:43</div>
+<div data-build-stamp class="build-stamp" aria-hidden="true">עודכן 16.09 · 12:06</div>
   <!-- ⚠️ 15.9 — "דלג לתוכן המרכזי" (WCAG 2.4.1, רמה A). זהו האלמנט הממוקד
        הראשון בדף: מוסתר מהעין, מופיע בפינה ברגע שמגיעים אליו ב-Tab, ומעביר
        את המיקוד אל <main id="main-content" tabindex="-1">. בלי ה-tabindex
@@ -660,7 +660,7 @@
               </div>
               <div class="list-foot">
                 <p class="list-price">המחיר הסופי נקבע בהזמנה — לפי פריטים, כתובות ותאריך.</p>
-                <a class="hp-go" id="hp-continue" href="app/apartment.html">המשך להזמנה ←</a>
+                <a class="hp-go" id="hp-continue" href="app/apartment.html">המשך להזמנה</a>
               </div>
             </div>
           </div>
@@ -676,7 +676,7 @@
             <h2>מובילים בקטנה</h2>
             <p>פריטים בודדים ולא דירה שלמה — ספה, מקרר, מכונת כביסה, ארון או כמה ארגזים. מוביל עם טנדר מגיע, מרים ומעביר.</p>
             <p>בוחרים את הפריטים מהקטלוג או מצלמים אותם, ומוסיפים כתובות, קומות ותאריך — המחיר מתקבל לפני האישור.</p>
-            <a class="hp-go" href="app/small-move.html">לבחירת הפריטים ←</a>
+            <a class="hp-go" href="app/small-move.html">לבחירת הפריטים</a>
             <p class="svc-note">גדול מדי לטנדר? מד הנפח בזרימה עוצר, וכדאי לעבור למעבר דירה.</p>
           </div>
 
@@ -689,7 +689,7 @@
             <p>פריט שכבר לא צריך לא חייב להגיע לפח. מפרסמים אותו כאן, ומי שגר קרוב בא לקחת אותו.</p>
             <p>אפס כסף — לא מוכרים ולא קונים, ולא עוברים בלוח כספים בכלל.</p>
             <p>ואם מה שלקחתם גדול מכדי להרים לבד, אפשר להזמין לו הובלה כהזמנת מובילים בקטנה רגילה.</p>
-            <a class="hp-go" href="app/marketplace.html">כנסו לראות מה יש ←</a>
+            <a class="hp-go" href="app/marketplace.html">כנסו לראות מה יש</a>
             <p class="svc-note">לצפייה בלוח לא צריך חשבון. חשבון נדרש רק כשמבקשים פריט או מוסרים אחד.</p>
           </div>
         </div>

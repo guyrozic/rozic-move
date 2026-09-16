@@ -27,8 +27,8 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="../style.css?v=a59589a2">
-  <link rel="stylesheet" href="style-app.css?v=232d590a">
+  <link rel="stylesheet" href="../style.css?v=93d67ba9">
+  <link rel="stylesheet" href="style-app.css?v=51e8347f">
   <style>
     .listing-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 12px; }
     .listing-card { background: var(--white); border: 1px solid var(--border); border-radius: 16px; overflow: hidden; cursor: pointer; text-align: right; box-shadow: var(--shadow-1); transition: transform 0.25s var(--ease), box-shadow 0.25s var(--ease), border-color 0.25s var(--ease); }
@@ -63,7 +63,7 @@
   </style>
 </head>
 <body class="app-body">
-<div data-build-stamp class="build-stamp" aria-hidden="true">עודכן 15.09 · 23:56</div>
+<div data-build-stamp class="build-stamp" aria-hidden="true">עודכן 16.09 · 12:06</div>
   <!-- ⚠️ 15.9 — "דלג לתוכן המרכזי" (WCAG 2.4.1, רמה A). זהו האלמנט הממוקד
        הראשון בדף: מוסתר מהעין, מופיע בפינה ברגע שמגיעים אליו ב-Tab, ומעביר
        את המיקוד אל <main id="main-content" tabindex="-1">. בלי ה-tabindex
@@ -362,7 +362,7 @@
           ${listing.status === 'sold' ? '<div class="alert alert-info">כבר נמסר</div>' :
             isOwner ? '<div class="alert alert-info">זו המודעה שלך</div>' :
             !myUid ? `<p class="app-card-desc" style="margin-bottom:10px;">כדי לבקש את הפריט צריך חשבון — כך המוסר יודע מי פונה אליו. זה לוקח דקה, ואנחנו נחזיר אתכם בדיוק לפריט הזה.</p>
-                      <button class="btn btn-primary btn-block" id="guest-want-btn" tabindex="0">אני רוצה את הפריט ←</button>` :
+                      <button class="btn btn-primary btn-block" id="guest-want-btn" tabindex="0">אני רוצה את הפריט</button>` :
             '<button class="btn btn-primary btn-block" disabled>טוען פרטי קשר…</button>'}
         </div>
       `;

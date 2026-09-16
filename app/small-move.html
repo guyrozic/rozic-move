@@ -44,7 +44,7 @@
   </style>
 </head>
 <body class="app-body">
-<div data-build-stamp class="build-stamp" aria-hidden="true">עודכן 16.09 · 11:05</div>
+<div data-build-stamp class="build-stamp" aria-hidden="true">עודכן 16.09 · 12:06</div>
   <!-- ⚠️ 15.9 — "דלג לתוכן המרכזי" (WCAG 2.4.1, רמה A). זהו האלמנט הממוקד
        הראשון בדף: מוסתר מהעין, מופיע בפינה ברגע שמגיעים אליו ב-Tab, ומעביר
        את המיקוד אל <main id="main-content" tabindex="-1">. בלי ה-tabindex
@@ -267,7 +267,7 @@
             </label>
             <div class="terms-error" id="terms-error" role="alert"></div>
           </div>
-          <button tabindex="0" class="btn btn-primary btn-block" id="submit-btn" disabled>מעבר לתשלום ←</button>
+          <button tabindex="0" class="btn btn-primary btn-block" id="submit-btn" disabled>מעבר לתשלום</button>
           <button tabindex="0" class="btn-text" id="back-to-3">→ חזרה</button>
         </section>
 
@@ -1146,7 +1146,7 @@
        */
       const stuckTimer = setTimeout(() => {
         if (!btn.disabled) return;
-        btn.disabled = false; btn.textContent = 'מעבר לתשלום ←';
+        btn.disabled = false; btn.textContent = 'מעבר לתשלום';
         errBox.innerHTML = '<div class="alert alert-error">לא קיבלנו אישור מהשרת. '
           + 'בדקו את החיבור ונסו שוב — ההזמנה לא נוצרה פעמיים גם אם תלחצו שוב.</div>';
       }, 20000);
@@ -1186,7 +1186,7 @@
       } catch (err) {
         clearTimeout(stuckTimer);
         errBox.innerHTML = '<div class="alert alert-error">יצירת ההזמנה נכשלה. נסה שוב.</div>';
-        btn.disabled = false; btn.textContent = 'מעבר לתשלום ←';
+        btn.disabled = false; btn.textContent = 'מעבר לתשלום';
       }
     });
 
