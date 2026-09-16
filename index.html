@@ -345,6 +345,14 @@
   .tool-list .accgrid { gap:7px; }
   .tool-list .acc ul { gap:2px; }
   .tool-list .coln { margin-bottom:3px; padding-bottom:2px; }
+  /* מובילים בקטנה — "מנקודה לנקודה". השדות בחזית כי הם שקובעים מחיר. */
+  .sm-lede { font-size:.93rem; color:var(--text-mid); line-height:1.55; margin:0 0 14px; }
+  .sm-fields { display:grid; grid-template-columns:1fr 1fr; gap:9px; margin-bottom:15px; }
+  @media (max-width:560px){ .sm-fields { grid-template-columns:1fr; } }
+  .sm-f { border:1.5px solid var(--border); border-radius:11px; padding:10px 12px;
+    background:var(--bg); }
+  .sm-f span { display:block; font-size:.74rem; font-weight:800; color:var(--text-muted); }
+  .sm-f b { display:block; font-size:.88rem; font-weight:700; margin-top:2px; }
   .list-foot { margin-top:auto; padding-top:11px; display:flex;
     flex-direction:column; align-items:stretch;
     /* 13.5px = מסגרת 1.5 + ריפוד 12 של .acc — כדי שהמחיר והכפתור
@@ -430,7 +438,7 @@
      שיחליף אותם; בלי הסימון הזה הם נעלמו גם בחמשת הדפים המשפטיים,
      בלי שום דרך להגיע אליהם (WCAG 1.4.4). -->
 <body class="has-nav-menu hp-home">
-<div data-build-stamp class="build-stamp" aria-hidden="true">עודכן 16.09 · 12:06</div>
+<div data-build-stamp class="build-stamp" aria-hidden="true">עודכן 16.09 · 12:45</div>
   <!-- ⚠️ 15.9 — "דלג לתוכן המרכזי" (WCAG 2.4.1, רמה A). זהו האלמנט הממוקד
        הראשון בדף: מוסתר מהעין, מופיע בפינה ברגע שמגיעים אליו ב-Tab, ומעביר
        את המיקוד אל <main id="main-content" tabindex="-1">. בלי ה-tabindex
@@ -672,12 +680,25 @@
                נוחתים על ראש הדף. וחשוב מזה — הסריקה והרשימה שבכלי הן
                דירה שלמה על שלושה חדרים, כלומר בדיוק מה ש"מובילים בקטנה"
                **אינו**. -->
-          <div class="svc-panel" id="hp-view-small" hidden>
-            <h2>מובילים בקטנה</h2>
-            <p>פריטים בודדים ולא דירה שלמה — ספה, מקרר, מכונת כביסה, ארון או כמה ארגזים. מוביל עם טנדר מגיע, מרים ומעביר.</p>
-            <p>בוחרים את הפריטים מהקטלוג או מצלמים אותם, ומוסיפים כתובות, קומות ותאריך — המחיר מתקבל לפני האישור.</p>
-            <a class="hp-go" href="app/small-move.html">לבחירת הפריטים</a>
-            <p class="svc-note">גדול מדי לטנדר? מד הנפח בזרימה עוצר, וכדאי לעבור למעבר דירה.</p>
+          <div class="svc-panel sm-route" id="hp-view-small" hidden>
+            <!-- ⚠️ 16.9 — כיוון "מנקודה לנקודה" שגיא בחר. מה שקובע את המחיר
+                 ואת הכאב בהעברת ספה אחת הוא לא הרשימה אלא **הקומה, המעלית
+                 והמרחק** — ובזרימה הקיימת הם נשאלים רק בשלב השלישי. כאן הם
+                 בחזית, וזה גם מה שמסביר במשפט אחד למה השירות הזה שונה
+                 ממעבר דירה: נסיעה אחת בין שתי כתובות, לא פינוי בית.
+                 ⚠️ בלי איור — גיא פסל את המשאית שנוסעת בין בניינים. -->
+            <h2>מנקודה לנקודה</h2>
+            <p class="sm-lede">נסיעה אחת בין שתי כתובות — לא פינוי בית. מה שקובע
+              את המחיר הוא הקומה, המעלית והמרחק, ולכן שואלים אותם ראשונים.</p>
+            <div class="sm-fields">
+              <div class="sm-f"><span>מאיפה</span><b>כתובת, קומה, מעלית</b></div>
+              <div class="sm-f"><span>לאן</span><b>כתובת, קומה, מעלית</b></div>
+              <div class="sm-f"><span>מתי</span><b>תאריך</b></div>
+              <div class="sm-f"><span>מה מעבירים</span><b>מהרשימה, בצילום או במילים</b></div>
+            </div>
+            <a class="hp-go" href="app/small-move.html">להתחלה</a>
+            <p class="svc-note">עד מה שנכנס לטנדר אחד — כ-3 פריטים גדולים או עשרה קטנים.
+              יותר מזה הוא מעבר דירה, ויש לו מסך משלו.</p>
           </div>
 
           <!-- ══ לוח "מעבירים את זה הלאה" — מחליף את הכלי כששירות זה נבחר ══
