@@ -388,16 +388,21 @@
   .sm-step .ic svg { width:18px; height:18px; stroke:var(--green); fill:none; stroke-width:1.8; }
   .sm-step b { display:block; font-size:.86rem; font-weight:800; }
   .sm-step i { display:block; font-style:normal; font-size:.75rem; color:var(--text-muted); margin-top:2px; }
-  .sm-list { border:1.5px solid var(--green-line); border-radius:12px;
-    background:var(--green-tint); padding:10px 12px 11px; }
-  .sm-list-t { font-size:.82rem; font-weight:800; color:var(--green-ink); margin:0; }
-  .sm-ways { display:flex; gap:8px; flex-wrap:wrap; margin-top:11px; }
-  .sm-way { display:inline-flex; align-items:center; gap:6px; min-height:44px;
-    padding:8px 13px; border-radius:999px; background:var(--white);
-    border:1.5px solid var(--border); font-size:.85rem; font-weight:700;
+  /* ⚠️ גיא ביקש שהקופסה תקבל יותר נפח, ושורת המחיר הוסרה כי היא כבר
+     נאמרת ב"מאיפה לאן". הקופסה גדלה לתוך המקום שהתפנה. */
+  .sm-list { border:2px solid var(--green-line); border-radius:14px;
+    background:var(--green-tint); padding:15px 16px 16px; flex:1 1 auto;
+    display:flex; flex-direction:column; justify-content:center; }
+  .sm-list-t { font-size:.95rem; font-weight:800; color:var(--green-ink); margin:0; }
+  .sm-ways { display:flex; gap:9px; flex-wrap:wrap; margin-top:14px; }
+  .sm-way { display:inline-flex; align-items:center; gap:7px; min-height:48px;
+    padding:11px 17px; border-radius:999px; background:var(--white);
+    border:1.5px solid var(--border); font-size:.92rem; font-weight:700;
     color:var(--text); text-decoration:none; }
-  .sm-way svg { width:16px; height:16px; stroke:var(--green); fill:none; stroke-width:1.9; }
-  .sm-foot { margin-top:auto; padding-top:12px; }
+  .sm-way svg { width:18px; height:18px; stroke:var(--green); fill:none; stroke-width:1.9; }
+  /* flex-end ב-RTL = שמאל. גיא: "את הכפתור אפשר להזיז שמאלה". */
+  .sm-foot { padding-top:13px; display:flex; }
+  .sm-foot .hp-go { margin-inline-start:auto; margin-inline-end:0; }
   .list-foot { margin-top:auto; padding-top:11px; display:flex;
     flex-direction:column; align-items:stretch;
     /* 13.5px = מסגרת 1.5 + ריפוד 12 של .acc — כדי שהמחיר והכפתור
@@ -486,7 +491,7 @@
      שיחליף אותם; בלי הסימון הזה הם נעלמו גם בחמשת הדפים המשפטיים,
      בלי שום דרך להגיע אליהם (WCAG 1.4.4). -->
 <body class="has-nav-menu hp-home">
-<div data-build-stamp class="build-stamp" aria-hidden="true">עודכן 16.09 · 13:31</div>
+<div data-build-stamp class="build-stamp" aria-hidden="true">עודכן 16.09 · 13:40</div>
   <!-- ⚠️ 15.9 — "דלג לתוכן המרכזי" (WCAG 2.4.1, רמה A). זהו האלמנט הממוקד
        הראשון בדף: מוסתר מהעין, מופיע בפינה ברגע שמגיעים אליו ב-Tab, ומעביר
        את המיקוד אל <main id="main-content" tabindex="-1">. בלי ה-tabindex
@@ -782,7 +787,6 @@
                   </div>
                 </div>
                 <div class="sm-foot">
-                  <p class="svc-note">המחיר הסופי נקבע בהזמנה — לפי פריטים, כתובות ותאריך.</p>
                   <a class="hp-go" href="app/small-move.html">לבחירת הפריטים</a>
                 </div>
               </div>
