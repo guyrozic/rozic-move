@@ -83,16 +83,61 @@
   .warn { background:var(--pilot-bg); border:1px solid var(--pilot-border); border-radius:12px;
     padding:14px 17px; margin-top:14px; color:var(--amber-strong); font-size:.88rem; }
   .warn b { color:var(--amber-strong); }
+
+  /* ── כיוון ד: שני מסלולים לא-שווים ── */
+  .split { display:grid; grid-template-columns:minmax(0,7fr) minmax(0,3fr);
+    gap:12px; margin-bottom:12px; align-items:stretch; }
+  @media (max-width:720px){ .split { grid-template-columns:1fr; } }
+  .lane-main { border:1.5px solid var(--border); border-radius:14px; background:var(--bg);
+    padding:13px 13px 14px; display:flex; flex-direction:column; }
+  .lane-side { border:2px solid var(--green-line); border-radius:14px; background:var(--green-tint);
+    padding:15px 14px; display:flex; flex-direction:column; }
+  .lane-head { display:flex; align-items:baseline; justify-content:space-between;
+    gap:8px; margin-bottom:10px; }
+  .lane-head b { font-size:.98rem; font-weight:900; }
+  .lane-head span { font-size:.76rem; color:var(--text-muted); font-weight:700; }
+  .board3 { display:grid; grid-template-columns:repeat(3,1fr); gap:9px; }
+  @media (max-width:720px){ .board3 { grid-template-columns:repeat(2,1fr); } }
+  .lane-side b.t { font-size:.98rem; font-weight:900; color:var(--green-ink);
+    display:block; margin-bottom:5px; line-height:1.3; }
+  .lane-side p.d { font-size:.83rem; color:var(--text-mid); line-height:1.55; margin:0 0 12px; }
+  .side-go { display:flex; width:100%; justify-content:center; align-items:center;
+    background:var(--green); color:#fff; font-family:inherit; font-weight:800;
+    font-size:.92rem; padding:12px 14px; border-radius:11px; border:0; min-height:44px;
+    margin-top:auto; }
+  .side-fine { font-size:.75rem; color:var(--text-muted); line-height:1.5;
+    margin:9px 0 0; text-align:center; }
+  .want { display:flex; width:100%; justify-content:center; align-items:center;
+    margin-top:7px; background:var(--white); border:1.5px solid var(--green-line);
+    color:var(--green-ink); font-family:inherit; font-weight:800; font-size:.76rem;
+    padding:7px 8px; border-radius:9px; min-height:32px; }
+  .status { display:flex; align-items:center; gap:8px; background:var(--white);
+    border:1.5px solid var(--green-line); border-radius:11px; padding:9px 12px;
+    margin-bottom:10px; font-size:.83rem; color:var(--text-mid); line-height:1.45; }
+  .status b { color:var(--green-ink); font-weight:800; }
+  .key { flex:0 0 auto; width:26px; height:26px; border-radius:8px; background:var(--green-tint);
+    border:1px solid var(--green-line); display:flex; align-items:center; justify-content:center; }
+  .key svg { width:15px; height:15px; stroke:var(--green-ink); fill:none; stroke-width:1.9; }
+  .haul { display:flex; align-items:center; gap:12px; border:1.5px dashed var(--green-line);
+    border-radius:12px; padding:12px 15px; background:var(--white); }
+  .haul .ic { flex:0 0 auto; width:38px; height:38px; border-radius:10px;
+    background:var(--green-tint); display:flex; align-items:center; justify-content:center; }
+  .haul .ic svg { width:21px; height:21px; stroke:var(--green-ink); fill:none; stroke-width:1.7; }
+  .haul p { margin:0; font-size:.86rem; color:var(--text-mid); line-height:1.55; }
+  .haul p b { color:var(--text); font-weight:800; }
+  .haul p em { font-style:normal; color:var(--green-ink); font-weight:800; }
 </style>
 </head>
 <body>
-<div data-build-stamp class="build-stamp" aria-hidden="true">עודכן 16.09 · 12:42</div>
+<div data-build-stamp class="build-stamp" aria-hidden="true">עודכן 16.09 · 13:40</div>
 <a class="skip-link" href="#main-content">דלג לתוכן המרכזי</a>
 <svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
  <symbol id="i-chair" viewBox="0 0 24 24"><path d="M6 20v-6h12v6M7 14V6a2 2 0 0 1 2-2h6a2 2 0 0 1 2 2v8M8 20v2M16 20v2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
  <symbol id="i-table" viewBox="0 0 24 24"><path d="M3 9h18v3H3zM6 12v8M18 12v8" stroke-linecap="round" stroke-linejoin="round"/></symbol>
  <symbol id="i-shelf" viewBox="0 0 24 24"><path d="M5 3h14v18H5zM5 9h14M5 15h14" stroke-linecap="round" stroke-linejoin="round"/></symbol>
  <symbol id="i-box" viewBox="0 0 24 24"><path d="M3 7h18v13H3zM3 7l3-4h12l3 4M12 7v13" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+ <symbol id="i-truck" viewBox="0 0 24 24"><path d="M2 7h11v9H2zM13 10h4l3 3v3h-7M6 19a2 2 0 1 0 0-4 2 2 0 0 0 0 4M17 19a2 2 0 1 0 0-4 2 2 0 0 0 0 4" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+ <symbol id="i-key" viewBox="0 0 24 24"><path d="M15 7a4 4 0 1 0-3.5 3.97L9 13.5v2h2v2h2v-2l1.5-1.5A4 4 0 0 0 15 7M16 6.5h.01" stroke-linecap="round" stroke-linejoin="round"/></symbol>
 </defs></svg>
 
 <main id="main-content" tabindex="-1">
@@ -167,22 +212,89 @@
   <p class="note">לקחתם משהו גדול מדי להרים לבד? אפשר להזמין לו הובלה כהזמנת מובילים בקטנה.</p>
 </div>
 
+
+<!-- ═══ ד1 ═══ -->
+<div class="lbl"><h2>ד1 · הלוח הוא הדף</h2><span>המסירה יושבת בצד, שקטה, ולא חוסמת.</span></div>
+<p class="why">שני מסלולים — אבל <b>לא שווים</b>. הלוח מקבל 70% מהשטח כי הוא מה שמושך אנשים פנימה, והמסירה היא רובריקה צרה לצידו. ⚠️ התנאי לא מוצג ככותרת ולא כ״תן וקח״ — הוא <b>שורה אחת קטנה</b> מתחת לכפתור המסירה, במקום שבו הוא נקרא כמידע ולא כאזהרה.</p>
+<div class="card">
+  <div class="chips"><span class="chip">מעבר דירה</span><span class="chip">מובילים בקטנה</span><span class="chip on">מעבירים את זה הלאה</span></div>
+  <h3 class="q">מה מחכה בלוח עכשיו</h3>
+  <p class="sub">הכול בחינם. מי שגר קרוב בא ולוקח.</p>
+  <div class="split">
+    <div class="lane-main">
+      <div class="lane-head"><b>פריטים באזור שלכם</b><span>מתעדכן כל הזמן</span></div>
+      <div class="board3">
+        <div class="it"><div class="ph"><svg aria-hidden="true" focusable="false"><use href="#i-chair"/></svg></div><div class="tx"><b>כורסה, מצב טוב</b><i>תל אביב</i><span class="free">חינם</span></div></div><div class="it"><div class="ph"><svg aria-hidden="true" focusable="false"><use href="#i-table"/></svg></div><div class="tx"><b>שולחן אוכל</b><i>רמת גן</i><span class="free">חינם</span></div></div><div class="it"><div class="ph"><svg aria-hidden="true" focusable="false"><use href="#i-shelf"/></svg></div><div class="tx"><b>מדף ספרים</b><i>גבעתיים</i><span class="free">חינם</span></div></div>
+        <div class="it"><div class="ph"><svg aria-hidden="true" focusable="false"><use href="#i-box"/></svg></div><div class="tx"><b>ארגז כלים</b><i>רמת גן</i><span class="free">חינם</span></div></div><div class="it"><div class="ph"><svg aria-hidden="true" focusable="false"><use href="#i-chair"/></svg></div><div class="tx"><b>כיסא עבודה</b><i>תל אביב</i><span class="free">חינם</span></div></div><div class="it ghost"><div class="ph"><svg aria-hidden="true" focusable="false"><use href="#i-box"/></svg></div><div class="tx"><b>עוד בדרך</b><i>הלוח צעיר</i></div></div>
+      </div>
+    </div>
+    <div class="lane-side">
+      <b class="t">יש לכם מה למסור?</b>
+      <p class="d">תמונה, שם הפריט וכתובת — ומי שגר קרוב בא לקחת.</p>
+      <button class="side-go">לפרסום פריט</button>
+      <p class="side-fine">פרסום פריט אחד פותח גם את הבקשות בלוח</p>
+    </div>
+  </div>
+  <div class="haul"><div class="ic"><svg aria-hidden="true" focusable="false"><use href="#i-truck"/></svg></div><p>מצאתם משהו שאהבתם? <b>אנחנו יכולים לעזור לכם להוביל אותו.</b> מעדיפים בעצמכם? <em>לגמרי סבבה — ובחינם.</em></p></div>
+</div>
+
+<!-- ═══ ד2 ═══ -->
+<div class="lbl"><h2>ד2 · אותו יחס, והתנאי כמפתח</h2><span>לא חוק שחוסם — שורת מצב אישית.</span></div>
+<p class="why">אותו 70/30 בדיוק, ושני הבדלים: לכל פריט יש <b>״אני רוצה״ ישירות בלוח</b>, ומעל הלוח יושבת <b>שורת מצב אישית</b> שאומרת איפה אתם עומדים. ⚠️ זה הופך את התנאי ממשהו שמסרבים לכם בגללו למשהו <b>שאתם פותחים</b> — ומי שכבר מסר רואה שם אישור במקום תנאי.</p>
+<div class="card">
+  <div class="chips"><span class="chip">מעבר דירה</span><span class="chip">מובילים בקטנה</span><span class="chip on">מעבירים את זה הלאה</span></div>
+  <h3 class="q">מה מחכה בלוח עכשיו</h3>
+  <p class="sub">הכול בחינם. מי שגר קרוב בא ולוקח.</p>
+  <div class="split">
+    <div class="lane-main">
+      <div class="status"><span class="key"><svg aria-hidden="true" focusable="false"><use href="#i-key"/></svg></span>
+        <span>אפשר לעיין חופשי. <b>פריט אחד שתמסרו</b> פותח את הבקשות בלוח.</span></div>
+      <div class="board3">
+        <div class="it"><div class="ph"><svg aria-hidden="true" focusable="false"><use href="#i-chair"/></svg></div><div class="tx"><b>כורסה, מצב טוב</b><i>תל אביב</i><span class="free">חינם</span><button class="want">אני רוצה</button></div></div><div class="it"><div class="ph"><svg aria-hidden="true" focusable="false"><use href="#i-table"/></svg></div><div class="tx"><b>שולחן אוכל</b><i>רמת גן</i><span class="free">חינם</span><button class="want">אני רוצה</button></div></div><div class="it"><div class="ph"><svg aria-hidden="true" focusable="false"><use href="#i-shelf"/></svg></div><div class="tx"><b>מדף ספרים</b><i>גבעתיים</i><span class="free">חינם</span><button class="want">אני רוצה</button></div></div>
+        <div class="it"><div class="ph"><svg aria-hidden="true" focusable="false"><use href="#i-box"/></svg></div><div class="tx"><b>ארגז כלים</b><i>רמת גן</i><span class="free">חינם</span><button class="want">אני רוצה</button></div></div><div class="it"><div class="ph"><svg aria-hidden="true" focusable="false"><use href="#i-chair"/></svg></div><div class="tx"><b>כיסא עבודה</b><i>תל אביב</i><span class="free">חינם</span><button class="want">אני רוצה</button></div></div><div class="it ghost"><div class="ph"><svg aria-hidden="true" focusable="false"><use href="#i-box"/></svg></div><div class="tx"><b>עוד בדרך</b><i>הלוח צעיר</i></div></div>
+      </div>
+    </div>
+    <div class="lane-side">
+      <b class="t">מוסרים פריט</b>
+      <p class="d">דקה אחת: תמונה, שם וכתובת. מכאן זה כבר רץ לבד.</p>
+      <button class="side-go">לפרסום פריט</button>
+      <p class="side-fine">אפשר גם רק לתת, בלי לקחת כלום</p>
+    </div>
+  </div>
+  <div class="haul"><div class="ic"><svg aria-hidden="true" focusable="false"><use href="#i-truck"/></svg></div><p>מצאתם משהו שאהבתם? <b>אנחנו יכולים לעזור לכם להוביל אותו.</b> מעדיפים בעצמכם? <em>לגמרי סבבה — ובחינם.</em></p></div>
+</div>
+
 <div class="close">
-  <b>ההבדל היחיד בין השלושה הוא מתי התנאי נאמר</b> — בפתח (א׳), ברגע הרצון (ב׳),
-  או כהיגיון של הדבר עצמו (ג׳). ההמלצה שלי היא <b>ג׳</b>: הוא היחיד שבו התנאי
-  לא נקרא כמחסום אלא כהסבר, והוא גם היחיד שמצב-ריק לא שובר אותו.
+  <b>ד1 ו-ד2 הם אותו יחס שטח — הלוח 70%, המסירה 30%.</b> ההבדל היחיד ביניהם
+  הוא איפה התנאי חי: ב-ד1 הוא שורת מידע קטנה מתחת לכפתור המסירה, וב-ד2 הוא
+  שורת מצב אישית מעל הלוח, עם ״אני רוצה״ על כל פריט. ההמלצה שלי היא <b>ד2</b> —
+  שורת המצב היא המקום היחיד שבו התנאי נקרא כמשהו שפותחים ולא כמשהו שחוסמים בו,
+  והיא גם הופכת למשפט אישור למי שכבר מסר.
+  <br><br>
+  א׳–ג׳ נשארים למעלה להשוואה בלבד. <b>ג׳ נפסל</b> — "תן וקח" קלישאתי מדי.
+
+  <div class="warn">
+    ⚠️ <b>שורת ההובלה מבטיחה משהו שעדיין לא קיים.</b>
+    <br><br>
+    בדקתי באפליקציה: במסך פריט בלוח
+    (<code>ListingDetailsScreen</code>) הכפתור היחיד מוביל ל<b>פרסום פריט למסירה</b>,
+    ואין שום מעבר משם להזמנת הובלה. כלומר <b>"אנחנו יכולים לעזור לכם להוביל
+    אותו" אינו בנוי</b> — לא באפליקציה ולא באתר.
+    <br><br>
+    מה נדרש כדי שזה יהיה אמיתי: כפתור במסך הפריט שפותח הזמנת <b>מובילים בקטנה</b>
+    עם הפריט, כתובת האיסוף וכתובת היעד כבר ממולאים. זו הזרימה הקיימת — צריך רק
+    נקודת כניסה אליה. <b>עד שזה נבנה, השורה הזו לא יכולה לעלות לאתר החי.</b>
+  </div>
 
   <div class="warn">
     ⚠️ <b>שתי מלכודות בתנאי עצמו, לפני שבונים אותו:</b>
     <br><br>
     <b>1. איכות.</b> כשחייבים לתת כדי לקחת, אנשים מפרסמים זבל כדי "לפתוח"
-    את הלוח. זו תופעה מוכרת בלוחות מבוססי־הדדיות, והתוצאה היא לוח מלא
-    בפריטים שאיש לא רוצה — שגרוע יותר מלוח ריק.
+    את הלוח. התוצאה היא לוח מלא בפריטים שאיש לא רוצה — גרוע יותר מלוח ריק.
     <br><br>
-    <b>2. מי שאין לו מה לתת.</b> סטודנט שזה עתה עבר דירה או מישהו בתחילת
-    דרכו נחסמים לגמרי — ודווקא הם הקהל שהשירות הזה הכי מתאים לו.
+    <b>2. מי שאין לו מה לתת.</b> סטודנט שזה עתה עבר דירה נחסם לגמרי — ודווקא
+    הוא הקהל שהשירות הזה הכי מתאים לו. אפשר לרכך: לקיחה ראשונה בלי תנאי.
     <br><br>
-    אפשר לרכך: לאפשר לקיחה ראשונה בלי תנאי, ולהחיל אותו מהשנייה והלאה.
     ⚠️ <b>התנאי אינו קיים היום בקוד ויידרש בנייה</b> — כולל ההחלטה הזאת.
   </div>
 </div>
