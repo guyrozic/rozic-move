@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<title>מעבירים את זה הלאה — שילוב</title>
+<!-- ⚠️ noindex, לא מקושר, נמחק אחרי ההכרעה.
+     גיא פסל את "צד הנתינה" הטהור וביקש שילוב: הלוח נראה (לקוחות אוהבים
+     לראות מה נותנים בחינם), עם תנאי שכדי לקחת צריך למסור לפחות פריט אחד
+     (כדי שהלוח יתמלא), ובמקביל מסלול למי שפשוט אוהב לתת.
+     ⚠️ התנאי **אינו קיים בקוד** — זו הצעת מוצר חדשה. -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css?v=93d67ba9">
+<style>
+  body { background:#DDE4DE; }
+  .lead { max-width:900px; margin:0 auto; padding:28px 20px 6px; text-align:center; }
+  .lead h1 { font-size:1.6rem; font-weight:900; }
+  .lead p { font-size:.95rem; color:var(--text-mid); margin-top:8px; line-height:1.6; }
+  .lbl { max-width:880px; margin:34px auto 8px; padding:0 20px; }
+  .lbl h2 { font-size:1.2rem; font-weight:900; }
+  .lbl span { font-size:.89rem; color:var(--text-mid); }
+  .why { max-width:880px; margin:0 auto 10px; padding:0 20px; font-size:.86rem;
+    color:var(--text-muted); line-height:1.6; }
+  .why b { color:var(--text); }
+  .card { max-width:880px; margin:0 auto; background:var(--white); border-radius:18px;
+    padding:18px clamp(14px,2vw,22px); box-shadow:0 12px 34px rgba(20,42,34,.15); }
+  .chips { display:flex; gap:6px; flex-wrap:wrap; border-bottom:1px solid var(--border);
+    margin:0 calc(-1*clamp(14px,2vw,22px)) 14px; padding:0 clamp(14px,2vw,22px) 10px; }
+  .chip { font-size:.86rem; font-weight:700; min-height:44px; padding:8px 14px;
+    border-radius:999px; border:1.5px solid transparent; background:transparent; color:var(--text-mid); }
+  .chip.on { background:var(--green-tint); border-color:var(--green-line); color:var(--green-ink); }
+  h3.q { font-size:clamp(1.14rem,2vw,1.4rem); font-weight:900; margin:0 0 4px; }
+  p.sub { font-size:.9rem; color:var(--text-muted); margin:0 0 14px; line-height:1.5; }
+
+  .board { display:grid; grid-template-columns:repeat(4,1fr); gap:9px; margin-bottom:13px; }
+  @media (max-width:700px){ .board { grid-template-columns:repeat(2,1fr); } }
+  .it { border:1.5px solid var(--border); border-radius:12px; overflow:hidden; background:var(--white); }
+  .it .ph { height:74px; background:var(--green-light); display:flex; align-items:center; justify-content:center; }
+  .it .ph svg { width:32px; height:32px; stroke:var(--green); fill:none; stroke-width:1.7; }
+  .it .tx { padding:8px 10px 10px; }
+  .it b { display:block; font-size:.84rem; font-weight:800; }
+  .it i { display:block; font-style:normal; font-size:.74rem; color:var(--text-muted); margin-top:2px; }
+  .it .free { display:inline-block; margin-top:6px; font-size:.7rem; font-weight:800;
+    color:var(--green-ink); background:var(--green-tint); border:1px solid var(--green-line);
+    padding:2px 9px; border-radius:999px; }
+  .it.ghost { opacity:.45; }
+  .it.ghost .ph { background:var(--bg); }
+
+  .gate { background:var(--green-tint); border:1.5px solid var(--green-line); border-radius:13px;
+    padding:13px 15px; margin-bottom:13px; }
+  .gate b { display:block; font-size:.95rem; font-weight:800; color:var(--green-ink); margin-bottom:3px; }
+  .gate p { font-size:.85rem; color:var(--text-mid); margin:0; line-height:1.5; }
+
+  .two { display:grid; grid-template-columns:1fr 1fr; gap:11px; margin-bottom:13px; }
+  @media (max-width:620px){ .two { grid-template-columns:1fr; } }
+  .path { border:1.5px solid var(--border); border-radius:13px; padding:15px 14px; background:var(--white); }
+  .path.on { border-color:var(--green-line); border-width:2.5px; background:var(--green-tint); }
+  .path b { display:block; font-size:1rem; font-weight:800; margin-bottom:3px; }
+  .path.on b { color:var(--green-ink); }
+  .path i { font-style:normal; font-size:.83rem; color:var(--text-muted); line-height:1.45; display:block; }
+  .path u { text-decoration:none; display:block; margin-top:9px; font-size:.8rem;
+    font-weight:800; color:var(--green-ink); }
+
+  .circle { display:grid; grid-template-columns:repeat(3,1fr); gap:9px; margin-bottom:13px; }
+  @media (max-width:620px){ .circle { grid-template-columns:1fr; } }
+  .cs { border:1.5px solid var(--border); border-radius:12px; padding:12px 11px; background:var(--bg); }
+  .cs em { font-style:normal; display:block; font-size:.71rem; font-weight:800;
+    color:var(--green-ink); margin-bottom:4px; }
+  .cs b { display:block; font-size:.9rem; font-weight:800; }
+  .cs i { font-style:normal; font-size:.77rem; color:var(--text-muted); line-height:1.4; }
+
+  .go { display:flex; width:100%; justify-content:center; background:var(--green); color:#fff;
+    font-family:inherit; font-weight:800; font-size:1rem; padding:15px 20px;
+    border-radius:12px; border:0; min-height:44px; }
+  .alt { display:block; text-align:center; margin-top:10px; font-size:.84rem;
+    font-weight:700; color:var(--green-ink); }
+  .note { font-size:.8rem; color:var(--text-muted); margin:10px 0 0; line-height:1.5; }
+  .close { max-width:880px; margin:0 auto; padding:30px 20px 70px; font-size:.9rem;
+    color:var(--text-mid); line-height:1.75; }
+  .close b { color:var(--text); }
+  .warn { background:var(--pilot-bg); border:1px solid var(--pilot-border); border-radius:12px;
+    padding:14px 17px; margin-top:14px; color:var(--amber-strong); font-size:.88rem; }
+  .warn b { color:var(--amber-strong); }
+</style>
+</head>
+<body>
+<div data-build-stamp class="build-stamp" aria-hidden="true">עודכן 16.09 · 12:42</div>
+<a class="skip-link" href="#main-content">דלג לתוכן המרכזי</a>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+ <symbol id="i-chair" viewBox="0 0 24 24"><path d="M6 20v-6h12v6M7 14V6a2 2 0 0 1 2-2h6a2 2 0 0 1 2 2v8M8 20v2M16 20v2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+ <symbol id="i-table" viewBox="0 0 24 24"><path d="M3 9h18v3H3zM6 12v8M18 12v8" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+ <symbol id="i-shelf" viewBox="0 0 24 24"><path d="M5 3h14v18H5zM5 9h14M5 15h14" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+ <symbol id="i-box" viewBox="0 0 24 24"><path d="M3 7h18v13H3zM3 7l3-4h12l3 4M12 7v13" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+</defs></svg>
+
+<main id="main-content" tabindex="-1">
+  <div class="lead">
+    <h1>מעבירים את זה הלאה — שילוב</h1>
+    <p>שלושתם מראים <b>את הלוח</b>, כוללים את <b>התנאי לקחת אחרי שנתת</b>,
+       ומשאירים מסלול <b>למי שפשוט רוצה לתת</b>. ההבדל הוא מתי התנאי נאמר.</p>
+  </div>
+</main>
+
+<!-- ═══ א ═══ -->
+<div class="lbl"><h2>א · שני מסלולים, והתנאי בפתח</h2><span>כלום לא מופתע בהמשך.</span></div>
+<p class="why">הלקוח בוחר מיד מי הוא — לוקח או נותן — ו<b>התנאי כתוב לפני שהוא משקיע</b>. ⚠️ המחיר: מי שבא לראות מה יש נתקל בתנאי לפני שהתאהב בפריט, וחלק יעזבו.</p>
+<div class="card">
+  <div class="chips"><span class="chip">מעבר דירה</span><span class="chip">מובילים בקטנה</span><span class="chip on">מעבירים את זה הלאה</span></div>
+  <h3 class="q">פריט שכבר לא צריך לא חייב להגיע לפח</h3>
+  <p class="sub">לוח למסירה בחינם. אפס כסף — לא מוכרים ולא קונים.</p>
+  <div class="two">
+    <div class="path on"><b>יש לי מה לתת</b><i>מפרסמים פריט בדקה, ומי שגר קרוב בא לקחת אותו.</i><u>לפרסום פריט</u></div>
+    <div class="path"><b>אני מחפש משהו</b><i>אפשר לעיין חופשי. כדי לקחת פריט — מפרסמים קודם אחד משלכם.</i><u>לעיון בלוח</u></div>
+  </div>
+  <div class="board">
+    <div class="it"><div class="ph"><svg aria-hidden="true" focusable="false"><use href="#i-chair"/></svg></div><div class="tx"><b>כורסה</b><i>תל אביב</i><span class="free">חינם</span></div></div>
+    <div class="it"><div class="ph"><svg aria-hidden="true" focusable="false"><use href="#i-table"/></svg></div><div class="tx"><b>שולחן אוכל</b><i>רמת גן</i><span class="free">חינם</span></div></div>
+    <div class="it ghost"><div class="ph"><svg aria-hidden="true" focusable="false"><use href="#i-shelf"/></svg></div><div class="tx"><b>מדף ספרים</b><i>נלקח</i></div></div>
+    <div class="it ghost"><div class="ph"><svg aria-hidden="true" focusable="false"><use href="#i-box"/></svg></div><div class="tx"><b>עוד בדרך</b><i>הלוח צעיר</i></div></div>
+  </div>
+  <p class="note">⚠️ הלוח נבנה עכשיו. ככל שיותר אנשים מוסרים — יש יותר לכולם.</p>
+</div>
+
+<!-- ═══ ב ═══ -->
+<div class="lbl"><h2>ב · הלוח ראשון, התנאי ברגע הלקיחה</h2><span>קודם רואים, אחר כך מבינים.</span></div>
+<p class="why">הלוח הוא הגיבור — <b>לקוחות אוהבים לראות מה נותנים בחינם</b>, וזה מה שמכניס אותם. התנאי מופיע כשלוחצים "אני רוצה". ⚠️ זה הרגע עם הכי הרבה רצון — <b>אבל גם הרגע שבו תנאי מרגיש כמו מלכודת</b>. הניסוח כאן מנסה להפוך אותו להזמנה במקום לחסם.</p>
+<div class="card">
+  <div class="chips"><span class="chip">מעבר דירה</span><span class="chip">מובילים בקטנה</span><span class="chip on">מעבירים את זה הלאה</span></div>
+  <h3 class="q">מה מחכה בלוח עכשיו</h3>
+  <p class="sub">הכול בחינם. מי שגר קרוב בא ולוקח.</p>
+  <div class="board">
+    <div class="it"><div class="ph"><svg aria-hidden="true" focusable="false"><use href="#i-chair"/></svg></div><div class="tx"><b>כורסה, מצב טוב</b><i>תל אביב</i><span class="free">חינם</span></div></div>
+    <div class="it"><div class="ph"><svg aria-hidden="true" focusable="false"><use href="#i-table"/></svg></div><div class="tx"><b>שולחן אוכל</b><i>רמת גן</i><span class="free">חינם</span></div></div>
+    <div class="it"><div class="ph"><svg aria-hidden="true" focusable="false"><use href="#i-shelf"/></svg></div><div class="tx"><b>מדף ספרים</b><i>גבעתיים</i><span class="free">חינם</span></div></div>
+    <div class="it ghost"><div class="ph"><svg aria-hidden="true" focusable="false"><use href="#i-box"/></svg></div><div class="tx"><b>עוד בדרך</b><i>הלוח צעיר</i></div></div>
+  </div>
+  <div class="gate">
+    <b>רוצים את הכורסה? קודם תנו אחד משלכם</b>
+    <p>הלוח חי ממי שמוסר. פרסמו פריט אחד — גם קטן — ומאותו רגע אפשר לבקש מה שתרצו.</p>
+  </div>
+  <button class="go">לפרסום פריט, ואז לקחת</button>
+  <span class="alt">רק רוצים לתת? אפשר לפרסם בלי לקחת כלום</span>
+</div>
+
+<!-- ═══ ג ═══ -->
+<div class="lbl"><h2>ג · המעגל — התנאי הוא ההיגיון, לא חוק</h2><span>אין "חסימה", יש הסבר.</span></div>
+<p class="why">במקום להציג תנאי, מציגים <b>איך הדבר עובד</b>: נותנים ⟵ הלוח מתמלא ⟵ לוקחים. ⚠️ זה גם הכיוון שמתמודד הכי טוב עם לוח ריק — כשאין מלאי, "היו הראשונים" הוא מסר ולא תירוץ.</p>
+<div class="card">
+  <div class="chips"><span class="chip">מעבר דירה</span><span class="chip">מובילים בקטנה</span><span class="chip on">מעבירים את זה הלאה</span></div>
+  <h3 class="q">לוח שחי ממי שנותן</h3>
+  <p class="sub">לא מוכרים ולא קונים. נותנים — ומי שנתן, גם לוקח.</p>
+  <div class="circle">
+    <div class="cs"><em>1</em><b>נותנים</b><i>מצלמים פריט שלא צריך ומפרסמים בדקה</i></div>
+    <div class="cs"><em>2</em><b>הלוח מתמלא</b><i>כל פריט שנמסר מוסיף למאגר של כולם</i></div>
+    <div class="cs"><em>3</em><b>לוקחים</b><i>מי שנתן יכול לבקש כל פריט בלוח</i></div>
+  </div>
+  <div class="board">
+    <div class="it"><div class="ph"><svg aria-hidden="true" focusable="false"><use href="#i-chair"/></svg></div><div class="tx"><b>כורסה</b><i>תל אביב</i><span class="free">חינם</span></div></div>
+    <div class="it"><div class="ph"><svg aria-hidden="true" focusable="false"><use href="#i-table"/></svg></div><div class="tx"><b>שולחן אוכל</b><i>רמת גן</i><span class="free">חינם</span></div></div>
+    <div class="it ghost"><div class="ph"><svg aria-hidden="true" focusable="false"><use href="#i-box"/></svg></div><div class="tx"><b>המקום שלכם</b><i>היו הראשונים באזור</i></div></div>
+    <div class="it ghost"><div class="ph"><svg aria-hidden="true" focusable="false"><use href="#i-box"/></svg></div><div class="tx"><b>המקום שלכם</b><i>היו הראשונים באזור</i></div></div>
+  </div>
+  <button class="go">להעביר משהו הלאה</button>
+  <span class="alt">או לעיין בלוח לפני שמחליטים</span>
+  <p class="note">לקחתם משהו גדול מדי להרים לבד? אפשר להזמין לו הובלה כהזמנת מובילים בקטנה.</p>
+</div>
+
+<div class="close">
+  <b>ההבדל היחיד בין השלושה הוא מתי התנאי נאמר</b> — בפתח (א׳), ברגע הרצון (ב׳),
+  או כהיגיון של הדבר עצמו (ג׳). ההמלצה שלי היא <b>ג׳</b>: הוא היחיד שבו התנאי
+  לא נקרא כמחסום אלא כהסבר, והוא גם היחיד שמצב-ריק לא שובר אותו.
+
+  <div class="warn">
+    ⚠️ <b>שתי מלכודות בתנאי עצמו, לפני שבונים אותו:</b>
+    <br><br>
+    <b>1. איכות.</b> כשחייבים לתת כדי לקחת, אנשים מפרסמים זבל כדי "לפתוח"
+    את הלוח. זו תופעה מוכרת בלוחות מבוססי־הדדיות, והתוצאה היא לוח מלא
+    בפריטים שאיש לא רוצה — שגרוע יותר מלוח ריק.
+    <br><br>
+    <b>2. מי שאין לו מה לתת.</b> סטודנט שזה עתה עבר דירה או מישהו בתחילת
+    דרכו נחסמים לגמרי — ודווקא הם הקהל שהשירות הזה הכי מתאים לו.
+    <br><br>
+    אפשר לרכך: לאפשר לקיחה ראשונה בלי תנאי, ולהחיל אותו מהשנייה והלאה.
+    ⚠️ <b>התנאי אינו קיים היום בקוד ויידרש בנייה</b> — כולל ההחלטה הזאת.
+  </div>
+</div>
+</body>
+</html>
