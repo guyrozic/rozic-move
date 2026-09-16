@@ -123,10 +123,103 @@ export function subscribeToUserOrders(uid, callback) {
   });
 }
 
+/** קריאה חד-פעמית, לא מנוי חי — לדפים כמו order-rate.html שבהם מנוי חי
+ *  היה מסכן למחוק בחירות באמצע מילוי טופס אם המסמך יתעדכן משום סיבה אחרת. */
+export async function getOrder(orderId) {
+  const snap = await getDoc(doc(db, 'orders', orderId));
+  return snap.exists() ? { id: snap.id, ...snap.data() } : null;
+}
+
 export function subscribeToOrder(orderId, callback, onError) {
   return onSnapshot(doc(db, 'orders', orderId), (snap) => {
     callback(snap.exists() ? { id: snap.id, ...snap.data() } : null);
   }, onError);
+}
+
+/**
+ * חמשת שלבי ההזמנה, בניסוח הלקוח — מראה ORDER_PROGRESS_STEPS
+ * ב-src/components/OrderProgressBar.tsx (מקור אמת יחיד באפליקציה, כדי
+ * שהמסך הבא בעל ניסוח 5-שלבים אחר לעולם לא ייווצר). האתר הוא צד הלקוח
+ * בלבד, ולכן רק `label` הועתק — לא `driverLabel`.
+ */
+export const ORDER_PROGRESS_STEPS = [
+  { status: 'pending', label: 'מחפשים מוביל' },
+  { status: 'assigned', label: 'מוביל שובץ' },
+  { status: 'en_route', label: 'המוביל בדרך אליך' },
+  { status: 'in_progress', label: 'המוביל מבצע את ההובלה' },
+  { status: 'completed', label: 'ההובלה הושלמה' },
+];
+
+/**
+ * הלקוח מאשר את דיווח הסיום של המוביל — הפעולה היחידה שבאמת משלימה
+ * את ההזמנה. מראה customerConfirmCompletion() ב-orders.ts.
+ *
+ * ⚠️ לא בדיקה מקומית: firestore.rules (`completingIsCustomerConfirmOnly`)
+ * מתירות את המעבר ל-'completed' רק כשההזמנה כבר 'in_progress' וכבר
+ * `driverConfirmedCompletion == true` — אכיפה בשרת, לא כאן.
+ */
+export async function customerConfirmCompletion(orderId) {
+  await updateDoc(doc(db, 'orders', orderId), { status: 'completed' });
+}
+
+/**
+ * הלקוח מדרג את המוביל אחרי השלמה — מראה submitRating(orderId,'customer',…)
+ * ב-orders.ts. האתר הוא צד הלקוח בלבד, ולכן raterRole מקובע מראש.
+ *
+ * firestore.rules (`customerRatesDriverOnly`) מתירות ללקוח לכתוב רק
+ * `driverRating` (1–5) ו-`customerFeedback` — לא `customerRating`
+ * ולא `driverFeedback`, ששייכים לצד המוביל.
+ */
+export async function submitCustomerRating(orderId, score, feedback = {}) {
+  const updates = { driverRating: score };
+  const feedbackData = {};
+  if (feedback.tags?.length) feedbackData.ratingTags = feedback.tags;
+  if (feedback.text?.trim()) feedbackData.ratingText = feedback.text.trim();
+  if (typeof feedback.appScore === 'number') feedbackData.appScore = feedback.appScore;
+  if (feedback.appText?.trim()) feedbackData.appText = feedback.appText.trim();
+  if (Object.keys(feedbackData).length > 0) updates.customerFeedback = feedbackData;
+  await updateDoc(doc(db, 'orders', orderId), updates);
+}
+
+/**
+ * מיקום המוביל בזמן אמת, כפי שהאפליקציה מפרסמת אותו — מראה
+ * subscribeToDriverLocation() ב-src/services/location.ts. **אותו שדה
+ * ממש** על מסמך ההזמנה (`orders/{id}.driverLocation`), לא תת-אוסף:
+ * המוביל כותב אליו ישירות מהאפליקציה, ולכן אין צורך בכתיבה מהאתר.
+ */
+export function subscribeToDriverLocation(orderId, callback) {
+  return onSnapshot(doc(db, 'orders', orderId), (snap) => {
+    callback(snap.exists() ? (snap.data().driverLocation ?? null) : null);
+  }, () => callback(null));
+}
+
+/** עד גיל זה המיקום נחשב חי. מראה LOCATION_LIVE_MS ב-location.ts. */
+export const LOCATION_LIVE_MS = 75_000;
+/** מעבר לזה כבר לא מדובר בהפרעה רגעית אלא במעקב שמושהה. מראה LOCATION_LOST_MS. */
+export const LOCATION_LOST_MS = 5 * 60_000;
+
+/** מראה getLocationFreshness() ב-location.ts. `null` = אין מיקום בכלל. */
+export function locationFreshness(loc, now = Date.now()) {
+  if (!loc) return null;
+  const ts = loc.updatedAt;
+  if (!ts || typeof ts.toMillis !== 'function') return 'stale';
+  const age = Math.max(0, now - ts.toMillis());
+  if (age < LOCATION_LIVE_MS) return 'live';
+  if (age < LOCATION_LOST_MS) return 'stale';
+  return 'lost';
+}
+
+/** "לפני 4 דקות" / "לפני רגע" — מראה formatLocationAge() ב-location.ts. */
+export function formatLocationAge(loc, now = Date.now()) {
+  const ts = loc?.updatedAt;
+  if (!ts || typeof ts.toMillis !== 'function') return 'לא ידוע מתי';
+  const ageMs = Math.max(0, now - ts.toMillis());
+  const minutes = Math.floor(ageMs / 60_000);
+  if (minutes < 1) return 'לפני פחות מדקה';
+  if (minutes === 1) return 'לפני דקה';
+  if (minutes < 60) return `לפני ${minutes} דקות`;
+  const hours = Math.floor(minutes / 60);
+  return hours === 1 ? 'לפני שעה' : `לפני ${hours} שעות`;
 }
 
 const CUSTOMER_CANCEL_URL = 'https://us-central1-hovalot-6cf65.cloudfunctions.net/customerCancelOrder';

@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ROZIC MOVE — צ'אט עם המוביל</title>
+  <meta name="robots" content="noindex, follow">
+
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="ROZIC MOVE">
+  <meta property="og:locale" content="he_IL">
+  <meta property="og:title" content="צ'אט עם המוביל — ROZIC MOVE">
+  <meta property="og:description" content="הודעות בין הלקוח למוביל, צמודות להזמנה, ב-ROZIC MOVE.">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../style.css?v=a59589a2">
+  <link rel="stylesheet" href="style-app.css?v=232d590a">
+</head>
+<body class="app-body">
+<div data-build-stamp class="build-stamp" aria-hidden="true">עודכן 16.09 · 23:00</div>
+  <a class="skip-link" href="#main-content">דלג לתוכן המרכזי</a>
+  <script type="module" src="pilot-banner.js?v=14a0e537"></script>
+  <main id="main-content" tabindex="-1">
+
+  <div class="step-hero">
+    <div class="step-hero-inner">
+      <a href="order-status.html" id="hero-back-link" class="btn-text" style="padding:0; margin-bottom:10px; display:inline-block;">→ פרטי ההזמנה</a>
+      <h1>צ'אט עם המוביל</h1>
+      <p>הודעות צמודות להזמנה שלכם.</p>
+    </div>
+  </div>
+
+  <div class="app-container">
+    <div id="loading" class="center-loading"><span class="spinner"></span></div>
+    <div id="error-box" class="empty-state" style="display:none;"></div>
+    <div id="content" style="display:none;">
+      <div class="app-card chat-card">
+        <div class="chat-header">
+          <div class="chat-header-avatar" id="chat-avatar" aria-hidden="true">?</div>
+          <div>
+            <div class="chat-header-name" id="chat-name">המוביל</div>
+            <div class="chat-header-role">מוביל</div>
+          </div>
+        </div>
+        <div id="chat-thread" class="chat-thread" role="log" aria-live="polite" aria-label="הודעות הצ'אט"></div>
+        <form id="chat-form" class="chat-input-row">
+          <label class="sr-only" for="chat-text">הודעה</label>
+          <textarea id="chat-text" rows="1" maxlength="1000" placeholder="הקלידו הודעה..."></textarea>
+          <button type="submit" class="chat-send-btn" id="chat-send-btn" aria-label="שליחת הודעה" disabled>←</button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner container">
+      <div class="footer-brand">
+        <div class="footer-logo">ROZIC MOVE</div>
+        <p class="footer-tagline">מזיזים אותך קדימה</p>
+        <p class="footer-copy">ROZIC MOVE © 2026</p>
+      </div>
+      <div class="footer-links">
+        <div class="footer-col">
+          <div class="footer-col-title">משפטי</div>
+          <a href="/privacy.html">מדיניות פרטיות</a>
+          <a href="/terms.html">תנאי שימוש</a>
+          <a href="/accessibility.html">הצהרת נגישות</a>
+          <a href="/delete-account.html">מחיקת חשבון</a>
+        </div>
+      </div>
+    </div>
+    <div class="footer-divider"></div>
+    <div class="footer-bottom container">
+      <p>כל הזכויות שמורות · מדינת ישראל</p>
+    </div>
+  </footer>
+
+  <script type="module">
+    import { requireAuth } from './auth.js';
+    import { subscribeToOrder } from './orders.js';
+    import { getUserProfile } from './users.js';
+    import { subscribeToMessages, sendChatMessage, markChatRead } from './chat.js';
+
+    const esc = (v) => String(v ?? '')
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+
+    const authState = await requireAuth();
+    const orderId = new URLSearchParams(location.search).get('id');
+    const loadingEl = document.getElementById('loading');
+    const errorEl = document.getElementById('error-box');
+    const contentEl = document.getElementById('content');
+
+    function showError(html) {
+      loadingEl.style.display = 'none';
+      contentEl.style.display = 'none';
+      errorEl.style.display = 'block';
+      errorEl.innerHTML = html;
+    }
+
+    function formatTime(ts) {
+      if (!ts || typeof ts.toDate !== 'function') return '';
+      return ts.toDate().toLocaleTimeString('he-IL', { hour: '2-digit', minute: '2-digit' });
+    }
+
+    if (!orderId) {
+      showError('<div class="empty-icon">❓</div>לא נמצא מזהה הזמנה.');
+    } else {
+      document.getElementById('hero-back-link').href = `order-status.html?id=${encodeURIComponent(orderId)}`;
+
+      let driverLoaded = false;
+      const unsubOrder = subscribeToOrder(orderId, async (order) => {
+        if (!order) { showError('<div class="empty-icon">🚫</div>ההזמנה לא נמצאה, או שאין לך הרשאה לצפות בה.'); return; }
+        if (order.customerId !== authState.authUser.uid) { showError('<div class="empty-icon">🚫</div>אין לך הרשאה לצפות בהזמנה זו.'); return; }
+        if (!order.driverId) { showError('<div class="empty-icon">💬</div>עדיין אין מוביל משובץ להזמנה — הצ\'אט ייפתח ברגע שמוביל ישובץ.'); return; }
+
+        loadingEl.style.display = 'none';
+        errorEl.style.display = 'none';
+        contentEl.style.display = 'block';
+
+        if (!driverLoaded) {
+          driverLoaded = true;
+          const driver = await getUserProfile(order.driverId);
+          const name = driver?.name || 'המוביל';
+          document.getElementById('chat-name').textContent = name;
+          document.getElementById('chat-avatar').textContent = name.trim().charAt(0).toUpperCase() || '?';
+        }
+      }, () => showError('<div class="empty-icon">🚫</div>ההזמנה לא נמצאה, או שאין לך הרשאה לצפות בה.'));
+
+      const threadEl = document.getElementById('chat-thread');
+      const textEl = document.getElementById('chat-text');
+      const sendBtn = document.getElementById('chat-send-btn');
+      const myUid = authState.authUser.uid;
+
+      subscribeToMessages(orderId, (messages) => {
+        if (!messages.length) {
+          threadEl.innerHTML = '<div class="chat-empty">שלחו הודעה ראשונה</div>';
+        } else {
+          threadEl.innerHTML = messages.map(m => {
+            const mine = m.senderId === myUid;
+            return `<div class="chat-msg ${mine ? 'mine' : 'other'}">${esc(m.text)}<span class="chat-msg-time">${esc(formatTime(m.timestamp))}</span></div>`;
+          }).join('');
+        }
+        threadEl.scrollTop = threadEl.scrollHeight;
+        markChatRead(orderId);
+      });
+
+      function updateSendState() {
+        sendBtn.disabled = !textEl.value.trim();
+      }
+      textEl.addEventListener('input', () => {
+        updateSendState();
+        textEl.style.height = 'auto';
+        textEl.style.height = Math.min(textEl.scrollHeight, 90) + 'px';
+      });
+      textEl.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' && !e.shiftKey) {
+          e.preventDefault();
+          document.getElementById('chat-form').requestSubmit();
+        }
+      });
+      updateSendState();
+
+      document.getElementById('chat-form').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const text = textEl.value.trim();
+        if (!text) return;
+        sendBtn.disabled = true;
+        textEl.disabled = true;
+        try {
+          await sendChatMessage(orderId, myUid, authState.profile?.name || '', text);
+          textEl.value = '';
+          textEl.style.height = 'auto';
+        } catch (err) {
+          alert('ההודעה לא נשלחה. בדקו את חיבור האינטרנט ונסו שוב.');
+        } finally {
+          textEl.disabled = false;
+          updateSendState();
+          textEl.focus();
+        }
+      });
+    }
+  </script>
+</body>
+</html>

@@ -900,3 +900,145 @@
 @media (max-width: 480px) {
   .inline-form-row { flex-direction: column; align-items: stretch; }
 }
+/* ===== Post-payment depth: searching / driver card / progress / chat / track / rating =====
+   16.9 — פאזה 1 אחרי התשלום. מראה FindDriverScreen, OrderDetailsScreen,
+   TrackOrderScreen, ChatScreen ו-RatingScreen באפליקציה (Hovalot/src/screens/shared). */
+
+/* --- "מחפשים מוביל" (FindDriverScreen, מצב חיפוש) --- */
+.search-card { display: flex; flex-direction: column; gap: 14px; }
+.search-row { display: flex; align-items: center; gap: 12px; }
+.pulse-dot {
+  width: 14px; height: 14px; border-radius: 50%;
+  background: var(--green);
+  animation: pulse-dot 1.4s ease-in-out infinite;
+  flex-shrink: 0;
+}
+@keyframes pulse-dot { 0%, 100% { transform: scale(1); opacity: 1; } 50% { transform: scale(1.35); opacity: 0.55; } }
+.search-title { font-size: 1.02rem; font-weight: 800; color: var(--text); }
+.search-hint { font-size: 0.86rem; color: var(--text-muted); line-height: 1.6; }
+
+/* --- כרטיס מוביל (FindDriverScreen מצב "נמצא", OrderDetailsScreen "המוביל שלך") --- */
+.driver-card { display: flex; flex-direction: column; gap: 14px; }
+.driver-avatar-row { display: flex; align-items: center; gap: 14px; }
+.driver-avatar {
+  width: 54px; height: 54px; border-radius: 50%; flex-shrink: 0;
+  background: var(--green-light); border: 2px solid var(--green);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.3rem; font-weight: 800; color: var(--green-dark);
+}
+.driver-info { flex: 1; min-width: 0; }
+.driver-name { font-size: 1.05rem; font-weight: 800; color: var(--text); display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.driver-vehicle { font-size: 0.85rem; color: var(--text-muted); margin-top: 2px; }
+.driver-verified {
+  display: inline-block; font-size: 0.68rem; font-weight: 800;
+  color: var(--green-ink); background: var(--green-tint); border: 1px solid var(--green-line);
+  border-radius: 50px; padding: 2px 9px;
+}
+.call-btn {
+  display: block; text-align: center; text-decoration: none;
+  background: var(--green-light); border: 1px solid rgba(14,92,67,0.3);
+  border-radius: 12px; padding: 13px; font-size: 0.9rem; font-weight: 800; color: var(--green-dark);
+}
+.call-btn:hover { background: #DCEFE4; }
+.call-btn.disabled { color: var(--text-muted); background: var(--bg); border-style: dashed; cursor: default; }
+
+/* --- פס התקדמות (OrderProgressBar.tsx) --- */
+.order-progress { margin: 4px 0 18px; }
+.order-progress-track { display: flex; gap: 5px; }
+.order-progress-seg { flex: 1; height: 4px; border-radius: 2px; background: var(--border); }
+.order-progress-seg.done { background: var(--green); }
+.order-progress-label-row { display: flex; align-items: center; gap: 7px; margin-top: 9px; }
+.order-progress-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--green); animation: pulse-dot 1.4s ease-in-out infinite; }
+.order-progress-label { font-size: 0.92rem; font-weight: 800; color: var(--green-dark); }
+
+/* --- אישור סיום דו-צדדי (OrderDetailsScreen, confirmCompletionCard) --- */
+.confirm-completion-card { background: var(--green-light); border: 1.5px solid rgba(14,92,67,0.3); border-radius: var(--radius); padding: 20px; margin-bottom: 18px; text-align: center; }
+.confirm-completion-title { font-size: 1rem; font-weight: 800; color: var(--green-dark); margin-bottom: 4px; }
+.confirm-completion-sub { font-size: 0.85rem; color: var(--text-mid); margin-bottom: 14px; }
+
+/* --- כפתורי פעולה מהירה: צ'אט / מעקב --- */
+.quick-actions { display: flex; gap: 10px; margin-bottom: 18px; }
+.quick-action-btn { position: relative; flex: 1; }
+.chat-unread-badge {
+  position: absolute; top: -7px; left: -7px;
+  min-width: 19px; height: 19px; padding: 0 4px; border-radius: 50px;
+  background: var(--danger); color: var(--white);
+  font-size: 0.68rem; font-weight: 800; line-height: 19px; text-align: center;
+}
+
+/* --- שורת חשבונית בכרטיס פרטי הזמנה --- */
+.invoice-link-row { display: flex; align-items: center; justify-content: center; gap: 8px; margin-top: 14px; padding: 12px; border-radius: 12px; background: var(--bg); border: 1px solid var(--border); text-decoration: none; font-size: 0.86rem; font-weight: 700; color: var(--green-dark); }
+.invoice-link-row:hover { border-color: var(--green); }
+
+/* --- דירוג לינק בכרטיס סטטוס --- */
+.rate-link-card { text-align: center; }
+.rate-link-card p { font-size: 0.88rem; color: var(--text-mid); margin-bottom: 14px; }
+
+@media (prefers-reduced-motion: reduce) {
+  .pulse-dot, .order-progress-dot { animation: none; }
+}
+
+/* --- מעקב חי (TrackOrderScreen) --- */
+/* ⚠️ 16.9 — `direction: ltr` הכרחי: Leaflet ממקם אריחים/סמנים ב-
+   `transform: translate3d(Xpx, Ypx, 0)` שמניח קואורדינטת פיקסל שמאל-ימין.
+   בלי האיפוס הזה, בירושת `dir="rtl"` מה-<html>, סמן שמתווסף אחרי `panTo`
+   (כמו סמן המוביל, שמצטרף אחרי שהמפה כבר התמקדה על מוצא/יעד) התמקם מחוץ
+   לתצוגה — נמדד ב-Playwright, לא נוחש. */
+.track-map { height: 420px; border-radius: 14px; overflow: hidden; border: 1px solid var(--border); background: var(--bg); direction: ltr; }
+.track-panel { display: flex; align-items: center; gap: 10px; margin-top: 14px; font-size: 0.88rem; }
+.track-panel .track-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--green); flex-shrink: 0; }
+.track-panel.stale .track-dot { background: var(--amber-strong); }
+.track-panel.lost .track-dot { background: var(--danger); }
+.track-panel .track-text { color: var(--green-dark); font-weight: 700; }
+.track-panel.stale .track-text { color: var(--amber-strong); }
+.track-panel.lost .track-text { color: var(--danger); font-weight: 700; }
+.track-legend { display: flex; gap: 18px; margin-top: 12px; font-size: 0.8rem; color: var(--text-muted); }
+.track-legend span { display: inline-flex; align-items: center; gap: 6px; }
+.track-legend .dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
+.track-legend .dot.from { background: var(--green); }
+.track-legend .dot.to { background: var(--danger); }
+.track-legend .dot.driver { background: var(--navy); }
+
+/* --- צ'אט עם המוביל (ChatScreen) --- */
+.chat-card { padding: 0; overflow: hidden; display: flex; flex-direction: column; }
+.chat-header { display: flex; align-items: center; gap: 12px; padding: 18px 20px; background: var(--green); }
+.chat-header-avatar { width: 38px; height: 38px; border-radius: 50%; background: rgba(255,255,255,0.22); color: var(--white); display: flex; align-items: center; justify-content: center; font-weight: 800; flex-shrink: 0; }
+.chat-header-name { color: var(--white); font-weight: 800; font-size: 1rem; }
+.chat-header-role { color: rgba(255,255,255,0.8); font-size: 0.78rem; }
+.chat-thread { display: flex; flex-direction: column; gap: 10px; padding: 18px 20px; max-height: 440px; min-height: 200px; overflow-y: auto; }
+.chat-msg { max-width: 78%; padding: 10px 14px; border-radius: 16px; font-size: 0.88rem; line-height: 1.5; }
+.chat-msg.mine { align-self: flex-end; background: var(--green); color: var(--white); border-bottom-left-radius: 4px; }
+.chat-msg.other { align-self: flex-start; background: var(--bg); border: 1px solid var(--border); color: var(--text); border-bottom-right-radius: 4px; }
+.chat-msg .chat-msg-time { display: block; margin-top: 3px; font-size: 0.68rem; opacity: 0.75; }
+.chat-empty { text-align: center; color: var(--text-muted); padding: 30px 0; font-size: 0.88rem; }
+.chat-input-row { display: flex; gap: 10px; padding: 14px 20px; border-top: 1px solid var(--border); background: var(--white); }
+.chat-input-row textarea {
+  flex: 1; min-width: 0; resize: none; max-height: 90px;
+  border: 1.5px solid var(--border); border-radius: 12px; padding: 10px 14px;
+  font-family: inherit; font-size: 0.9rem; background: var(--bg); color: var(--text);
+}
+.chat-input-row textarea:focus { outline: none; border-color: var(--green); background: var(--white); }
+.chat-input-row textarea:focus-visible { outline: 3px solid var(--green); outline-offset: 2px; }
+.chat-send-btn {
+  width: 42px; height: 42px; border-radius: 50%; flex-shrink: 0;
+  background: var(--green); color: var(--white); border: none; cursor: pointer;
+  font-size: 1.1rem; display: flex; align-items: center; justify-content: center;
+}
+.chat-send-btn:disabled { opacity: 0.45; cursor: default; }
+
+/* --- דירוג (RatingScreen) --- */
+.star-row { display: flex; gap: 6px; justify-content: center; }
+.star-row button { background: none; border: none; cursor: pointer; padding: 2px; font-size: 2rem; line-height: 1; color: var(--text-gray); }
+.star-row.small button { font-size: 1.5rem; }
+.star-row button.filled { color: var(--green-ink); }
+.rating-tags { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; margin: 14px 0; }
+.rating-tag {
+  border-radius: 50px; border: 1.5px solid var(--border); background: var(--white);
+  padding: 8px 15px; font-size: 0.86rem; font-weight: 700; color: var(--text-mid); cursor: pointer;
+}
+.rating-tag.selected { background: var(--green-tint); border-color: var(--green-line); color: var(--green-ink); }
+.rating-section-divider { display: flex; align-items: center; gap: 10px; margin: 22px 0 4px; }
+.rating-section-divider .line { flex: 1; height: 1px; background: var(--border); }
+.rating-section-divider span { font-size: 0.78rem; font-weight: 800; color: var(--green-ink); white-space: nowrap; }
+.rating-submit-hint { text-align: center; color: var(--text-muted); font-size: 0.82rem; margin-top: -6px; }
+.rating-already { text-align: center; padding: 30px 10px; color: var(--text-mid); }

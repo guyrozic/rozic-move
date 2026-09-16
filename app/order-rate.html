@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ROZIC MOVE — דירוג ההובלה</title>
+  <meta name="robots" content="noindex, follow">
+
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="ROZIC MOVE">
+  <meta property="og:locale" content="he_IL">
+  <meta property="og:title" content="דירוג ההובלה — ROZIC MOVE">
+  <meta property="og:description" content="דרגו את המוביל אחרי השלמת ההובלה ב-ROZIC MOVE.">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../style.css?v=a59589a2">
+  <link rel="stylesheet" href="style-app.css?v=232d590a">
+</head>
+<body class="app-body">
+<div data-build-stamp class="build-stamp" aria-hidden="true">עודכן 16.09 · 23:00</div>
+  <a class="skip-link" href="#main-content">דלג לתוכן המרכזי</a>
+  <script type="module" src="pilot-banner.js?v=14a0e537"></script>
+  <main id="main-content" tabindex="-1">
+
+  <div class="step-hero">
+    <div class="step-hero-inner">
+      <a href="order-status.html" id="hero-back-link" class="btn-text" style="padding:0; margin-bottom:10px; display:inline-block;">→ פרטי ההזמנה</a>
+      <h1 id="hero-title">דרגו את ההובלה</h1>
+      <p>המשוב שלכם עוזר לנו לשמור על חוויה טובה לכולם.</p>
+    </div>
+  </div>
+
+  <div class="app-container">
+    <div id="loading" class="center-loading"><span class="spinner"></span></div>
+    <div id="error-box" class="empty-state" style="display:none;"></div>
+
+    <div id="content" style="display:none;">
+      <div class="app-card">
+        <h2 id="stars-main-title">כמה כוכבים?</h2>
+        <div class="star-row" role="radiogroup" aria-labelledby="stars-main-title" id="stars-main"></div>
+      </div>
+
+      <div class="app-card">
+        <h2>מה אפיין את החוויה?</h2>
+        <p class="app-card-desc" style="margin-bottom:10px;">לא חובה — אפשר לסמן כמה שרוצים</p>
+        <div class="rating-tags" id="rating-tags"></div>
+        <div class="form-group" style="margin-top:14px;">
+          <label for="rating-text">רוצה להוסיף עוד? (לא חובה)</label>
+          <textarea id="rating-text" rows="3" maxlength="1000" placeholder="ספרו לנו עוד..."></textarea>
+        </div>
+      </div>
+
+      <div class="rating-section-divider"><span class="line"></span><span>דירוג האפליקציה</span><span class="line"></span></div>
+
+      <div class="app-card">
+        <h2 id="stars-app-title">לפני שסיימתם</h2>
+        <p class="app-card-desc">איך אתם מרגישים לגבי השימוש באתר עד כה? (לא חובה)</p>
+        <div class="star-row small" role="radiogroup" aria-labelledby="stars-app-title" id="stars-app"></div>
+        <div class="form-group" style="margin-top:14px;">
+          <label for="app-text">יש לכם רעיון לשיפור? (לא חובה)</label>
+          <textarea id="app-text" rows="3" maxlength="1000" placeholder="נשמח לשמוע..."></textarea>
+        </div>
+      </div>
+
+      <button class="btn btn-primary btn-block" id="submit-btn" disabled>שלח</button>
+      <p class="rating-submit-hint" id="submit-hint">כדי לשלוח, בחרו קודם כמה כוכבים</p>
+    </div>
+
+    <div id="thanks-box" class="app-card" style="display:none; text-align:center;">
+      <h2>תודה על המשוב!</h2>
+      <p class="app-card-desc">זה עוזר לנו להשתפר ולשמור על חוויה טובה לכולם.</p>
+      <a class="btn btn-primary" id="thanks-link" href="order-status.html">חזרה לפרטי ההזמנה</a>
+    </div>
+  </div>
+
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner container">
+      <div class="footer-brand">
+        <div class="footer-logo">ROZIC MOVE</div>
+        <p class="footer-tagline">מזיזים אותך קדימה</p>
+        <p class="footer-copy">ROZIC MOVE © 2026</p>
+      </div>
+      <div class="footer-links">
+        <div class="footer-col">
+          <div class="footer-col-title">משפטי</div>
+          <a href="/privacy.html">מדיניות פרטיות</a>
+          <a href="/terms.html">תנאי שימוש</a>
+          <a href="/accessibility.html">הצהרת נגישות</a>
+          <a href="/delete-account.html">מחיקת חשבון</a>
+        </div>
+      </div>
+    </div>
+    <div class="footer-divider"></div>
+    <div class="footer-bottom container">
+      <p>כל הזכויות שמורות · מדינת ישראל</p>
+    </div>
+  </footer>
+
+  <script type="module">
+    import { requireAuth } from './auth.js';
+    import { getOrder, submitCustomerRating } from './orders.js';
+
+    const esc = (v) => String(v ?? '')
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+
+    // מראה DRIVER_TAGS ב-RatingScreen.tsx — האתר הוא צד הלקוח בלבד,
+    // ולכן רק תגיות הלקוח-מדרג-את-המוביל רלוונטיות (לא CUSTOMER_TAGS).
+    const DRIVER_TAGS = ['דייקנות', 'זהירות עם הפריטים', 'אדיבות ותקשורת', 'מקצועיות', 'אחר'];
+
+    const authState = await requireAuth();
+    const orderId = new URLSearchParams(location.search).get('id');
+    const loadingEl = document.getElementById('loading');
+    const errorEl = document.getElementById('error-box');
+    const contentEl = document.getElementById('content');
+
+    function showError(html) {
+      loadingEl.style.display = 'none';
+      contentEl.style.display = 'none';
+      errorEl.style.display = 'block';
+      errorEl.innerHTML = html;
+    }
+
+    if (!orderId) {
+      showError('<div class="empty-icon">❓</div>לא נמצא מזהה הזמנה.');
+    } else {
+      document.getElementById('hero-back-link').href = `order-status.html?id=${encodeURIComponent(orderId)}`;
+      document.getElementById('thanks-link').href = `order-status.html?id=${encodeURIComponent(orderId)}`;
+
+      const order = await getOrder(orderId);
+      loadingEl.style.display = 'none';
+
+      if (!order) {
+        showError('<div class="empty-icon">🚫</div>ההזמנה לא נמצאה, או שאין לך הרשאה לצפות בה.');
+      } else if (order.customerId !== authState.authUser.uid) {
+        showError('<div class="empty-icon">🚫</div>אין לך הרשאה לדרג הזמנה זו.');
+      } else if (order.status !== 'completed') {
+        showError('<div class="empty-icon">⏳</div>ניתן לדרג רק אחרי שההובלה הושלמה.');
+      } else if (typeof order.driverRating === 'number') {
+        document.getElementById('hero-title').textContent = 'תודה!';
+        contentEl.style.display = 'none';
+        document.getElementById('thanks-box').style.display = 'block';
+        document.getElementById('thanks-box').querySelector('h2').textContent = 'כבר דירגתם את ההובלה הזו';
+        document.getElementById('thanks-box').querySelector('.app-card-desc').textContent = 'תודה שהקדשתם מזמנכם.';
+      } else {
+        contentEl.style.display = 'block';
+        runForm(order);
+      }
+    }
+
+    function buildStarRow(containerId, onChange) {
+      const el = document.getElementById(containerId);
+      el.innerHTML = [1, 2, 3, 4, 5].map(s =>
+        `<button type="button" role="radio" aria-checked="false" aria-label="${s === 1 ? 'כוכב אחד מתוך 5' : `${s} כוכבים מתוך 5`}" data-value="${s}">★</button>`
+      ).join('');
+      let value = 0;
+      el.querySelectorAll('button').forEach(btn => {
+        btn.addEventListener('click', () => {
+          value = Number(btn.dataset.value);
+          paint();
+          onChange(value);
+        });
+      });
+      function paint() {
+        el.querySelectorAll('button').forEach(btn => {
+          const v = Number(btn.dataset.value);
+          btn.classList.toggle('filled', v <= value);
+          btn.setAttribute('aria-checked', String(v === value));
+        });
+      }
+    }
+
+    function runForm(order) {
+      let score = 0;
+      let appScore = 0;
+      const selectedTags = new Set();
+
+      buildStarRow('stars-main', (v) => {
+        score = v;
+        submitBtn.disabled = score === 0;
+        document.getElementById('submit-hint').style.display = score === 0 ? 'block' : 'none';
+      });
+      buildStarRow('stars-app', (v) => { appScore = v; });
+
+      const tagsEl = document.getElementById('rating-tags');
+      tagsEl.innerHTML = DRIVER_TAGS.map(t =>
+        `<button type="button" class="rating-tag" role="checkbox" aria-checked="false" data-tag="${esc(t)}">${esc(t)}</button>`
+      ).join('');
+      tagsEl.querySelectorAll('button').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const tag = btn.dataset.tag;
+          if (selectedTags.has(tag)) selectedTags.delete(tag); else selectedTags.add(tag);
+          btn.classList.toggle('selected');
+          btn.setAttribute('aria-checked', String(selectedTags.has(tag)));
+        });
+      });
+
+      const submitBtn = document.getElementById('submit-btn');
+      submitBtn.addEventListener('click', async () => {
+        if (!score) return;
+        submitBtn.disabled = true;
+        submitBtn.textContent = 'שולח...';
+        try {
+          await submitCustomerRating(orderId, score, {
+            tags: Array.from(selectedTags),
+            text: document.getElementById('rating-text').value,
+            appScore: appScore || undefined,
+            appText: document.getElementById('app-text').value,
+          });
+          contentEl.style.display = 'none';
+          document.getElementById('hero-title').textContent = 'תודה!';
+          document.getElementById('thanks-box').style.display = 'block';
+        } catch (err) {
+          submitBtn.disabled = false;
+          submitBtn.textContent = 'שלח';
+          alert('לא הצלחנו לשמור את הדירוג. נסו שוב.');
+        }
+      });
+    }
+  </script>
+</body>
+</html>
