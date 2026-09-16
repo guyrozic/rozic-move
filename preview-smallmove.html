@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<title>מובילים בקטנה — סבב שני</title>
+<!-- ⚠️ noindex, לא מקושר, נמחק אחרי ההכרעה.
+     סבב שני אחרי הביקורת של גיא:
+     · אופציה א׳ (רשת פריטים) נפסלה — "אם לקוח יבחר את כל הפריטים זה מעבר
+       למגבלה שלנו והוא לא יבין למה זה לא עובד", וגם "למה צריך לצלם או
+       לספר במילים אם הוא כבר מתחיל לבחור פריטים".
+     · ב׳ — אהב את מאיפה/לאן, קומה, מעלית, מרחק, תאריך. שנא את האיור.
+     · ג׳ — אהב את השאלה "נכנס לטנדר אחד?". שנא את האיור.
+     ⚠️ אין איורים בסבב הזה. המגבלה אמיתית מהקוד: MAX_VOLUME=10 יחידות,
+     פריט = 1-4 לפי כבד/דורש-פירוק. -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css?v=93d67ba9">
+<style>
+  body { background:#DDE4DE; }
+  .lead { max-width:900px; margin:0 auto; padding:28px 20px 6px; text-align:center; }
+  .lead h1 { font-size:1.6rem; font-weight:900; }
+  .lead p { font-size:.95rem; color:var(--text-mid); margin-top:8px; line-height:1.6; }
+  .lbl { max-width:860px; margin:34px auto 8px; padding:0 20px; }
+  .lbl h2 { font-size:1.2rem; font-weight:900; }
+  .lbl span { font-size:.89rem; color:var(--text-mid); }
+  .why { max-width:860px; margin:0 auto 10px; padding:0 20px; font-size:.86rem;
+    color:var(--text-muted); line-height:1.6; }
+  .why b { color:var(--text); }
+  .card { max-width:860px; margin:0 auto; background:var(--white); border-radius:18px;
+    padding:18px clamp(14px,2vw,22px); box-shadow:0 12px 34px rgba(20,42,34,.15); }
+
+  .chips { display:flex; gap:6px; flex-wrap:wrap; border-bottom:1px solid var(--border);
+    margin:0 calc(-1*clamp(14px,2vw,22px)) 14px; padding:0 clamp(14px,2vw,22px) 10px; }
+  .chip { font-size:.86rem; font-weight:700; min-height:44px; padding:8px 14px;
+    border-radius:999px; border:1.5px solid transparent; background:transparent;
+    color:var(--text-mid); }
+  .chip.on { background:var(--green-tint); border-color:var(--green-line); color:var(--green-ink); }
+
+  h3.q { font-size:clamp(1.15rem,2vw,1.42rem); font-weight:900; margin:0 0 4px; }
+  p.sub { font-size:.9rem; color:var(--text-muted); margin:0 0 14px; line-height:1.5; }
+
+  /* מד הקיבולת — קו, לא איור */
+  .cap { background:var(--bg); border:1px solid var(--border); border-radius:12px;
+    padding:12px 14px; margin-bottom:14px; }
+  .cap-top { display:flex; justify-content:space-between; align-items:baseline;
+    font-size:.84rem; font-weight:800; color:var(--green-ink); margin-bottom:7px; }
+  .cap-top span { font-weight:600; color:var(--text-muted); font-size:.8rem; }
+  .bar { height:8px; border-radius:99px; background:rgba(20,42,34,.09); overflow:hidden; }
+  .bar i { display:block; height:100%; border-radius:99px; background:var(--green-line); }
+  .cap-note { font-size:.79rem; color:var(--text-muted); margin-top:7px; line-height:1.45; }
+  .cap.near .bar i { background:var(--amber-strong); }
+  .cap.near .cap-top { color:var(--amber-strong); }
+
+  .ways { display:grid; grid-template-columns:repeat(3,1fr); gap:9px; margin-bottom:14px; }
+  @media (max-width:560px){ .ways { grid-template-columns:1fr; } }
+  .way { border:1.5px solid var(--border); border-radius:12px; padding:12px 11px;
+    background:var(--white); text-align:center; min-height:44px; }
+  .way.on { border-color:var(--green-line); border-width:2.5px; background:var(--green-tint); }
+  .way b { display:block; font-size:.92rem; font-weight:800; }
+  .way.on b { color:var(--green-ink); }
+  .way i { display:block; font-style:normal; font-size:.76rem; color:var(--text-muted); margin-top:3px; }
+
+  .fields { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:14px; }
+  @media (max-width:560px){ .fields { grid-template-columns:1fr; } }
+  .f { border:1.5px solid var(--border); border-radius:11px; padding:9px 12px; background:var(--bg); }
+  .f label { display:block; font-size:.74rem; font-weight:800; color:var(--text-muted); }
+  .f div { font-size:.9rem; font-weight:700; margin-top:2px; }
+  .f.wide { grid-column:1/-1; }
+  .f.empty div { color:var(--text-muted); font-weight:500; }
+
+  .picked { display:flex; flex-wrap:wrap; gap:6px; margin-bottom:12px; }
+  .pill { font-size:.79rem; font-weight:700; padding:5px 11px; border-radius:999px;
+    background:var(--green-tint); border:1px solid var(--green-line); color:var(--green-ink); }
+  .pill u { text-decoration:none; color:var(--text-muted); font-weight:600; margin-inline-start:5px; }
+
+  .go { display:flex; width:100%; justify-content:center; background:var(--green); color:#fff;
+    font-family:inherit; font-weight:800; font-size:1rem; padding:15px 20px;
+    border-radius:12px; border:0; min-height:44px; }
+  .foot-note { font-size:.8rem; color:var(--text-muted); margin:10px 0 0; text-align:center; }
+
+  .steps { display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin-bottom:14px; }
+  @media (max-width:560px){ .steps { grid-template-columns:1fr; } }
+  .step { border:1.5px solid var(--border); border-radius:12px; padding:13px 12px; background:var(--bg); }
+  .step b { display:block; font-size:.9rem; font-weight:800; margin-bottom:2px; }
+  .step i { font-style:normal; font-size:.78rem; color:var(--text-muted); line-height:1.4; }
+  .step em { font-style:normal; font-size:.72rem; font-weight:800; color:var(--green-ink);
+    display:block; margin-bottom:5px; }
+
+  .close { max-width:860px; margin:0 auto; padding:30px 20px 70px; font-size:.9rem;
+    color:var(--text-mid); line-height:1.75; }
+  .close b { color:var(--text); }
+</style>
+</head>
+<body>
+<div data-build-stamp class="build-stamp" aria-hidden="true">עודכן 16.09 · 12:37</div>
+<a class="skip-link" href="#main-content">דלג לתוכן המרכזי</a>
+<main id="main-content" tabindex="-1">
+  <div class="lead">
+    <h1>מובילים בקטנה — סבב שני</h1>
+    <p>בלי איורים הפעם. שלושת הכיוונים בנויים סביב <b>המגבלה האמיתית</b>:
+       הטנדר מחזיק 10 יחידות, וכל פריט שווה 1–4 לפי משקל ופירוק.
+       ⚠️ לכן הקיבולת מוצגת <b>מהרגע הראשון</b>, ולא כקיר בסוף.</p>
+  </div>
+</main>
+
+<!-- ═══ א ═══ -->
+<div class="lbl"><h2>א · הטנדר כמד, מהפריט הראשון</h2><span>השאלה מ-ג׳, הקיבולת גלויה תמיד.</span></div>
+<p class="why">אהבת את <b>"נכנס לטנדר אחד?"</b> — כאן היא הכותרת, והמד מתחתיה עונה עליה בזמן אמת. ⚠️ זה מה שפותר את הפסילה של א׳ הקודמת: אי אפשר להגיע לקיר בהפתעה, כי הגבול על המסך לפני הפריט הראשון.</p>
+<div class="card">
+  <div class="chips"><span class="chip">מעבר דירה</span><span class="chip on">מובילים בקטנה</span><span class="chip">מעבירים את זה הלאה</span></div>
+  <h3 class="q">נכנס לטנדר אחד?</h3>
+  <p class="sub">כמה פריטים, לא דירה שלמה. אם זה נכנס לטנדר — זה השירות שלכם.</p>
+  <div class="cap">
+    <div class="cap-top">7 מתוך 10 יחידות טנדר <span>נשאר מקום לפריט גדול אחד</span></div>
+    <div class="bar"><i style="width:70%"></i></div>
+    <p class="cap-note">ספה כבדה שווה 3 יחידות, ארון שדורש פירוק 4, קרטון 1. מעל 10 — זה כבר מעבר דירה.</p>
+  </div>
+  <div class="picked">
+    <span class="pill">ספה תלת־מושבית <u>3</u></span>
+    <span class="pill">מיטה זוגית <u>2</u></span>
+    <span class="pill">2 קרטונים <u>2</u></span>
+  </div>
+  <div class="ways">
+    <div class="way on"><b>בחרו מרשימה</b><i>הכי מדויק לרשימה קצרה</i></div>
+    <div class="way"><b>צלמו</b><i>וה-AI יזהה</i></div>
+    <div class="way"><b>ספרו במילים</b><i>«ספה ומיטה»</i></div>
+  </div>
+  <button class="go">להמשך — כתובות ותאריך</button>
+</div>
+
+<!-- ═══ ב ═══ -->
+<div class="lbl"><h2>ב · הטופס הוא המסך</h2><span>מאיפה, לאן, קומה, מעלית, תאריך — והפריטים שדה אחד בתוכו.</span></div>
+<p class="why">בדיוק מה שאהבת ב-ב׳, בלי האיור. ⚠️ כאן הקיבולת היא <b>שורה אחת שקטה</b> ולא הגיבור — מתאים למי שכבר יודע מה הוא מעביר ורק רוצה לסגור.</p>
+<div class="card">
+  <div class="chips"><span class="chip">מעבר דירה</span><span class="chip on">מובילים בקטנה</span><span class="chip">מעבירים את זה הלאה</span></div>
+  <h3 class="q">כמה פריטים, מנקודה לנקודה</h3>
+  <p class="sub">מלאו את מה שידוע — המחיר מתעדכן לפי המרחק, הקומות והפריטים.</p>
+  <div class="fields">
+    <div class="f"><label>מאיפה</label><div>תל אביב · קומה 3 · יש מעלית</div></div>
+    <div class="f"><label>לאן</label><div>רמת גן · קומה 1 · אין מעלית</div></div>
+    <div class="f"><label>מתי</label><div>ראשון, 21.9</div></div>
+    <div class="f"><label>מרחק</label><div>7 ק״מ</div></div>
+    <div class="f wide"><label>מה מעבירים</label><div>ספה תלת־מושבית, מיטה זוגית, 2 קרטונים</div></div>
+  </div>
+  <div class="cap">
+    <div class="cap-top">7 מתוך 10 יחידות טנדר <span>בתוך הגבול</span></div>
+    <div class="bar"><i style="width:70%"></i></div>
+  </div>
+  <div class="ways">
+    <div class="way on"><b>בחרו מרשימה</b><i>243 פריטים</i></div>
+    <div class="way"><b>צלמו</b><i>וה-AI יזהה</i></div>
+    <div class="way"><b>ספרו במילים</b><i>בחופשי</i></div>
+  </div>
+  <button class="go">לחישוב המחיר</button>
+</div>
+
+<!-- ═══ ג ═══ -->
+<div class="lbl"><h2>ג · שתי שאלות, וזהו</h2><span>המגבלה נאמרת במילים מראש, לא נמדדת.</span></div>
+<p class="why">הכי קצר. המגבלה מוסברת <b>לפני שמתחילים</b> — "עד מה שנכנס לטנדר" — אז אין מד ואין הפתעה. ⚠️ המחיר: מי שקרוב לגבול יגלה זאת רק בשלב הבא.</p>
+<div class="card">
+  <div class="chips"><span class="chip">מעבר דירה</span><span class="chip on">מובילים בקטנה</span><span class="chip">מעבירים את זה הלאה</span></div>
+  <h3 class="q">נכנס לטנדר אחד? אז זה כאן.</h3>
+  <p class="sub">עד כ-3 פריטים גדולים, או עשרה קטנים. יותר מזה — זה מעבר דירה, ויש לו מסך משלו.</p>
+  <div class="steps">
+    <div class="step"><em>1</em><b>מה מעבירים</b><i>מהרשימה, בצילום או במילים — מה שנוח</i></div>
+    <div class="step"><em>2</em><b>מאיפה לאן</b><i>כתובות, קומה ומעלית בכל צד</i></div>
+    <div class="step"><em>3</em><b>מתי</b><i>תאריך, והמחיר נסגר</i></div>
+  </div>
+  <button class="go">נתחיל</button>
+  <p class="foot-note">לא בטוחים אם זה נכנס? תתחילו — נגיד לכם לפני שתשלמו.</p>
+</div>
+
+<div class="close">
+  <b>השיקול שמפריד בין השלושה:</b> כולם מציגים את אותה מגבלה — השאלה היא
+  <b>מתי הלקוח פוגש אותה</b>. ב-א׳ היא על המסך מהשנייה הראשונה, וזה מונע
+  את התסכול שפסלת — אבל גם מכניס מספרים ("יחידות טנדר") שהלקוח צריך ללמוד.
+  ב-ג׳ היא נאמרת במילים פשוטות מראש, בלי מספרים — אבל מי שקרוב לגבול יגלה
+  זאת רק בשלב הבא.
+  <br><br>
+  ⚠️ <b>ועוד דבר ששווה להכריע בנפרד:</b> "יחידות טנדר" הוא מונח שלנו, לא של
+  הלקוח. אפשר להחליף אותו באחוזים ("70% מהטנדר", כפי שקיים היום בקוד) או
+  בתיאור מילולי ("נשאר מקום לפריט גדול אחד"). הראיתי כאן את שניהם יחד.
+</div>
+</body>
+</html>
