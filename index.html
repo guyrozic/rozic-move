@@ -352,6 +352,28 @@
   /* מובילים בקטנה — "מנקודה לנקודה", נאמן ל-.pv-* שבסבב ההצגה.
      ⚠️ בלי האיור שגיא פסל; המבנה עצמו זהה. */
   .svc-panel.sm-route { max-width:none; }
+  /* האיור — גיא החזיר אותו ("לבינתיים אני אתפשר איתו"). */
+  .sm-ill { position:relative; border-radius:12px; overflow:hidden;
+    margin:0 0 12px; width:76%; align-self:center;
+    border:1px solid var(--border); aspect-ratio:52/19;
+    background:linear-gradient(170deg, var(--bg), var(--green-light)); }
+  .sm-ill .art { position:absolute; inset:0; width:100%; height:100%; }
+  .sm-ill .ln { stroke:var(--text-muted); fill:none; stroke-width:2.1; opacity:.5;
+    vector-effect:non-scaling-stroke; stroke-linecap:round; stroke-linejoin:round; }
+  .sm-ill .ln-soft { opacity:.28; }
+  .sm-ill .hi { stroke:var(--green-line); fill:none; stroke-width:2.2;
+    vector-effect:non-scaling-stroke; stroke-linecap:round; stroke-linejoin:round; }
+  .sm-ill .box { fill:var(--green-tint); stroke:var(--green-line); stroke-width:2;
+    vector-effect:non-scaling-stroke; }
+  .sm-ill .dash { stroke-dasharray:7 9; }
+  .sm-drive { animation:smDrive 9s cubic-bezier(.45,0,.35,1) infinite both; }
+  @keyframes smDrive { 0%,8%{transform:translateX(0)} 62%,94%{transform:translateX(-140px)} 100%{transform:translateX(0)} }
+  .sm-pin { position:absolute; z-index:3; max-width:46%; background:var(--green-line);
+    color:var(--white); font-size:.67rem; font-weight:800; padding:3px 8px;
+    border-radius:6px; line-height:1.4; }
+  @media (prefers-reduced-motion:reduce){
+    .sm-drive { animation:none; transform:translateX(-140px); }
+  }
   .sm-2col { display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr);
     gap:clamp(12px,1.6vw,20px); align-items:stretch; }
   @media (max-width:720px){ .sm-2col { grid-template-columns:1fr; } }
@@ -464,7 +486,7 @@
      שיחליף אותם; בלי הסימון הזה הם נעלמו גם בחמשת הדפים המשפטיים,
      בלי שום דרך להגיע אליהם (WCAG 1.4.4). -->
 <body class="has-nav-menu hp-home">
-<div data-build-stamp class="build-stamp" aria-hidden="true">עודכן 16.09 · 13:25</div>
+<div data-build-stamp class="build-stamp" aria-hidden="true">עודכן 16.09 · 13:31</div>
   <!-- ⚠️ 15.9 — "דלג לתוכן המרכזי" (WCAG 2.4.1, רמה A). זהו האלמנט הממוקד
        הראשון בדף: מוסתר מהעין, מופיע בפינה ברגע שמגיעים אליו ב-Tab, ומעביר
        את המיקוד אל <main id="main-content" tabindex="-1">. בלי ה-tabindex
@@ -712,6 +734,33 @@
                  **בשורה אחת**. השמאלית — הפריטים, ההערה והכפתור.
                  ⚠️ האיור (טנדר בין שני בניינים) הושמט: גיא פסל אותו במפורש
                  ("לא אהבתי את האילוסטרציה בחלק העליון"). כל השאר כמו במקור. -->
+            <div class="sm-ill" role="img" aria-label="הדגמה: טנדר יוצא מבניין המוצא בקומה שלישית ונוסע לבניין היעד בקומה ראשונה">
+              <svg class="art" viewBox="0 0 520 190" preserveAspectRatio="none" aria-hidden="true" focusable="false">
+                <path class="ln" d="M14 166h492"/>
+                <path class="ln" d="M40 166V74h96v92M40 108h96M40 138h96"/>
+                <path class="ln ln-soft" d="M56 86h20v14H56zM100 86h20v14h-20zM56 118h20v12H56z"/>
+                <path class="hi" d="M96 166v-28h26v28"/>
+                <path class="ln" d="M386 166V38h100v128M386 76h100M386 114h100M386 150h100"/>
+                <path class="ln ln-soft" d="M402 50h22v16h-22zM450 50h22v16h-22zM402 88h22v16h-22zM450 88h22v16h-22z"/>
+                <path class="hi" d="M402 126h22v16h-22z"/>
+                <path class="hi dash" d="M372 164H150" opacity=".5"/>
+                <!-- ⚠️ שתי שכבות g: החיצונית נושאת את המיקום (אטריביוט transform)
+                     והפנימית את ההנפשה. transform ב-CSS **מחליף** את האטריביוט
+                     ולא מצטרף אליו — אחרת הטנדר נעלם מהאיור. -->
+                <g transform="translate(262,114)">
+                  <g class="sm-drive">
+                    <path class="hi" d="M6 40V22l18-16h30v34z"/>
+                    <rect class="box" x="66" y="4" width="44" height="14" rx="2"/>
+                    <path class="hi" d="M54 40V18h66v22z"/>
+                    <path class="ln" d="M16 22l12-10h20v10z"/>
+                    <circle class="ln" cx="30" cy="42" r="8"/>
+                    <circle class="ln" cx="98" cy="42" r="8"/>
+                  </g>
+                </g>
+              </svg>
+              <span class="sm-pin" style="left:5%;top:7%">לאן · קומה 1</span>
+              <span class="sm-pin" style="right:5%;top:7%">מאיפה · קומה 3, בלי מעלית</span>
+            </div>
             <div class="sm-2col">
               <div class="sm-col">
                 <h2 class="sm-h">מאיפה לאן?</h2>
