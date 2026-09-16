@@ -320,7 +320,7 @@
   /* RTL — הילד הראשון (הרחב) יושב מימין, השני (הרשימה) משמאל.
      16.9 — היחס הורחב מ-1.5:1 ל-1.95:1 אחרי הסרת הסטטוס-בר וקיפול הרשימה
      לטור אחד צר: הסריקה והכרטיסים מקבלים את הרוחב שהתפנה. */
-  .tool-c2 { grid-template-columns:minmax(0,3.05fr) minmax(0,1fr); }
+  .tool-c2 { grid-template-columns:minmax(0,2.95fr) minmax(0,1fr); }
   @media (max-width:900px){ .tool-row { grid-template-columns:1fr; } }
 
   /* העמודה הימנית הרחבה — סריקה, שאלה וכרטיסים */
@@ -338,7 +338,7 @@
 
   /* העמודה השמאלית — הרשימה בראש, המחיר והכפתור נעוצים לתחתית */
   .tool-list { display:flex; flex-direction:column; min-width:0; }
-  .tool-list .acc { margin-top:0; padding:9px 12px 10px; align-self:start; }
+  .tool-list .acc { margin-top:0; padding:9px 12px 10px; }
   .tool-list .acci { font-size:.75rem; line-height:1.25; }
   /* טור הרשימה הוא הגבוה מבין השניים ב-1280 (11 פריטים זה מתחת לזה);
      ריווח מהודק שומר על הפאנל מיושר לגובה עמודת ההירו. */
@@ -346,8 +346,11 @@
   .tool-list .acc ul { gap:2px; }
   .tool-list .coln { margin-bottom:3px; padding-bottom:2px; }
   .list-foot { margin-top:auto; padding-top:11px; display:flex;
-    flex-direction:column; align-items:flex-start; }
-  .list-price { font-size:.81rem; color:var(--text-muted); margin:0 0 9px;
+    flex-direction:column; align-items:flex-start;
+    /* 13.5px = מסגרת 1.5 + ריפוד 12 של .acc — כדי שהמחיר והכפתור
+       יתיישרו לטקסט שבתוך הרובריקה ולא לקצה החיצוני שלה. */
+    padding-inline:13.5px; }
+  .list-price { font-size:.78rem; color:var(--text-muted); margin:0 0 9px;
     line-height:1.35; }
   /* 16.9 — כפתור צר לפי תוכן, מיושר לתחילת העמודה (לא רוחב מלא) */
   .list-foot .hp-go { display:inline-flex; width:fit-content; align-self:flex-start;
@@ -427,7 +430,7 @@
      שיחליף אותם; בלי הסימון הזה הם נעלמו גם בחמשת הדפים המשפטיים,
      בלי שום דרך להגיע אליהם (WCAG 1.4.4). -->
 <body class="has-nav-menu hp-home">
-<div data-build-stamp class="build-stamp" aria-hidden="true">עודכן 16.09 · 10:44</div>
+<div data-build-stamp class="build-stamp" aria-hidden="true">עודכן 16.09 · 11:03</div>
   <!-- ⚠️ 15.9 — "דלג לתוכן המרכזי" (WCAG 2.4.1, רמה A). זהו האלמנט הממוקד
        הראשון בדף: מוסתר מהעין, מופיע בפינה ברגע שמגיעים אליו ב-Tab, ומעביר
        את המיקוד אל <main id="main-content" tabindex="-1">. בלי ה-tabindex
@@ -653,7 +656,7 @@
                 </div>
               </div>
               <div class="list-foot">
-                <p class="list-price">המחיר הסופי מתקבל בהזמנה — לפי הפריטים, הכתובות והתאריך.</p>
+                <p class="list-price">המחיר הסופי נקבע בהזמנה — לפי פריטים, כתובות ותאריך.</p>
                 <a class="hp-go" id="hp-continue" href="app/apartment.html">המשך להזמנה ←</a>
               </div>
             </div>
