@@ -29,11 +29,24 @@
   <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="../style.css?v=93d67ba9">
   <link rel="stylesheet" href="style-app.css?v=51e8347f">
+  <link rel="stylesheet" href="address-autocomplete.css">
   <style>
     .van-gauge { height: 8px; border-radius: 4px; background: var(--border); overflow: hidden; margin-bottom: 4px; }
     .van-gauge-fill { height: 100%; background: var(--green); transition: width 0.25s ease; }
     .van-gauge-fill.full { background: #C0392B; }
-  
+
+    /* ⚠️ 16.9 — "הפריטים שנבחרו" בראש אזור ההזמנה, בדיוק כמו ב-
+       SmallMoveItemsScreen באפליקציה (הרשימה שמעל "בחר ידנית"). כללים
+       קטנים בלבד, ולכן inline כאן ולא ב-style-app.css המשותף
+       (אותו CSS בדיוק כמו ב-apartment.html). */
+    .selected-items-list { display: flex; flex-direction: column; }
+    .selected-item-row {
+      display: flex; align-items: center; justify-content: space-between;
+      gap: 12px; padding: 10px 0; border-top: 1px solid var(--border);
+    }
+    .selected-item-row:first-child { border-top: none; padding-top: 0; }
+    .selected-item-name { font-weight: 700; font-size: 0.92rem; color: var(--text); }
+
     /* ⚠️ 15.9 — בספארי ה-Tab מדלג על <button>, <a> ו-input[type=file]
        כברירת מחדל, **אבל מכבד tabindex="0" מפורש**. בלי זה הדף הזה
        עמד על תחנת Tab אחת מול 136 בכרום. רק outline — אינו תופס מקום
@@ -77,6 +90,15 @@
 
         <!-- Step 1: items -->
         <section class="wizard-step" data-step="1">
+          <!-- ⚠️ 16.9 — הפריטים שנבחרו, בראש אזור ההזמנה, מתעדכן חי מכל
+               נתיב שמוסיף/מסיר פריט (סריקת AI, צ'אט, שאלות המשך, בחירה
+               ידנית) — בדיוק כמו "הפריטים שנבחרו" ב-SmallMoveItemsScreen
+               באפליקציה. renderSelectedItemsBar() רץ בסוף renderItems(). -->
+          <div class="app-card selected-items-card" id="selected-items-card" style="display:none;">
+            <h2>הפריטים שנבחרו <span id="selected-items-count"></span></h2>
+            <div class="selected-items-list" id="selected-items-list"></div>
+          </div>
+
           <div class="ai-upload-card">
             <div class="ai-upload-icon-wrap"><div class="ai-upload-icon">📸</div></div>
             <div class="ai-upload-body">
@@ -103,12 +125,14 @@
             </div>
           </div>
 
-          <div id="ai-questions"></div>
-
           <div class="ai-chat-card">
             <h2>💬 או כתבו לנו מה יש לכם</h2>
             <p>למשל: "יש לי מיטה זוגית ושתי ספות" — נוסיף את זה בעצמנו.</p>
             <div class="ai-chat-thread" id="ai-chat-thread"></div>
+            <!-- ⚠️ 16.9 — שאלות ההמשך יורדו לכאן, מתחת לשיחה (היו מעליה),
+                 כדי להתאים ל-AIItemChat באפליקציה: השאלה נפתחת מתחת לצ'אט.
+                 (אותו תיקון כמו ב-apartment.html) -->
+            <div id="ai-questions"></div>
             <div id="ai-free-items" class="ai-free-items"></div>
             <div class="ai-chat-input-row">
               <input type="text" id="ai-chat-input" placeholder="כתבו כאן..." aria-label="הודעה לעוזר ה-AI">
@@ -143,7 +167,24 @@
             <h2>פרטי הובלה</h2>
             <div class="form-group">
               <label for="from-address">כתובת מוצא</label>
-              <input id="from-address" type="text" required placeholder="רחוב, מספר, עיר">
+              <!-- ⚠️ 16.9 — רכיב כתובת ברמת האפליקציה (0.2), זהה ל-
+                   apartment.html. ראו app/address-autocomplete.js לחסם
+                   הפרטיות ולחסם הפרוקסי — רשומים גם ב-NIGHT-LOG.md. -->
+              <div class="address-field" id="from-address-field">
+                <div class="address-chips" id="from-address-chips" hidden>
+                  <div class="address-chips-tabs" role="tablist">
+                    <button type="button" class="address-chip-tab active" data-tab="fav" role="tab" aria-selected="true">מועדפות</button>
+                    <button type="button" class="address-chip-tab" data-tab="recent" role="tab" aria-selected="false">אחרונות</button>
+                  </div>
+                  <div class="address-chips-list" id="from-address-chips-list"></div>
+                </div>
+                <div class="address-input-wrap">
+                  <input id="from-address" type="text" required placeholder="רחוב, מספר, עיר" autocomplete="off" aria-describedby="from-address-badge">
+                  <div class="address-dropdown" id="from-address-dropdown" hidden></div>
+                </div>
+                <div class="address-hint" id="from-address-hint"></div>
+                <div class="address-badge" id="from-address-badge" hidden></div>
+              </div>
             </div>
             <div class="form-row">
               <div class="form-group">
@@ -162,7 +203,21 @@
 
             <div class="form-group">
               <label for="to-address">כתובת יעד</label>
-              <input id="to-address" type="text" required placeholder="רחוב, מספר, עיר">
+              <div class="address-field" id="to-address-field">
+                <div class="address-chips" id="to-address-chips" hidden>
+                  <div class="address-chips-tabs" role="tablist">
+                    <button type="button" class="address-chip-tab active" data-tab="fav" role="tab" aria-selected="true">מועדפות</button>
+                    <button type="button" class="address-chip-tab" data-tab="recent" role="tab" aria-selected="false">אחרונות</button>
+                  </div>
+                  <div class="address-chips-list" id="to-address-chips-list"></div>
+                </div>
+                <div class="address-input-wrap">
+                  <input id="to-address" type="text" required placeholder="רחוב, מספר, עיר" autocomplete="off" aria-describedby="to-address-badge">
+                  <div class="address-dropdown" id="to-address-dropdown" hidden></div>
+                </div>
+                <div class="address-hint" id="to-address-hint"></div>
+                <div class="address-badge" id="to-address-badge" hidden></div>
+              </div>
             </div>
             <div class="form-row">
               <div class="form-group">
@@ -330,6 +385,7 @@
              mountGuestQuotaPanel, saveScanPhotos, restoreScanPhotos, scanPhotosNotice,
              GUEST_QUOTA_TEXT } from './ai-guest-quota.js';
     import { resizeImageToBase64 } from './image-resize.js';
+    import { mountAddressField } from './address-autocomplete.js';
 
     // 14.9 — אורח רשאי לבנות הזמנה ולראות מחיר בלי חשבון. ההרשמה
     // נדרשת רק לפני התשלום. ראו guest-checkout.js לנימוק המלא.
@@ -591,6 +647,12 @@
     }
 
     function answerQuestion(question, option) {
+      // ⚠️ 16.9 — שומרים את השאלה והבחירה בתוך השיחה, בדיוק כמו
+      // AIItemChat באפליקציה (שורה 171): טקסט השאלה כבועת AI, והתשובה
+      // שנבחרה כבועת משתמש. עד כה התשובה נעלמה ולא נשאר לה זכר.
+      // (אותו תיקון כמו ב-apartment.html)
+      chatHistory.push({ role: 'assistant', text: question.text }, { role: 'user', text: option.label });
+      renderChatThread();
       pendingQuestions = pendingQuestions.filter(q => q.id !== question.id);
       if (option.itemKey === null) { renderQuestions(); return; }
       const siblings = getSizeSiblings(option.itemKey);
@@ -835,11 +897,61 @@
       if (activeRoom === BOXES_TAB) {
         BOX_ITEMS.forEach(b => itemListEl.appendChild(renderItemCard(b.key, b.label, b.icon, b.price)));
         restoreItemFocus(keepFocus);
+        renderSelectedItemsBar();
         return;
       }
       const room = ALL_ROOMS.find(r => r.key === activeRoom);
       room.items.forEach(item => itemListEl.appendChild(renderItemCard(item.key, item.label, item.icon, getItemPriceAnyCategory(item.key))));
       restoreItemFocus(keepFocus);
+      renderSelectedItemsBar();
+    }
+
+    /**
+     * "הפריטים שנבחרו" בראש אזור ההזמנה — ראו ההערה ב-HTML. נקראת מתוך
+     * renderItems() ולכן חיה מכל נתיב שמשנה state.items (סריקת AI, צ'אט,
+     * שאלות המשך, +/− בקטלוג הידני/קופסאות, ורשימה זו עצמה).
+     * כפתור ההוספה מכבד את תקרת נפח הטנדר, כמו ב-renderItemCard.
+     * שימור מיקוד: אותה תבנית בדיוק כמו captureItemFocus/restoreItemFocus
+     * למעלה (WCAG 2.4.3) — הרשימה נבנית מחדש בכל לחיצה על +/-.
+     */
+    function renderSelectedItemsBar() {
+      const card = document.getElementById('selected-items-card');
+      const listEl = document.getElementById('selected-items-list');
+      const sel = selectedItems();
+      document.getElementById('selected-items-count').textContent = sel.length ? `(${sel.length})` : '';
+      if (sel.length === 0) { card.style.display = 'none'; listEl.innerHTML = ''; return; }
+      card.style.display = 'block';
+      const activeEl = document.activeElement;
+      const keepFocus = (activeEl && listEl.contains(activeEl) && activeEl.dataset.action)
+        ? { key: activeEl.closest('.selected-item-row')?.dataset.key, action: activeEl.dataset.action }
+        : null;
+      listEl.innerHTML = sel.map(i => {
+        const full = currentVolume() + itemVolume(i.key) > MAX_VOLUME;
+        return `
+        <div class="selected-item-row" data-key="${i.key}">
+          <span class="selected-item-name">${i.label}</span>
+          <div class="qty-control">
+            <button tabindex="0" data-action="dec" aria-label="הפחת ${i.label}">−</button>
+            <span class="qty-value">${i.qty}</span>
+            <button tabindex="0" data-action="inc" aria-label="הוסף ${i.label}" ${full ? 'disabled' : ''}>+</button>
+          </div>
+        </div>`;
+      }).join('');
+      listEl.querySelectorAll('[data-action="inc"]').forEach(btn => btn.addEventListener('click', () => {
+        const key = btn.closest('.selected-item-row').dataset.key;
+        if (currentVolume() + itemVolume(key) > MAX_VOLUME) return;
+        state.items[key] = (state.items[key] || 0) + 1;
+        renderItems(); updateItemsHeader();
+      }));
+      listEl.querySelectorAll('[data-action="dec"]').forEach(btn => btn.addEventListener('click', () => {
+        const key = btn.closest('.selected-item-row').dataset.key;
+        state.items[key] = Math.max(0, (state.items[key] || 0) - 1);
+        renderItems(); updateItemsHeader();
+      }));
+      if (keepFocus) {
+        const el = listEl.querySelector(`.selected-item-row[data-key="${keepFocus.key}"] [data-action="${keepFocus.action}"]`);
+        if (el && !el.disabled) el.focus();
+      }
     }
     renderItems();
 
@@ -863,6 +975,9 @@
       const sel = document.getElementById(id);
       FLOORS.forEach(f => { const o = document.createElement('option'); o.value = f; o.textContent = f; sel.appendChild(o); });
     });
+    // ⚠️ 16.9 — רכיב כתובת ברמת האפליקציה (0.2). ראו address-autocomplete.js.
+    mountAddressField({ prefix: 'from-address', authState });
+    mountAddressField({ prefix: 'to-address', authState });
     document.getElementById('move-date').min = new Date().toISOString().slice(0, 10);
     document.getElementById('move-date').value = new Date().toISOString().slice(0, 10);
 
@@ -1258,7 +1373,16 @@
     renderAIPhotos();
     renderFreeItems();
     updateItemsHeader();
-    if (restoredDraft) applyDraftToForm(state);
+    if (restoredDraft) {
+      applyDraftToForm(state);
+      // ⚠️ applyDraftToForm ממלא .value ישירות בלי אירוע — רכיב הכתובת
+      // (address-autocomplete.js) מאזין ל-'input' כדי לעדכן badge/צ'יפים.
+      // בלי שליחת אירוע 'input' ידנית כאן, כתובת ששוחזרה מטיוטה הייתה
+      // מוצגת בשדה אבל בלי אימות רקע ובלי להסתיר את שורת "מועדפות/אחרונות"
+      // מעליה.
+      document.getElementById('from-address').dispatchEvent(new Event('input'));
+      document.getElementById('to-address').dispatchEvent(new Event('input'));
+    }
     else if (draftDiscarded) showDraftDiscardedNotice();
     goToStep(1);
   </script>
