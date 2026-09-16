@@ -27,8 +27,8 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="../style.css?v=a59589a2">
-  <link rel="stylesheet" href="style-app.css?v=232d590a">
+  <link rel="stylesheet" href="../style.css?v=93d67ba9">
+  <link rel="stylesheet" href="style-app.css?v=51e8347f">
   <style>
     .auth-shell {
       position: relative;
@@ -144,7 +144,7 @@
   </style>
 </head>
 <body class="app-body">
-<div data-build-stamp class="build-stamp" aria-hidden="true">עודכן 16.09 · 01:11</div>
+<div data-build-stamp class="build-stamp" aria-hidden="true">עודכן 16.09 · 11:05</div>
   <!-- ⚠️ 15.9 — "דלג לתוכן המרכזי" (WCAG 2.4.1, רמה A). זהו האלמנט הממוקד
        הראשון בדף: מוסתר מהעין, מופיע בפינה ברגע שמגיעים אליו ב-Tab, ומעביר
        את המיקוד אל <main id="main-content" tabindex="-1">. בלי ה-tabindex
@@ -166,6 +166,15 @@
           ROZIC MOVE
         </a>
       </h1>
+
+      <!-- ⚠️ 16.9 — **למה נשלחתי לכאן.** אורח שמיצה את מכסת הסריקות
+           החינמיות נחת עד היום במסך התחברות ניטרלי, כלומר בקשה לפרטים
+           בלי שום קשר למה שעשה שנייה קודם. גיא: *"חייב להסביר זאת
+           ללקוח שלא תהיה כשל שקט והוא יעזוב את האתר"*.
+           הטקסט נבחר מטבלה קבועה לפי `?reason=`, ו**לא** נקרא מהכתובת —
+           `reason` מגיע משורת הכתובת כמו `next`, וכתיבתו כלשונו למסך
+           הייתה הזרקת תוכן לדף ההתחברות שלנו. -->
+      <div id="reason-note" class="alert alert-info" role="status" hidden></div>
 
       <!-- 15.9 — כניסה בלחיצה אחת, מעל הטפסים ולא מתחתם. גיא: "לקוחות
            לא אוהבים למלא פרטים - זה מבריח אותם". מי שבכל זאת מעדיף
@@ -385,6 +394,24 @@
       } catch {
         return 'index.html';
       }
+    }
+
+    /**
+     * שורת ה"למה נשלחתי לכאן".
+     *
+     * ⚠️ `textContent` מטבלה קבועה, ולא הטקסט שבכתובת: `reason` נשלט
+     * ע"י מי שמכין את הקישור, בדיוק כמו `next` — וכתיבת ערך חופשי
+     * למסך ההתחברות היא הודעה שתוקף שותל בדף שלנו, מעל שדה הסיסמה.
+     * ערך שאינו בטבלה אינו מציג דבר.
+     */
+    const REASON_NOTES = {
+      'ai-quota': 'נגמרו הסריקות החינמיות ללא חשבון. ההתחברות חינם ולוקחת שנייה, ומשם ממשיכים לסרוק — ומה שכבר הוספתם מחכה לכם בחזרה.',
+    };
+    const reasonNote = REASON_NOTES[new URLSearchParams(location.search).get('reason')];
+    if (reasonNote) {
+      const noteEl = document.getElementById('reason-note');
+      noteEl.textContent = reasonNote;
+      noteEl.hidden = false;
     }
 
     const TERMS_REQUIRED_MSG = 'יש לאשר את תנאי השימוש כדי להמשיך';

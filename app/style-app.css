@@ -253,6 +253,35 @@
 .alert-success { background: var(--green-light); color: var(--green-dark); border: 1px solid rgba(14,92,67,0.25); }
 .alert-info    { background: #EAF2FB; color: var(--info); border: 1px solid #CFE3F5; }
 
+/* --- מכסת הסריקות לאורח (ai-guest-quota.js) ---------------------------
+   ⚠️ אין כאן ולו צבע אחד, וזה מכוון: הפאנל מופיע בשני הקשרים שונים —
+   בתוך `.alert-info` במסכי הסריקה, ובתוך בועת צ'אט (`.ai-chat-msg.ai`)
+   בעוזר הכתיבה — ויורש את הצבע של מה שעוטף אותו. צבע קשיח כאן היה
+   הופך את אחד משניהם לבלתי-קריא.
+   ⚠️ `flex-wrap` על שורת הכפתורים אינו קישוט: ב-390px "התחברו והמשיכו"
+   ו"או המשיכו ידנית" אינם נכנסים באותה שורה, ובלי גלישה המוצא הידני
+   נחתך מחוץ למסך — כלומר מי שלא רוצה חשבון נשאר בלי דרך החוצה. */
+.ai-quota-gate-title { display: block; font-weight: 800; margin-bottom: 2px; }
+.ai-quota-gate-body  { display: block; }
+.ai-quota-gate-note  { display: block; margin-top: 6px; font-size: 0.8rem; opacity: 0.85; }
+.ai-quota-gate-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-top: 12px;
+}
+.ai-quota-gate-actions .btn { font-size: 0.85rem; }
+/* ⚠️ נמדד בדפדפן ב-390px, ולא נוחש: בכרטיס הסריקה עמודת האייקון גוזלת
+   ~150px, וגוף הכרטיס נשאר ברוחב ~190px. שני הכפתורים באותה שורה נדחסו
+   שם עד ש"התחברו והמשיכו" נשבר לשתי שורות ו"או המשיכו ידנית" נדחק אל
+   מתחת לסרגל התחתון הדביק — כלומר **המוצא הידני, שגיא הגדיר כחובה,
+   לא נראה על המסך**. בטלפון הם נערמים ברוחב מלא, כל אחד שורה שלמה. */
+@media (max-width: 480px) {
+  .ai-quota-gate-actions { flex-direction: column; align-items: stretch; }
+  .ai-quota-gate-actions .btn { width: 100%; }
+}
+
 /* --- Service tiles (hub) --- */
 .service-tiles {
   display: grid;

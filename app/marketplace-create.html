@@ -27,8 +27,8 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="../style.css?v=a59589a2">
-  <link rel="stylesheet" href="style-app.css?v=232d590a">
+  <link rel="stylesheet" href="../style.css?v=93d67ba9">
+  <link rel="stylesheet" href="style-app.css?v=51e8347f">
   <style>
     .photo-grid { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 6px; }
     .photo-thumb { position: relative; width: 84px; height: 84px; border-radius: 12px; overflow: hidden; }
@@ -64,7 +64,7 @@
   </style>
 </head>
 <body class="app-body">
-<div data-build-stamp class="build-stamp" aria-hidden="true">עודכן 16.09 · 01:34</div>
+<div data-build-stamp class="build-stamp" aria-hidden="true">עודכן 16.09 · 11:05</div>
   <!-- ⚠️ 15.9 — "דלג לתוכן המרכזי" (WCAG 2.4.1, רמה A). זהו האלמנט הממוקד
        הראשון בדף: מוסתר מהעין, מופיע בפינה ברגע שמגיעים אליו ב-Tab, ומעביר
        את המיקוד אל <main id="main-content" tabindex="-1">. בלי ה-tabindex
@@ -236,6 +236,8 @@
     import { uploadListingPhoto } from './storage.js';
     import { resizeImageToBlob, resizeImageToBase64 } from './image-resize.js';
     import { analyzeListingPhoto, askListingAI, isAIConfigured, friendlyAIError } from './ai-vision.js';
+    import { isGuestQuotaError, guestQuotaPanelHTML, attachGuestQuotaHandlers,
+             mountGuestQuotaPanel, GUEST_QUOTA_TEXT } from './ai-guest-quota.js';
 
     /**
      * ⚠️ 16.9 — **הדף הזה קרא `requireAuth()` בשורה הראשונה.**
@@ -383,6 +385,34 @@
         `).join('') + `</div>`;
     }
 
+    /* ═══════════ מכסת הסריקות לאורח (תזכיר #60) ═══════════════════════
+       ⚠️ **הנוסח כאן אינו הנוסח של מסכי ההזמנה, ולא במקרה.** אין במסך
+       הזה לא "סריקה" ולא "פריטים" — יש מודעה שכותבים. ב-16.9 בדיוק
+       הפער הזה הפך תשובה של עוזר הכתיבה להודעה לא מובנת (ראו
+       `friendlyAIError`), ולכן המוצא הידני מנוסח כאן במילים של המסך.
+
+       הכותרת והשורה הראשונה נשארות מילה במילה כפי שגיא אישר.
+       ─────────────────────────────────────────────────────────────── */
+    const QUOTA_MANUAL_LABEL = 'או המשיכו למלא את הפרטים ידנית';
+    const QUOTA_NOTE = 'מה שמילאתם והתמונות שהעליתם נשמרים — תחזרו לכאן בדיוק לאותו מקום.';
+
+    attachGuestQuotaHandlers({
+      /**
+       * ⚠️ **אותה צמידות בדיוק כמו ב-`submitListing`**: `saveListingDraft`
+       * ואז ההפניה, בלי שום שורה ביניהם. היא שומרת גם את התמונות (כ-data
+       * URL באיכות הפרסום), ואם המכסה של הדפדפן לא הספיקה — הטקסט נשמר
+       * לבדו, וההודעה בחזרה (`showListingDraftNotice`) אומרת במפורש
+       * שצריך לבחור תמונות שוב.
+       */
+      onLogin: async () => {
+        await saveListingDraft();
+        const next = encodeURIComponent(location.pathname + location.search);
+        location.href = `login.html?next=${next}&reason=ai-quota`;
+      },
+      // מי שלא רוצה חשבון ממלא בעצמו — הטופס פתוח, ה-AI רק חוסך הקלדה.
+      onManual: () => document.getElementById('title')?.focus(),
+    });
+
     document.getElementById('ai-analyze-listing-btn').addEventListener('click', async () => {
       if (photos.length === 0) return;
       const btn = document.getElementById('ai-analyze-listing-btn');
@@ -421,8 +451,12 @@
         renderGuidingQuestions();
         document.getElementById('ai-filled-badge').style.display = result.title ? 'block' : 'none';
       } catch (err) {
-        // הנוסח זהה ל-`#ai-guest-note` שמתחת לכפתור — אותה מגבלה, אותן מילים.
-        errBox.innerHTML = `<div class="alert alert-error">${friendlyAIError(err, 'ניתוח התמונות ב-AI נפתח אחרי ההתחברות. אפשר למלא את הפרטים ידנית — זה עובד בדיוק אותו דבר.')}</div>`;
+        // ⚠️ מכסת אורח אינה שגיאה אלא צומת החלטה — פאנל עם מוצא ידני,
+        // ולא `alert-error` אדום שנראה כמו תקלה באתר. כל שגיאה אחרת
+        // (רשת, 500, מגבלת קצב של משתמש רשום) ממשיכה לנוסח הרגיל, שבו
+        // הנוסח זהה ל-`#ai-guest-note` שמתחת לכפתור — אותן מילים.
+        if (isGuestQuotaError(err)) mountGuestQuotaPanel(errBox, { manualLabel: QUOTA_MANUAL_LABEL, note: QUOTA_NOTE });
+        else errBox.innerHTML = `<div class="alert alert-error">${friendlyAIError(err, 'ניתוח התמונות ב-AI נפתח אחרי ההתחברות. אפשר למלא את הפרטים ידנית — זה עובד בדיוק אותו דבר.')}</div>`;
       } finally {
         clearInterval(tick);
         progressFill.style.width = '100%';
@@ -437,7 +471,10 @@
 
     function renderListingChat() {
       const box = document.getElementById('listing-chat-thread');
-      box.innerHTML = listingChatHistory.map(m => `<div class="ai-chat-msg ${m.role === 'user' ? 'user' : 'ai'}">${m.text}</div>`).join('')
+      // ⚠️ `m.html` קיים רק להודעות שאנחנו בונים (פאנל מכסת האורח), ו-`m.text`
+      // הוא הטקסט הרגיל. שני שדות נפרדים כדי שלא ייווצר פיתוי להזריק HTML
+      // לתוך תוכן שמגיע מה-AI.
+      box.innerHTML = listingChatHistory.map(m => `<div class="ai-chat-msg ${m.role === 'user' ? 'user' : 'ai'}">${m.html || m.text}</div>`).join('')
         + (listingChatThinking ? '<div class="ai-chat-msg ai typing">חושב...</div>' : '');
       box.scrollTop = box.scrollHeight;
     }
@@ -464,7 +501,13 @@
          * *"כדי לסרוק תמונות צריך להתחבר… להוסיף פריטים ידנית"* — נמדד
          * בדפדפן. אין כאן "סריקה" ואין "פריטים"; יש מודעה שכותבים.
          */
-        listingChatHistory.push({ role: 'assistant', text: friendlyAIError(err, 'עוזר הכתיבה נפתח אחרי ההתחברות. אפשר לכתוב את המודעה ידנית עכשיו — זה עובד בדיוק אותו דבר.') });
+        // ⚠️ גם כאן הפאנל המלא, ולא רק טקסט: זה מסך שלם שני שבו אורח
+        // יכול למצות את המכסה, ו"לא הצלחנו" לבדו היה מחזיר אותו בדיוק
+        // לכשל השקט. `boxed: false` — בועת הצ'אט כבר מסגרת.
+        listingChatHistory.push(isGuestQuotaError(err)
+          ? { role: 'assistant', text: GUEST_QUOTA_TEXT,
+              html: guestQuotaPanelHTML({ manualLabel: QUOTA_MANUAL_LABEL, note: QUOTA_NOTE, boxed: false }) }
+          : { role: 'assistant', text: friendlyAIError(err, 'עוזר הכתיבה נפתח אחרי ההתחברות. אפשר לכתוב את המודעה ידנית עכשיו — זה עובד בדיוק אותו דבר.') });
       } finally {
         listingChatThinking = false;
         renderListingChat();
@@ -758,7 +801,10 @@
       if (draft) { applyListingDraft(draft); showListingDraftNotice(); }
     } else {
       document.getElementById('guest-publish-note').hidden = false;
-      document.getElementById('ai-guest-note').hidden = false;
+      // ⚠️ **תלוי ב-`isAIConfigured` ולא בהיעדר חשבון.** ברגע שהסריקה
+      // נפתחת לאורחים (`GUEST_AI_ENABLED`), "נפתח אחרי ההתחברות" הופך
+      // לשקר שמרחיק בדיוק את מי שכן יכול להשתמש. ראו ai-vision.js.
+      document.getElementById('ai-guest-note').hidden = isAIConfigured();
     }
   </script>
 </body>

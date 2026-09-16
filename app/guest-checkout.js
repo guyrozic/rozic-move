@@ -245,11 +245,19 @@ export function clearAllOrderDrafts() {
   } catch { /* ראו saveOrderDraft */ }
 }
 
-/** מפנה להרשמה/התחברות, ומבטיחה שהזרימה תחזור בדיוק לאותו דף. */
-export function goRegister(serviceType, state) {
+/**
+ * מפנה להרשמה/התחברות, ומבטיחה שהזרימה תחזור בדיוק לאותו דף.
+ *
+ * @param {string} [reason] **למה** נשלח להתחבר — נמסר ל-`login.html`,
+ *   שמציג שם שורת הסבר תואמת. נוסף ב-16.9 עם מכסת הסריקות לאורח:
+ *   מי שנשלח באמצע סריקה ומגיע למסך התחברות ניטרלי רואה בקשה לפרטים
+ *   בלי שום קשר למה שעשה שנייה קודם, וזה בדיוק אותו כשל שקט. ערך לא
+ *   מוכר פשוט אינו מציג דבר, ולכן אי אפשר לשבור כאן שום דף.
+ */
+export function goRegister(serviceType, state, reason) {
   saveOrderDraft(serviceType, state);
   const next = encodeURIComponent(location.pathname + location.search);
-  location.href = `login.html?next=${next}`;
+  location.href = `login.html?next=${next}${reason ? `&reason=${encodeURIComponent(reason)}` : ''}`;
 }
 
 /**

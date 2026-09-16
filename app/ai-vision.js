@@ -45,8 +45,28 @@ const PROXY_URL = 'https://us-central1-hovalot-6cf65.cloudfunctions.net/geminiPr
  * עד אז — האמת. ראו הדוח לגיא מ-16.9.
  */
 export function isAIConfigured() {
-  return Boolean(auth.currentUser);
+  return GUEST_AI_ENABLED || Boolean(auth.currentUser);
 }
+
+/**
+ * ## ⚠️ הדלק שפותח את ה-AI לאורחים — נקודה אחת, ובכוונה.
+ *
+ * גיא הכריע (תזכיר #60) לפתוח סריקה לאורחים עם מכסה, וצד השרת נבנה
+ * בנפרד (`geminiProxy` — ריפו האפליקציה). **הדלק נשאר כבוי עד שהשרת
+ * חי בייצור**, וזה לא זהירות סתמית: `geminiProxy` מחזיר היום `401`
+ * לכל בקשה בלי טוקן, כלומר דלק דלוק מוקדם מדי היה שולח אורחים להעלות
+ * תמונות, לחכות לפס התקדמות, ורק אז לגלות שצריך חשבון — במקום לדעת
+ * את זה מראש מהשורה הראשונה במסך.
+ *
+ * **להדליק = לשנות את השורה הזו ל-`true`.** אין שום מקום אחר לגעת בו:
+ * `isAIConfigured` למעלה מפעילה את הכפתורים, ו-`callGemini` למטה כבר
+ * שולחת `Authorization` רק כשיש משתמש מחובר.
+ *
+ * ⚠️ ורשת ביטחון, אם בכל זאת הודלק לפני השרת: `401`/`403` לאורח מתורגם
+ * ל-`AI_NOT_CONFIGURED` ("צריך להתחבר"), ולא לשגיאת תקלה — כדי שהמסך
+ * הגרוע ביותר במצב הזה יהיה בדיוק המסך שהיה קודם, ולא הודעה שקרית.
+ */
+export const GUEST_AI_ENABLED = false;
 
 function buildCatalogList(catalog) {
   return catalog.map(c => {
@@ -86,20 +106,42 @@ Task:
 }
 
 async function callGemini(parts) {
-  if (!auth.currentUser) throw new Error('AI_NOT_CONFIGURED');
-  const token = await auth.currentUser.getIdToken();
+  const user = auth.currentUser;
+  if (!user && !GUEST_AI_ENABLED) throw new Error('AI_NOT_CONFIGURED');
+
+  const headers = { 'Content-Type': 'application/json' };
+  // אורח שולח בלי `Authorization` — השער והמכסה שלו הם בשרת, לפי IP.
+  if (user) headers.Authorization = `Bearer ${await user.getIdToken()}`;
 
   const response = await fetch(PROXY_URL, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+    headers,
     body: JSON.stringify({ parts }),
   });
 
   if (!response.ok) {
-    if (response.status === 429) {
-      throw new Error('AI_RATE_LIMITED');
-    }
     const errText = await response.text().catch(() => '');
+    /**
+     * ⚠️ **שני 429 שונים לגמרי, ורק גוף התשובה מבדיל ביניהם.**
+     *
+     * `guest_quota_exhausted` = אורח מיצה את מכסת הסריקות החינמיות,
+     * והמענה הוא הזמנה להתחבר (`ai-guest-quota.js`). כל 429 אחר הוא
+     * מגבלת הקצב של **משתמש רשום** — ושם "התחברו והמשיכו" היא הודעה
+     * חסרת פשר למי שכבר מחובר. הסטטוס לבדו אינו מספיק כדי להחליט.
+     *
+     * הקריאה היא ב-`text()` ולא ב-`json()` בכוונה: גוף ריק או HTML של
+     * שכבת רשת (Cloudflare/דפדפן) לא יפיל כאן דבר, אלא ייפול חזרה
+     * למגבלת הקצב הרגילה.
+     */
+    if (response.status === 429) {
+      let code = '';
+      try { code = JSON.parse(errText)?.error || ''; } catch { /* גוף שאינו JSON — ראו למעלה */ }
+      throw new Error(code === 'guest_quota_exhausted' ? 'AI_GUEST_QUOTA_EXHAUSTED' : 'AI_RATE_LIMITED');
+    }
+    // רשת ביטחון לדלק שהודלק לפני שהשרת נפתח לאורחים — ראו GUEST_AI_ENABLED.
+    if (!user && (response.status === 401 || response.status === 403)) {
+      throw new Error('AI_NOT_CONFIGURED');
+    }
     throw new Error(`AI_REQUEST_FAILED: ${response.status} ${errText}`);
   }
 
@@ -329,6 +371,20 @@ export function friendlyAIError(err, notConfiguredMessage) {
   // ⚠️ ההודעה הקודמת ('AI לא מוגדר כרגע באתר') האשימה את האתר בתקלה
   // שאינה קיימת. הסיבה האמיתית היא תמיד היעדר התחברות.
   if (msg.includes('AI_NOT_CONFIGURED')) return notConfiguredMessage || 'כדי לסרוק תמונות צריך להתחבר. אפשר להמשיך להוסיף פריטים ידנית, ולהתחבר בהמשך.';
-  if (msg.includes('AI_RATE_LIMITED')) return 'הגענו למגבלת השימוש החינמית של ה-AI לכמה דקות. נסה שוב עוד רגע.';
+  /**
+   * ⚠️ 16.9 — מכסת האורח, **בטקסט בלבד**. המסך המלא (כפתור התחברות +
+   * מוצא ידני) נבנה ב-`ai-guest-quota.js`, והדפים מציגים אותו במקום
+   * המחרוזת הזו. היא קיימת כרשת ביטחון: קורא עתידי שיוסיף נתיב AI חדש
+   * ויתפוס בו שגיאות רק דרך `friendlyAIError` יקבל הסבר נכון ולא
+   * *"לא הצלחנו לנתח את התמונות, בדוק את החיבור"* — כלומר בדיוק הכשל
+   * השקט שגיא אסר, בתחפושת של תקלת רשת.
+   *
+   * ⚠️ והתנאי על `currentUser` אינו מיותר: אם השרת יחזיר יום אחד
+   * `guest_quota_exhausted` למשתמש מחובר, "התחברו" היא הודעה חסרת פשר.
+   */
+  if (msg.includes('AI_GUEST_QUOTA_EXHAUSTED') && !auth.currentUser) {
+    return 'נגמרו הסריקות החינמיות ללא חשבון. ההתחברות חינם ולוקחת שנייה — Google, Apple או מייל — ומשם ממשיכים לסרוק.';
+  }
+  if (msg.includes('AI_RATE_LIMITED') || msg.includes('AI_GUEST_QUOTA_EXHAUSTED')) return 'הגענו למגבלת השימוש החינמית של ה-AI לכמה דקות. נסה שוב עוד רגע.';
   return 'לא הצלחנו לנתח את התמונות. בדוק את החיבור לאינטרנט ונסה שוב.';
 }

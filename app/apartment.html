@@ -27,11 +27,11 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="../style.css?v=a59589a2">
-  <link rel="stylesheet" href="style-app.css?v=232d590a">
+  <link rel="stylesheet" href="../style.css?v=93d67ba9">
+  <link rel="stylesheet" href="style-app.css?v=51e8347f">
 </head>
 <body class="app-body">
-<div data-build-stamp class="build-stamp" aria-hidden="true">עודכן 16.09 · 00:50</div>
+<div data-build-stamp class="build-stamp" aria-hidden="true">עודכן 16.09 · 11:05</div>
   <!-- ⚠️ 15.9 — "דלג לתוכן המרכזי" (WCAG 2.4.1, רמה A). זהו האלמנט הממוקד
        הראשון בדף: מוסתר מהעין, מופיע בפינה ברגע שמגיעים אליו ב-Tab, ומעביר
        את המיקוד אל <main id="main-content" tabindex="-1">. בלי ה-tabindex
@@ -311,6 +311,9 @@
     import { FLOORS, craneCostFor, distanceAndCoords, formatDateApp, parseDateApp } from './geo.js';
     import { insurancePriceInPilot } from './pilot-mode.js';
     import { analyzeImagesWithCatalog, isAIConfigured, friendlyAIError, chatAddItemsWithCatalog } from './ai-vision.js';
+    import { isGuestQuotaError, guestQuotaPanelHTML, attachGuestQuotaHandlers,
+             mountGuestQuotaPanel, saveScanPhotos, restoreScanPhotos, scanPhotosNotice,
+             GUEST_QUOTA_TEXT } from './ai-guest-quota.js';
     import { resizeImageToBase64 } from './image-resize.js';
 
     // 14.9 — אורח רשאי לבנות הזמנה ולראות מחיר בלי חשבון. ההרשמה
@@ -418,6 +421,51 @@
         + 'אפשר להמשיך ולהוסיף פריטים ידנית — ההזמנה תישמר.</div>';
     }
 
+    /* ═══════════ מכסת הסריקות לאורח (תזכיר #60) ═══════════════════════
+       ⚠️ **שני הכפתורים חייבים להישאר חיים אחרי כל רינדור.** הפאנל מוצג
+       גם בתוך שרשור הצ'אט, שנבנה מחדש ב-`innerHTML` בכל הודעה — ולכן
+       ההאזנה היא האצלה מ-`document` (`ai-guest-quota.js`) ולא מאזין על
+       הכפתור עצמו, שהיה מת ברינדור הבא.
+       ─────────────────────────────────────────────────────────────── */
+    const QUOTA_MANUAL_LABEL = 'או המשיכו להוסיף פריטים ידנית';
+    const QUOTA_NOTE = 'הפריטים שכבר הוספתם והתמונות שבחרתם נשמרים — תחזרו לכאן בדיוק לאותו מקום.';
+
+    attachGuestQuotaHandlers({
+      /**
+       * ⚠️ **התמונות נשמרות לפני ההפניה, לא אחריה.** `goRegister` שומרת
+       * את הפריטים, הכתובות והתאריך (`saveOrderDraft`), אבל `aiPhotos`
+       * הוא `File[]` בזיכרון בלבד — ובלי השורה הזו אורח שהעלה שמונה
+       * תמונות של הדירה, נשלח להתחבר וחזר, מוצא אזור תמונות ריק ומתחיל
+       * לצלם מחדש. ⚠️ ההפניה והשמירה חייבות להישאר צמודות, בדיוק כמו
+       * בשאר הזרימה (ראו guest-checkout.js).
+       */
+      onLogin: async () => {
+        await saveScanPhotos('apartment', aiPhotos);
+        goRegister('apartment', state, 'ai-quota');
+      },
+      // מי שלא רוצה חשבון לא נשאר בקיר: הקטלוג הידני נמצא באותו מסך.
+      onManual: () => {
+        document.getElementById('start-list')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        document.querySelector('#room-tabs .room-tab')?.focus({ preventScroll: true });
+      },
+    });
+
+    /**
+     * החזרה מההתחברות — הצד השני של `saveScanPhotos`.
+     *
+     * ⚠️ **ההודעה מוצגת גם כשהתמונות לא חזרו, וזה העיקר.** אזור תמונות
+     * ריק בלי מילה הוא בדיוק הכשל השקט: הלקוח זוכר שהעלה תמונות, רואה
+     * כפתור סריקה מושבת, ולא יודע אם הוא עשה משהו לא נכון או שהאתר
+     * שבור. `scanPhotosNotice` אומרת לו במפורש לבחור אותן שוב.
+     */
+    const restoredScan = restoreScanPhotos('apartment');
+    if (restoredScan) {
+      aiPhotos = restoredScan.files;
+      renderAIPhotos();
+      document.getElementById('ai-error').insertAdjacentHTML('beforeend',
+        `<div class="alert alert-info">${scanPhotosNotice(restoredScan, Boolean(authState))}</div>`);
+    }
+
     // ⚠️ ה-label אינו מפעיל את הבורר מהמקלדת מעצמו. `click()` ישיר על
     // ה-input, ו-`preventDefault` כדי שרווח לא יגלול את הדף.
     document.getElementById('ai-photo-label')?.addEventListener('keydown', (ev) => {
@@ -478,7 +526,11 @@
         renderItems();
         updateItemsHeader();
       } catch (err) {
-        errBox.innerHTML = `<div class="alert alert-error">${friendlyAIError(err)}</div>`;
+        // ⚠️ מכסת אורח אינה שגיאה אלא צומת החלטה — ולכן פאנל עם מוצא,
+        // ולא `alert-error` אדום שנראה כמו תקלה באתר. כל שגיאה אחרת
+        // (רשת, 500, מגבלת קצב של משתמש רשום) ממשיכה לנוסח הרגיל.
+        if (isGuestQuotaError(err)) mountGuestQuotaPanel(errBox, { manualLabel: QUOTA_MANUAL_LABEL, note: QUOTA_NOTE });
+        else errBox.innerHTML = `<div class="alert alert-error">${friendlyAIError(err)}</div>`;
       } finally {
         clearInterval(tick);
         progressFill.style.width = '100%';
@@ -555,7 +607,10 @@
 
     function renderChatThread() {
       const box = document.getElementById('ai-chat-thread');
-      box.innerHTML = chatHistory.map(m => `<div class="ai-chat-msg ${m.role === 'user' ? 'user' : 'ai'}">${m.text}</div>`).join('')
+      // ⚠️ `m.html` קיים רק להודעות שאנחנו בונים (פאנל מכסת האורח), ו-`m.text`
+      // הוא מה שנשלח ל-AI כהיסטוריה. שמירת שני השדות בנפרד מונעת מ-HTML
+      // של כפתורים לזלוג לתוך הפרומפט של הקריאה הבאה.
+      box.innerHTML = chatHistory.map(m => `<div class="ai-chat-msg ${m.role === 'user' ? 'user' : 'ai'}">${m.html || m.text}</div>`).join('')
         + (chatThinking ? '<div class="ai-chat-msg ai typing">חושב...</div>' : '');
       box.scrollTop = box.scrollHeight;
     }
@@ -596,7 +651,14 @@
         renderItems();
         updateItemsHeader();
       } catch (err) {
-        chatHistory.push({ role: 'assistant', text: friendlyAIError(err) });
+        // ⚠️ אותו פאנל בדיוק גם כאן. הצ'אט אינו נתיב משני — אורח שהוסיף
+        // פריטים בכתיבה חופשית וקיבל רק "לא הצלחנו" היה עוזב בלי לדעת
+        // שהוא במרחק התחברות אחת מלהמשיך. `boxed: false` כי בועת הצ'אט
+        // כבר מסגרת, ושתי מסגרות בתוך שתי מסגרות נראות שבורות.
+        chatHistory.push(isGuestQuotaError(err)
+          ? { role: 'assistant', text: GUEST_QUOTA_TEXT,
+              html: guestQuotaPanelHTML({ manualLabel: QUOTA_MANUAL_LABEL, note: QUOTA_NOTE, boxed: false }) }
+          : { role: 'assistant', text: friendlyAIError(err) });
       } finally {
         chatThinking = false;
         renderChatThread();
