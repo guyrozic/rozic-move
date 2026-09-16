@@ -66,7 +66,7 @@ export function isAIConfigured() {
  * ל-`AI_NOT_CONFIGURED` ("צריך להתחבר"), ולא לשגיאת תקלה — כדי שהמסך
  * הגרוע ביותר במצב הזה יהיה בדיוק המסך שהיה קודם, ולא הודעה שקרית.
  */
-export const GUEST_AI_ENABLED = false;
+export const GUEST_AI_ENABLED = true;
 
 function buildCatalogList(catalog) {
   return catalog.map(c => {
