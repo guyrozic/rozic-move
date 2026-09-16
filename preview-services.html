@@ -1,0 +1,672 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<title>שני השירותים — דוגמאות</title>
+<!-- ⚠️ דף עבודה בלבד: noindex, לא מקושר משום מקום, ולא ב-sitemap.
+     שש מסגרות — שלושה כיוונים ל"מובילים בקטנה" ושלושה ל"מעבירים את זה
+     הלאה". המסגרת, הרקע הירוק והכרטיס הלבן זהים בשישתן ומשחזרים את
+     `.hp-stage`/`.hp-panel` של עמוד הבית, כך שההשוואה היא על **הפנים
+     של הכרטיס** ולא על רעש סביבו.
+     הכרטיס תחום ל-800px כי זו בקירוב הרוחב האמיתי של `.hp-panel`
+     ב-1440 (עמודת 1.22fr של `.hp-hero`).
+     ⚠️ אין כאן שום נתון מומצא: שמות הפריטים באים מ-`app/data/items.js`,
+     קטגוריות הלוח מ-`app/listings.js`, ומד הטנדר הוא המנגנון שכבר קיים
+     ב-`app/small-move.html` (`van-gauge`). אין מחירים, אין מספרי
+     משתמשים ואין מודעות אמיתיות. -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css?v=93d67ba9">
+<style>
+  /* ═══ מסגרת דף ההשוואה ═════════════════════════════════════════════ */
+  .pv-wrap { max-width:1240px; margin:0 auto; padding-inline:20px; }
+
+  .pv-lead { padding-block:30px 4px; text-align:center; }
+  .pv-lead h1 { font-size:clamp(1.38rem,1.1rem + 1.2vw,1.78rem); font-weight:900; line-height:1.25; }
+  .pv-lead p { font-size:.94rem; color:var(--text-mid); line-height:1.65;
+    margin:10px auto 0; max-width:66ch; }
+  .pv-jump { display:flex; flex-wrap:wrap; gap:8px; justify-content:center; margin-top:15px; }
+  .pv-jump a { font-size:.83rem; font-weight:800; padding:6px 15px; border-radius:999px;
+    background:var(--white); border:1.5px solid var(--border); color:var(--text);
+    text-decoration:none; min-height:44px; display:inline-flex; align-items:center; }
+  .pv-jump a:hover { background:var(--green-tint); border-color:var(--green-line); }
+
+  /* כותרת שירות */
+  .pv-svc { margin-top:40px; padding-top:22px; border-top:2px solid var(--border); }
+  .pv-svc h2 { font-size:clamp(1.18rem,1rem + .8vw,1.48rem); font-weight:900; }
+  .pv-svc > p { font-size:.9rem; color:var(--text-mid); line-height:1.65; margin-top:7px; max-width:72ch; }
+  .pv-trap { font-size:.86rem; color:var(--green-ink); background:var(--green-tint);
+    border:1.5px solid var(--green-line); border-radius:12px; padding:10px 14px;
+    margin-top:12px; max-width:72ch; line-height:1.65; }
+
+  /* תווית הכיוון */
+  .pv-sec { margin-top:28px; }
+  .pv-label { display:flex; align-items:baseline; gap:10px; flex-wrap:wrap; margin-bottom:7px; }
+  .pv-tag { font-size:.71rem; font-weight:900; color:var(--green-ink); background:var(--green-tint);
+    border:1.5px solid var(--green-line); border-radius:999px; padding:3px 11px; white-space:nowrap; }
+  .pv-label h3 { font-size:clamp(1.02rem,.96rem + .3vw,1.14rem); font-weight:900; line-height:1.3; }
+  .pv-why { font-size:.87rem; color:var(--text-mid); line-height:1.65; margin:0 0 12px; max-width:74ch; }
+  .pv-why b { color:var(--text); font-weight:800; }
+
+  /* ═══ הבמה והכרטיס — משחזרים את עמוד הבית ═══════════════════════════ */
+  .pv-frame { border-radius:16px; overflow:hidden; box-shadow:var(--shadow-md); }
+  .pv-stage { position:relative; padding:clamp(16px,2.4vw,36px);
+    background:radial-gradient(120% 95% at 24% 2%,
+      var(--green-bright) 0%, var(--green) 42%, var(--green-dark) 100%); }
+  .pv-stage::before { content:''; position:absolute; inset:0; pointer-events:none; z-index:1;
+    background-image:radial-gradient(circle at 1px 1px, var(--green-wash) 1px, transparent 1px);
+    background-size:15px 15px; opacity:.09; }
+  .pv-card { position:relative; z-index:2; max-width:800px; margin:0 auto;
+    background:var(--white); color:var(--text); border-radius:18px; overflow:hidden;
+    box-shadow:0 30px 68px -22px rgba(0,0,0,.6); }
+  .pv-in { padding:14px clamp(13px,1.8vw,22px) clamp(15px,1.8vw,20px); }
+
+  /* רצועת בורר השירות — שחזור ויזואלי בלבד (aria-hidden), לא פקדים חיים.
+     ⚠️ הצ'יפ הנבחר נשאר **מסגרת** ואינו מתמלא — כלל שני הירוקים. */
+  .pv-chips { display:flex; gap:4px; flex-wrap:wrap; border-bottom:1px solid var(--border);
+    margin:0 calc(-1 * clamp(13px,1.8vw,22px)) 12px;
+    padding:0 clamp(13px,1.8vw,22px) 6px; }
+  .pv-chip { font-size:.8rem; font-weight:700; color:var(--text-mid); padding:5px 12px;
+    border-radius:999px; border:1.5px solid transparent; min-height:44px;
+    display:inline-flex; align-items:center; white-space:nowrap; }
+  .pv-chip.on { background:var(--green-tint); border-color:var(--green-line); color:var(--green-ink); }
+  @media (max-width:430px){ .pv-chip { font-size:.74rem; padding:5px 9px; } }
+
+  /* טיפוגרפיה בתוך הכרטיס */
+  .pv-h { font-size:clamp(1rem,.94rem + .34vw,1.16rem); font-weight:900; margin:0 0 4px; line-height:1.3; }
+  .pv-sub { font-size:.85rem; color:var(--text-muted); line-height:1.55; margin:0 0 12px; }
+  .pv-note { font-size:.78rem; color:var(--text-muted); line-height:1.5; margin:9px 0 0; }
+  .pv-note a { color:var(--green-ink); font-weight:800; padding-block:4px; }
+
+  /* כפתור ראשי — רחב וממורכז באזור שלו */
+  .pv-cta { display:flex; width:100%; justify-content:center; text-align:center;
+    white-space:normal; box-sizing:border-box; }
+  .pv-quiet { display:inline-flex; align-items:center; min-height:44px; margin-top:6px;
+    font-size:.82rem; font-weight:800; color:var(--green-ink); text-decoration:none; }
+  .pv-quiet:hover { text-decoration:underline; }
+
+  /* פריסות */
+  .pv-2col { display:grid; grid-template-columns:minmax(0,1.8fr) minmax(0,1fr);
+    gap:clamp(12px,1.6vw,20px); align-items:stretch; }
+  .pv-2col-even { grid-template-columns:minmax(0,1fr) minmax(0,1fr); }
+  @media (max-width:760px){ .pv-2col { grid-template-columns:1fr; } }
+  .pv-col { display:flex; flex-direction:column; min-width:0; }
+  .pv-foot { margin-top:auto; padding-top:12px; }
+
+  /* ═══ אריחי פריטים ═════════════════════════════════════════════════ */
+  .pv-tiles { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:9px; }
+  .pv-tile { border:1.5px solid var(--border); border-radius:13px; background:var(--white);
+    padding:11px 6px 10px; text-align:center; min-height:44px; }
+  .pv-tile .ic { width:34px; height:34px; margin:0 auto 6px; border-radius:10px;
+    background:var(--green-light); display:flex; align-items:center; justify-content:center; }
+  .pv-tile .ic svg { width:19px; height:19px; }
+  .pv-tile b { display:block; font-size:.76rem; font-weight:800; line-height:1.3; }
+  @media (max-width:620px){
+    .pv-tiles { grid-template-columns:repeat(2,minmax(0,1fr)); }
+    .pv-tile { display:grid; grid-template-columns:auto minmax(0,1fr); gap:0 10px;
+      align-items:center; text-align:start; padding:9px 11px; }
+    .pv-tile .ic { margin:0; width:30px; height:30px; }
+  }
+
+  /* אייקון קווי — אותו מתכון של `.pick .ic svg` בעמוד הבית */
+  .pv-ic { stroke:var(--green); fill:none; stroke-width:1.9;
+    stroke-linecap:round; stroke-linejoin:round; }
+
+  /* ═══ רשימה נבנית ══════════════════════════════════════════════════ */
+  .pv-list { border:1.5px solid var(--green-line); border-radius:12px;
+    background:var(--green-tint); padding:10px 12px 11px; }
+  .pv-list-t { font-size:.72rem; font-weight:800; color:var(--green-ink);
+    margin-bottom:8px; line-height:1.4; }
+  .pv-list ul { list-style:none; display:flex; flex-direction:column; gap:5px; }
+  .pv-list li { font-size:.79rem; font-weight:700; color:var(--text);
+    display:flex; gap:5px; align-items:baseline; line-height:1.35; }
+  .pv-list li::before { content:'✓'; color:var(--green-line); font-size:.7rem; flex:none; }
+  .pv-list li span { color:var(--text-muted); font-weight:700; font-size:.72rem; }
+
+  /* ═══ שטח האיור ════════════════════════════════════════════════════ */
+  .pv-ill { position:relative; border-radius:12px; overflow:hidden;
+    border:1px solid var(--border); aspect-ratio:52/19;
+    background:linear-gradient(170deg, var(--bg), var(--green-light)); }
+  @media (max-width:620px){ .pv-ill { aspect-ratio:43/19; } }
+  .pv-ill .art { position:absolute; inset:0; width:100%; height:100%; }
+  .pv-ill .ln { stroke:var(--text-muted); fill:none; stroke-width:2.1; opacity:.5;
+    vector-effect:non-scaling-stroke; stroke-linecap:round; stroke-linejoin:round; }
+  .pv-ill .ln-soft { opacity:.28; }
+  .pv-ill .hi { stroke:var(--green-line); fill:none; stroke-width:2.2;
+    vector-effect:non-scaling-stroke; stroke-linecap:round; stroke-linejoin:round; }
+  .pv-ill .box { fill:rgba(78,218,169,.12); stroke:var(--green-line); stroke-width:2;
+    vector-effect:non-scaling-stroke; }
+  .pv-ill .dash { stroke-dasharray:7 9; }
+  .pv-pin { position:absolute; z-index:3; max-width:46%; background:var(--green-line);
+    color:var(--white); font-size:.67rem; font-weight:800; padding:3px 8px;
+    border-radius:6px; line-height:1.4; }
+  .pv-pin.mute { background:var(--white); color:var(--text-muted); border:1px solid var(--border); }
+  @media (max-width:620px){ .pv-pin { font-size:.62rem; max-width:52%; } }
+
+  /* ═══ מד הטנדר — המנגנון האמיתי מ-app/small-move.html ═══════════════ */
+  .pv-gauge { height:12px; border-radius:999px; background:var(--green-light);
+    border:1px solid var(--border); overflow:hidden; margin-top:11px; }
+  .pv-gauge i { display:block; height:100%; width:68%; background:var(--green-line); }
+  .pv-gauge-l { display:flex; justify-content:space-between; gap:10px; flex-wrap:wrap;
+    font-size:.75rem; font-weight:800; color:var(--green-ink); margin-top:6px; }
+  .pv-gauge-l em { font-style:normal; font-weight:700; color:var(--text-muted); }
+
+  /* ═══ שלבים / גורמים — שלושה כרטיסונים בשורה ═══════════════════════ */
+  .pv-steps { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:10px; }
+  .pv-step { border:1.5px solid var(--border); border-radius:13px; background:var(--white);
+    padding:12px 11px; position:relative; }
+  .pv-step .ic { width:32px; height:32px; border-radius:10px; background:var(--green-light);
+    display:flex; align-items:center; justify-content:center; margin-bottom:8px; }
+  .pv-step .ic svg { width:18px; height:18px; }
+  .pv-step b { display:block; font-size:.87rem; font-weight:800; line-height:1.3; }
+  .pv-step i { display:block; font-style:normal; font-size:.76rem; color:var(--text-muted);
+    line-height:1.45; margin-top:3px; }
+  .pv-step u { position:absolute; inset-block-start:12px; inset-inline-end:12px;
+    text-decoration:none; font-size:.68rem; font-weight:900; color:var(--green-ink); }
+  /* בטור אחד הכרטיס נמתח לרוחב מלא והטקסט נשאר צמוד לראשו — שורה
+     אופקית (אייקון · טקסט) כמו האריחים, במקום כרטיס רובו ריק. */
+  @media (max-width:620px){
+    .pv-steps { grid-template-columns:1fr; gap:8px; }
+    .pv-step { display:grid; grid-template-columns:auto minmax(0,1fr);
+      gap:0 11px; align-items:center; padding:10px 12px; }
+    .pv-step .ic { grid-row:1/3; margin:0; width:30px; height:30px; }
+    .pv-step b, .pv-step i { grid-column:2; }
+    .pv-step u { position:static; grid-column:2; grid-row:1;
+      justify-self:end; align-self:center; }
+  }
+
+  /* ═══ שלוש דרכי הפתיחה, בגרסה מרוסנת ═══════════════════════════════ */
+  .pv-ways { display:flex; gap:8px; flex-wrap:wrap; margin-top:11px; }
+  .pv-way { display:inline-flex; align-items:center; gap:7px; min-height:44px;
+    padding:6px 13px; border:1.5px solid var(--border); border-radius:999px;
+    background:var(--white); font-size:.79rem; font-weight:700; color:var(--text);
+    text-decoration:none; }
+  .pv-way svg { width:16px; height:16px; flex:none; }
+  .pv-way:hover { border-color:var(--green-line); background:var(--green-tint); }
+
+  /* ═══ שחזור הלוח — כולל מצב ריק ════════════════════════════════════ */
+  .pv-board { border:1px solid var(--border); border-radius:12px; background:var(--bg); padding:11px; }
+  .pv-search { display:flex; align-items:center; gap:8px; background:var(--white);
+    border:1.5px solid var(--border); border-radius:10px; padding:8px 11px;
+    font-size:.82rem; color:var(--text-muted); min-height:44px; }
+  .pv-search svg { width:16px; height:16px; flex:none; }
+  .pv-cats { display:flex; gap:6px; flex-wrap:wrap; margin-top:9px; }
+  .pv-cat { font-size:.72rem; font-weight:700; color:var(--text-mid); background:var(--white);
+    border:1.5px solid var(--border); border-radius:999px; padding:5px 11px; white-space:nowrap; }
+  .pv-cat.on { background:var(--green-tint); border-color:var(--green-line); color:var(--green-ink); }
+  .pv-slots { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:9px; margin-top:11px; }
+  .pv-slot { border:1.5px dashed var(--border); border-radius:12px; background:var(--white);
+    min-height:118px; padding:12px 9px; text-align:center;
+    display:flex; flex-direction:column; align-items:center; justify-content:center; gap:7px; }
+  .pv-slot b { display:block; font-size:.8rem; font-weight:800; line-height:1.35; }
+  .pv-slot i { display:block; font-style:normal; font-size:.73rem; color:var(--text-muted); line-height:1.4; }
+  .pv-slot .ic { width:30px; height:30px; border-radius:9px; background:var(--green-light);
+    display:flex; align-items:center; justify-content:center; }
+  .pv-slot .ic svg { width:17px; height:17px; }
+  .pv-slot.first { border-style:solid; border-color:var(--green-line); background:var(--green-tint); }
+  .pv-slot.first b { color:var(--green-ink); }
+  @media (max-width:620px){
+    .pv-slots { grid-template-columns:1fr; }
+    .pv-slot { min-height:0; flex-direction:row; text-align:start; justify-content:flex-start; }
+  }
+
+  /* ═══ תצוגה מקדימה של מודעה — "כך תיראה שלכם", לא מלאי קיים ════════ */
+  .pv-ad { border:1.5px solid var(--border); border-radius:13px; background:var(--white);
+    overflow:hidden; max-width:206px; }
+  .pv-ad-ph { aspect-ratio:7/5; background:var(--green-light);
+    display:flex; align-items:center; justify-content:center; }
+  .pv-ad-ph svg { width:62px; height:62px; }
+  .pv-ad-b { padding:9px 11px 11px; }
+  .pv-ad-b b { display:block; font-size:.84rem; font-weight:800; line-height:1.3; }
+  .pv-ad-b i { display:block; font-style:normal; font-size:.74rem; color:var(--text-muted); margin-top:3px; }
+  .pv-free { display:inline-block; margin-top:7px; font-size:.7rem; font-weight:900;
+    color:var(--green-ink); background:var(--green-tint); border:1.5px solid var(--green-line);
+    border-radius:999px; padding:2px 10px; }
+  .pv-ad-cap { font-size:.72rem; font-weight:800; color:var(--text-muted); margin-bottom:7px; }
+
+  /* ═══ ההנפשות ══════════════════════════════════════════════════════
+     כולן opacity/transform/width בלבד, לולאה אחת של 9 שניות לכל מסגרת,
+     ואיפוס משותף ב-100% כדי שכל המסגרת תתחיל מחדש יחד (אותה שיטה
+     שבעמוד הבית: keyframes נפרדים ולא animation-delay). */
+  .pv-a1,.pv-a2,.pv-a3 { animation-duration:9s; animation-timing-function:ease-out;
+    animation-iteration-count:infinite; animation-fill-mode:both; }
+  @keyframes pvIn1 { 0%,11%{opacity:0;transform:translateY(5px)} 17%,96%{opacity:1;transform:none} 100%{opacity:0} }
+  @keyframes pvIn2 { 0%,29%{opacity:0;transform:translateY(5px)} 35%,96%{opacity:1;transform:none} 100%{opacity:0} }
+  @keyframes pvIn3 { 0%,47%{opacity:0;transform:translateY(5px)} 53%,96%{opacity:1;transform:none} 100%{opacity:0} }
+  .pv-a1 { animation-name:pvIn1 } .pv-a2 { animation-name:pvIn2 } .pv-a3 { animation-name:pvIn3 }
+
+  /* אריח שנבחר — מסגרת ורקע בלבד, בלי מילוי ובלי שינוי עובי (שלא יזוז) */
+  .pv-sel { animation-duration:9s; animation-timing-function:ease-out;
+    animation-iteration-count:infinite; animation-fill-mode:both; }
+  @keyframes pvSel1 { 0%,11%{border-color:var(--border);background:var(--white)}
+    17%,96%{border-color:var(--green-line);background:var(--green-tint)}
+    100%{border-color:var(--border);background:var(--white)} }
+  @keyframes pvSel2 { 0%,29%{border-color:var(--border);background:var(--white)}
+    35%,96%{border-color:var(--green-line);background:var(--green-tint)}
+    100%{border-color:var(--border);background:var(--white)} }
+  @keyframes pvSel3 { 0%,47%{border-color:var(--border);background:var(--white)}
+    53%,96%{border-color:var(--green-line);background:var(--green-tint)}
+    100%{border-color:var(--border);background:var(--white)} }
+  .pv-sel.s1 { animation-name:pvSel1 } .pv-sel.s2 { animation-name:pvSel2 } .pv-sel.s3 { animation-name:pvSel3 }
+
+  .pv-drive { animation:pvDrive 9s cubic-bezier(.45,0,.35,1) infinite both; }
+  @keyframes pvDrive { 0%,8%{transform:translateX(0)} 62%,94%{transform:translateX(-140px)} 100%{transform:translateX(0)} }
+  .pv-give { animation:pvGive 9s cubic-bezier(.45,0,.35,1) infinite both; }
+  @keyframes pvGive { 0%,12%{transform:translateX(0)} 64%,94%{transform:translateX(-186px)} 100%{transform:translateX(0)} }
+  .pv-fill { animation:pvFill 9s cubic-bezier(.4,0,.3,1) infinite both; }
+  @keyframes pvFill { 0%,11%{width:0} 56%,96%{width:68%} 100%{width:0} }
+  .pv-pulse { animation:pvPulse 9s ease-in-out infinite both; }
+  @keyframes pvPulse { 0%,55%{opacity:.35} 66%,92%{opacity:1} 100%{opacity:.35} }
+
+  @media (prefers-reduced-motion:reduce){
+    .pv-a1,.pv-a2,.pv-a3,.pv-sel,.pv-drive,.pv-give,.pv-fill,.pv-pulse { animation:none; opacity:1; transform:none; }
+    .pv-sel { border-color:var(--green-line); background:var(--green-tint); }
+    .pv-gauge i { width:68% }
+    .pv-drive { transform:translateX(-140px) }
+    .pv-give { transform:translateX(-186px) }
+  }
+
+  /* ═══ השיקול בתחתית ════════════════════════════════════════════════ */
+  .pv-end { margin:40px auto 56px; max-width:74ch; background:var(--white);
+    border:1.5px solid var(--border); border-radius:16px; padding:20px clamp(16px,2vw,24px); }
+  .pv-end h2 { font-size:1.1rem; font-weight:900; margin-bottom:9px; }
+  .pv-end p { font-size:.9rem; color:var(--text-mid); line-height:1.75; margin-bottom:11px; }
+  .pv-end p:last-child { margin-bottom:0; }
+  .pv-end b { color:var(--text); font-weight:800; }
+</style>
+</head>
+<body>
+<div data-build-stamp class="build-stamp" aria-hidden="true">עודכן 16.09 · 12:16</div>
+<a class="skip-link" href="#main-content">דלג לתוכן המרכזי</a>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false"><defs>
+  <!-- שלוש דרכי הפתיחה — אותם שלושה סמלים של עמוד הבית, מילה במילה -->
+  <symbol id="ic-cam" viewBox="0 0 24 24"><path d="M4 8V6a2 2 0 0 1 2-2h2M16 4h2a2 2 0 0 1 2 2v2M20 16v2a2 2 0 0 1-2 2h-2M8 20H6a2 2 0 0 1-2-2v-2" stroke-linecap="round"/><circle cx="12" cy="12" r="3.2"/></symbol>
+  <symbol id="ic-chat" viewBox="0 0 24 24"><path d="M21 11.5a8.4 8.4 0 0 1-9 8.4 9 9 0 0 1-3.6-.8L3 21l1.9-5.4A8.4 8.4 0 0 1 12 3a8.4 8.4 0 0 1 9 8.5z" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+  <symbol id="ic-list" viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h10" stroke-linecap="round"/></symbol>
+  <!-- פריטים — לפי שמות הקטלוג ב-app/data/items.js -->
+  <symbol id="ic-sofa" viewBox="0 0 24 24"><path d="M5 11V8a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v3M3 12a2 2 0 0 1 4 0v3h10v-3a2 2 0 0 1 4 0v6H3zM6 18v2M18 18v2"/></symbol>
+  <symbol id="ic-fridge" viewBox="0 0 24 24"><path d="M6 3h12v18H6zM6 10h12M9 6v2M9 13v3"/></symbol>
+  <symbol id="ic-washer" viewBox="0 0 24 24"><path d="M5 3h14v18H5zM5 7h14M8 5h2"/><circle cx="12" cy="14" r="4"/></symbol>
+  <symbol id="ic-bed" viewBox="0 0 24 24"><path d="M3 18v-7a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v7M3 14h18M3 18v2M21 18v2M7 9V7h10v2"/></symbol>
+  <symbol id="ic-wardrobe" viewBox="0 0 24 24"><path d="M5 3h14v17H5zM12 3v17M10 10v2M14 10v2M7 20v1M17 20v1"/></symbol>
+  <symbol id="ic-table" viewBox="0 0 24 24"><path d="M3 10h18v2H3zM5 12v8M19 12v8M8 12v4M16 12v4"/></symbol>
+  <symbol id="ic-tv" viewBox="0 0 24 24"><path d="M3 5h18v11H3zM8 20h8M12 16v4"/></symbol>
+  <symbol id="ic-boxes" viewBox="0 0 24 24"><path d="M4 8h16v12H4zM4 8l2-4h12l2 4M12 8v12M4 14h16"/></symbol>
+  <!-- גורמי מחיר ומסלול -->
+  <symbol id="ic-floors" viewBox="0 0 24 24"><path d="M3 20h4v-4h5v-4h5V8h4"/></symbol>
+  <symbol id="ic-route" viewBox="0 0 24 24"><path d="M6.5 3a2.5 2.5 0 0 1 2.5 2.5C9 7.5 6.5 10 6.5 10S4 7.5 4 5.5A2.5 2.5 0 0 1 6.5 3zM17.5 14a2.5 2.5 0 0 1 2.5 2.5c0 2-2.5 4.5-2.5 4.5s-2.5-2.5-2.5-4.5a2.5 2.5 0 0 1 2.5-2.5zM9 6.5h4.5a3.5 3.5 0 0 1 0 7H10"/></symbol>
+  <symbol id="ic-cal" viewBox="0 0 24 24"><path d="M4 6h16v15H4zM4 11h16M8 3v4M16 3v4"/></symbol>
+  <!-- הלוח -->
+  <symbol id="ic-publish" viewBox="0 0 24 24"><path d="M4 15v4a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-4M12 3v12M8 7l4-4 4 4"/></symbol>
+  <symbol id="ic-door" viewBox="0 0 24 24"><path d="M4 21V4a1 1 0 0 1 1-1h8a1 1 0 0 1 1 1v17M10 12h.6M20 12h-6M17 9l3 3-3 3"/></symbol>
+  <symbol id="ic-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+  <symbol id="ic-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="6.5"/><path d="M16 16l4.5 4.5"/></symbol>
+  <symbol id="ic-chair" viewBox="0 0 24 24"><path d="M6 12V6a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v6M4 12h16v6H4zM6 18v3M18 18v3"/></symbol>
+</defs></svg>
+
+<main id="main-content" tabindex="-1">
+<div class="pv-wrap">
+
+  <div class="pv-lead">
+    <h1>שני השירותים — דוגמאות</h1>
+    <p>שלושה כיוונים לכל שירות, בתוך אותו כרטיס לבן שיושב בעמוד הבית. הבמה, הרקע והמסגרת זהים בשישתם — כדי שההשוואה תהיה על מה שבפנים. כל הטקסטים, שמות הפריטים והקטגוריות אמיתיים; אין כאן מחירים, מספרים או מודעות שהומצאו.</p>
+    <nav class="pv-jump" aria-label="קפיצה לכיוון">
+      <a href="#sm-a">בקטנה · א׳</a>
+      <a href="#sm-b">בקטנה · ב׳</a>
+      <a href="#sm-c">בקטנה · ג׳</a>
+      <a href="#mp-a">הלאה · א׳</a>
+      <a href="#mp-b">הלאה · ב׳</a>
+      <a href="#mp-c">הלאה · ג׳</a>
+      <a href="#pv-end">השיקול</a>
+    </nav>
+  </div>
+
+  <!-- ═════════════════════ שירות 1 · מובילים בקטנה ═════════════════════ -->
+  <section class="pv-svc" aria-labelledby="h-sm">
+    <h2 id="h-sm">מובילים בקטנה</h2>
+    <p>הובלה של כמה פריטים, לא דירה שלמה: ספה מהסלון לדירה של אמא, מקרר, מכונת כביסה, כמה ארגזים. הכפתור מוביל אל <span dir="ltr">app/small-move.html</span>.</p>
+    <p class="pv-trap">המלכודת: סריקת חדרים מספרת סיפור של דירה שלמה — בדיוק מה שהשירות הזה אינו. שלושת הכיוונים כאן לא מעתיקים את אנימציית הסריקה; כל אחד מחפש שפה אחרת לגודל של השירות.</p>
+  </section>
+
+  <!-- ─────────── בקטנה · כיוון א׳ ─────────── -->
+  <section class="pv-sec" id="sm-a">
+    <div class="pv-label">
+      <span class="pv-tag">כיוון א׳</span>
+      <h3>שלושה פריטים, לא דירה שלמה</h3>
+    </div>
+    <p class="pv-why"><b>מה הוא מנסה לפתור:</b> ההתחלה האיטית. רוב ההזמנות כאן הן פריט או שלושה שהלקוח כבר יודע לשמות, ובכל זאת צריך לפתוח קטלוג ולחפש. במקום זה — הפריטים הכבדים באמת פרושים על השולחן, ושלוש הקשות בונות את הרשימה. אותה שפה של "הרשימה נבנית מול העיניים" שיש במעבר דירה, בלי שום חדר.</p>
+    <div class="pv-frame"><div class="pv-stage"><div class="pv-card"><div class="pv-in">
+      <div class="pv-chips" aria-hidden="true">
+        <span class="pv-chip">מעבר דירה</span>
+        <span class="pv-chip on">מובילים בקטנה</span>
+        <span class="pv-chip">מעבירים את זה הלאה</span>
+      </div>
+      <div class="pv-2col">
+        <div class="pv-col">
+          <h4 class="pv-h">מה מעבירים?</h4>
+          <p class="pv-sub">סמנו את הפריטים. פריט אחד או כמה — לא צריך למלא דירה.</p>
+          <div class="pv-tiles">
+            <div class="pv-tile pv-sel s1"><span class="ic"><svg class="pv-ic" aria-hidden="true"><use href="#ic-sofa"/></svg></span><b>ספה תלת-מושבית</b></div>
+            <div class="pv-tile"><span class="ic"><svg class="pv-ic" aria-hidden="true"><use href="#ic-bed"/></svg></span><b>מיטה זוגית</b></div>
+            <div class="pv-tile pv-sel s2"><span class="ic"><svg class="pv-ic" aria-hidden="true"><use href="#ic-fridge"/></svg></span><b>מקרר</b></div>
+            <div class="pv-tile"><span class="ic"><svg class="pv-ic" aria-hidden="true"><use href="#ic-washer"/></svg></span><b>מכונת כביסה</b></div>
+            <div class="pv-tile"><span class="ic"><svg class="pv-ic" aria-hidden="true"><use href="#ic-wardrobe"/></svg></span><b>ארון בגדים</b></div>
+            <div class="pv-tile"><span class="ic"><svg class="pv-ic" aria-hidden="true"><use href="#ic-table"/></svg></span><b>שולחן אוכל</b></div>
+            <div class="pv-tile"><span class="ic"><svg class="pv-ic" aria-hidden="true"><use href="#ic-tv"/></svg></span><b>טלוויזיה</b></div>
+            <div class="pv-tile pv-sel s3"><span class="ic"><svg class="pv-ic" aria-hidden="true"><use href="#ic-boxes"/></svg></span><b>ארגזים</b></div>
+          </div>
+          <div class="pv-ways">
+            <a class="pv-way" href="app/small-move.html"><svg class="pv-ic" aria-hidden="true"><use href="#ic-cam"/></svg>צלמו ונזהה</a>
+            <a class="pv-way" href="app/small-move.html"><svg class="pv-ic" aria-hidden="true"><use href="#ic-chat"/></svg>ספרו במילים</a>
+            <a class="pv-way" href="app/small-move.html#start-list"><svg class="pv-ic" aria-hidden="true"><use href="#ic-list"/></svg>כל הקטלוג</a>
+          </div>
+        </div>
+        <div class="pv-col">
+          <div class="pv-list" aria-hidden="true">
+            <p class="pv-list-t">הדגמה · מה שנבחר</p>
+            <ul>
+              <li class="pv-a1">ספה תלת-מושבית <span>160–220 ס״מ</span></li>
+              <li class="pv-a2">מקרר <span>200–400 ליטר</span></li>
+              <li class="pv-a3">ארגזים <span>×6</span></li>
+            </ul>
+          </div>
+          <div class="pv-foot">
+            <p class="pv-note" style="margin:0 0 9px">המחיר הסופי נקבע בהזמנה — לפי פריטים, כתובות ותאריך.</p>
+            <a class="hp-go pv-cta" href="app/small-move.html">המשך להזמנה</a>
+          </div>
+        </div>
+      </div>
+    </div></div></div></div>
+  </section>
+
+  <!-- ─────────── בקטנה · כיוון ב׳ ─────────── -->
+  <section class="pv-sec" id="sm-b">
+    <div class="pv-label">
+      <span class="pv-tag">כיוון ב׳</span>
+      <h3>מנקודה לנקודה — המסלול הוא הסיפור</h3>
+    </div>
+    <p class="pv-why"><b>מה הוא מנסה לפתור:</b> את השאלה שהלקוח באמת שואל. כשמעבירים ספה אחת, מה שקובע את המחיר ואת הכאב הוא לא הרשימה אלא <b>הקומה, המעלית והמרחק</b> — ובזרימה הקיימת הם נשאלים רק בשלב השלישי של הזרימה. הכיוון הזה מעלה אותם לחזית, ובדרך מסביר בתמונה אחת למה השירות הזה שונה ממעבר דירה: זו נסיעה אחת בין שתי כתובות, לא פינוי בית.</p>
+    <div class="pv-frame"><div class="pv-stage"><div class="pv-card"><div class="pv-in">
+      <div class="pv-chips" aria-hidden="true">
+        <span class="pv-chip">מעבר דירה</span>
+        <span class="pv-chip on">מובילים בקטנה</span>
+        <span class="pv-chip">מעבירים את זה הלאה</span>
+      </div>
+      <div class="pv-ill" role="img" aria-label="הדגמה: טנדר יוצא מבניין המוצא בקומה שלישית ונוסע לבניין היעד בקומה ראשונה">
+        <svg class="art" viewBox="0 0 520 190" preserveAspectRatio="none" aria-hidden="true" focusable="false">
+          <path class="ln" d="M14 166h492"/>
+          <!-- בניין היעד (שמאל) -->
+          <path class="ln" d="M40 166V74h96v92M40 108h96M40 138h96"/>
+          <path class="ln ln-soft" d="M56 86h20v14H56zM100 86h20v14h-20zM56 118h20v12H56z"/>
+          <path class="hi" d="M96 166v-28h26v28"/>
+          <!-- בניין המוצא (ימין) -->
+          <path class="ln" d="M386 166V38h100v128M386 76h100M386 114h100M386 150h100"/>
+          <path class="ln ln-soft" d="M402 50h22v16h-22zM450 50h22v16h-22zM402 88h22v16h-22zM450 88h22v16h-22z"/>
+          <path class="hi" d="M402 126h22v16h-22z"/>
+          <!-- המסלול -->
+          <path class="hi dash" d="M372 164H150" opacity=".5"/>
+          <!-- ⚠️ שתי שכבות g: החיצונית נושאת את המיקום (אטריביוט transform)
+               והפנימית את ההנפשה. transform ב-CSS **מחליף** את האטריביוט
+               ולא מצטרף אליו — בגרסה הראשונה הטנדר פשוט נעלם מהאיור. -->
+          <g transform="translate(262,114)">
+            <g class="pv-drive">
+              <path class="hi" d="M6 40V22l18-16h30v34z"/>
+              <rect class="box" x="66" y="4" width="44" height="14" rx="2"/>
+              <path class="hi" d="M54 40V18h66v22z"/>
+              <path class="ln" d="M16 22l12-10h20v10z"/>
+              <circle class="ln" cx="30" cy="42" r="8"/>
+              <circle class="ln" cx="98" cy="42" r="8"/>
+            </g>
+          </g>
+        </svg>
+        <span class="pv-pin" style="left:5%;top:7%">לאן · קומה 1</span>
+        <span class="pv-pin" style="right:5%;top:7%">מאיפה · קומה 3, בלי מעלית</span>
+      </div>
+      <div class="pv-2col pv-2col-even" style="margin-top:12px">
+        <div class="pv-col">
+          <h4 class="pv-h">מאיפה לאן?</h4>
+          <p class="pv-sub">פריט בודד או כמה — טנדר אחד מגיע, מרים ומעביר. שלושת הדברים שקובעים את המחיר נשאלים לפני הכול.</p>
+          <div class="pv-steps">
+            <div class="pv-step"><span class="ic"><svg class="pv-ic" aria-hidden="true"><use href="#ic-floors"/></svg></span><b>קומה ומעלית</b><i>בשני הצדדים</i></div>
+            <div class="pv-step"><span class="ic"><svg class="pv-ic" aria-hidden="true"><use href="#ic-route"/></svg></span><b>המרחק</b><i>בין שתי הכתובות</i></div>
+            <div class="pv-step"><span class="ic"><svg class="pv-ic" aria-hidden="true"><use href="#ic-cal"/></svg></span><b>התאריך</b><i>ושעת האיסוף</i></div>
+          </div>
+        </div>
+        <div class="pv-col">
+          <div class="pv-list">
+            <p class="pv-list-t">ואת הפריטים עצמם — איך שנוח</p>
+            <div class="pv-ways" style="margin-top:0">
+              <a class="pv-way" href="app/small-move.html"><svg class="pv-ic" aria-hidden="true"><use href="#ic-cam"/></svg>צילום</a>
+              <a class="pv-way" href="app/small-move.html"><svg class="pv-ic" aria-hidden="true"><use href="#ic-chat"/></svg>במילים</a>
+              <a class="pv-way" href="app/small-move.html#start-list"><svg class="pv-ic" aria-hidden="true"><use href="#ic-list"/></svg>מהקטלוג</a>
+            </div>
+          </div>
+          <div class="pv-foot">
+            <p class="pv-note" style="margin:0 0 9px">המחיר הסופי נקבע בהזמנה — לפי פריטים, כתובות ותאריך.</p>
+            <a class="hp-go pv-cta" href="app/small-move.html">לבחירת הפריטים</a>
+          </div>
+        </div>
+      </div>
+    </div></div></div></div>
+  </section>
+
+  <!-- ─────────── בקטנה · כיוון ג׳ ─────────── -->
+  <section class="pv-sec" id="sm-c">
+    <div class="pv-label">
+      <span class="pv-tag">כיוון ג׳</span>
+      <h3>מד הטנדר — הגבול כמנוע</h3>
+    </div>
+    <p class="pv-why"><b>מה הוא מנסה לפתור:</b> את ההיסוס "האם אני בכלל בקטנה, או שאני כבר מעבר דירה?". <b>מד הטנדר הוא מנגנון אמיתי שכבר קיים בזרימה</b> (<span dir="ltr">van-gauge</span>) ועוצר שם את מי שחורג — הכיוון הזה מעלה אותו לעמוד הבית, שם השאלה נשאלת בפועל. מטאפורה של מכל אחד, ההפך הגמור מסריקת חדרים.</p>
+    <div class="pv-frame"><div class="pv-stage"><div class="pv-card"><div class="pv-in">
+      <div class="pv-chips" aria-hidden="true">
+        <span class="pv-chip">מעבר דירה</span>
+        <span class="pv-chip on">מובילים בקטנה</span>
+        <span class="pv-chip">מעבירים את זה הלאה</span>
+      </div>
+      <div class="pv-ill" role="img" aria-label="הדגמה: ספה, מקרר וארגזים נכנסים לטנדר אחד וממלאים כשני שלישים ממנו">
+        <svg class="art" viewBox="0 0 520 190" preserveAspectRatio="none" aria-hidden="true" focusable="false">
+          <path class="ln" d="M14 172h492"/>
+          <!-- הפריטים נכנסים לארגז הפתוח לפני שקיר הארגז מצויר, כדי
+               שקו הקיר יעבור לפניהם ויקרא כדופן ולא כמסגרת ריקה.
+               ⚠️ רצפת הארגז ב-144 והגלגלים ב-158: בגרסה הקודמת הגלגל
+               האחורי חתך את ארגז הפריטים באמצע ונראה כשגיאת ציור. -->
+          <rect class="box pv-a1" x="188" y="70" width="118" height="74" rx="4"/>
+          <rect class="box pv-a2" x="318" y="38" width="54" height="106" rx="4"/>
+          <rect class="box pv-a3" x="384" y="84" width="52" height="60" rx="4"/>
+          <rect class="ln dash pv-pulse" x="448" y="58" width="34" height="86" rx="4" fill="none"/>
+          <path class="ln" d="M42 144v-32h24l28-44h74v76z"/>
+          <path class="ln ln-soft" d="M78 108l18-30h46v30z"/>
+          <!-- ⚠️ דופן הארגז בלי הקו העליון: כשהוא צויר כמלבן סגור, הקו
+               האופקי חצה את שלושת הפריטים באמצע ונראה כמוט שעובר דרכם. -->
+          <path class="ln" d="M168 98v46h318V98"/>
+          <circle class="ln" cx="118" cy="158" r="14"/>
+          <circle class="ln" cx="396" cy="158" r="14"/>
+        </svg>
+        <span class="pv-pin mute" style="right:6%;top:7%">עוד מקום לפריט או שניים</span>
+      </div>
+      <div class="pv-gauge" aria-hidden="true"><i class="pv-fill"></i></div>
+      <p class="pv-gauge-l"><span>כשני שלישים מהטנדר</span><em>ספה תלת-מושבית · מקרר · 6 ארגזים</em></p>
+      <div class="pv-2col" style="margin-top:12px">
+        <div class="pv-col">
+          <h4 class="pv-h">נכנס לטנדר אחד?</h4>
+          <p class="pv-sub">זה כל ההבדל בין השירות הזה למעבר דירה. מוסיפים פריטים, והמד מראה כמה נשאר — צלמו, ספרו במילים או בחרו מהקטלוג.</p>
+          <div class="pv-ways" style="margin-top:0">
+            <a class="pv-way" href="app/small-move.html"><svg class="pv-ic" aria-hidden="true"><use href="#ic-cam"/></svg>צלמו ונזהה</a>
+            <a class="pv-way" href="app/small-move.html"><svg class="pv-ic" aria-hidden="true"><use href="#ic-chat"/></svg>ספרו במילים</a>
+            <a class="pv-way" href="app/small-move.html#start-list"><svg class="pv-ic" aria-hidden="true"><use href="#ic-list"/></svg>כל הקטלוג</a>
+          </div>
+        </div>
+        <div class="pv-col">
+          <div class="pv-foot" style="padding-top:0">
+            <a class="hp-go pv-cta" href="app/small-move.html">לבחירת הפריטים</a>
+            <p class="pv-note">מה שלא נכנס לטנדר אחד — המד עוצר, וכדאי לעבור למעבר דירה.</p>
+          </div>
+        </div>
+      </div>
+    </div></div></div></div>
+  </section>
+
+  <!-- ═════════════════ שירות 2 · מעבירים את זה הלאה ═════════════════ -->
+  <section class="pv-svc" aria-labelledby="h-mp">
+    <h2 id="h-mp">מעבירים את זה הלאה</h2>
+    <p>לוח למסירת פריטים בחינם. פריט שכבר לא צריך לא חייב להגיע לפח: מפרסמים אותו, ומי שגר קרוב בא לקחת. אפס כסף — לא מוכרים ולא קונים. הכפתור מוביל אל <span dir="ltr">app/marketplace.html</span>.</p>
+    <p class="pv-trap">העובדה שקובעת את העיצוב: <b>הלוח ריק בייצור — אפס מודעות.</b> כל כיוון שמבוסס על "תראו מה מחכה שם" ייראה שבור ביום הראשון. שלושת הכיוונים כאן מטפלים בזה בשלוש דרכים שונות — צד הנתינה, מצב ריק מוצהר, וסיפור שאינו תלוי במלאי כלל.</p>
+  </section>
+
+  <!-- ─────────── הלאה · כיוון א׳ ─────────── -->
+  <section class="pv-sec" id="mp-a">
+    <div class="pv-label">
+      <span class="pv-tag">כיוון א׳</span>
+      <h3>צד הנתינה — "יש לכם פריט שלא צריך?"</h3>
+    </div>
+    <p class="pv-why"><b>מה הוא מנסה לפתור:</b> את הלוח הריק, מהשורש. הדף לא מבטיח מלאי ולא מזמין לחפש — הוא מבקש מהמבקר לתת. זו הבקשה היחידה שנכונה היום, והיא גם זו שממלאת את הלוח. במקום להראות מה יש שם, הוא מראה <b>איך תיראה המודעה שלכם</b>, ולכן שום דבר בו לא נשבר כשהלוח עדיין ריק.</p>
+    <div class="pv-frame"><div class="pv-stage"><div class="pv-card"><div class="pv-in">
+      <div class="pv-chips" aria-hidden="true">
+        <span class="pv-chip">מעבר דירה</span>
+        <span class="pv-chip">מובילים בקטנה</span>
+        <span class="pv-chip on">מעבירים את זה הלאה</span>
+      </div>
+      <div class="pv-2col">
+        <div class="pv-col">
+          <h4 class="pv-h">יש לכם פריט שלא צריך?</h4>
+          <p class="pv-sub">שלושה צעדים, בלי כסף ובלי משא ומתן. מי שגר קרוב בא לקחת.</p>
+          <div class="pv-steps">
+            <div class="pv-step"><u>1</u><span class="ic"><svg class="pv-ic" aria-hidden="true"><use href="#ic-cam"/></svg></span><b>מצלמים</b><i>תמונה אחת של הפריט מספיקה</i></div>
+            <div class="pv-step"><u>2</u><span class="ic"><svg class="pv-ic" aria-hidden="true"><use href="#ic-publish"/></svg></span><b>מפרסמים</b><i>שם, קטגוריה ועיר האיסוף</i></div>
+            <div class="pv-step"><u>3</u><span class="ic"><svg class="pv-ic" aria-hidden="true"><use href="#ic-door"/></svg></span><b>באים לקחת</b><i>מתאמים ביניכם, ישירות</i></div>
+          </div>
+          <div class="pv-foot">
+            <a class="hp-go pv-cta" href="app/marketplace-create.html">לפרסום פריט</a>
+            <a class="pv-quiet" href="app/marketplace.html">או הסתכלו מה כבר יש בלוח</a>
+          </div>
+        </div>
+        <div class="pv-col">
+          <p class="pv-ad-cap">כך תיראה המודעה שלכם</p>
+          <div class="pv-ad pv-a1" aria-hidden="true">
+            <div class="pv-ad-ph"><svg class="pv-ic" aria-hidden="true"><use href="#ic-chair"/></svg></div>
+            <div class="pv-ad-b">
+              <b>כורסה, מצב טוב</b>
+              <i>תל אביב · רהיטים</i>
+              <span class="pv-free">חינם</span>
+            </div>
+          </div>
+          <p class="pv-note">אפס כסף — לא מוכרים ולא קונים, ולא עוברים בלוח כספים בכלל. גדול מכדי להרים לבד? אפשר להזמין לו <a href="app/small-move.html">מוביל בקטנה</a>.</p>
+        </div>
+      </div>
+    </div></div></div></div>
+  </section>
+
+  <!-- ─────────── הלאה · כיוון ב׳ ─────────── -->
+  <section class="pv-sec" id="mp-b">
+    <div class="pv-label">
+      <span class="pv-tag">כיוון ב׳</span>
+      <h3>מצב ריק מוצהר — הלוח כפי שהוא באמת</h3>
+    </div>
+    <p class="pv-why"><b>מה הוא מנסה לפתור:</b> את הפער בין ההבטחה למה שמחכה מעבר לכפתור. כאן רואים את הלוח עצמו — חיפוש, קטגוריות אמיתיות ושלוש משבצות מודעה — ונאמר במפורש שהוא עדיין ריק, עם הזמנה להיות הראשונים. זה <b>הכיוון היחיד שהוויזואל שלו הוא ממשק הייצור</b>, ולכן הוא לא מתיישן: כשיצטברו מודעות אמיתיות, אותה פריסה בדיוק פשוט מתמלאת.</p>
+    <div class="pv-frame"><div class="pv-stage"><div class="pv-card"><div class="pv-in">
+      <div class="pv-chips" aria-hidden="true">
+        <span class="pv-chip">מעבר דירה</span>
+        <span class="pv-chip">מובילים בקטנה</span>
+        <span class="pv-chip on">מעבירים את זה הלאה</span>
+      </div>
+      <h4 class="pv-h">הלוח נפתח עכשיו — ועדיין אין בו מודעות</h4>
+      <p class="pv-sub">פריט שכבר לא צריך לא חייב להגיע לפח. המודעה הראשונה יכולה להיות שלכם.</p>
+      <div class="pv-board" aria-hidden="true">
+        <div class="pv-search"><svg class="pv-ic" aria-hidden="true"><use href="#ic-search"/></svg>חיפוש לפי שם או עיר...</div>
+        <div class="pv-cats">
+          <span class="pv-cat on">הכול</span>
+          <span class="pv-cat">רהיטים</span>
+          <span class="pv-cat">אלקטרוניקה</span>
+          <span class="pv-cat">מכשירי חשמל</span>
+          <span class="pv-cat">ביגוד</span>
+          <span class="pv-cat">ספורט</span>
+          <span class="pv-cat">ספרים</span>
+        </div>
+        <div class="pv-slots">
+          <div class="pv-slot first"><span class="ic"><svg class="pv-ic" aria-hidden="true"><use href="#ic-plus"/></svg></span><span class="tx"><b>המודעה הראשונה</b><i>שלכם</i></span></div>
+          <div class="pv-slot"><i>עוד לא פורסמה מודעה</i></div>
+          <div class="pv-slot"><i>עוד לא פורסמה מודעה</i></div>
+        </div>
+      </div>
+      <div class="pv-2col pv-2col-even" style="margin-top:13px">
+        <div class="pv-col">
+          <a class="hp-go pv-cta" href="app/marketplace-create.html">לפרסום פריט</a>
+          <a class="pv-quiet" href="app/marketplace.html">כניסה ללוח — בלי חשבון</a>
+        </div>
+        <div class="pv-col">
+          <p class="pv-note" style="margin-top:0">אפס כסף — לא מוכרים ולא קונים. לצפייה לא צריך חשבון; חשבון נדרש רק כשמבקשים פריט או מוסרים אחד.</p>
+        </div>
+      </div>
+    </div></div></div></div>
+  </section>
+
+  <!-- ─────────── הלאה · כיוון ג׳ ─────────── -->
+  <section class="pv-sec" id="mp-c">
+    <div class="pv-label">
+      <span class="pv-tag">כיוון ג׳</span>
+      <h3>לא לפח — הערך, בלי תלות במלאי</h3>
+    </div>
+    <p class="pv-why"><b>מה הוא מנסה לפתור:</b> את השאלה למה הלוח הזה קיים בכלל, בלי לומר מילה על מה יש בו. תמונה אחת — כורסה שלא הולכת לפח אלא לדלת של מי שגר קרוב — נכונה באותה מידה ביום שיש אפס מודעות וביום שיש מאה. הוא גם מה שמבדיל אותנו מלוח מכירות: כאן לא עובר כסף.</p>
+    <div class="pv-frame"><div class="pv-stage"><div class="pv-card"><div class="pv-in">
+      <div class="pv-chips" aria-hidden="true">
+        <span class="pv-chip">מעבר דירה</span>
+        <span class="pv-chip">מובילים בקטנה</span>
+        <span class="pv-chip on">מעבירים את זה הלאה</span>
+      </div>
+      <div class="pv-ill" role="img" aria-label="הדגמה: כורסה יוצאת מהבית ועוברת אל דלת של שכן שגר קרוב, במקום אל פח האשפה">
+        <svg class="art" viewBox="0 0 520 190" preserveAspectRatio="none" aria-hidden="true" focusable="false">
+          <path class="ln" d="M14 168h492"/>
+          <!-- דלת השכן (שמאל) -->
+          <path class="hi" d="M46 168V62h74v106M46 96h74"/>
+          <path class="hi" d="M66 168v-42h34v42M92 148h6"/>
+          <!-- בית המוסר (ימין) -->
+          <path class="ln" d="M368 168V70h92v98M368 104h92"/>
+          <path class="ln" d="M392 168v-38h30v38M416 152h5"/>
+          <!-- הפח, מעומעם -->
+          <path class="ln ln-soft" d="M470 98h44M477 98l4 70h22l4-70M484 88h20v10h-20z"/>
+          <!-- המסלול הירוק -->
+          <path class="hi dash" d="M344 164H140" opacity=".5"/>
+          <!-- הכורסה שעוברת — ראו ההערה בכיוון ב׳ על שתי שכבות ה-g -->
+          <g transform="translate(300,112)">
+            <g class="pv-give">
+              <path class="hi" d="M10 30V12a8 8 0 0 1 8-8h28a8 8 0 0 1 8 8v18"/>
+              <path class="box" d="M2 30h60v20H2z"/>
+              <path class="hi" d="M12 50v6M52 50v6"/>
+            </g>
+          </g>
+        </svg>
+        <span class="pv-pin mute" style="right:2.5%;top:7%">לא לפח</span>
+        <span class="pv-pin" style="left:5%;top:7%">מי שגר קרוב בא לקחת</span>
+      </div>
+      <div class="pv-2col" style="margin-top:13px">
+        <div class="pv-col">
+          <h4 class="pv-h">פריט שכבר לא צריך לא חייב להגיע לפח</h4>
+          <p class="pv-sub">מפרסמים אותו כאן, ומי שגר קרוב בא לקחת. אפס כסף — לא מוכרים ולא קונים, ולא עוברים בלוח כספים בכלל.</p>
+          <p class="pv-note" style="margin-top:0">גדול מכדי להרים לבד? אפשר להזמין לו הובלה כהזמנת <a href="app/small-move.html">מובילים בקטנה</a> רגילה.</p>
+        </div>
+        <div class="pv-col">
+          <div class="pv-foot" style="padding-top:0">
+            <a class="hp-go pv-cta" href="app/marketplace-create.html">לפרסום פריט</a>
+            <a class="pv-quiet" href="app/marketplace.html">כניסה ללוח — בלי חשבון</a>
+          </div>
+        </div>
+      </div>
+    </div></div></div></div>
+  </section>
+
+  <!-- ═════════════════════ השיקול ═════════════════════ -->
+  <section class="pv-end" id="pv-end" aria-labelledby="h-end">
+    <h2 id="h-end">השיקול שכדאי לשקול לפני שבוחרים</h2>
+    <p><b>שני השירותים אינם באותו מצב, ולכן ההכרעה בהם אינה מאותו סוג.</b> ל"מובילים בקטנה" יש זרימה מלאה שעובדת מאחורי הכפתור, ולכן השאלה היחידה היא איזו כניסה גורמת ללחוץ — שלושת הכיוונים יעבדו, ומותר לבחור לפי טעם. ל"מעבירים את זה הלאה" אין עדיין תוכן, ולכן העיצוב הוא גם החלטה עסקית: כיוון שמוביל לצפייה מבטיח משהו שאין, וכיוון שמוביל לפרסום מבקש מהמבקר לתת עוד לפני שקיבל. אם בוחרים בצד הנתינה, כדאי להחליט <b>מראש</b> כמה מודעות צריכות להצטבר לפני שהלוח מוצג כלוח — ולא להשאיר את זה לשיפוט של הרגע.</p>
+    <p><b>והמדידה שהכרעה כזאת נוטה לפספס: גובה.</b> שלושת השירותים חולקים כרטיס אחד, וכשמחליפים צ'יפ הכרטיס משנה גובה וההירו קופץ. מדדתי בדפדפן ב-1440: כלי מעבר דירה הוא <b>630 פיקסלים</b>, הפאנל שיש היום ל"בקטנה" הוא 386 ושל הלוח 425 — כלומר הקפיצה קיימת כבר היום, והיא כ-240 פיקסלים. מששת הכיוונים כאן, <b>ב׳ של "בקטנה" (655) וג׳ שלו (587) הם היחידים שסוגרים אותה כמעט לגמרי</b>; א׳ של "בקטנה" (425) משאיר אותה בדיוק כפי שהיא. בלוח כל השלושה מקצרים אותה בערך בחצי — ב׳ (541), ג׳ (538), א׳ (493). זו לא סיבה לפסול כיוון, אבל היא סיבה לדעת מראש מה בוחרים.</p>
+    <p>שלוש הערות קטנות שנכנסו לכל הכיוונים: הצ'יפ והאריח הנבחרים נשארים <b>מסגרת</b> ואינם מתמלאים; אין אף חץ בסוף כפתור; ואין כאן שום נתון שהומצא — שמות הפריטים מ-<span dir="ltr">app/data/items.js</span>, הקטגוריות מ-<span dir="ltr">app/listings.js</span>, ומד הטנדר הוא המנגנון שכבר רץ בזרימה.</p>
+  </section>
+
+</div>
+</main>
+</body>
+</html>
