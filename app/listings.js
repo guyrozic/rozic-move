@@ -2,7 +2,7 @@
 // the sale side app-wide (see project CLAUDE.md — "marketplace give&take, חינמי
 // בלבד") so this only ever writes listingType:'free', matching the app today.
 import {
-  addDoc, collection, deleteDoc, doc, getDoc, onSnapshot, orderBy, query, serverTimestamp, setDoc, updateDoc, where,
+  addDoc, collection, deleteDoc, doc, getDoc, getDocs, limit, onSnapshot, orderBy, query, serverTimestamp, setDoc, updateDoc, where,
 } from 'https://www.gstatic.com/firebasejs/12.16.0/firebase-firestore.js';
 import { db } from './firebase.js';
 
@@ -63,6 +63,32 @@ export function subscribeToActiveListings(callback, category) {
   return onSnapshot(q, (snap) => {
     callback(snap.docs.map(d => ({ id: d.id, ...d.data() })).filter(l => l.listingType === 'free'));
   });
+}
+
+/**
+ * האם למשתמש יש מודעה — **הבסיס למדידת "מסר לפחות פריט אחד"** של
+ * `giveaway-gate.js`.
+ *
+ * ⚠️ `limit(1)` ולא ספירה: השאלה היא "קיים לפחות אחד", וזו קריאת מסמך
+ * אחת קבועה בלי קשר לכמה מודעות יש למשתמש. מונה (`getCountFromServer`)
+ * היה עולה אותו דבר ומחזיר מידע שאיש לא מבקש.
+ *
+ * ⚠️ **אין כאן `orderBy`, ובכוונה.** `subscribeToUserListings` מתחת
+ * מצרף `orderBy('createdAt')` ולכן תלוי באינדקס המורכב
+ * `userId + createdAt` (קיים ב-`functions/firestore.indexes.json`).
+ * השאילתה כאן היא שוויון בלבד — נענית מהאינדקס החד-שדי, בלי שום
+ * אינדקס חדש לפרוס. `activeOnly` מוסיף שוויון **שני**, וגם צירוף של
+ * שני שוויונות נענה בלי אינדקס מורכב (אותה צורה בדיוק שהאפליקציה כבר
+ * מריצה בייצור: `userId` + `listingType` ב-`ListingDetailsScreen`).
+ *
+ * ⚠️ **זורק** ולא בולע: מי שקורא צריך להבדיל בין "לא מסר" לבין "לא
+ * הצלחנו לבדוק". ראו `evaluateTakeGate`.
+ */
+export async function hasUserListing(userId, { activeOnly = false } = {}) {
+  const constraints = [where('userId', '==', userId)];
+  if (activeOnly) constraints.push(where('status', '==', 'active'));
+  const snap = await getDocs(query(collection(db, 'listings'), ...constraints, limit(1)));
+  return !snap.empty;
 }
 
 export function subscribeToUserListings(userId, callback) {

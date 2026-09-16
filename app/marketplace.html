@@ -63,7 +63,7 @@
   </style>
 </head>
 <body class="app-body">
-<div data-build-stamp class="build-stamp" aria-hidden="true">עודכן 16.09 · 12:06</div>
+<div data-build-stamp class="build-stamp" aria-hidden="true">עודכן 16.09 · 13:02</div>
   <!-- ⚠️ 15.9 — "דלג לתוכן המרכזי" (WCAG 2.4.1, רמה A). זהו האלמנט הממוקד
        הראשון בדף: מוסתר מהעין, מופיע בפינה ברגע שמגיעים אליו ב-Tab, ומעביר
        את המיקוד אל <main id="main-content" tabindex="-1">. בלי ה-tabindex
@@ -148,6 +148,9 @@
     import { normalizePhone } from './auth.js';
     import { getAuthOptional } from './guest-checkout.js';
     import { subscribeToActiveListings, subscribeToUserListings, markListingSold, deleteListing, getListingContact, CATEGORY_INFO } from './listings.js';
+    /* הכלל "כדי לקחת צריך למסור" — ההכרעה, הדגלים ונקודת התלייה לעיצוב
+       יושבים כולם ב-`giveaway-gate.js`, ולא כאן. ראו ההערה בראש הקובץ. */
+    import { evaluateTakeGate, emitTakeGate, takeGatePanelHTML, recordFreeTake } from './giveaway-gate.js';
 
     /**
      * ⚠️ 16.9 — **הדף הזה קרא `requireAuth()` בשורה הראשונה, כלומר גולש
@@ -394,7 +397,27 @@
         return;
       }
 
-      const contact = await getListingContact(listing.id).catch(() => null);
+      /**
+       * ⚠️ **השער מוכרע לפני משיכת פרטי הקשר, ולא אחריה.**
+       *
+       * מי שהשער חוסם אינו קורא את `listings/{id}/private/contact` בכלל —
+       * לא הטלפון ולא כתובת האיסוף. זה נראה כמו פרט מימוש והוא ההפך:
+       * החוק שמוצע ל-`firestore.rules` חוסם את **המסמך**, כי חוקי
+       * Firestore אינם יכולים לסנן שדות בקריאה. אם הדפדפן היה מושך את
+       * המסמך ורק מסתיר את הכפתור, ביום שהחוק יידלק אותה פתיחת מודעה
+       * הייתה מתחילה להיכשל ב-`permission-denied` — כלומר הלוח היה
+       * נשבר דווקא ברגע שבו האכיפה מתחילה לעבוד. כך הדפדפן כבר היום
+       * מתנהג בדיוק כמו החוק שיבוא.
+       *
+       * מודעה שנמסרה היא היוצא מן הכלל: היא חסומה ללקיחה אבל אינה
+       * חסומה למידע, והכתובת ממשיכה להופיע כמו קודם.
+       */
+      const gate = await evaluateTakeGate({ uid: myUid, listing });
+      if (token !== modalToken) return;
+      emitTakeGate(gate);
+      const gateWithholdsContact = !gate.allowed && gate.reason !== 'sold';
+
+      const contact = gateWithholdsContact ? null : await getListingContact(listing.id).catch(() => null);
       if (token !== modalToken) return;
       // ה-fallback לשדות שעל המודעה עצמה הוא עבור מודעות שנוצרו לפני מעבר
       // פרטי הקשר ועדיין נושאות אותם — אותו fallback בדיוק כמו
@@ -402,10 +425,18 @@
       const address = contact?.fromAddress ?? listing.fromAddress ?? '';
       const phone   = contact?.userPhone   ?? listing.userPhone   ?? '';
       const addressEl = document.getElementById('modal-address');
-      if (addressEl) addressEl.textContent = address || '—';
+      // ⚠️ נוסח זמני — גיא מעצב את הנוסח הסופי. מה שנדרש כאן הוא שלא
+      // ייווצר "—" שקרי: הכתובת קיימת, היא פשוט מאחורי השער.
+      if (addressEl) addressEl.textContent = gateWithholdsContact ? 'מוצגת אחרי פרסום פריט' : (address || '—');
 
       const contactBox = document.getElementById('modal-contact');
       if (!contactBox || listing.status === 'sold' || isOwner) return;
+
+      /* השער חוסם — הכפתור לא נבנה, והפאנל הזמני מסביר למה ולאן. */
+      if (!gate.allowed) {
+        contactBox.innerHTML = takeGatePanelHTML(gate);
+        return;
+      }
       /**
        * ⚠️ הנרמול חייב להיות כאן, בצד הקריאה, ולא רק בצד הכתיבה.
        *
@@ -430,6 +461,22 @@
       }
       const whatsapp = `https://wa.me/972${localPhone.slice(1)}?text=${encodeURIComponent(`היי ${listing.userName}, ראיתי את "${listing.title}" ב-ROZIC MOVE ואשמח לקחת אותו. האם עדיין זמין?`)}`;
       contactBox.innerHTML = `<a class="btn btn-primary btn-block" tabindex="0" href="${esc(whatsapp)}" target="_blank" rel="noopener">💬 יצירת קשר בוואטסאפ</a>`;
+
+      /**
+       * ⚠️ המכסה של `FIRST_TAKE_FREE` נשרפת **בלחיצה**, לא בפתיחת
+       * המודעה. מי שפתח פריט, הסתכל וסגר לא לקח כלום — וגביית המכסה
+       * ממנו הייתה מוציאה אותו מהלוח בלי שקיבל דבר.
+       *
+       * הכתיבה היא fire-and-forget ואינה מעכבת את המעבר לוואטסאפ:
+       * כישלון שלה מזכה את המשתמש בלקיחה חופשית נוספת — פגם ידוע
+       * וזניח מול חסימת לקיחה אמיתית על רשת מקרטעת. וממילא הדגל כבוי
+       * עד שתהיה אכיפת שרת.
+       */
+      if (gate.consumesFreeTake) {
+        contactBox.querySelector('a')?.addEventListener('click', () => {
+          recordFreeTake(myUid, listing.id).catch(() => {});
+        });
+      }
     }
 
     const overlayEl = document.getElementById('modal-overlay');

@@ -182,7 +182,7 @@
   </style>
 </head>
 <body>
-<div data-build-stamp class="build-stamp" aria-hidden="true">עודכן 16.09 · 12:06</div>
+<div data-build-stamp class="build-stamp" aria-hidden="true">עודכן 16.09 · 13:02</div>
   <!-- ⚠️ 15.9 — "דלג לתוכן המרכזי" (WCAG 2.4.1, רמה A). זהו האלמנט הממוקד
        הראשון בדף: מוסתר מהעין, מופיע בפינה ברגע שמגיעים אליו ב-Tab, ומעביר
        את המיקוד אל <main id="main-content" tabindex="-1">. בלי ה-tabindex
@@ -271,6 +271,10 @@
     import { onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/12.16.0/firebase-auth.js';
     import { getListing, getListingContact, CATEGORY_INFO } from './app/listings.js';
     import { normalizePhone } from './app/auth.js';
+    /* אותו שער בדיוק כמו ב-`app/marketplace.html` — הדף הזה הוא הקישור
+       שנשלח בוואטסאפ, כלומר הדלת השנייה לאותה לקיחה. שער שנאכף בדלת
+       אחת מתוך שתיים אינו שער. */
+    import { evaluateTakeGate, emitTakeGate, takeGatePanelHTML, recordFreeTake } from './app/giveaway-gate.js';
 
     const listingId = new URLSearchParams(location.search).get('id') || '';
     if (listingId) {
@@ -356,6 +360,23 @@
           return;
         }
 
+        /**
+         * ⚠️ **השער לפני משיכת פרטי הקשר** — אותה הכרעה, ומאותה סיבה,
+         * כמו ב-`app/marketplace.html`: החוק המוצע ל-`firestore.rules`
+         * חוסם את **המסמך** `listings/{id}/private/contact` (חוקים אינם
+         * מסננים שדות בקריאה), ולכן דפדפן שמושך אותו ורק מסתיר את
+         * הכפתור היה מתחיל להיכשל ב-`permission-denied` ביום שהאכיפה
+         * נדלקת. כאן אין מה שיישבר.
+         */
+        const gate = await evaluateTakeGate({ uid: user.uid, listing });
+        emitTakeGate(gate);
+        if (!gate.allowed) {
+          // ⚠️ הנתיב נדרס: `describeTakeGate` מחזיר נתיב יחסי לתיקיית
+          // `app/`, והדף הזה יושב בשורש האתר.
+          box.innerHTML = takeGatePanelHTML(gate, { ctaHref: 'app/marketplace-create.html' });
+          return;
+        }
+
         // ה-fallback לשדות שעל המודעה עצמה הוא עבור מודעות שנוצרו לפני מעבר
         // פרטי הקשר — אותו fallback כמו ListingDetailsScreen באפליקציה.
         const contact = await getListingContact(listing.id).catch(() => null);
@@ -410,6 +431,11 @@
         wa.rel = 'noopener';
         wa.href = `https://wa.me/972${phone.slice(1)}?text=${encodeURIComponent(text)}`;
         wa.textContent = '💬 יצירת קשר בוואטסאפ';
+        // המכסה של `FIRST_TAKE_FREE` נשרפת בלחיצה ולא בפתיחת הדף — ראו
+        // ההערה המלאה ב-`app/marketplace.html`.
+        if (gate.consumesFreeTake) {
+          wa.addEventListener('click', () => { recordFreeTake(user.uid, listing.id).catch(() => {}); });
+        }
         box.appendChild(wa);
       });
     }
