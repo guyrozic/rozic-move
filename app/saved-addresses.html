@@ -9,6 +9,20 @@
   <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="../style.css?v=93d67ba9">
   <link rel="stylesheet" href="style-app.css?v=9bcae682">
+  <style>
+    /* ⚠️ 16.9 פאזה 4 — עמוד ייעודי, לא style-app.css המשותף.
+       .inline-form-row (המוגדר שם) הוא align-items:flex-start, שממקם את
+       הכפתור בגובה תחילת השורה — כלומר לצד תווית "הוספת כתובת", לא לצד
+       השדה עצמו. נמדד ב-Playwright: הכפתור נחת ~13px מעל השדה, לא לצידו.
+       align-items:flex-end מיישר את קצה-התחתית של שני האיברים; זה עובד
+       בדיוק כי לכפתור ולשדה יש בפועל אותו height (55px ב-1440), כך
+       שקצה-תחתית משותף = קצה-עליון משותף. מוגבל ל-min-width כדי לא
+       להתנגש עם `@media (max-width:480px) { .inline-form-row { align-items:stretch } }`
+       שכבר קיים ב-style-app.css לפריסת הנייד (עמודה, לא שורה). */
+    @media (min-width: 481px) {
+      #add-form-wrap .inline-form-row { align-items: flex-end; }
+    }
+  </style>
 </head>
 <body class="app-body">
 <div data-build-stamp class="build-stamp" aria-hidden="true">עודכן 16.09 · 22:58</div>
@@ -48,10 +62,15 @@
               <label for="new-address-input">הוספת כתובת</label>
               <input id="new-address-input" type="text" placeholder="לדוגמה: הגבעה 42, כפר האורנים">
             </div>
-            <button tabindex="0" type="button" class="btn btn-primary" id="add-address-btn" style="margin-top:22px;">הוסף</button>
+            <button tabindex="0" type="button" class="btn btn-primary" id="add-address-btn">הוסף</button>
           </div>
-          <p class="form-hint" id="addresses-limit-hint"></p>
         </div>
+        <!-- ⚠️ 16.9 פאזה 4 — מחוץ ל-#add-form-wrap בכוונה: כשמגיעים למכסה
+             (MAX_SAVED_ADDRESSES) ה-JS מסתיר את #add-form-wrap כולו, וההודעה
+             הזו היא ההסבר היחיד למה טופס ההוספה נעלם. כשהיא הייתה בפנים היא
+             נעלמת יחד איתו — כלומר המשתמש לא היה מבין בכלל למה אי-אפשר
+             להוסיף עוד, ובלי שום שגיאה על המסך. -->
+        <p class="form-hint" id="addresses-limit-hint"></p>
       </div>
     </div>
   </div>
