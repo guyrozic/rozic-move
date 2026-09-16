@@ -28,7 +28,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="../style.css?v=93d67ba9">
-  <link rel="stylesheet" href="style-app.css?v=d27add7a">
+  <link rel="stylesheet" href="style-app.css?v=9f33b089">
   <link rel="stylesheet" href="address-autocomplete.css?v=aa414fa6">
   <style>
     /* ⚠️ 16.9 — "הפריטים שנבחרו" בראש אזור ההזמנה, בדיוק כמו ב-
@@ -44,7 +44,7 @@
   </style>
 </head>
 <body class="app-body">
-<div data-build-stamp class="build-stamp" aria-hidden="true">עודכן 16.09 · 23:24</div>
+<div data-build-stamp class="build-stamp" aria-hidden="true">עודכן 16.09 · 23:34</div>
   <!-- ⚠️ 15.9 — "דלג לתוכן המרכזי" (WCAG 2.4.1, רמה A). זהו האלמנט הממוקד
        הראשון בדף: מוסתר מהעין, מופיע בפינה ברגע שמגיעים אליו ב-Tab, ומעביר
        את המיקוד אל <main id="main-content" tabindex="-1">. בלי ה-tabindex
@@ -834,9 +834,9 @@
           ${size ? `<div class="item-card-size">${size}</div>` : ''}
           <div class="item-card-price">₪${getItemPriceAnyCategory(item.key)} ליחידה</div>
           <div class="qty-control">
-            <button tabindex="0" data-action="dec" aria-label="הפחת ${name}">−</button>
+            <button tabindex="0" data-action="dec" aria-label="הפחת ${name}, כמות נוכחית ${qty}">−</button>
             <span class="qty-value">${qty}</span>
-            <button tabindex="0" data-action="inc" aria-label="הוסף ${name}">+</button>
+            <button tabindex="0" data-action="inc" aria-label="הוסף ${name}, כמות נוכחית ${qty}">+</button>
           </div>`;
         card.querySelector('[data-action="inc"]').addEventListener('click', () => { state.items[item.key] = (state.items[item.key] || 0) + 1; renderItems(); updateItemsHeader(); });
         card.querySelector('[data-action="dec"]').addEventListener('click', () => { state.items[item.key] = Math.max(0, (state.items[item.key] || 0) - 1); renderItems(); updateItemsHeader(); });
@@ -868,9 +868,9 @@
         <div class="selected-item-row" data-key="${i.key}">
           <span class="selected-item-name">${i.label}</span>
           <div class="qty-control">
-            <button tabindex="0" data-action="dec" aria-label="הפחת ${i.label}">−</button>
+            <button tabindex="0" data-action="dec" aria-label="הפחת ${i.label}, כמות נוכחית ${i.qty}">−</button>
             <span class="qty-value">${i.qty}</span>
-            <button tabindex="0" data-action="inc" aria-label="הוסף ${i.label}">+</button>
+            <button tabindex="0" data-action="inc" aria-label="הוסף ${i.label}, כמות נוכחית ${i.qty}">+</button>
           </div>
         </div>
       `).join('');

@@ -80,10 +80,20 @@
       color: var(--text);
       font-weight: 700;
     }
+
+    /* ⚠️ 16.9 — אותו באג שתוקן ב-404.html: מתחת ל-680px רוחב הלוגו +
+       שלושת קישורי הניווט + כפתור "הורד עכשיו" עולה על רוחב ה-nav,
+       ו-.nav-cta נדחק מחוץ למסך (x שלילי) — בלתי נראה ובלתי לחיץ.
+       ה-nav הוא position:fixed, לכן זה לא יוצר גלילה אופקית ולא נתפס
+       בבדיקת scrollWidth. תיקון מקומי לדף (לא ב-style.css המשותף):
+       הסתרת nav-links/nav-cta מתחת ל-680px — הדף מציע ניווט חלופי בגוף. */
+    @media (max-width: 680px) {
+      .nav-links, .nav-cta { display: none; }
+    }
   </style>
 </head>
 <body>
-<div data-build-stamp class="build-stamp" aria-hidden="true">עודכן 16.09 · 23:24</div>
+<div data-build-stamp class="build-stamp" aria-hidden="true">עודכן 16.09 · 23:34</div>
   <!-- ⚠️ 15.9 — "דלג לתוכן המרכזי" (WCAG 2.4.1, רמה A). זהו האלמנט הממוקד
        הראשון בדף: מוסתר מהעין, מופיע בפינה ברגע שמגיעים אליו ב-Tab, ומעביר
        את המיקוד אל <main id="main-content" tabindex="-1">. בלי ה-tabindex

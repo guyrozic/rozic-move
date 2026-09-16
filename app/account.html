@@ -28,10 +28,10 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="../style.css?v=93d67ba9">
-  <link rel="stylesheet" href="style-app.css?v=d27add7a">
+  <link rel="stylesheet" href="style-app.css?v=9f33b089">
 </head>
 <body class="app-body">
-<div data-build-stamp class="build-stamp" aria-hidden="true">עודכן 16.09 · 23:24</div>
+<div data-build-stamp class="build-stamp" aria-hidden="true">עודכן 16.09 · 23:34</div>
   <!-- ⚠️ 15.9 — "דלג לתוכן המרכזי" (WCAG 2.4.1, רמה A). זהו האלמנט הממוקד
        הראשון בדף: מוסתר מהעין, מופיע בפינה ברגע שמגיעים אליו ב-Tab, ומעביר
        את המיקוד אל <main id="main-content" tabindex="-1">. בלי ה-tabindex
@@ -50,7 +50,7 @@
   </div>
 
   <div class="app-container">
-    <div id="loading" class="center-loading"><span class="spinner"></span></div>
+    <div id="loading" class="center-loading" role="status"><span class="spinner"></span><span class="sr-only">טוען...</span></div>
 
     <div id="content" style="display:none;">
       <div class="app-card">
@@ -102,8 +102,8 @@
         <h2>ההזמנות שלי</h2>
         <div class="order-tabs" role="tablist" aria-label="סינון ההזמנות שלי">
           <button tabindex="0" type="button" class="order-tab active" role="tab" aria-selected="true" data-tab="active" id="tab-active">פעילות</button>
-          <button tabindex="0" type="button" class="order-tab" role="tab" aria-selected="false" data-tab="draft" id="tab-draft">בתהליך</button>
-          <button tabindex="0" type="button" class="order-tab" role="tab" aria-selected="false" data-tab="history" id="tab-history">היסטוריה</button>
+          <button tabindex="-1" type="button" class="order-tab" role="tab" aria-selected="false" data-tab="draft" id="tab-draft">בתהליך</button>
+          <button tabindex="-1" type="button" class="order-tab" role="tab" aria-selected="false" data-tab="history" id="tab-history">היסטוריה</button>
         </div>
         <div id="orders-list" class="order-list"></div>
         <div id="orders-empty" class="empty-state" style="display:none;">
@@ -462,15 +462,38 @@
       document.getElementById('tab-history').textContent = `היסטוריה${historyCount ? ` (${historyCount})` : ''}`;
     }
 
-    document.querySelectorAll('.order-tab').forEach(btn => {
-      btn.addEventListener('click', () => {
-        currentTab = btn.dataset.tab;
-        document.querySelectorAll('.order-tab').forEach(b => {
-          const active = b === btn;
-          b.classList.toggle('active', active);
-          b.setAttribute('aria-selected', String(active));
-        });
-        renderOrdersTab();
+    /**
+     * ⚠️ 16.9 — roving tabindex + חצי מקלדת ל-role="tablist" (WAI-ARIA
+     * Tabs Pattern). לפני כן לשלושת הטאבים היה tabindex="0" קבוע —
+     * טאב הגיע לכל שלושתם בנפרד במקום לעצור פעם אחת ולזוז בחצים,
+     * וזה לא תואם את מה ש-role="tab" מכריז לקורא מסך.
+     * הפעלה אוטומטית (activation מיד עם המעבר), כמו הקליק הקיים.
+     * חצים בכיוון ה-RTL: שמאלה=הבא (עם כיוון הקריאה), ימינה=קודם.
+     */
+    const orderTabs = Array.from(document.querySelectorAll('.order-tab'));
+    function selectOrderTab(btn) {
+      currentTab = btn.dataset.tab;
+      orderTabs.forEach(b => {
+        const active = b === btn;
+        b.classList.toggle('active', active);
+        b.setAttribute('aria-selected', String(active));
+        b.tabIndex = active ? 0 : -1;
+      });
+      renderOrdersTab();
+    }
+    orderTabs.forEach((btn, i) => {
+      btn.addEventListener('click', () => selectOrderTab(btn));
+      btn.addEventListener('keydown', (e) => {
+        let target = null;
+        if (e.key === 'ArrowLeft') target = orderTabs[(i + 1) % orderTabs.length];
+        else if (e.key === 'ArrowRight') target = orderTabs[(i - 1 + orderTabs.length) % orderTabs.length];
+        else if (e.key === 'Home') target = orderTabs[0];
+        else if (e.key === 'End') target = orderTabs[orderTabs.length - 1];
+        if (target) {
+          e.preventDefault();
+          target.focus();
+          selectOrderTab(target);
+        }
       });
     });
 

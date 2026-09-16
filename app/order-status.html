@@ -28,10 +28,10 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="../style.css?v=93d67ba9">
-  <link rel="stylesheet" href="style-app.css?v=d27add7a">
+  <link rel="stylesheet" href="style-app.css?v=9f33b089">
 </head>
 <body class="app-body">
-<div data-build-stamp class="build-stamp" aria-hidden="true">עודכן 16.09 · 23:24</div>
+<div data-build-stamp class="build-stamp" aria-hidden="true">עודכן 16.09 · 23:34</div>
   <!-- ⚠️ 15.9 — "דלג לתוכן המרכזי" (WCAG 2.4.1, רמה A). זהו האלמנט הממוקד
        הראשון בדף: מוסתר מהעין, מופיע בפינה ברגע שמגיעים אליו ב-Tab, ומעביר
        את המיקוד אל <main id="main-content" tabindex="-1">. בלי ה-tabindex
@@ -50,7 +50,7 @@
   </div>
 
   <div class="app-container">
-    <div id="loading" class="center-loading"><span class="spinner"></span></div>
+    <div id="loading" class="center-loading" role="status"><span class="spinner"></span><span class="sr-only">טוען...</span></div>
     <div id="content" style="display:none;"></div>
   </div>
 
@@ -114,20 +114,20 @@
     if (!orderId) {
       loadingEl.style.display = 'none';
       contentEl.style.display = 'block';
-      contentEl.innerHTML = '<div class="empty-state"><div class="empty-icon">❓</div>לא נמצא מזהה הזמנה.</div>';
+      contentEl.innerHTML = '<div class="empty-state" role="alert"><div class="empty-icon">❓</div>לא נמצא מזהה הזמנה.</div>';
     } else {
       subscribeToOrder(orderId, (order) => {
         loadingEl.style.display = 'none';
         contentEl.style.display = 'block';
         if (!order) {
-          contentEl.innerHTML = '<div class="empty-state"><div class="empty-icon">🚫</div>ההזמנה לא נמצאה, או שאין לך הרשאה לצפות בה.</div>';
+          contentEl.innerHTML = '<div class="empty-state" role="alert"><div class="empty-icon">🚫</div>ההזמנה לא נמצאה, או שאין לך הרשאה לצפות בה.</div>';
           return;
         }
         render(order);
       }, (err) => {
         loadingEl.style.display = 'none';
         contentEl.style.display = 'block';
-        contentEl.innerHTML = '<div class="empty-state"><div class="empty-icon">🚫</div>ההזמנה לא נמצאה, או שאין לך הרשאה לצפות בה.</div>';
+        contentEl.innerHTML = '<div class="empty-state" role="alert"><div class="empty-icon">🚫</div>ההזמנה לא נמצאה, או שאין לך הרשאה לצפות בה.</div>';
       });
     }
 
@@ -196,7 +196,7 @@
     function render(order) {
       const isOwner = order.customerId === authState.authUser.uid;
       if (!isOwner) {
-        contentEl.innerHTML = '<div class="empty-state"><div class="empty-icon">🚫</div>אין לך הרשאה לצפות בהזמנה זו.</div>';
+        contentEl.innerHTML = '<div class="empty-state" role="alert"><div class="empty-icon">🚫</div>אין לך הרשאה לצפות בהזמנה זו.</div>';
         return;
       }
 

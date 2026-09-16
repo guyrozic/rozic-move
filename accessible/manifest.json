@@ -16,17 +16,17 @@
         "path": "accessible/terms.txt",
         "bytes": 40917,
         "blocks": 131,
-        "sourceSha256": "dc5e06a247ba50438e35fb15fc7a0a0c5f70858caa7ed82be1a5df2bd03bef20",
+        "sourceSha256": "97a9296c1fd8dd45af955da242c457142a1f7cc033ae01cbaf1e128b973235e6",
         "termsVersion": "2026-09-3",
-        "generatedAt": "2026-09-16T08:11:42.942Z"
+        "generatedAt": "2026-09-16T20:33:54.115Z"
       },
       "audio": {
         "path": "accessible/terms.mp3",
         "bytes": 8039654,
         "seconds": 2009.91,
-        "sourceSha256": "dc5e06a247ba50438e35fb15fc7a0a0c5f70858caa7ed82be1a5df2bd03bef20",
+        "sourceSha256": "97a9296c1fd8dd45af955da242c457142a1f7cc033ae01cbaf1e128b973235e6",
         "termsVersion": "2026-09-3",
-        "generatedAt": "2026-09-16T08:11:42.942Z"
+        "generatedAt": "2026-09-16T20:33:54.115Z"
       }
     },
     "privacy": {
@@ -37,17 +37,17 @@
         "path": "accessible/privacy.txt",
         "bytes": 15933,
         "blocks": 57,
-        "sourceSha256": "a0cfeb426b8d9f1fbad8dd4ed8697ec7f57139c5a8b973caad7532708d0ea2fd",
+        "sourceSha256": "18e575f7cdfff37e3febe963eb6316f99bcbbddcf58bef1af3c6a6dcd4fadea5",
         "termsVersion": "2026-09-3",
-        "generatedAt": "2026-09-16T08:11:42.942Z"
+        "generatedAt": "2026-09-16T20:33:54.115Z"
       },
       "audio": {
         "path": "accessible/privacy.mp3",
         "bytes": 3276696,
         "seconds": 819.17,
-        "sourceSha256": "a0cfeb426b8d9f1fbad8dd4ed8697ec7f57139c5a8b973caad7532708d0ea2fd",
+        "sourceSha256": "18e575f7cdfff37e3febe963eb6316f99bcbbddcf58bef1af3c6a6dcd4fadea5",
         "termsVersion": "2026-09-3",
-        "generatedAt": "2026-09-16T08:11:42.942Z"
+        "generatedAt": "2026-09-16T20:33:54.115Z"
       }
     }
   }

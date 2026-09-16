@@ -16,10 +16,10 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="../style.css?v=93d67ba9">
-  <link rel="stylesheet" href="style-app.css?v=d27add7a">
+  <link rel="stylesheet" href="style-app.css?v=9f33b089">
 </head>
 <body class="app-body">
-<div data-build-stamp class="build-stamp" aria-hidden="true">עודכן 16.09 · 23:24</div>
+<div data-build-stamp class="build-stamp" aria-hidden="true">עודכן 16.09 · 23:34</div>
   <a class="skip-link" href="#main-content">דלג לתוכן המרכזי</a>
   <script type="module" src="pilot-banner.js?v=14a0e537"></script>
   <main id="main-content" tabindex="-1">
@@ -33,8 +33,8 @@
   </div>
 
   <div class="app-container">
-    <div id="loading" class="center-loading"><span class="spinner"></span></div>
-    <div id="error-box" class="empty-state" style="display:none;"></div>
+    <div id="loading" class="center-loading" role="status"><span class="spinner"></span><span class="sr-only">טוען...</span></div>
+    <div id="error-box" class="empty-state" role="alert" style="display:none;"></div>
 
     <div id="content" style="display:none;">
       <div class="app-card">
@@ -131,10 +131,20 @@
       document.getElementById('hero-back-link').href = `order-status.html?id=${encodeURIComponent(orderId)}`;
       document.getElementById('thanks-link').href = `order-status.html?id=${encodeURIComponent(orderId)}`;
 
-      const order = await getOrder(orderId);
+      // ⚠️ 16.9 — getOrder() עושה getDoc ישיר (לא subscribeToOrder), ועל
+      // הזמנה לא-קיימת/ללא-הרשאה Firestore זורק permission-denied. בלי
+      // try/catch כאן החריג נשאר לא-תפוס, loadingEl אף פעם לא מוסתר,
+      // והדף נתקע על "טעינה..." לנצח.
+      let order = null;
+      let loadFailed = false;
+      try {
+        order = await getOrder(orderId);
+      } catch (err) {
+        loadFailed = true;
+      }
       loadingEl.style.display = 'none';
 
-      if (!order) {
+      if (loadFailed || !order) {
         showError('<div class="empty-icon">🚫</div>ההזמנה לא נמצאה, או שאין לך הרשאה לצפות בה.');
       } else if (order.customerId !== authState.authUser.uid) {
         showError('<div class="empty-icon">🚫</div>אין לך הרשאה לדרג הזמנה זו.');
@@ -152,26 +162,50 @@
       }
     }
 
+    /**
+     * ⚠️ 16.9 — roving tabindex + חצי מקלדת ל-role="radiogroup"/"radio"
+     * (WAI-ARIA Radio Group Pattern). לפני כן לחמשת הכוכבים היה tabindex
+     * טבעי (0) על כל <button> — Tab עבר בכל אחד מהם בנפרד, בניגוד
+     * לתקן radiogroup (עצירת Tab אחת, ואז חצים בין האפשרויות).
+     * חצים בכיוון ה-RTL: שמאלה=הבא, ימינה=קודם (עם/נגד כיוון הקריאה).
+     */
     function buildStarRow(containerId, onChange) {
       const el = document.getElementById(containerId);
       el.innerHTML = [1, 2, 3, 4, 5].map(s =>
-        `<button type="button" role="radio" aria-checked="false" aria-label="${s === 1 ? 'כוכב אחד מתוך 5' : `${s} כוכבים מתוך 5`}" data-value="${s}">★</button>`
+        `<button type="button" role="radio" aria-checked="false" tabindex="-1" aria-label="${s === 1 ? 'כוכב אחד מתוך 5' : `${s} כוכבים מתוך 5`}" data-value="${s}">★</button>`
       ).join('');
+      const buttons = Array.from(el.querySelectorAll('button'));
+      buttons[0].tabIndex = 0; // אף כוכב לא נבחר עדיין — עצירת ה-Tab הראשונה ברירת המחדל
       let value = 0;
-      el.querySelectorAll('button').forEach(btn => {
-        btn.addEventListener('click', () => {
-          value = Number(btn.dataset.value);
-          paint();
-          onChange(value);
-        });
-      });
+      function select(v, focus) {
+        value = v;
+        paint();
+        onChange(value);
+        if (focus) buttons[v - 1].focus();
+      }
       function paint() {
-        el.querySelectorAll('button').forEach(btn => {
+        buttons.forEach(btn => {
           const v = Number(btn.dataset.value);
+          const checked = v === value;
           btn.classList.toggle('filled', v <= value);
-          btn.setAttribute('aria-checked', String(v === value));
+          btn.setAttribute('aria-checked', String(checked));
+          btn.tabIndex = checked ? 0 : -1;
         });
       }
+      buttons.forEach((btn, i) => {
+        btn.addEventListener('click', () => select(Number(btn.dataset.value), false));
+        btn.addEventListener('keydown', (e) => {
+          let target = null;
+          if (e.key === 'ArrowLeft') target = buttons[(i + 1) % buttons.length];
+          else if (e.key === 'ArrowRight') target = buttons[(i - 1 + buttons.length) % buttons.length];
+          else if (e.key === 'Home') target = buttons[0];
+          else if (e.key === 'End') target = buttons[buttons.length - 1];
+          if (target) {
+            e.preventDefault();
+            select(Number(target.dataset.value), true);
+          }
+        });
+      });
     }
 
     function runForm(order) {

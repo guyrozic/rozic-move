@@ -443,6 +443,7 @@
 
 .qty-control { display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
 .qty-control button {
+  position: relative;
   width: 28px; height: 28px;
   border-radius: 50%;
   border: 1.5px solid var(--border);
@@ -453,6 +454,13 @@
   cursor: pointer;
   display: flex; align-items: center; justify-content: center;
   transition: border-color 0.2s var(--ease), background 0.2s var(--ease), color 0.2s var(--ease), transform 0.15s var(--ease);
+}
+/* ⚠️ 16.9 — יעד מגע 44×44 (WCAG 2.5.5) בלי לשנות את העיצוב החזותי: מרחיבים
+   את שטח הלחיצה בפועל ב-::before שקוף, העיגול הנראה נשאר 28px כמו שהוא. */
+.qty-control button::before {
+  content: '';
+  position: absolute;
+  inset: -8px;
 }
 .qty-control button:hover:not(:disabled) { border-color: var(--green); color: var(--white); background: var(--green); transform: scale(1.08); }
 .qty-control button:active:not(:disabled) { transform: scale(0.95); }
