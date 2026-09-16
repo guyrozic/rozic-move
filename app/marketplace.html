@@ -38,6 +38,9 @@
     .listing-title { font-size: 0.85rem; font-weight: 700; color: var(--text); margin-bottom: 3px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
     .listing-city { font-size: 0.74rem; color: var(--text-muted); }
     .listing-free-badge { display: inline-block; margin-top: 4px; font-size: 0.7rem; font-weight: 800; color: var(--green-dark); background: var(--green-light); padding: 2px 8px; border-radius: 50px; }
+    /* "לפני שעתיים" וכו' — אותו מידע כמו cardAgo ב-GiveawayScreen.tsx,
+       ליד שם המפרסם. עוזר לצופה לדעת אם המודעה עדיין רלוונטית. */
+    .listing-age { display: block; margin-top: 3px; font-size: 0.68rem; color: var(--text-muted); opacity: 0.8; }
     .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 200; display: flex; align-items: center; justify-content: center; padding: 20px; }
     .modal-box { background: var(--white); border-radius: 22px; box-shadow: var(--shadow-3); max-width: 440px; width: 100%; max-height: 85vh; overflow-y: auto; padding: 26px; position: relative; animation: fadeUp 0.3s var(--ease) both; }
     .modal-close { position: absolute; top: 14px; left: 14px; background: var(--bg); border: none; width: 30px; height: 30px; border-radius: 50%; cursor: pointer; font-size: 1rem; }
@@ -98,9 +101,14 @@
 
     <div id="loading" class="center-loading"><span class="spinner"></span></div>
     <div class="listing-grid" id="listing-grid"></div>
+    <!-- ⚠️ הטקסט מוחלף ב-JS (renderGrid) לפי חיפוש/קטגוריה/לוח ריק —
+         אותם שלושה נוסחים בדיוק כמו ה-`ListEmptyComponent` ב-
+         GiveawayScreen.tsx. עד היום כל מקרה קיבל אותה הודעה בדיוק,
+         גם כשחיפשו "מקרר" בלוח מלא רהיטים. -->
     <div id="empty-state" class="empty-state" style="display:none;">
       <div class="empty-icon">🎁</div>
-      <div>אין עדיין מודעות בקטגוריה הזו</div>
+      <div id="empty-state-title">עדיין אין פריטים להעברה</div>
+      <p class="app-card-desc" id="empty-state-subtitle" style="margin-top:6px;">היו הראשונים לתת לקהילה — זה לוקח רק דקה</p>
     </div>
 
     <div class="app-card" id="my-listings-card" style="display:none; margin-top:32px;">
@@ -147,7 +155,7 @@
   <script type="module">
     import { normalizePhone } from './auth.js';
     import { getAuthOptional } from './guest-checkout.js';
-    import { subscribeToActiveListings, subscribeToUserListings, markListingSold, deleteListing, getListingContact, CATEGORY_INFO } from './listings.js';
+    import { subscribeToActiveListings, subscribeToUserListings, markListingSold, deleteListing, getListingContact, CATEGORY_INFO, stripHouseNumber, formatListingAge } from './listings.js';
     /* הכלל "כדי לקחת צריך למסור" — ההכרעה, הדגלים ונקודת התלייה לעיצוב
        יושבים כולם ב-`giveaway-gate.js`, ולא כאן. ראו ההערה בראש הקובץ. */
     import { evaluateTakeGate, emitTakeGate, takeGatePanelHTML, recordFreeTake } from './giveaway-gate.js';
@@ -316,7 +324,24 @@
       if (searchQuery) filtered = filtered.filter(l => l.title?.toLowerCase().includes(searchQuery) || l.city?.toLowerCase().includes(searchQuery));
 
       const grid = document.getElementById('listing-grid');
-      document.getElementById('empty-state').style.display = filtered.length === 0 ? 'block' : 'none';
+      const isEmpty = filtered.length === 0;
+      document.getElementById('empty-state').style.display = isEmpty ? 'block' : 'none';
+      if (isEmpty) {
+        // אותם שלושה מקרים בדיוק כמו ה-`ListEmptyComponent` ב-GiveawayScreen:
+        // חיפוש בלי תוצאות, קטגוריה ריקה, ולוח ריק לגמרי.
+        const titleEl = document.getElementById('empty-state-title');
+        const subEl = document.getElementById('empty-state-subtitle');
+        if (searchQuery) {
+          titleEl.textContent = 'לא נמצאו פריטים';
+          subEl.textContent = 'נסה מונח חיפוש אחר';
+        } else if (activeCategory !== 'all') {
+          titleEl.textContent = 'אין פריטים בקטגוריה הזו';
+          subEl.textContent = 'נסה קטגוריה אחרת או חזור לכל הפריטים';
+        } else {
+          titleEl.textContent = 'עדיין אין פריטים להעברה';
+          subEl.textContent = 'היו הראשונים לתת לקהילה — זה לוקח רק דקה';
+        }
+      }
       // הכרטיס הוא `div` שכל תפקידו להיפתח — בלי `tabindex`/`role` הוא היה
       // בלתי-נגיש למקלדת לחלוטין (אי אפשר היה לפתוח מודעה בלי עכבר).
       // ה-`aria-label` נבנה כאן ולא מסתמך על צירוף הטקסטים, כדי ש"חינם"
@@ -328,6 +353,7 @@
             <div class="listing-title">${esc(l.title)}</div>
             <div class="listing-city">${esc(l.city || '')}</div>
             <span class="listing-free-badge">חינם</span>
+            ${formatListingAge(l.createdAt) ? `<div class="listing-age">${esc(formatListingAge(l.createdAt))}</div>` : ''}
           </div>
         </div>
       `).join('');
@@ -359,6 +385,7 @@
         <p class="app-card-desc">${esc(listing.description || '')}</p>
         <div class="price-line"><span>קטגוריה</span><span>${CATEGORY_INFO[listing.category]?.label || 'שונות'}</span></div>
         <div class="price-line"><span>עיר</span><span>${esc(listing.city || '')}</span></div>
+        ${formatListingAge(listing.createdAt) ? `<div class="price-line"><span>פורסם</span><span>${esc(formatListingAge(listing.createdAt))}</span></div>` : ''}
         <div class="price-line"><span>כתובת איסוף</span><span id="modal-address">…</span></div>
         ${(!isOwner && listing.status !== 'sold') ? `<div class="listing-disclaimer">ROZIC MOVE מפרסמת את המודעה בלבד ואינה צד לעסקה. איננו בודקים את הפריט, את מצבו, את בטיחותו או את זהות הצדדים. התיאום, המסירה וההובלה באחריות הצדדים בלבד. מומלץ להיפגש במקום ציבורי ולבדוק את הפריט לפני נטילתו.</div>` : ''}
         <div id="modal-contact">
@@ -425,9 +452,18 @@
       const address = contact?.fromAddress ?? listing.fromAddress ?? '';
       const phone   = contact?.userPhone   ?? listing.userPhone   ?? '';
       const addressEl = document.getElementById('modal-address');
+      /**
+       * ⚠️ 16.9 — **מספר הבית הוסתר, ולראשונה כאן.** עד עכשיו הכתובת
+       * המלאה (כולל מספר בית) הוצגה לכל צופה מחובר שעבר את השער —
+       * בדיוק הדליפה שנסגרה ב-`ListingDetailsScreen.tsx` באפליקציה
+       * (16.9), ומעולם לא הגיעה לאתר. `CreateGiveawayScreen` מבטיח
+       * למפרסם במפורש "רק שם העיר והרחוב יוצגו" — הבעלים ממשיך לראות
+       * את הכתובת המלאה שלו.
+       */
+      const shownAddress = isOwner ? address : stripHouseNumber(address);
       // ⚠️ נוסח זמני — גיא מעצב את הנוסח הסופי. מה שנדרש כאן הוא שלא
       // ייווצר "—" שקרי: הכתובת קיימת, היא פשוט מאחורי השער.
-      if (addressEl) addressEl.textContent = gateWithholdsContact ? 'מוצגת אחרי פרסום פריט' : (address || '—');
+      if (addressEl) addressEl.textContent = gateWithholdsContact ? 'מוצגת אחרי פרסום פריט' : (shownAddress || '—');
 
       const contactBox = document.getElementById('modal-contact');
       if (!contactBox || listing.status === 'sold' || isOwner) return;

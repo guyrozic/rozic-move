@@ -1,0 +1,64 @@
+/* ===== ROZIC MOVE — hub (app/index.html) — סגנון ייעודי =====
+   קובץ נפרד ולא style-app.css: הקובץ המשותף ההוא בעריכה של סוכן אחר
+   במקביל. כל הטוקנים כאן (--green, --shadow-2, --ease וכו') כבר מוגדרים
+   ב-style.css/style-app.css שנטענים לפני הקובץ הזה בכל דף שמשתמש בו. */
+
+/* --- כרטיס "ההזמנה הקרובה שלך" ---------------------------------------
+   אותו מבנה בדיוק כמו nextOrderCard/nextOrderInner ב-HomeScreen.tsx
+   באפליקציה: פס ירוק כילד ראשון בקונטיינר row (נוחת מימין תחת RTL),
+   ולא position:absolute עם left/right — ה-CLAUDE.md של Hovalot מתעד
+   ש-absolute+left/right ממורר תחת RTL אמיתי, בעוד row עם ילד-ראשון-
+   מימין כבר מאומת אמפירית. אותה מסגרת/רדיוס/צל כמו .service-tile,
+   כדי שהכרטיס לא ייראה כמו רכיב זר בין שלושת אריחי השירות. */
+.next-order-card {
+  display: flex;
+  align-items: stretch;
+  background: var(--white);
+  border: 1.5px solid rgba(14,92,67,0.28);
+  border-radius: 20px;
+  box-shadow: var(--shadow-2);
+  text-decoration: none;
+  overflow: hidden;
+  margin-bottom: 32px;
+  transition: transform 0.25s var(--ease), box-shadow 0.25s var(--ease), border-color 0.25s var(--ease);
+}
+.next-order-card:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--shadow-3-green);
+  border-color: rgba(14,92,67,0.4);
+}
+.next-order-stripe { width: 5px; flex-shrink: 0; background: var(--green); }
+.next-order-body { flex: 1; min-width: 0; padding: 22px 26px; }
+
+.next-order-badge {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.85rem;
+  font-weight: 800;
+  color: var(--green-dark);
+  margin-bottom: 8px;
+}
+.next-order-badge .dot { color: var(--green); font-size: 0.7rem; }
+
+.next-order-title { font-size: 1.25rem; font-weight: 800; letter-spacing: -0.3px; color: var(--text); margin-bottom: 4px; }
+.next-order-route,
+.next-order-date { font-size: 0.87rem; color: var(--text-muted); margin-bottom: 2px; }
+.next-order-status { margin-top: 10px; }
+
+.next-order-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1px solid var(--border);
+}
+.next-order-price { font-size: 1.2rem; font-weight: 900; color: var(--text); }
+.next-order-link { font-size: 0.88rem; font-weight: 700; color: var(--green-dark); white-space: nowrap; }
+
+@media (max-width: 480px) {
+  .next-order-body { padding: 18px 18px; }
+  .next-order-footer { flex-wrap: wrap; }
+}

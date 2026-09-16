@@ -269,7 +269,7 @@
     // ועד היום לא היה לו שום דבר לראות — לא את המודעה ולא דרך ליצור קשר.
     import { auth } from './app/firebase.js';
     import { onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/12.16.0/firebase-auth.js';
-    import { getListing, getListingContact, CATEGORY_INFO } from './app/listings.js';
+    import { getListing, getListingContact, CATEGORY_INFO, stripHouseNumber, formatListingAge } from './app/listings.js';
     import { normalizePhone } from './app/auth.js';
     /* אותו שער בדיוק כמו ב-`app/marketplace.html` — הדף הזה הוא הקישור
        שנשלח בוואטסאפ, כלומר הדלת השנייה לאותה לקיחה. שער שנאכף בדלת
@@ -294,7 +294,7 @@
         document.getElementById('listing-title').textContent = listing.title || 'מוצר';
         setListingHead(listing);
         document.getElementById('listing-meta').textContent =
-          [CATEGORY_INFO[listing.category]?.label, listing.city].filter(Boolean).join(' · ');
+          [CATEGORY_INFO[listing.category]?.label, listing.city, formatListingAge(listing.createdAt)].filter(Boolean).join(' · ');
         document.getElementById('listing-desc').textContent = listing.description || '';
 
         const photosEl = document.getElementById('listing-photos');
@@ -382,6 +382,15 @@
         const contact = await getListingContact(listing.id).catch(() => null);
         const rawPhone = contact?.userPhone   ?? listing.userPhone   ?? '';
         const address  = contact?.fromAddress ?? listing.fromAddress ?? '';
+        /**
+         * ⚠️ 16.9 — **מספר הבית הוסתר, ולראשונה כאן.** אותה דליפה
+         * שנסגרה ב-`ListingDetailsScreen.tsx` (16.9) ומעולם לא הגיעה
+         * לאתר — ראו ההערה המלאה על `stripHouseNumber` ב-`listings.js`.
+         * `gate.reason === 'owner'` הוא כבר בדיוק `listing.userId === uid`
+         * (ראו `evaluateTakeGate`), ולכן אין צורך בהשוואה נפרדת.
+         */
+        const isOwner = gate.reason === 'owner';
+        const shownAddress = isOwner ? address : stripHouseNumber(address);
 
         /**
          * ⚠️ הנרמול חייב להיות כאן, בצד הקריאה, ולא רק בצד הכתיבה.
@@ -403,12 +412,12 @@
         }
 
         box.textContent = '';
-        if (address) {
+        if (shownAddress) {
           const row = document.createElement('div');
           row.className = 'contact-row';
           row.append('כתובת איסוף: ');
           const strong = document.createElement('strong');
-          strong.textContent = address;
+          strong.textContent = shownAddress;
           row.appendChild(strong);
           box.appendChild(row);
         }
