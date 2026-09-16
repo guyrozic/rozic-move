@@ -105,3 +105,54 @@ export async function markListingSold(listingId) {
 export async function deleteListing(listingId) {
   await deleteDoc(doc(db, 'listings', listingId));
 }
+
+/**
+ * מסירה את מספר הבית מכתובת, ומשאירה רחוב ועיר — פורט מדויק של
+ * `stripHouseNumber` ב-`ListingDetailsScreen.tsx` (Hovalot).
+ *
+ * ## ⚠️ למה זה כאן (16.9)
+ * המסך באפליקציה תוקן ב-16.9 אחרי שנמצא ש-`contact.fromAddress`
+ * **המלא** הוצג לכל צופה, בזמן ש-`CreateGiveawayScreen` מבטיח למפרסם
+ * במפורש: *"פרטיות: רק שם העיר והרחוב יוצגו. מספר הבית ישמש אך ורק אם
+ * מעוניין יזמין הובלה."* האתר (`marketplace.html`, `listing.html`) מעולם
+ * לא קיבל את התיקון הזה — שני משטחים מציגים את אותו `fromAddress`, ורק
+ * אחד מהם מכבד את ההבטחה. זו בדיוק המשפחה של "עותק שני של לוגיקה עסקית
+ * שלא הסכים עם הראשון" שה-CLAUDE.md של הריפו הזה מזהיר עליה — כאן זה
+ * לא כסף, זו כתובת הבית של המפרסם.
+ *
+ * ⚠️ הביטוח כאן מסיר **רק רצף ספרות שעומד בפני עצמו בסוף שם הרחוב**:
+ * "הרצל 28, רחובות" → "הרצל, רחובות", בעוד "דרך מנחם בגין" נשאר שלם.
+ * אם הצורה לא מזוהה, מוחזרת העיר לבדה ולא הכתובת המלאה — הכיוון הבטוח
+ * לטעות בו הוא פחות מידע, לא יותר. הבעלים ממשיך לראות את הכתובת המלאה.
+ */
+export function stripHouseNumber(addr) {
+  const parts = String(addr ?? '').split(',').map(x => x.trim()).filter(Boolean);
+  if (parts.length === 0) return addr;
+  const street = parts[0].replace(/\s+\d+[א-ת]?$/, '').trim();
+  const rest = parts.slice(1);
+  if (!street) return rest.join(', ') || addr;
+  return [street, ...rest].join(', ');
+}
+
+/**
+ * "לפני 3 שעות" וכו' — פורט מדויק של `formatAgo` ב-`GiveawayScreen.tsx`
+ * (Hovalot), כולל אותן צורות זוגי/יחיד בעברית ("לפני שעתיים" ולא "לפני 2
+ * שעות"). שם הפונקציה שונה מהמקור כדי לא להתנגש עם `Array.prototype`
+ * או שם כללי מדי בקובץ ששיתוף בין כמה דפים.
+ *
+ * ⚠️ **התיקון של 11.9 שם קריטי**: `Timestamp` בודד עם `mins === 1` הפיק
+ * "לפני 1 דקות" — רבים על יחיד, על **כל מודעה בלוח**. `ts` יכול להיות
+ * `undefined` ברגע שהמסמך עדיין ב-cache המקומי לפני ש-`serverTimestamp()`
+ * חזר מהשרת (אותה סיטואציה שקיימת גם באפליקציה).
+ */
+export function formatListingAge(ts) {
+  if (!ts) return '';
+  const diffMs = Date.now() - ts.toMillis();
+  const mins = Math.floor(diffMs / 60000);
+  if (mins < 1) return 'הרגע';
+  if (mins < 60) return mins === 1 ? 'לפני דקה' : mins === 2 ? 'לפני שתי דקות' : `לפני ${mins} דקות`;
+  const hrs = Math.floor(mins / 60);
+  if (hrs < 24) return hrs === 1 ? 'לפני שעה' : hrs === 2 ? 'לפני שעתיים' : `לפני ${hrs} שעות`;
+  const days = Math.floor(hrs / 24);
+  return days === 1 ? 'אתמול' : days === 2 ? 'לפני יומיים' : `לפני ${days} ימים`;
+}

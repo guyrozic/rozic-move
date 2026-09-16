@@ -130,6 +130,14 @@
         <label for="description">תיאור</label>
         <textarea id="description" rows="4" maxlength="2000" placeholder="מצב הפריט, מידות, כל פרט שיעזור..."></textarea>
       </div>
+      <!-- ⚠️ 16.9 — השדה הזה היה קיים ב-CreateGiveawayScreen באפליקציה
+           ("למה אתה מעביר?") ולא באתר. שדה קטן, אבל הוא בדיוק מה שהופך
+           מודעה יבשה ("ספה") למודעה שאנשים סומכים עליה ("עברנו דירה,
+           לא צריך יותר"). אופציונלי, בדיוק כמו באפליקציה. -->
+      <div class="form-group">
+        <label for="reason">למה אתה מעביר הלאה? (אופציונלי)</label>
+        <input id="reason" type="text" maxlength="200" placeholder="עברנו דירה, שדרגנו...">
+      </div>
       <div class="form-group">
         <label id="category-tabs-label">קטגוריה</label>
         <div class="room-tabs" id="category-tabs" role="group" aria-labelledby="category-tabs-label"></div>
@@ -161,6 +169,12 @@
         <label for="from-address">כתובת מלאה</label>
         <input id="from-address" type="text" placeholder="רחוב ומספר">
       </div>
+      <!-- ⚠️ 16.9 — ההבטחה שה-AddressInput נותן ב-CreateGiveawayScreen
+           באפליקציה, ועד עכשיו לא הייתה נכונה באתר: הלוח הציג את מספר
+           הבית המלא לכל צופה מחובר. `marketplace.html`/`listing.html`
+           תוקנו (ראו `stripHouseNumber` ב-listings.js) — ההודעה כאן
+           רק אומרת למפרסם את מה שכבר קורה בפועל. -->
+      <p class="form-hint">פרטיות: מי שמבקש את הפריט יראה רק את שם הרחוב והעיר. מספר הבית נשמר אצלנו לתיאום המסירה בלבד, ולא מוצג.</p>
     </div>
 
     <!-- כללי הלוח — יושבים כאן, בכרטיס האחרון לפני הכפתור, כי הלוח חינמי
@@ -567,8 +581,12 @@
           .map((q, i) => ({ q, a: document.querySelector(`.guiding-answer-input[data-i="${i}"]`)?.value.trim() }))
           .filter(qa => qa.a);
         const questionsText = answeredQuestions.length ? `\n\n${answeredQuestions.map(qa => `${qa.q} ${qa.a}`).join('\n')}` : '';
+        // אותו סדר בדיוק כמו handleSubmit ב-CreateGiveawayScreen: תיאור,
+        // שאלות הבהרה, "למה אני מעביר", ואז מצב הפריט.
+        const reason = document.getElementById('reason').value.trim();
+        const reasonText = reason ? `\n\nלמה אני מעביר: ${reason}` : '';
         const conditionLabel = CONDITION_OPTIONS.find(c => c.key === condition)?.label;
-        const fullDescription = `${description}${questionsText}${conditionLabel ? `\n\nמצב: ${conditionLabel}` : ''}`;
+        const fullDescription = `${description}${questionsText}${reasonText}${conditionLabel ? `\n\nמצב: ${conditionLabel}` : ''}`;
         const listingId = await createListing({
           userId: authState.authUser.uid,
           userName: authState.profile.name || '',
@@ -658,6 +676,7 @@
         savedAt: Date.now(),
         title: document.getElementById('title').value,
         description: document.getElementById('description').value,
+        reason: document.getElementById('reason').value,
         city: document.getElementById('city').value,
         fromAddress: document.getElementById('from-address').value,
         category,
@@ -700,6 +719,11 @@
       if (!d || typeof d !== 'object') return false;
       const str = (v) => typeof v === 'string';
       if (!['title', 'description', 'city', 'fromAddress'].every(k => str(d[k]))) return false;
+      // ⚠️ `reason` נוסף ב-16.9 — אופציונלי בבדיקה (לא ברשימה שמעל) כדי
+      // שטיוטה שנשמרה שנייה לפני הפריסה הזו (בתוך חלון ה-TTL של 24 שעות)
+      // לא תיפסל רק כי לשדה החדש אין ערך. אותו דפוס בדיוק כמו `category`/
+      // `condition` למטה.
+      if (d.reason != null && !str(d.reason)) return false;
       if (!Array.isArray(d.guidingQuestions) || !d.guidingQuestions.every(str)) return false;
       if (!Array.isArray(d.guidingAnswers) || !d.guidingAnswers.every(str)) return false;
       if (!Array.isArray(d.photos) || !d.photos.every(v => str(v) && v.startsWith('data:image/jpeg;base64,'))) return false;
@@ -750,6 +774,7 @@
     function applyListingDraft(d) {
       document.getElementById('title').value = d.title;
       document.getElementById('description').value = d.description;
+      document.getElementById('reason').value = d.reason ?? '';
       document.getElementById('city').value = d.city;
       document.getElementById('from-address').value = d.fromAddress;
 

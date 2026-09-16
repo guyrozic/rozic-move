@@ -28,7 +28,8 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="../style.css?v=93d67ba9">
-  <link rel="stylesheet" href="style-app.css?v=9bcae682">
+  <link rel="stylesheet" href="style-app.css?v=51e8347f">
+  <link rel="stylesheet" href="hub.css?v=1">
   <style>
     /* --- נגישות מקלדת --- */
     /* טבעת מיקוד נראית. `outline` בלבד ומחוץ לקופסה — אינו תופס מקום
@@ -38,7 +39,7 @@
   </style>
 </head>
 <body class="app-body">
-<div data-build-stamp class="build-stamp" aria-hidden="true">עודכן 16.09 · 22:24</div>
+<div data-build-stamp class="build-stamp" aria-hidden="true">עודכן 16.09 · 13:40</div>
   <!-- ⚠️ 15.9 — "דלג לתוכן המרכזי" (WCAG 2.4.1, רמה A). זהו האלמנט הממוקד
        הראשון בדף: מוסתר מהעין, מופיע בפינה ברגע שמגיעים אליו ב-Tab, ומעביר
        את המיקוד אל <main id="main-content" tabindex="-1">. בלי ה-tabindex
@@ -66,12 +67,22 @@
   <div class="step-hero">
     <div class="step-hero-inner">
       <div class="hero-badge" style="margin-bottom:14px;">בלי הורדת אפליקציה</div>
-      <h1>לאן מובילים היום?</h1>
-      <p>בחרו שירות, קבלו מחיר מיידי, ואשרו הזמנה תוך דקות — ישירות מהדפדפן.</p>
+      <!-- ⚠️ הטקסט הסטטי כאן הוא ברירת המחדל לאורח (ולמי שה-JS טרם רץ) —
+           המודול בתחתית הדף מחליף אותו בברכה אישית למשתמש מחובר, לפי
+           השעה ושמו הפרטי, בדיוק כמו getTimeGreeting() ב-HomeScreen.tsx
+           באפליקציה. שני ה-id-ים הם העוגן היחיד שה-JS צריך. -->
+      <h1 id="hero-title">לאן מובילים היום?</h1>
+      <p id="hero-sub">בחרו שירות, קבלו מחיר מיידי, ואשרו הזמנה תוך דקות — ישירות מהדפדפן.</p>
     </div>
   </div>
 
   <div class="app-container wide">
+
+    <!-- "ההזמנה הקרובה שלך" — מוזרק ב-JS רק למשתמש מחובר עם הזמנה
+         פעילה (pending/assigned/en_route/in_progress, כמו
+         ACTIVE_CUSTOMER_STATUSES באפליקציה). ריק ולא display:none: כך
+         אין קפיצת פריסה ברגע שהתוכן נכנס. -->
+    <div id="next-order-wrap"></div>
 
     <div class="hub-section">
       <h2 class="hub-section-title">השירותים שלנו</h2>
@@ -192,7 +203,79 @@
     // ממשיכים לקרוא ל-`showDriverBlockAndHalt()` בשורה הראשונה, ולכן
     // קישור ישיר, רענון, back או לשונית חדשה נחסמים בדיוק כמו קודם.
     import { getAuthOptional, isDriverAccount, blockOrderTilesForDriver } from './guest-checkout.js';
-    if (isDriverAccount(await getAuthOptional())) blockOrderTilesForDriver();
+    // קריאה בלבד — הדף הזה לא כותב להזמנות, רק קורא כדי להציג את
+    // "ההזמנה הקרובה שלך". אותן שלוש פונקציות ש-account.html כבר
+    // משתמש בהן לרשימת ההזמנות שלו.
+    import { subscribeToUserOrders, customerTotalOf, STATUS_LABELS } from './orders.js';
+
+    /**
+     * אותן ארבע סטטוסים בדיוק כמו ACTIVE_CUSTOMER_STATUSES ב-
+     * Hovalot/src/services/orders.ts — הזמנה שכבר שולמה ומחכה למוביל
+     * או בדרך. `pending_pricing`/`pending_payment` (עדיין לפני תשלום)
+     * ו-`draft` לא נכללים בכוונה: זו עדיין לא "הזמנה קרובה" מבחינת
+     * הלקוח, וגם לא `completed`/`cancelled` — אלה כבר לא "קרובות".
+     */
+    const ACTIVE_ORDER_STATUSES = new Set(['pending', 'assigned', 'en_route', 'in_progress']);
+
+    /** בריחת HTML — זהה ל-`esc` ב-account.html/marketplace.html. שדות ההזמנה
+        (כותרת, כתובות) הם טקסט חופשי שהלקוח עצמו הקליד בטופס ההזמנה. */
+    const esc = (v) => String(v ?? '')
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+
+    /** מראה את getTimeGreeting() ב-HomeScreen.tsx באפליקציה, אותם סעיפי שעה. */
+    function timeGreeting() {
+      const h = new Date().getHours();
+      if (h < 5) return 'לילה טוב';
+      if (h < 12) return 'בוקר טוב';
+      if (h < 18) return 'צהריים טובים';
+      return 'ערב טוב';
+    }
+
+    function renderNextOrder(order) {
+      const wrap = document.getElementById('next-order-wrap');
+      if (!wrap) return;
+      if (!order) { wrap.innerHTML = ''; return; }
+      const title = order.title || 'הזמנה';
+      const routeRow = (order.fromAddress && order.toAddress)
+        ? `<div class="next-order-route">${esc(order.fromAddress)} ← ${esc(order.toAddress)}</div>` : '';
+      // אותו נוסח בדיוק כמו order-status.html: תאריך + ' · ' + חלון זמן.
+      const dateRow = order.scheduledDate
+        ? `<div class="next-order-date">${esc(order.scheduledDate)}${order.timeSlot ? ' · ' + esc(order.timeSlot) : ''}</div>` : '';
+      wrap.innerHTML = `
+        <a tabindex="0" class="next-order-card" href="order-status.html?id=${encodeURIComponent(order.id)}" aria-label="ההזמנה הקרובה שלך — ${esc(title)}">
+          <div class="next-order-stripe" aria-hidden="true"></div>
+          <div class="next-order-body">
+            <div class="next-order-badge"><span class="dot" aria-hidden="true">●</span> ההזמנה הקרובה שלך</div>
+            <div class="next-order-title">${esc(title)}</div>
+            ${routeRow}
+            ${dateRow}
+            <span class="status-badge ${esc(order.status)} next-order-status">${esc(STATUS_LABELS[order.status] || order.status)}</span>
+            <div class="next-order-footer">
+              <div class="next-order-price">₪${esc(customerTotalOf(order))}</div>
+              <div class="next-order-link">למעבר להזמנה ←</div>
+            </div>
+          </div>
+        </a>`;
+    }
+
+    const authState = await getAuthOptional();
+    if (isDriverAccount(authState)) {
+      blockOrderTilesForDriver();
+    } else if (authState) {
+      const firstName = (authState.profile.name || '').trim().split(' ')[0];
+      const heroTitle = document.getElementById('hero-title');
+      const heroSub = document.getElementById('hero-sub');
+      if (heroTitle) heroTitle.textContent = firstName ? `${timeGreeting()}, ${firstName}` : timeGreeting();
+      if (heroSub) heroSub.textContent = 'מה מובילים היום?';
+
+      // מנוי חי: הזמנה שמשנה סטטוס (למשל מוביל שיבץ את עצמו) מעדכנת
+      // את הכרטיס בלי רענון דף — אותו מנגנון בדיוק כמו subscribeToActiveOrders
+      // ב-HomeScreen.tsx. subscribeToUserOrders כבר מחזיר ממוין מהחדש לישן.
+      subscribeToUserOrders(authState.authUser.uid, (orders) => {
+        renderNextOrder(orders.find(o => ACTIVE_ORDER_STATUSES.has(o.status)) || null);
+      });
+    }
   </script>
 </body>
 </html>
