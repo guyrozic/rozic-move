@@ -64,7 +64,7 @@
   </style>
 </head>
 <body class="app-body">
-<div data-build-stamp class="build-stamp" aria-hidden="true">עודכן 17.09 · 00:16</div>
+<div data-build-stamp class="build-stamp" aria-hidden="true">עודכן 17.09 · 00:38</div>
   <!-- ⚠️ 15.9 — "דלג לתוכן המרכזי" (WCAG 2.4.1, רמה A). זהו האלמנט הממוקד
        הראשון בדף: מוסתר מהעין, מופיע בפינה ברגע שמגיעים אליו ב-Tab, ומעביר
        את המיקוד אל <main id="main-content" tabindex="-1">. בלי ה-tabindex
@@ -587,6 +587,14 @@
         const reasonText = reason ? `\n\nלמה אני מעביר: ${reason}` : '';
         const conditionLabel = CONDITION_OPTIONS.find(c => c.key === condition)?.label;
         const fullDescription = `${description}${questionsText}${reasonText}${conditionLabel ? `\n\nמצב: ${conditionLabel}` : ''}`;
+        // ⚠️ 17.9 — חוק Firestore דוחה listing עם description מעל 2000 תווים.
+        // התיאור לבדו מוגבל ל-2000, אבל יחד עם תשובות ה-AI ו"למה אני מעביר"
+        // הוא עלול לחרוג — ואז הפרסום נכשל בלי שהמשתמש מבין למה. גודרים כאן.
+        if (fullDescription.length > 2000) {
+          errBox.innerHTML = '<div class="alert alert-error">התיאור והתשובות יחד ארוכים מדי (מעל 2000 תווים). קצרו מעט את התיאור או התשובות ונסו שוב.</div>';
+          btn.disabled = false; btn.textContent = 'פרסם מודעה';
+          return;
+        }
         const listingId = await createListing({
           userId: authState.authUser.uid,
           userName: authState.profile.name || '',

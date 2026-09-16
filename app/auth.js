@@ -186,6 +186,11 @@ export async function confirmPhoneVerificationCode(verificationId, code, localPh
   if (!auth.currentUser) throw new Error('NOT_LOGGED_IN');
   const credential = PhoneAuthProvider.credential(verificationId, code);
   await updatePhoneNumber(auth.currentUser, credential);
+  // ⚠️ 17.9 — מרעננים את ה-ID token לפני הכתיבה, בדיוק כמו האפליקציה
+  // (AuthContext). החוק phoneVerifiedNotSelfGranted דורש שה-claim
+  // phone_number בטוקן יתאים למספר שנכתב; בלי רענון מפורש הכתיבה עלולה
+  // להיכשל לסירוגין ב-Web SDK מיד אחרי אימות SMS מוצלח.
+  await auth.currentUser.getIdToken(true);
   await updateDoc(doc(db, 'users', auth.currentUser.uid), { phone: toLocalPhone(toE164(localPhone)), phoneVerified: true });
 }
 

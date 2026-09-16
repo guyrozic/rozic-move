@@ -59,12 +59,16 @@ const UNREAD_FIELD_OF = { user: 'unreadAdmin', admin: 'unreadUser', ai: 'unreadU
  * (מוני לא-נקרא בצ'אט עם המוביל).
  */
 export async function sendSupportMessage(ticketId, role, text, opts) {
+  // ⚠️ 17.9 — תקרת חוק: support_tickets/*/messages דורש text.size() <= 2000.
+  // הודעת המשתמש מוגבלת ב-UI, אבל תשובת ה-AI אינה מוגבלת במקור — חותכים
+  // כאן (מגן על כל הקוראים) כדי שהכתיבה לא תידחה ותסתיר את התשובה.
+  const safeText = typeof text === 'string' ? text.slice(0, 2000) : text;
   await addDoc(collection(db, 'support_tickets', ticketId, 'messages'), {
-    role, text, timestamp: serverTimestamp(), read: false,
+    role, text: safeText, timestamp: serverTimestamp(), read: false,
     ...(opts?.promptFeedback ? { promptFeedback: true } : {}),
   });
   await updateDoc(doc(db, 'support_tickets', ticketId), {
-    lastMessage: text,
+    lastMessage: safeText,
     lastMessageAt: serverTimestamp(),
     [UNREAD_FIELD_OF[role]]: increment(1),
   });
