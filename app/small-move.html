@@ -57,7 +57,7 @@
   </style>
 </head>
 <body class="app-body">
-<div data-build-stamp class="build-stamp" aria-hidden="true">עודכן 16.09 · 23:42</div>
+<div data-build-stamp class="build-stamp" aria-hidden="true">עודכן 17.09 · 00:16</div>
   <!-- ⚠️ 15.9 — "דלג לתוכן המרכזי" (WCAG 2.4.1, רמה A). זהו האלמנט הממוקד
        הראשון בדף: מוסתר מהעין, מופיע בפינה ברגע שמגיעים אליו ב-Tab, ומעביר
        את המיקוד אל <main id="main-content" tabindex="-1">. בלי ה-tabindex
@@ -370,7 +370,7 @@
 
   <script type="module">
     import { getAuthOptional, isDriverAccount, showDriverBlockAndHalt,
-             loadOrderDraft, clearOrderDraft, goRegister,
+             loadOrderDraft, clearOrderDraft, saveOrderDraft, goRegister,
              applyDraftToForm, draftWasDiscarded,
              showDraftDiscardedNotice } from './guest-checkout.js';
     import { createOrder } from './orders.js';
@@ -1240,6 +1240,9 @@
        * התקרית של 2.8 הוקשחה בצד אחד בלבד. זה הצד השני.
        */
       if (!authState.profile.phoneVerified) {
+        // ⚠️ 17.9 — שומרים את הטיוטה לפני שהלקוח עוזב לאימות טלפון, אחרת הוא
+        // חוזר מ-account.html לאשף ריק. מקביל ל-saveOrderDraft שב-goRegister.
+        saveOrderDraft('smallMove', state);
         errBox.innerHTML = '<div class="alert alert-error">נדרש אימות טלפון לפני אישור הזמנה — המוביל צריך דרך ליצור איתך קשר. <a tabindex="0" href="account.html">לאימות</a></div>';
         return;
       }
@@ -1251,6 +1254,8 @@
        * `~/Hovalot/src/utils/validation.ts`, וכבר משמשים את `edit-profile.html`.
        */
       if (!isValidFullName(authState.profile.name)) {
+        // ⚠️ 17.9 — כנ"ל: שמירה לפני מעבר ל-edit-profile.html.
+        saveOrderDraft('smallMove', state);
         errBox.innerHTML = `<div class="alert alert-error">${FULL_NAME_ERROR} <a tabindex="0" href="edit-profile.html">לעריכת הפרופיל</a></div>`;
         return;
       }

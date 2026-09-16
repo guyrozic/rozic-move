@@ -23,7 +23,7 @@
   <script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js"></script>
 </head>
 <body class="app-body">
-<div data-build-stamp class="build-stamp" aria-hidden="true">עודכן 16.09 · 23:42</div>
+<div data-build-stamp class="build-stamp" aria-hidden="true">עודכן 17.09 · 00:16</div>
   <a class="skip-link" href="#main-content">דלג לתוכן המרכזי</a>
   <script type="module" src="pilot-banner.js?v=14a0e537"></script>
   <main id="main-content" tabindex="-1">
@@ -107,6 +107,7 @@
 
       let map = null, fromMarker = null, toMarker = null, driverMarker = null;
       let latestLoc = null;
+      let assignedDriverId = null;
 
       // צבעי הסמנים מראים בכוונה את הטוקנים ב-style.css (--green #0E5C43,
       // --danger #C0392B, --navy #1D3557) — כאן כערכים גולמיים כי אלה
@@ -139,7 +140,11 @@
         const panelEl = document.getElementById('track-panel');
         if (!panelEl) return;
         const freshness = locationFreshness(latestLoc);
-        if (!freshness) {
+        if (!assignedDriverId && !latestLoc) {
+          // מבחין בין "אין מוביל עדיין" ל"יש מוביל שלא שיתף מיקום" — מקביל
+          // ל-order-chat/order-rate שבודקים order.driverId (17.9).
+          panelEl.innerHTML = '<div class="track-panel"><span class="track-dot"></span><span class="track-text">עדיין לא שובץ מוביל להזמנה — המעקב ייפתח כשמוביל ישובץ.</span></div>';
+        } else if (!freshness) {
           panelEl.innerHTML = '<div class="track-panel"><span class="track-dot"></span><span class="track-text">ממתינים שהמוביל ישתף מיקום...</span></div>';
         } else if (freshness === 'live') {
           panelEl.innerHTML = '<div class="track-panel"><span class="track-dot"></span><span class="track-text">המוביל משתף מיקום בזמן אמת</span></div>';
@@ -192,6 +197,8 @@
           // בלי אף קואורדינטה (הזמנה ישנה/גיאוקודינג שנכשל) — אין מה למקד
           // עליו, אבל המפה עצמה עדיין שימושית ברגע שיגיע מיקום מוביל.
         }
+        assignedDriverId = order.driverId || null;
+        updatePanel();
         sawOrderOnce = true;
       }, () => showError('<div class="empty-icon">🚫</div>ההזמנה לא נמצאה, או שאין לך הרשאה לצפות בה.'));
 
