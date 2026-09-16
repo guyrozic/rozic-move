@@ -31,7 +31,7 @@
   <link rel="stylesheet" href="style-app.css?v=232d590a">
 </head>
 <body class="app-body">
-<div data-build-stamp class="build-stamp" aria-hidden="true">עודכן 15.09 · 23:56</div>
+<div data-build-stamp class="build-stamp" aria-hidden="true">עודכן 16.09 · 23:00</div>
   <!-- ⚠️ 15.9 — "דלג לתוכן המרכזי" (WCAG 2.4.1, רמה A). זהו האלמנט הממוקד
        הראשון בדף: מוסתר מהעין, מופיע בפינה ברגע שמגיעים אליו ב-Tab, ומעביר
        את המיקוד אל <main id="main-content" tabindex="-1">. בלי ה-tabindex
@@ -81,7 +81,11 @@
 
   <script type="module">
     import { requireAuth } from './auth.js';
-    import { subscribeToOrder, cancelOrder, customerTotalOf, STATUS_LABELS } from './orders.js';
+    import {
+      subscribeToOrder, cancelOrder, customerTotalOf, STATUS_LABELS,
+      ORDER_PROGRESS_STEPS, customerConfirmCompletion,
+    } from './orders.js';
+    import { getUserProfile, formatVehicle } from './users.js';
 
     /**
      * בריחת HTML לכל ערך שמגיע ממסמך ההזמנה. **זו לא הגנה תיאורטית:**
@@ -126,6 +130,68 @@
       });
     }
 
+    /** מראה FindDriverScreen — מצב "מחפשים מוביל זמין" מיד אחרי התשלום. */
+    function renderSearchingCard() {
+      return `
+        <div class="app-card search-card">
+          <div class="search-row">
+            <span class="pulse-dot" aria-hidden="true"></span>
+            <span class="search-title">מחפשים מוביל זמין...</span>
+          </div>
+          <div class="search-hint">תקבלו עדכון ברגע שמוביל יאשר.<br>המוביל ייצור איתכם קשר לפני ההגעה.</div>
+        </div>`;
+    }
+
+    /** מראה OrderProgressBar.tsx — פס 5 שלבים + תווית השלב הנוכחי. */
+    function renderProgressBar(stepIndex) {
+      const segs = ORDER_PROGRESS_STEPS
+        .map((s, i) => `<div class="order-progress-seg ${i <= stepIndex ? 'done' : ''}"></div>`)
+        .join('');
+      const label = ORDER_PROGRESS_STEPS[stepIndex].label;
+      return `
+        <div class="order-progress" role="progressbar" aria-valuemin="1" aria-valuemax="${ORDER_PROGRESS_STEPS.length}"
+             aria-valuenow="${stepIndex + 1}" aria-label="שלב ${stepIndex + 1} מתוך ${ORDER_PROGRESS_STEPS.length}: ${esc(label)}">
+          <div class="order-progress-track">${segs}</div>
+          <div class="order-progress-label-row">
+            <span class="order-progress-dot" aria-hidden="true"></span>
+            <span class="order-progress-label">${esc(label)}</span>
+          </div>
+        </div>`;
+    }
+
+    /** מראה כרטיס המוביל ב-FindDriverScreen (מצב "נמצא") וב-OrderDetailsScreen ("המוביל שלך"). */
+    function renderDriverCardInner(driver, order) {
+      const heading = order.status === 'assigned' ? 'נמצא לך מוביל!' : 'המוביל שלך';
+      const name = driver?.name || 'המוביל שלך';
+      const initial = esc((driver?.name || '?').trim().charAt(0).toUpperCase() || '?');
+      const vehicle = formatVehicle(driver);
+      const verified = driver?.idVerificationStatus === 'verified';
+      const phone = driver?.phone;
+      return `
+        <h2>${esc(heading)}</h2>
+        <div class="driver-avatar-row">
+          <div class="driver-avatar" aria-hidden="true">${initial}</div>
+          <div class="driver-info">
+            <div class="driver-name">${esc(name)}${verified ? '<span class="driver-verified">✓ מאומת</span>' : ''}</div>
+            ${vehicle ? `<div class="driver-vehicle">${esc(vehicle)}${driver?.vehiclePlate ? ' · ' + esc(driver.vehiclePlate) : ''}</div>` : ''}
+          </div>
+        </div>
+        ${phone
+          ? `<a class="call-btn" href="tel:${esc(phone)}">התקשר למוביל — ${esc(phone)}</a>`
+          : `<div class="call-btn disabled">${driver ? 'המוביל טרם הוסיף מספר טלפון' : 'טוען פרטי מוביל…'}</div>`}
+      `;
+    }
+
+    async function loadDriverCard(order) {
+      const el = document.getElementById('driver-card');
+      if (!el) return;
+      const driver = await getUserProfile(order.driverId);
+      // המשתמש עשוי לנווט משם/ההזמנה עשויה להתעדכן שוב לפני שהקריאה חוזרת —
+      // ה-id עדיין קיים ב-DOM רק אם render() לא רץ מחדש בינתיים.
+      const stillThere = document.getElementById('driver-card');
+      if (stillThere) stillThere.innerHTML = renderDriverCardInner(driver, order);
+    }
+
     function render(order) {
       const isOwner = order.customerId === authState.authUser.uid;
       if (!isOwner) {
@@ -136,15 +202,47 @@
       // 'pending_pricing' נכלל כאן בדיוק כמו canCancel ב-OrderDetailsScreen
       // באפליקציה — הזמנה שממתינה לתמחור עדיין לא שולמה, ואין שום סיבה
       // לכלוא בה את הלקוח עד שהצוות יתמחר.
-      const cancellable = ['draft', 'pending_pricing', 'pending_payment', 'pending', 'assigned'].includes(order.status);
+      // ⚠️ 16.9 — 'en_route' נוסף: עד היום לקוח שהמוביל שלו כבר בדרך לא ראה
+      // כאן שום כפתור ביטול בכלל (מבוי סתום) — אף שהאפליקציה מתירה זאת
+      // (ראו getCancellationPolicy ב-cancellation.ts, 22.8) בחיוב 75%. השרת
+      // (customerCancelOrder) הוא זה שקובע את דמי הביטול בפועל, ולכן אין כאן
+      // צורך בענף חדש — רק בפתיחת הכפתור לסטטוס הזה.
+      const cancellable = ['draft', 'pending_pricing', 'pending_payment', 'pending', 'assigned', 'en_route'].includes(order.status);
       const total = customerTotalOf(order);
       const manualItems = order.manualPricingItems ?? [];
+      const isActive = order.status === 'assigned' || order.status === 'en_route' || order.status === 'in_progress';
+      const stepIndex = ORDER_PROGRESS_STEPS.findIndex(s => s.status === order.status);
+      const canRate = order.status === 'completed' && typeof order.driverRating !== 'number';
 
       contentEl.innerHTML = `
         <div class="app-card">
           <h2>${esc(order.title || 'הזמנה')}</h2>
           <p><span class="status-badge ${esc(order.status)}">${esc(STATUS_LABELS[order.status] || order.status)}</span></p>
+          ${stepIndex >= 0 ? renderProgressBar(stepIndex) : ''}
         </div>
+
+        ${order.status === 'pending' ? renderSearchingCard() : ''}
+
+        ${order.driverId && order.status !== 'pending' ? `
+        <div class="app-card driver-card" id="driver-card">
+          <div class="center-loading"><span class="spinner"></span></div>
+        </div>` : ''}
+
+        ${order.status === 'in_progress' && order.driverConfirmedCompletion ? `
+        <div class="confirm-completion-card">
+          <div class="confirm-completion-title">המוביל דיווח שסיים את ההובלה</div>
+          <div class="confirm-completion-sub">אשרו שהיא בוצעה בהצלחה כדי להשלים את התהליך</div>
+          <button class="btn btn-primary" id="confirm-completion-btn">אשר סיום הובלה</button>
+        </div>` : ''}
+
+        ${isActive ? `
+        <div class="quick-actions">
+          <a class="btn btn-secondary btn-block quick-action-btn" href="order-chat.html?id=${encodeURIComponent(order.id)}">
+            צ'אט עם המוביל
+            ${order.unreadCustomer ? `<span class="chat-unread-badge">${order.unreadCustomer > 9 ? '9+' : esc(order.unreadCustomer)}</span>` : ''}
+          </a>
+          ${order.status === 'en_route' ? `<a class="btn btn-secondary btn-block quick-action-btn" href="order-track.html?id=${encodeURIComponent(order.id)}">מעקב חי</a>` : ''}
+        </div>` : ''}
 
         ${order.status === 'pending_pricing' ? `
         <div class="app-card">
@@ -174,12 +272,39 @@
             manualItems.map(mi => `${esc(mi.label)} ×${esc(mi.qty)}${mi.price !== undefined ? ` — ₪${esc(mi.price)}` : ' — ממתין לתמחור'}`).join('<br>')
           }</span></div>` : ''}
           <div class="price-total"><span>${order.status === 'pending_pricing' ? 'סה"כ עד כה' : 'סה"כ'}</span><strong>₪${esc(total)}</strong></div>
+          ${order.growInvoiceUrl ? `
+          <a class="invoice-link-row" href="${esc(order.growInvoiceUrl)}" target="_blank" rel="noopener">
+            📄 ${order.growInvoiceNumber ? `חשבונית מס ${esc(order.growInvoiceNumber)}` : 'צפה בחשבונית'}
+          </a>` : ''}
         </div>
+
+        ${canRate ? `
+        <div class="app-card rate-link-card">
+          <h2>איך היה?</h2>
+          <p>ההובלה הושלמה — נשמח לשמוע איך היה.</p>
+          <a class="btn btn-primary" href="order-rate.html?id=${encodeURIComponent(order.id)}">דרג את ההובלה</a>
+        </div>` : ''}
 
         ${cancellable ? `
         <button class="btn btn-danger btn-block" id="cancel-btn">ביטול הזמנה</button>
         <div id="cancel-error" role="alert"></div>` : ''}
       `;
+
+      if (order.driverId && order.status !== 'pending') {
+        loadDriverCard(order);
+      }
+
+      document.getElementById('confirm-completion-btn')?.addEventListener('click', async (e) => {
+        const btn = e.currentTarget;
+        btn.disabled = true; btn.textContent = 'מאשר...';
+        try {
+          await customerConfirmCompletion(order.id);
+          // ההזמנה תתעדכן מיד דרך המנוי החי (subscribeToOrder) ו-render() ירוץ מחדש.
+        } catch (err) {
+          btn.disabled = false; btn.textContent = 'אשר סיום הובלה';
+          alert('לא הצלחנו לעדכן. נסה שוב.');
+        }
+      });
 
       document.getElementById('pay-btn')?.addEventListener('click', async (e) => {
         const btn = e.target;
@@ -205,9 +330,13 @@
        * מוצגים מיד. האזהרה שלפני האישור מנוסחת כללית ("ייתכן חיוב
        * לפי מדיניות הביטול") ולא כמספר, כי מספר שיוצג כאן יהיה חישוב
        * שני שיכול להיפרד מהשרת.
+       *
+       * 16.9 — הכפתור נשאר פתוח גם ב-'en_route' (ראו `cancellable`
+       * למעלה): אותה הודעה כללית עדיין נכונה — "ייתכן חיוב" מכסה גם
+       * את השיעור הקבוע (75%) של השלב הזה, לא רק את מדרג הזמן.
        */
       document.getElementById('cancel-btn')?.addEventListener('click', async (e) => {
-        if (!confirm('לבטל את ההזמנה?\n\nלפי מדיניות הביטול ייתכן חיוב דמי ביטול, בהתאם לזמן שנותר עד מועד ההובלה.')) return;
+        if (!confirm('לבטל את ההזמנה?\n\nלפי מדיניות הביטול ייתכן חיוב דמי ביטול, בהתאם לשלב שבו נמצאת ההזמנה ולזמן שנותר עד מועד ההובלה.')) return;
         const btn = e.currentTarget;
         const box = document.getElementById('cancel-error');
         btn.disabled = true; btn.textContent = 'מבטל…';
