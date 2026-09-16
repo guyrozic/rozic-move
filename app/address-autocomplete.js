@@ -14,22 +14,27 @@
  * מכוסה). ממומש כאן לפי הנחיית "ממש את זה", אבל לא לפרוס לפני שגיא מאשר
  * שהפרטיות מכסה את זה.
  *
- * ⚠️ חסם נפרד, טכני: ההשלמה עובדת **רק למשתמש מחובר**. המפתח של Google
- * יושב בפרוקסי `mapsProxy` (Hovalot/functions/src/mapsProxy.ts), שדורש
- * טוקן Firebase Auth תקף — כך שהוא נבנה במקור עבור האפליקציה (שם המשתמש
- * תמיד מחובר) ולא נועד לשמש אורח אנונימי. באתר יש גם זרימת אורח (ראו
- * guest-checkout.js) — ולאורח אין טוקן, ה-proxy מחזיר 401. **אין כאן שום
- * proxy חלופי, ואין מנדט במשימה הזו לפרוס אחד חדש** (זה קוד Hovalot, לא
- * rozic-move, ופריסת Cloud Function היא פעולה על תשתית ייצור משותפת —
- * מחוץ להיקף worktree האתר). הפתרון: משתמש מחובר מקבל השלמה אמיתית
- * (בדיוק כמו באפליקציה); אורח מקבל שדה חופשי + אימות רקע לא-חוסם דרך
- * geocodeAddress הקיים (זהה למה שהיה קודם, רק עם badge). ראו NIGHT-LOG.md.
+ * משתמש מחובר וגם אורח מקבלים כעת את **אותה חוויית השלמה אוטומטית** —
+ * dropdown הצעות תוך כדי הקלדה, ובחירה שמאמתת lat/lng דרך placeDetails.
+ * ההבדל היחיד הוא הפרוקסי: משתמש מחובר → `mapsProxy`
+ * (Hovalot/functions/src/mapsProxy.ts) עם טוקן Firebase Auth; אורח →
+ * `placesAutocompleteGuest` (אותו ריפו, אותו חוזה JSON בדיוק —
+ * `POST { endpoint, params }` — רק בלי Authorization, ה-Origin נשלח
+ * אוטומטית ע"י הדפדפן). שני ה-endpoints מוחזרים דרך `placeAutocomplete`/
+ * `placeDetails` למטה, שבוחרים בין השניים לפי `authUser`; כל שאר הקוד
+ * (renderPredictions, selectAddressText, badge) משותף ולא יודע מי קרא.
+ * ⚠️ נכון לרגע הכתיבה `placesAutocompleteGuest` עדיין לא פרוס — קריאה
+ * אמיתית תיכשל (fetch/non-ok), אבל זה לא חוסם: `callPlacesAutocompleteGuest`
+ * בולעת את זה ל-`null`, `renderPredictions` מציגה "לא נמצאו הצעות —
+ * אפשר להמשיך להקליד את הכתובת המלאה", והשדה עצמו נשאר טקסט חופשי רגיל
+ * (`required` בלבד, לא תלוי ב-badge/lat/lng — ראו apartment.html/small-move.html).
  */
 import { doc, getDoc, setDoc } from 'https://www.gstatic.com/firebasejs/12.16.0/firebase-firestore.js';
 import { db } from './firebase.js';
 import { geocode } from './geo.js';
 
 const MAPS_PROXY_URL = 'https://us-central1-hovalot-6cf65.cloudfunctions.net/mapsProxy';
+const PLACES_AUTOCOMPLETE_GUEST_URL = 'https://us-central1-hovalot-6cf65.cloudfunctions.net/placesAutocompleteGuest';
 const MAX_SAVED_ADDRESSES = 8; // זהה ל-MAX_SAVED_ADDRESSES ב-AuthContext.tsx
 const MAX_RECENT_ADDRESSES = 10; // זהה ל-addRecentAddress ב-AuthContext.tsx
 const DEBOUNCE_MS = 350;
@@ -38,7 +43,7 @@ const escHtml = (v) => String(v ?? '')
   .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
   .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
 
-/** קריאה לפרוקסי mapsProxy — אותו חוזה בדיוק כמו src/services/mapsApi.ts באפליקציה. */
+/** קריאה לפרוקסי mapsProxy (משתמש מחובר) — אותו חוזה בדיוק כמו src/services/mapsApi.ts באפליקציה. */
 async function callMapsProxy(authUser, endpoint, params) {
   if (!authUser) return null;
   try {
@@ -55,16 +60,41 @@ async function callMapsProxy(authUser, endpoint, params) {
   }
 }
 
+/**
+ * קריאה ל-placesAutocompleteGuest (Hovalot, פונקציית Cloud ציבורית/לא-מאומתת)
+ * — אורח בלי חשבון. אותו חוזה JSON בדיוק כמו callMapsProxy (`POST { endpoint,
+ * params }`, אותה תשובה גולמית מ-Google), רק בלי Authorization; ה-Origin
+ * נשלח אוטומטית ע"י הדפדפן ולא ניתן (ואין צורך) להוסיף אותו ידנית ב-JS.
+ * כשל — רשת, CORS, או שה-endpoint עוד לא פרוס — נבלע ל-null בדיוק כמו
+ * ב-callMapsProxy, כדי ש-renderPredictions יתייחס אליו כ"אין הצעות" ולא יחסום.
+ */
+async function callPlacesAutocompleteGuest(endpoint, params) {
+  try {
+    const res = await fetch(PLACES_AUTOCOMPLETE_GUEST_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ endpoint, params }),
+    });
+    if (!res.ok) return null;
+    return await res.json();
+  } catch {
+    return null;
+  }
+}
+
+/** מנתב בין שני הפרוקסי לפי authUser — כל שאר הקוד (renderPredictions וכו') לא יודע מי ענה. */
 function placeAutocomplete(authUser, input, sessionToken) {
-  return callMapsProxy(authUser, 'autocomplete', {
-    input, components: 'country:il', language: 'he', types: 'geocode', sessiontoken: sessionToken,
-  });
+  const params = { input, components: 'country:il', language: 'he', types: 'geocode', sessiontoken: sessionToken };
+  return authUser
+    ? callMapsProxy(authUser, 'autocomplete', params)
+    : callPlacesAutocompleteGuest('autocomplete', params);
 }
 
 function placeDetails(authUser, placeId, sessionToken) {
-  return callMapsProxy(authUser, 'placeDetails', {
-    place_id: placeId, fields: 'geometry,formatted_address', language: 'he', sessiontoken: sessionToken,
-  });
+  const params = { place_id: placeId, fields: 'geometry,formatted_address', language: 'he', sessiontoken: sessionToken };
+  return authUser
+    ? callMapsProxy(authUser, 'placeDetails', params)
+    : callPlacesAutocompleteGuest('placeDetails', params);
 }
 
 /**
@@ -205,9 +235,11 @@ export function mountAddressField({ prefix, authState }) {
 
   /**
    * אימות לא-חוסם ברקע — בדיוק כמו `distanceAndCoords`/`scheduleBackgroundGeocode`
-   * באפליקציה: כשל אינו חוסם המשך, רק אין badge ירוק. משמש גם למי שבחר
-   * מהרשימה/צ'יפ (אין lat/lng משם — ראו placeDetails, רק formatted_address)
-   * וגם לאורח שמקליד חופשי (ה-badge היחיד שיש לו, ראו onInput).
+   * באפליקציה: כשל אינו חוסם המשך, רק אין badge ירוק. משמש למי שבחר
+   * צ'יפ מועדף/אחרון (אין lat/lng משם — ראו placeDetails, רק
+   * formatted_address) וגם לערך שכבר היה בשדה בעת העלייה (ראו `confirmed`
+   * בסוף הפונקציה, למשל שחזור טיוטה). הקלדה חיה — מחובר או אורח כאחד —
+   * עוברת ב-onInputDebounced/renderPredictions, לא כאן.
    */
   const verifyInBackground = debounce(async (text) => {
     if (!text.trim()) { setBadge(null); return; }
@@ -251,13 +283,10 @@ export function mountAddressField({ prefix, authState }) {
   }
 
   const onInputDebounced = debounce((text) => {
-    if (uid) {
-      if (text.length < 2) { hideDropdown(); return; }
-      renderPredictions(text);
-    } else {
-      // אורח — אין דרך להציג הצעות (ראו הערת החסם למעלה), רק אימות רקע.
-      verifyInBackground(text);
-    }
+    // uid ולא-uid עוברים באותו נתיב — placeAutocomplete מנתב פנימית בין
+    // mapsProxy (מחובר) ל-placesAutocompleteGuest (אורח), ראו למעלה.
+    if (text.length < 2) { hideDropdown(); return; }
+    renderPredictions(text);
   }, DEBOUNCE_MS);
 
   input.addEventListener('input', () => {
@@ -279,9 +308,6 @@ export function mountAddressField({ prefix, authState }) {
   document.addEventListener('click', (e) => {
     if (!field.contains(e.target)) hideDropdown();
   });
-
-  // ⚠️ רק לאורח, ורק אם עוד לא הראנו הצעה כלשהי — ניואנס גילוי, לא חוסם.
-  if (!uid && hint) hint.textContent = 'התחברות מאפשרת הצעות כתובת בזמן ההקלדה';
 
   renderChips();
   if (confirmed && input.value.trim()) verifyInBackground(input.value.trim());
