@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ROZIC MOVE — צ'אט תמיכה</title>
+  <meta name="robots" content="noindex, follow">
+
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="ROZIC MOVE">
+  <meta property="og:locale" content="he_IL">
+  <meta property="og:title" content="צ'אט תמיכה — ROZIC MOVE">
+  <meta property="og:description" content="תמיכה מיידית עם רוני, סוכן ה-AI של ROZIC MOVE — עם אפשרות מעבר לנציג אנושי בכל שלב.">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../style.css?v=93d67ba9">
+  <link rel="stylesheet" href="style-app.css?v=d27add7a">
+</head>
+<body class="app-body">
+<div data-build-stamp class="build-stamp" aria-hidden="true">עודכן 16.09 · 23:06</div>
+  <a class="skip-link" href="#main-content">דלג לתוכן המרכזי</a>
+  <script type="module" src="pilot-banner.js?v=14a0e537"></script>
+  <main id="main-content" tabindex="-1">
+
+  <div class="step-hero">
+    <div class="step-hero-inner">
+      <a href="account.html#support" class="btn-text" style="padding:0; margin-bottom:10px; display:inline-block;">→ החשבון שלי</a>
+      <h1>צ'אט תמיכה</h1>
+      <p>רוני, סוכן ה-AI שלנו, כאן לעזור — ואפשר לעבור לנציג אנושי בכל שלב.</p>
+    </div>
+  </div>
+
+  <div class="app-container">
+    <div id="loading" class="center-loading"><span class="spinner"></span></div>
+    <div id="error-box" class="empty-state" style="display:none;"></div>
+
+    <div id="content" style="display:none;">
+      <div class="app-card chat-card">
+        <div class="chat-header">
+          <div class="chat-header-avatar" aria-hidden="true">🤖</div>
+          <div>
+            <div class="chat-header-name">רוני</div>
+            <div class="chat-header-role">סוכן תמיכה AI</div>
+          </div>
+        </div>
+
+        <div id="chat-thread" class="chat-thread" role="log" aria-live="polite" aria-label="הודעות הצ'אט"></div>
+
+        <div id="support-topics" class="support-topics"></div>
+
+        <div id="ai-questions"></div>
+
+        <form id="chat-form" class="chat-input-row">
+          <label class="sr-only" for="chat-text">הודעה</label>
+          <textarea id="chat-text" rows="1" maxlength="500" placeholder="כתבו הודעה..."></textarea>
+          <button type="submit" class="chat-send-btn" id="chat-send-btn" aria-label="שליחת הודעה" disabled>←</button>
+        </form>
+
+        <div id="escalate-bar" class="support-escalate-bar" style="display:none;">
+          <button tabindex="0" class="btn btn-secondary" id="escalate-btn">💬 דבר עם נציג אנושי</button>
+        </div>
+
+        <div id="resolved-bar" class="support-resolved-bar" style="display:none;">
+          <strong>הפנייה נסגרה</strong>
+          <p>השיחה נשמרה כאן לקריאה. צריך עוד עזרה?</p>
+          <button tabindex="0" class="btn btn-primary" id="new-ticket-btn">פתיחת פנייה חדשה</button>
+        </div>
+
+        <div class="support-direct-contact">
+          מעדיפים ליצור קשר ישיר? <a tabindex="0" href="https://wa.me/972508811085" target="_blank" rel="noopener">וואטסאפ</a>
+          · <a tabindex="0" href="mailto:support@rozicmove.com">support@rozicmove.com</a>
+          · <a tabindex="0" href="tel:+972508811085">050-881-1085</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner container">
+      <div class="footer-brand">
+        <div class="footer-logo">ROZIC MOVE</div>
+        <p class="footer-tagline">מזיזים אותך קדימה</p>
+        <p class="footer-copy">ROZIC MOVE © 2026</p>
+      </div>
+      <div class="footer-links">
+        <div class="footer-col">
+          <div class="footer-col-title">משפטי</div>
+          <a tabindex="0" href="/privacy.html">מדיניות פרטיות</a>
+          <a tabindex="0" href="/terms.html">תנאי שימוש</a>
+          <a tabindex="0" href="/accessibility.html">הצהרת נגישות</a>
+          <a tabindex="0" href="/delete-account.html">מחיקת חשבון</a>
+        </div>
+      </div>
+    </div>
+    <div class="footer-divider"></div>
+    <div class="footer-bottom container">
+      <p>כל הזכויות שמורות · מדינת ישראל</p>
+    </div>
+  </footer>
+
+  <script type="module">
+    import { requireAuth } from './auth.js';
+    import {
+      createOrGetTicket, sendSupportMessage, escalateToHuman, resolveTicket,
+      markUserRead, subscribeToTicketMessages, subscribeToTicket,
+    } from './support.js';
+    import { chatSupportAgent, friendlyAIError } from './ai-vision.js';
+
+    const esc = (v) => String(v ?? '')
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+
+    /**
+     * נושאי הפתיחה — זהים ל-FAQ_TOPICS_CUSTOMER ב-SupportChatScreen.tsx.
+     * האתר הוא צד-לקוח בלבד (ראו auth.js), ולכן רק רשימת הלקוח הועתקה —
+     * FAQ_TOPICS_DRIVER לא רלוונטית כאן.
+     */
+    const FAQ_TOPICS = [
+      { icon: '❌', label: 'ביטול הזמנה',     question: 'איך מבטלים הזמנה?' },
+      { icon: '🚚', label: 'המוביל לא הגיע',  question: 'המוביל לא הגיע בזמן, מה עושים?' },
+      { icon: '💳', label: 'בעיה בתשלום',     question: 'יש לי בעיה עם התשלום' },
+      { icon: '💰', label: 'כמה עולה הובלה?', question: 'כמה עולה הובלה?' },
+      { icon: '⚠️', label: 'פריט נפגע',       question: 'פריט נפגע במהלך ההובלה' },
+      { icon: '📍', label: 'מעקב הזמנה',      question: 'איך עוקבים אחרי המוביל בזמן אמת?' },
+      { icon: '🎟️', label: 'קוד הנחה',        question: 'איך משתמשים בקוד הנחה?' },
+      { icon: '❓', label: 'שאלה אחרת',        question: '' },
+    ];
+
+    const authState = await requireAuth();
+    const loadingEl = document.getElementById('loading');
+    const errorEl = document.getElementById('error-box');
+    const contentEl = document.getElementById('content');
+    const threadEl = document.getElementById('chat-thread');
+    const topicsEl = document.getElementById('support-topics');
+    const questionsEl = document.getElementById('ai-questions');
+    const formEl = document.getElementById('chat-form');
+    const textEl = document.getElementById('chat-text');
+    const sendBtn = document.getElementById('chat-send-btn');
+    const escalateBar = document.getElementById('escalate-bar');
+    const resolvedBar = document.getElementById('resolved-bar');
+
+    function showError(html) {
+      loadingEl.style.display = 'none';
+      contentEl.style.display = 'none';
+      errorEl.style.display = 'block';
+      errorEl.innerHTML = html;
+    }
+
+    let ticketId = null;
+    let ticket = null;
+    let messages = [];
+    let pendingQuestions = [];
+    let sending = false;
+    let unsubMessages = null;
+    let unsubTicket = null;
+
+    function formatTime(ts) {
+      if (!ts || typeof ts.toDate !== 'function') return '';
+      return ts.toDate().toLocaleTimeString('he-IL', { hour: '2-digit', minute: '2-digit' });
+    }
+
+    function renderTopics() {
+      const showTopics = messages.length === 0 && !sending;
+      topicsEl.style.display = showTopics ? 'flex' : 'none';
+      if (!showTopics) { topicsEl.innerHTML = ''; return; }
+      topicsEl.innerHTML = FAQ_TOPICS.map((t, i) => `
+        <button type="button" tabindex="0" class="support-topic-btn" data-i="${i}">
+          <span class="support-topic-icon" aria-hidden="true">${t.icon}</span>
+          <span class="support-topic-label">${esc(t.label)}</span>
+          <span class="support-topic-arrow" aria-hidden="true">←</span>
+        </button>
+      `).join('');
+      topicsEl.querySelectorAll('.support-topic-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const topic = FAQ_TOPICS[Number(btn.dataset.i)];
+          sendMessage(topic.question || topic.label);
+        });
+      });
+    }
+
+    function renderQuestions() {
+      // אחרי סגירה אין למה לענות — התשובה תישלח לפנייה סגורה שאיש לא קורא.
+      if (ticket?.status === 'resolved') { questionsEl.innerHTML = ''; return; }
+      questionsEl.innerHTML = pendingQuestions.map(q => `
+        <div class="question-card">
+          <div class="question-text">${esc(q.text)}</div>
+          <div class="question-options">
+            ${q.options.map((o, i) => `<button tabindex="0" class="question-option" data-qid="${q.id}" data-oi="${i}">${esc(o.label)}</button>`).join('')}
+          </div>
+        </div>
+      `).join('');
+      questionsEl.querySelectorAll('.question-option').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const q = pendingQuestions.find(qq => qq.id === btn.dataset.qid);
+          if (!q) return;
+          answerQuestion(q, q.options[Number(btn.dataset.oi)]);
+        });
+      });
+    }
+
+    // שולח את התשובה שנבחרה כהודעת משתמש רגילה — כמו answerQuestion ב-
+    // SupportChatScreen.tsx — כדי שהאדמין יראה בדיוק מה נבחר, לא רק "ענה על שאלה".
+    function answerQuestion(question, option) {
+      pendingQuestions = pendingQuestions.filter(q => q.id !== question.id);
+      renderQuestions();
+      if (option.isChat) { textEl.value = `לגבי: "${question.text}" — `; textEl.focus(); return; }
+      if (option.value === null) return; // ביטול — לא שולח כלום
+      sendMessage(option.label);
+    }
+
+    function renderThread() {
+      if (messages.length === 0) {
+        threadEl.innerHTML = '';
+      } else {
+        threadEl.innerHTML = messages.map(m => {
+          const mine = m.role === 'user';
+          const roleLabel = m.role === 'ai' ? 'רוני' : (m.role === 'admin' ? 'נציג תמיכה' : '');
+          return `<div class="chat-msg ${mine ? 'mine' : 'other'}">${roleLabel ? `<strong>${esc(roleLabel)}</strong><br>` : ''}${esc(m.text)}<span class="chat-msg-time">${esc(formatTime(m.timestamp))}</span></div>`;
+        }).join('');
+        if (sending) threadEl.innerHTML += '<div class="chat-msg other typing">רוני מקליד...</div>';
+      }
+      threadEl.scrollTop = threadEl.scrollHeight;
+      renderTopics();
+    }
+
+    function renderTicketState() {
+      const isResolved = ticket?.status === 'resolved';
+      escalateBar.style.display = (!isResolved && ticket?.status === 'bot' && messages.length > 0) ? 'flex' : 'none';
+      resolvedBar.style.display = isResolved ? 'block' : 'none';
+      formEl.style.display = isResolved ? 'none' : 'flex';
+      renderQuestions();
+    }
+
+    function updateSendState() {
+      sendBtn.disabled = !textEl.value.trim() || sending || ticket?.status === 'resolved';
+    }
+
+    async function sendMessage(text) {
+      const msg = text.trim();
+      if (!msg || !ticketId || sending || ticket?.status === 'resolved') return;
+      sending = true;
+      updateSendState();
+      renderThread();
+      try {
+        await sendSupportMessage(ticketId, 'user', msg);
+      } catch (err) {
+        sending = false;
+        updateSendState();
+        renderThread();
+        alert('ההודעה לא נשלחה. בדקו את חיבור האינטרנט ונסו שוב — ההודעה נשארה בשדה.');
+        return;
+      }
+      if (textEl.value.trim() === msg) textEl.value = '';
+      try {
+        if (ticket?.status === 'bot') {
+          const history = messages
+            .filter(m => m.role === 'user' || m.role === 'ai')
+            .map(m => ({ role: m.role, text: m.text }))
+            .concat([{ role: 'user', text: msg }]);
+          const result = await chatSupportAgent(msg, history, authState.profile?.name || '');
+          await sendSupportMessage(ticketId, 'ai', result.reply || 'אני כאן לעזור! במה אוכל לסייע לך היום?');
+          if (result.questions.length > 0) {
+            const prefix = `q-${Date.now()}-`;
+            pendingQuestions = pendingQuestions.concat(result.questions.map(q => ({ ...q, id: `${prefix}${q.id}` })));
+          }
+          /**
+           * ⚠️ `renderQuestions()` מפורש כאן, לא רק הסתמכות על ה-snapshot
+           * שיגיע מ-`sendSupportMessage` שלמעלה. ל-Firestore יש כתיבה
+           * אופטימית מקומית — ה-`onSnapshot` של `subscribeToTicketMessages`
+           * לרוב יורה **מיד** על הכתיבה המקומית, לפני שה-`await` שמעליו בכלל
+           * חוזר — כלומר ה-render הראשון של תשובת ה-AI קורה לפני שהשורה
+           * הזו (`pendingQuestions = ...`) בכלל רצה, ובלי הקריאה המפורשת
+           * הזו שאלת ההבהרה לא הייתה מוצגת עד אירוע Firestore נוסף.
+           */
+          renderQuestions();
+          // חסם דטרמיניסטי, לא רק בקשה בפרומפט: הודעה ראשונה בשיחה לעולם
+          // לא מוסלמת — זהה ל-isFirstEverMessage ב-SupportChatScreen.tsx.
+          const isFirstEverMessage = history.length === 1;
+          if (result.escalate && !isFirstEverMessage) {
+            await escalateToHuman(ticketId, result.category);
+            await sendSupportMessage(ticketId, 'ai', 'העברתי את הפנייה שלך לנציג אנושי. נציג ייצור איתך קשר בהקדם האפשרי. בינתיים תוכל להמשיך להשאיר הודעות כאן.');
+            pendingQuestions = [];
+            renderQuestions();
+          }
+        }
+      } catch (err) {
+        let errText;
+        const msgStr = String(err && err.message || err);
+        if (msgStr.includes('AI_NOT_CONFIGURED')) errText = 'רוני לא זמין כרגע. ההודעה שלך נשמרה — אפשר ללחוץ על "דבר עם נציג אנושי" למטה.';
+        else if (msgStr.includes('AI_RATE_LIMITED')) errText = 'הגענו למגבלת השימוש של רוני לכמה דקות. ההודעה שלך נשמרה — נסו שוב עוד רגע, או לחצו על "דבר עם נציג אנושי" למטה.';
+        else errText = 'רוני לא הצליח לענות כרגע. ההודעה שלך נשמרה — נסו לשלוח שוב, או לחצו על "דבר עם נציג אנושי" למטה.';
+        try { await sendSupportMessage(ticketId, 'ai', errText); }
+        catch { alert(errText); }
+      } finally {
+        sending = false;
+        updateSendState();
+      }
+    }
+
+    async function handleEscalate() {
+      if (!ticketId) return;
+      const btn = document.getElementById('escalate-btn');
+      btn.disabled = true;
+      try {
+        await escalateToHuman(ticketId, 'other');
+        await sendSupportMessage(ticketId, 'ai', 'הפנייה הועברה לנציג אנושי. נחזור אליך בהקדם.');
+        pendingQuestions = [];
+        renderQuestions();
+      } catch (err) {
+        alert('לא הצלחנו להעביר לנציג. בדקו את חיבור האינטרנט ונסו שוב.');
+      } finally {
+        btn.disabled = false;
+      }
+    }
+
+    async function startTicket() {
+      loadingEl.style.display = 'block';
+      contentEl.style.display = 'none';
+      pendingQuestions = [];
+      messages = [];
+      if (unsubMessages) { unsubMessages(); unsubMessages = null; }
+      if (unsubTicket) { unsubTicket(); unsubTicket = null; }
+      try {
+        ticketId = await createOrGetTicket(authState.authUser.uid, authState.profile?.name || '', authState.profile?.phone || '');
+      } catch (err) {
+        showError('<div class="empty-icon">🚫</div>לא הצלחנו להתחבר לתמיכה. בדקו את חיבור האינטרנט ונסו שוב, או פנו בוואטסאפ/מייל למטה.');
+        return;
+      }
+      /**
+       * ⚠️ הגילוי (הסתרת ה-spinner) קורה רק בתוך ה-callback הראשון של
+       * subscribeToTicket, לא מיד אחרי `createOrGetTicket` — כדי ש-
+       * `ticket` תמיד יהיה מאוכלס לפני שאפשר בכלל ללחוץ על נושא/לשלוח
+       * הודעה. אחרת `sendMessage` (שבודקת `ticket?.status === 'bot'`)
+       * הייתה מפספסת קריאת AI על ההודעה הראשונה ממש בלחיצה מהירה מאוד.
+       */
+      let revealed = false;
+      function reveal() {
+        if (revealed) return;
+        revealed = true;
+        loadingEl.style.display = 'none';
+        contentEl.style.display = 'block';
+      }
+
+      unsubTicket = subscribeToTicket(ticketId, (t) => {
+        ticket = t;
+        reveal();
+        renderTicketState();
+      });
+      unsubMessages = subscribeToTicketMessages(ticketId, (msgs) => {
+        messages = msgs;
+        markUserRead(ticketId);
+        renderThread();
+        renderTicketState();
+      });
+    }
+
+    updateSendState();
+    textEl.addEventListener('input', () => {
+      updateSendState();
+      textEl.style.height = 'auto';
+      textEl.style.height = Math.min(textEl.scrollHeight, 90) + 'px';
+    });
+    textEl.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); formEl.requestSubmit(); }
+    });
+    formEl.addEventListener('submit', (e) => { e.preventDefault(); sendMessage(textEl.value); });
+    document.getElementById('escalate-btn').addEventListener('click', handleEscalate);
+    document.getElementById('new-ticket-btn').addEventListener('click', async () => {
+      if (ticketId) await resolveTicket(ticketId, 'user').catch(() => {});
+      startTicket();
+    });
+
+    startTicket();
+  </script>
+</body>
+</html>

@@ -1042,3 +1042,31 @@
 .rating-section-divider span { font-size: 0.78rem; font-weight: 800; color: var(--green-ink); white-space: nowrap; }
 .rating-submit-hint { text-align: center; color: var(--text-muted); font-size: 0.82rem; margin-top: -6px; }
 .rating-already { text-align: center; padding: 30px 10px; color: var(--text-mid); }
+
+/* ===== פאזה 3 — צ'אט תמיכה AI (16.9) =====
+   הכרטיס הכללי משתמש ב-.chat-card/.chat-header/.chat-thread/.chat-msg
+   הקיימים (order-chat.html — צ'אט עם המוביל), ושאלות ההבהרה של ה-AI
+   ב-.question-card/.question-option הקיימים (apartment.html/small-move.html
+   — צ'אט הוספת פריטים). מה שנוסף כאן הוא רק מה שאין לו כבר מקבילה: רשימת
+   נושאי הפתיחה, סרגל ההסלמה/סגירה, ויצירת קשר ישיר. */
+.support-topics { display: flex; flex-direction: column; gap: 10px; padding: 18px 20px; }
+.support-topic-btn {
+  display: flex; align-items: center; gap: 12px; width: 100%;
+  background: var(--white); border: 1.5px solid var(--border); border-radius: 14px;
+  padding: 13px 16px; text-align: right; font-family: inherit; font-size: 0.9rem;
+  font-weight: 700; color: var(--text); cursor: pointer;
+  transition: border-color 0.2s var(--ease), transform 0.2s var(--ease), box-shadow 0.2s var(--ease);
+}
+.support-topic-btn:hover { border-color: rgba(14,92,67,0.35); transform: translateY(-1px); box-shadow: var(--shadow-1); }
+.support-topic-icon { font-size: 1.15rem; flex-shrink: 0; }
+.support-topic-label { flex: 1; }
+.support-topic-arrow { color: var(--text-muted); flex-shrink: 0; }
+.chat-msg.other.typing { color: var(--text-muted); font-style: italic; }
+.support-escalate-bar {
+  display: flex; flex-direction: column; align-items: center; gap: 8px;
+  padding: 12px 20px; border-top: 1px solid var(--border); background: var(--white);
+}
+.support-resolved-bar { padding: 20px; text-align: center; border-top: 1px solid var(--border); background: var(--green-light); }
+.support-resolved-bar p { color: var(--text-mid); font-size: 0.86rem; margin: 6px 0 14px; }
+.support-direct-contact { text-align: center; font-size: 0.8rem; color: var(--text-muted); padding: 12px 20px 18px; border-top: 1px solid var(--border); }
+.support-direct-contact a { color: var(--green-dark); font-weight: 700; }

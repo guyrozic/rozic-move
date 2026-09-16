@@ -28,10 +28,10 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="../style.css?v=93d67ba9">
-  <link rel="stylesheet" href="style-app.css?v=9bcae682">
+  <link rel="stylesheet" href="style-app.css?v=d27add7a">
 </head>
 <body class="app-body">
-<div data-build-stamp class="build-stamp" aria-hidden="true">עודכן 16.09 · 22:58</div>
+<div data-build-stamp class="build-stamp" aria-hidden="true">עודכן 16.09 · 23:06</div>
   <!-- ⚠️ 15.9 — "דלג לתוכן המרכזי" (WCAG 2.4.1, רמה A). זהו האלמנט הממוקד
        הראשון בדף: מוסתר מהעין, מופיע בפינה ברגע שמגיעים אליו ב-Tab, ומעביר
        את המיקוד אל <main id="main-content" tabindex="-1">. בלי ה-tabindex
@@ -104,6 +104,7 @@
       .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
 
     import { startGrowCheckout } from './payments.js';
+    import { isValidFullName, FULL_NAME_ERROR } from './auth.js';
 
     const authState = await requireAuth();
     const orderId = new URLSearchParams(location.search).get('id');
@@ -308,11 +309,31 @@
 
       document.getElementById('pay-btn')?.addEventListener('click', async (e) => {
         const btn = e.target;
+        const payErrBox = document.getElementById('pay-error');
+        payErrBox.innerHTML = '';
+        /**
+         * ⚠️ 16.9 (פאזה 3) — שני השערים שכבר חוסמים ב-`createOrder`
+         * (apartment.html/small-move.html), חוזרים כאן בכוונה. הזמנה
+         * יכולה להגיע ל-`pending_payment` בלי לעבור את השער הזה באתר —
+         * למשל הזמנה ישנה שנוצרה לפני 15.9 (כשהשער עדיין לא היה קיים),
+         * או הזמנה שתומחרה ידנית ע"י הצוות מ-`pending_pricing`. זהה
+         * ל-`proceedToPayment` ב-`SummaryScreen.tsx`: טלפון מאומת קודם,
+         * שם מלא אחר כך — Grow דוחה שם חד-מילי, וללא טלפון מאומת המוביל
+         * לא יכול ליצור קשר עם מי ששילם.
+         */
+        if (!authState.profile.phoneVerified) {
+          payErrBox.innerHTML = '<div class="alert alert-error">נדרש אימות טלפון לפני התשלום — המוביל צריך דרך ליצור איתך קשר. <a tabindex="0" href="account.html">לאימות</a></div>';
+          return;
+        }
+        if (!isValidFullName(authState.profile.name)) {
+          payErrBox.innerHTML = `<div class="alert alert-error">${FULL_NAME_ERROR} <a tabindex="0" href="edit-profile.html">לעריכת הפרופיל</a></div>`;
+          return;
+        }
         btn.disabled = true; btn.textContent = 'מעביר לתשלום...';
         try {
           await startGrowCheckout(order.id);
         } catch (err) {
-          document.getElementById('pay-error').innerHTML = '<div class="alert alert-error">פתיחת התשלום נכשלה. נסה שוב.</div>';
+          payErrBox.innerHTML = '<div class="alert alert-error">פתיחת התשלום נכשלה. נסה שוב.</div>';
           btn.disabled = false; btn.textContent = `שלם עכשיו — ₪${total}`;
         }
       });
