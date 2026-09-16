@@ -29,6 +29,18 @@
   <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="../style.css?v=93d67ba9">
   <link rel="stylesheet" href="style-app.css?v=51e8347f">
+  <style>
+    /* ⚠️ 16.9 — "הפריטים שנבחרו" בראש אזור ההזמנה, בדיוק כמו ב-
+       SmallMoveItemsScreen באפליקציה (הרשימה שמעל "בחר ידנית"). כללים
+       קטנים בלבד, ולכן inline כאן ולא ב-style-app.css המשותף. */
+    .selected-items-list { display: flex; flex-direction: column; }
+    .selected-item-row {
+      display: flex; align-items: center; justify-content: space-between;
+      gap: 12px; padding: 10px 0; border-top: 1px solid var(--border);
+    }
+    .selected-item-row:first-child { border-top: none; padding-top: 0; }
+    .selected-item-name { font-weight: 700; font-size: 0.92rem; color: var(--text); }
+  </style>
 </head>
 <body class="app-body">
 <div data-build-stamp class="build-stamp" aria-hidden="true">עודכן 16.09 · 13:40</div>
@@ -64,6 +76,15 @@
 
         <!-- Step 1: items -->
         <section class="wizard-step" data-step="1">
+          <!-- ⚠️ 16.9 — הפריטים שנבחרו, בראש אזור ההזמנה, מתעדכן חי מכל
+               נתיב שמוסיף/מסיר פריט (סריקת AI, צ'אט, שאלות המשך, בחירה
+               ידנית) — בדיוק כמו "הפריטים שנבחרו" ב-SmallMoveItemsScreen
+               באפליקציה. renderSelectedItemsBar() רץ בסוף renderItems(). -->
+          <div class="app-card selected-items-card" id="selected-items-card" style="display:none;">
+            <h2>הפריטים שנבחרו <span id="selected-items-count"></span></h2>
+            <div class="selected-items-list" id="selected-items-list"></div>
+          </div>
+
           <div class="ai-upload-card" id="start-photo" style="scroll-margin-top:90px">
             <div class="ai-upload-icon-wrap"><div class="ai-upload-icon">📸</div></div>
             <div class="ai-upload-body">
@@ -90,12 +111,13 @@
             </div>
           </div>
 
-          <div id="ai-questions"></div>
-
           <div class="ai-chat-card" id="start-chat" style="scroll-margin-top:90px">
             <h2>💬 או כתבו לנו מה יש לכם</h2>
             <p>למשל: "יש לי מיטה זוגית ושתי ספות" — נוסיף את זה בעצמנו.</p>
             <div class="ai-chat-thread" id="ai-chat-thread"></div>
+            <!-- ⚠️ 16.9 — שאלות ההמשך יורדו לכאן, מתחת לשיחה (היו מעליה),
+                 כדי להתאים ל-AIItemChat באפליקציה: השאלה נפתחת מתחת לצ'אט. -->
+            <div id="ai-questions"></div>
             <div id="ai-free-items" class="ai-free-items"></div>
             <div class="ai-chat-input-row">
               <input type="text" id="ai-chat-input" placeholder="כתבו כאן..." aria-label="הודעה לעוזר ה-AI">
@@ -559,6 +581,11 @@
     }
 
     function answerQuestion(question, option) {
+      // ⚠️ 16.9 — שומרים את השאלה והבחירה בתוך השיחה, בדיוק כמו
+      // AIItemChat באפליקציה (שורה 171): טקסט השאלה כבועת AI, והתשובה
+      // שנבחרה כבועת משתמש. עד כה התשובה נעלמה ולא נשאר לה זכר.
+      chatHistory.push({ role: 'assistant', text: question.text }, { role: 'user', text: option.label });
+      renderChatThread();
       pendingQuestions = pendingQuestions.filter(q => q.id !== question.id);
       if (option.itemKey === null) { renderQuestions(); return; }
       const siblings = getSizeSiblings(option.itemKey);
@@ -781,6 +808,51 @@
         itemListEl.appendChild(card);
       });
       restoreItemFocus(keepFocus);
+      renderSelectedItemsBar();
+    }
+
+    /**
+     * "הפריטים שנבחרו" בראש אזור ההזמנה — ראו ההערה ב-HTML. נקראת מתוך
+     * renderItems() ולכן חיה מכל נתיב שמשנה state.items (סריקת AI, צ'אט,
+     * שאלות המשך, +/− בקטלוג הידני, ורשימה זו עצמה).
+     * שימור מיקוד: אותה תבנית בדיוק כמו captureItemFocus/restoreItemFocus
+     * למעלה (WCAG 2.4.3) — הרשימה נבנית מחדש בכל לחיצה על +/-.
+     */
+    function renderSelectedItemsBar() {
+      const card = document.getElementById('selected-items-card');
+      const listEl = document.getElementById('selected-items-list');
+      const sel = selectedItems();
+      document.getElementById('selected-items-count').textContent = sel.length ? `(${sel.length})` : '';
+      if (sel.length === 0) { card.style.display = 'none'; listEl.innerHTML = ''; return; }
+      card.style.display = 'block';
+      const activeEl = document.activeElement;
+      const keepFocus = (activeEl && listEl.contains(activeEl) && activeEl.dataset.action)
+        ? { key: activeEl.closest('.selected-item-row')?.dataset.key, action: activeEl.dataset.action }
+        : null;
+      listEl.innerHTML = sel.map(i => `
+        <div class="selected-item-row" data-key="${i.key}">
+          <span class="selected-item-name">${i.label}</span>
+          <div class="qty-control">
+            <button tabindex="0" data-action="dec" aria-label="הפחת ${i.label}">−</button>
+            <span class="qty-value">${i.qty}</span>
+            <button tabindex="0" data-action="inc" aria-label="הוסף ${i.label}">+</button>
+          </div>
+        </div>
+      `).join('');
+      listEl.querySelectorAll('[data-action="inc"]').forEach(btn => btn.addEventListener('click', () => {
+        const key = btn.closest('.selected-item-row').dataset.key;
+        state.items[key] = (state.items[key] || 0) + 1;
+        renderItems(); updateItemsHeader();
+      }));
+      listEl.querySelectorAll('[data-action="dec"]').forEach(btn => btn.addEventListener('click', () => {
+        const key = btn.closest('.selected-item-row').dataset.key;
+        state.items[key] = Math.max(0, (state.items[key] || 0) - 1);
+        renderItems(); updateItemsHeader();
+      }));
+      if (keepFocus) {
+        const el = listEl.querySelector(`.selected-item-row[data-key="${keepFocus.key}"] [data-action="${keepFocus.action}"]`);
+        if (el && !el.disabled) el.focus();
+      }
     }
     renderItems();
 
