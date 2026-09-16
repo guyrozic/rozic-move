@@ -1863,7 +1863,7 @@ body.menu-open .pilot-banner {
   position: absolute;
   inset-block-end: -26px;
   inset-inline-end: 6%;
-  width: min(330px, 27%);
+  width: min(420px, 34%);
   opacity: 0.14;
   pointer-events: none;
   z-index: 1;
