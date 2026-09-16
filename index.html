@@ -905,7 +905,12 @@
               <div class="mk-side">
                 <b class="t">יש לכם מה למסור?</b>
                 <p class="d">תמונה, שם וכתובת — ומי שגר קרוב בא לקחת.</p>
-                <a class="hp-go" href="app/marketplace.html#give">לפרסום פריט</a>
+                <!-- ⚠️ 16.9 — הקישור הצביע על `app/marketplace.html#give`: עוגן
+                     שלא קיים בדף (`marketplace.html` לא קורא בכלל `location.hash`),
+                     כלומר הכפתור "לפרסום פריט" נחת בפועל על לוח הדפדוף הרגיל בלי
+                     לפתוח שום דבר. פרסום מודעה הוא דף נפרד — `marketplace-create.html`
+                     (אותו יעד בדיוק כמו כפתור "＋ פרסם מודעה" בתוך marketplace.html). -->
+                <a class="hp-go" href="app/marketplace-create.html">לפרסום פריט</a>
                 <p class="mk-fine">פרסום פריט אחד פותח גם את הבקשות בלוח</p>
               </div>
             </div>

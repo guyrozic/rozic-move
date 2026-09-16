@@ -147,6 +147,27 @@
     .skip-link:focus { top: 0; }
     .skip-link:focus-visible { outline: 3px solid #FFFFFF; outline-offset: -6px; }
     @media (prefers-reduced-motion: reduce) { .skip-link { transition: none; } }
+
+    /* ⚠️ 16.9 — `.build-stamp` מוגדר רק ב-style.css, שהדף הזה לא טוען.
+       בלעדיו ה-div שנוסף אוטומטית ע"י stamp-assets.mjs נכנס בלי עיצוב
+       לתוך ה-flex הממרכז את הכרטיס, ונדחק לצד הכרטיס במקום לשבת כתגית
+       קבועה בפינה. הכלל הועתק כאן זהה למקור — ראו ההערה שם. */
+    .build-stamp {
+      position: fixed;
+      inset-block-start: 0;
+      right: 0;
+      z-index: 100000;
+      padding: 3px 9px;
+      border-radius: 0 0 8px 0;
+      background: rgba(20, 42, 34, 0.82);
+      color: #DFF3E8;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.02em;
+      font-variant-numeric: tabular-nums;
+      pointer-events: none;
+      user-select: none;
+    }
   </style>
 </head>
 <body>

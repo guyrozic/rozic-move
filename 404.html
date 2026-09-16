@@ -32,7 +32,7 @@
     כתובת שלא נמצאה, כולל בתיקיות משנה (למשל /app/xyz), ונתיב יחסי כמו style.css
     היה נשבר שם.
   -->
-  <link rel="stylesheet" href="/style.css?v=a59589a2">
+  <link rel="stylesheet" href="/style.css?v=93d67ba9">
   <style>
     .sub-hero {
       background: linear-gradient(160deg, #E8F7EF 0%, #F4FBF7 100%);
@@ -92,10 +92,32 @@
       color: var(--text-muted);
     }
     .nf-web a { color: var(--green-dark); font-weight: 700; }
+
+    /* ⚠️ 16.9 — באג אמיתי בניווט העליון, לא רק תיאורטי. נמדד ב-Playwright:
+       ב-`body:not(.has-nav-menu)` (כל דף בלי המבורגר — כולל הדף הזה)
+       style.css רק *מכווץ* את `.nav-links`/`.nav-cta` מתחת ל-680px, ולא
+       מסתיר אותם. אבל רוחב הלוגו + שלושת הקישורים + כפתור "הורד עכשיו"
+       יחד עדיין עולה על רוחב ה-nav מתחת ל-~560px — ומתחת לכך `.nav-cta`
+       נדחק **מחוץ למסך** (x שלילי, נמדד עד -160px ב-390px, כלומר בלתי
+       נראה ובלתי לחיץ באייפון/אנדרואיד רגילים), ו-`.nav-links` עצמו נשבר
+       לטקסט דו-שורתי מכוער בתוך כל קישור.
+       קל לפספס: ה-nav הוא `position:fixed`, ולכן ה-overflow הזה **לא**
+       יוצר פס גלילה אופקי ב-`document.body` — בדיקה שרק בודקת scrollWidth
+       (כפי שנעשה ב-15.9 בסבב הקודם) עוברת ירוקה בזמן שהכפתור בפועל נעלם.
+       התיקון כאן מקומי לדף הזה בלבד (לא נוגע ב-style.css המשותף): מסתיר
+       את קישורי העוגן להירו של דף הבית ואת כפתור ההורדה בכותרת — הדף הזה
+       כבר מציע ניווט ברור וגדול בגוף (״לעמוד הבית״, ״להורדת האפליקציה״),
+       כך שאין אובדן פונקציונליות, רק הישאר הלוגו כניווט-בית בכותרת.
+       ⚠️ אותו באג בדיוק קיים גם ב-privacy.html / terms.html /
+       accessibility.html / delete-account.html — כולם משתפים את אותו
+       CSS וטרם תוקנו כאן, ראו NIGHT-LOG.md. */
+    @media (max-width: 680px) {
+      .nav-links, .nav-cta { display: none; }
+    }
   </style>
 </head>
 <body>
-<div data-build-stamp class="build-stamp" aria-hidden="true">עודכן 15.09 · 23:56</div>
+<div data-build-stamp class="build-stamp" aria-hidden="true">עודכן 16.09 · 23:18</div>
   <!-- ⚠️ 15.9 — "דלג לתוכן המרכזי" (WCAG 2.4.1, רמה A). זהו האלמנט הממוקד
        הראשון בדף: מוסתר מהעין, מופיע בפינה ברגע שמגיעים אליו ב-Tab, ומעביר
        את המיקוד אל <main id="main-content" tabindex="-1">. בלי ה-tabindex
