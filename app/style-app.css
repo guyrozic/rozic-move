@@ -810,3 +810,93 @@
   border-radius: 12px; padding: 10px 14px; font-size: 0.85rem;
 }
 .ai-free-item-row .ai-free-item-remove { border: none; background: none; color: var(--text-muted); font-size: 0.8rem; cursor: pointer; }
+
+/* ===== פאזה 2 — אזור אישי (16.9) ===== */
+
+/* --- Order tabs (account.html: פעילות / בתהליך / היסטוריה) ---
+   אותה תבנית עיצובית כמו .room-tabs/.room-tab (בורר הקטגוריות בקטלוג
+   הפריטים), אבל alias משלה: flex:1 במקום גלילה אופקית — כאן יש תמיד
+   שלושה טאבים קבועים, לא רשימה שיכולה לגדול. שם נפרד כדי שקוד שמדבג
+   טאבים של הזמנות לא "ינחת" בטעות על בורר הקטגוריות של קטלוג הפריטים. */
+.order-tabs { display: flex; gap: 8px; margin-bottom: 18px; }
+.order-tab {
+  flex: 1;
+  text-align: center;
+  padding: 9px 12px;
+  border-radius: 50px;
+  border: 1.5px solid var(--border);
+  background: var(--white);
+  box-shadow: var(--shadow-1);
+  font-family: inherit;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--text-mid);
+  cursor: pointer;
+  transition: border-color 0.2s var(--ease), background 0.2s var(--ease), color 0.2s var(--ease), box-shadow 0.2s var(--ease);
+}
+.order-tab:hover { border-color: rgba(14,92,67,0.35); }
+.order-tab.active { background: linear-gradient(155deg, var(--green-mid), var(--green)); border-color: var(--green); color: var(--white); box-shadow: 0 4px 12px rgba(14,92,67,0.25); }
+
+/* --- טיוטת הזמנה בתהליך (טאב "בתהליך") ---
+   ⚠️ מקור הנתון שונה מהאפליקציה: לאתר אין הזמנת-טיוטה בפיירסטור עבור
+   משתמש מחובר (guest-checkout.js שומר טיוטת אורח ב-localStorage, ורק
+   ברגע שנחסמים בקיר ההרשמה) — כלומר הכרטיס הזה משקף את המכשיר הנוכחי
+   בלבד, לא את החשבון מכל מכשיר. ראו ההערה ב-account.html. */
+.draft-card { background: var(--white); border: 1.5px solid rgba(217,164,6,0.35); border-radius: 16px; padding: 18px; margin-bottom: 12px; box-shadow: var(--shadow-1); }
+.draft-card .draft-card-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 8px; }
+.draft-card .draft-card-title { font-size: 1rem; font-weight: 800; color: var(--text); }
+.draft-card .draft-card-desc { font-size: 0.85rem; color: var(--text-mid); line-height: 1.6; margin-bottom: 6px; }
+.draft-card .draft-card-progress { font-size: 0.8rem; color: var(--text-muted); margin-bottom: 14px; }
+.draft-card .draft-card-actions { display: flex; gap: 10px; }
+.draft-card .draft-card-actions .btn { flex: 1; }
+
+/* --- קוד הפניה --- */
+.referral-code-box {
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  background: var(--green-light); border: 1.5px dashed rgba(14,92,67,0.4);
+  border-radius: 14px; padding: 14px 18px; margin-bottom: 14px;
+}
+.referral-code-box .referral-code-text { font-size: 1.15rem; font-weight: 900; letter-spacing: 1px; color: var(--green-dark); direction: ltr; }
+.referral-code-box .btn { flex-shrink: 0; }
+
+/* --- Toggle switch (settings.html → התראות) --- */
+.switch-row { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 4px 0 14px; }
+.switch-row .switch-row-text { flex: 1; }
+.switch-row .switch-row-label { font-size: 0.95rem; font-weight: 700; color: var(--text); display: block; margin-bottom: 3px; }
+.switch-row .switch-row-hint { font-size: 0.78rem; color: var(--text-muted); line-height: 1.5; }
+.switch { position: relative; display: inline-block; width: 46px; height: 27px; flex-shrink: 0; }
+.switch input {
+  position: absolute; inset: 0; width: 100%; height: 100%; margin: 0;
+  opacity: 0; cursor: pointer; z-index: 1;
+}
+.switch .switch-track { position: absolute; inset: 0; background: #D8DEDA; border-radius: 999px; transition: background 0.2s var(--ease); pointer-events: none; }
+.switch .switch-track::after {
+  content: ''; position: absolute; top: 3px; right: 3px; width: 21px; height: 21px;
+  border-radius: 50%; background: var(--white); box-shadow: var(--shadow-1);
+  transition: transform 0.2s var(--ease);
+}
+.switch input:checked + .switch-track { background: var(--green); }
+.switch input:checked + .switch-track::after { transform: translateX(-19px); }
+.switch input:focus-visible + .switch-track { outline: 3px solid var(--green); outline-offset: 2px; }
+.switch input:disabled { cursor: not-allowed; }
+.switch input:disabled + .switch-track { opacity: 0.5; }
+
+/* --- שורות פשוטות (כתובות שמורות · משתמשים חסומים) ---
+   אותה תבנית בדיוק כמו .item-row בקטלוג הפריטים, בלי תלות בהקשר שלו:
+   אייקון/טקסט מימין, פעולה (מחיקה/ביטול חסימה) בקצה השני. */
+.settings-list { display: flex; flex-direction: column; }
+.settings-list .settings-row {
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  padding: 13px 2px; border-bottom: 1px solid var(--border);
+}
+.settings-list .settings-row:last-child { border-bottom: none; }
+.settings-list .settings-row-label { font-size: 0.9rem; font-weight: 600; color: var(--text); }
+.settings-list .settings-row-remove { flex-shrink: 0; background: none; border: none; color: var(--danger); font-size: 0.82rem; font-weight: 700; cursor: pointer; padding: 6px 4px; }
+.settings-list .settings-row-remove:hover { text-decoration: underline; }
+
+/* --- שדה מוצמד לכפתור (הוספת כתובת) --- */
+.inline-form-row { display: flex; gap: 10px; align-items: flex-start; }
+.inline-form-row .form-group { flex: 1; margin-bottom: 0; }
+@media (max-width: 480px) {
+  .inline-form-row { flex-direction: column; align-items: stretch; }
+}
