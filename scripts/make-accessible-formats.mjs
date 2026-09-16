@@ -525,8 +525,18 @@ const sizeOf = (p) => (existsSync(p) ? statSync(p).size : null);
    לכן החותמת מנוקה לפני החישוב — בהפקה וב---check באותה פונקציה בדיוק,
    שאחרת השתיים היו מחשבות שני מספרים שונים לאותו קובץ. */
 const STAMP_RE = /<div data-build-stamp[\s\S]*?<\/div>\n?/;
+/* ⚠️ 16.9 — מופע שני של אותה משפחת באג, ונמצא אחרי שהראשון תוקן: גם
+   `?v=<hash>` שמזריק `stamp-assets` על style.css ועל קבצי ה-JS משתנה בכל
+   עריכת CSS. שינוי צבע אחד בגיליון פסל את `privacy.mp3` — 13 דקות קול —
+   למרות שאף מילה בנוסח המשפטי לא זזה. גרסת הנכס היא מטא-דאטה של בנייה,
+   בדיוק כמו החותמת, ולכן היא מנוטרלת כאן ולא נמחקת: המחרוזת `?v=` נשמרת
+   בלי הערך, כדי שהוספה או הסרה של הפניה לנכס **כן** תישבר את ההתאמה. */
+const ASSET_VER_RE = /(\?v=)[0-9a-f]{8}/g;
 const canonicalSource = (buf) =>
-  Buffer.from(buf.toString('utf8').replace(STAMP_RE, ''), 'utf8');
+  Buffer.from(
+    buf.toString('utf8').replace(STAMP_RE, '').replace(ASSET_VER_RE, '$1'),
+    'utf8',
+  );
 
 function readManifest() {
   if (!existsSync(MANIFEST)) return null;
