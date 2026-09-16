@@ -29,6 +29,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="../style.css?v=93d67ba9">
   <link rel="stylesheet" href="style-app.css?v=51e8347f">
+  <link rel="stylesheet" href="address-autocomplete.css">
   <style>
     /* ⚠️ 16.9 — "הפריטים שנבחרו" בראש אזור ההזמנה, בדיוק כמו ב-
        SmallMoveItemsScreen באפליקציה (הרשימה שמעל "בחר ידנית"). כללים
@@ -151,7 +152,25 @@
             <h2>פרטי הובלה</h2>
             <div class="form-group">
               <label for="from-address">כתובת מוצא</label>
-              <input id="from-address" type="text" required placeholder="רחוב, מספר, עיר">
+              <!-- ⚠️ 16.9 — רכיב כתובת ברמת האפליקציה (0.2). ראו
+                   app/address-autocomplete.js לחסם הפרטיות ולחסם הפרוקסי
+                   (השלמה אוטומטית זמינה רק למשתמש מחובר) — רשומים גם
+                   ב-NIGHT-LOG.md. -->
+              <div class="address-field" id="from-address-field">
+                <div class="address-chips" id="from-address-chips" hidden>
+                  <div class="address-chips-tabs" role="tablist">
+                    <button type="button" class="address-chip-tab active" data-tab="fav" role="tab" aria-selected="true">מועדפות</button>
+                    <button type="button" class="address-chip-tab" data-tab="recent" role="tab" aria-selected="false">אחרונות</button>
+                  </div>
+                  <div class="address-chips-list" id="from-address-chips-list"></div>
+                </div>
+                <div class="address-input-wrap">
+                  <input id="from-address" type="text" required placeholder="רחוב, מספר, עיר" autocomplete="off" aria-describedby="from-address-badge">
+                  <div class="address-dropdown" id="from-address-dropdown" hidden></div>
+                </div>
+                <div class="address-hint" id="from-address-hint"></div>
+                <div class="address-badge" id="from-address-badge" hidden></div>
+              </div>
             </div>
             <div class="form-row">
               <div class="form-group">
@@ -170,7 +189,21 @@
 
             <div class="form-group">
               <label for="to-address">כתובת יעד</label>
-              <input id="to-address" type="text" required placeholder="רחוב, מספר, עיר">
+              <div class="address-field" id="to-address-field">
+                <div class="address-chips" id="to-address-chips" hidden>
+                  <div class="address-chips-tabs" role="tablist">
+                    <button type="button" class="address-chip-tab active" data-tab="fav" role="tab" aria-selected="true">מועדפות</button>
+                    <button type="button" class="address-chip-tab" data-tab="recent" role="tab" aria-selected="false">אחרונות</button>
+                  </div>
+                  <div class="address-chips-list" id="to-address-chips-list"></div>
+                </div>
+                <div class="address-input-wrap">
+                  <input id="to-address" type="text" required placeholder="רחוב, מספר, עיר" autocomplete="off" aria-describedby="to-address-badge">
+                  <div class="address-dropdown" id="to-address-dropdown" hidden></div>
+                </div>
+                <div class="address-hint" id="to-address-hint"></div>
+                <div class="address-badge" id="to-address-badge" hidden></div>
+              </div>
             </div>
             <div class="form-row">
               <div class="form-group">
@@ -337,6 +370,7 @@
              mountGuestQuotaPanel, saveScanPhotos, restoreScanPhotos, scanPhotosNotice,
              GUEST_QUOTA_TEXT } from './ai-guest-quota.js';
     import { resizeImageToBase64 } from './image-resize.js';
+    import { mountAddressField } from './address-autocomplete.js';
 
     // 14.9 — אורח רשאי לבנות הזמנה ולראות מחיר בלי חשבון. ההרשמה
     // נדרשת רק לפני התשלום. ראו guest-checkout.js לנימוק המלא.
@@ -876,6 +910,9 @@
       const sel = document.getElementById(id);
       FLOORS.forEach(f => { const o = document.createElement('option'); o.value = f; o.textContent = f; sel.appendChild(o); });
     });
+    // ⚠️ 16.9 — רכיב כתובת ברמת האפליקציה (0.2). ראו address-autocomplete.js.
+    mountAddressField({ prefix: 'from-address', authState });
+    mountAddressField({ prefix: 'to-address', authState });
     document.getElementById('move-date').min = new Date().toISOString().slice(0, 10);
     document.getElementById('move-date').value = new Date().toISOString().slice(0, 10);
 
@@ -1272,7 +1309,16 @@
     renderAIPhotos();
     renderFreeItems();
     updateItemsHeader();
-    if (restoredDraft) applyDraftToForm(state);
+    if (restoredDraft) {
+      applyDraftToForm(state);
+      // ⚠️ applyDraftToForm ממלא .value ישירות בלי אירוע — רכיב הכתובת
+      // (address-autocomplete.js) מאזין ל-'input' כדי לעדכן badge/צ'יפים.
+      // בלי שליחת אירוע 'input' ידנית כאן, כתובת ששוחזרה מטיוטה הייתה
+      // מוצגת בשדה אבל בלי אימות רקע ובלי להסתיר את שורת "מועדפות/אחרונות"
+      // מעליה.
+      document.getElementById('from-address').dispatchEvent(new Event('input'));
+      document.getElementById('to-address').dispatchEvent(new Event('input'));
+    }
     else if (draftDiscarded) showDraftDiscardedNotice();
     goToStep(1);
   </script>

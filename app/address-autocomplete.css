@@ -1,0 +1,64 @@
+/* app/address-autocomplete.css
+ * ============================================================================
+ * רכיב כתובת (0.2) — השלמה אוטומטית + כתובות שמורות/אחרונות.
+ * ============================================================================
+ * קובץ עצמאי ולא חלק מ-style-app.css המשותף: הרכיב חדש, מוגבל לשני שדות
+ * הכתובת בזרימת ההזמנה (from-address/to-address), ונטען רק מ-apartment.html
+ * ו-small-move.html. ראו app/address-autocomplete.js למימוש ולהערה על מדוע
+ * ההשלמה זמינה רק למשתמש מחובר (מפתח גוגל יושב בפרוקסי mapsProxy באפליקציה,
+ * שדורש טוקן Firebase Auth — אורח באתר אין לו כזה, ראו NIGHT-LOG.md).
+ */
+
+.address-field { position: relative; }
+
+/* --- כתובות שמורות/אחרונות — מוצג מעל השדה, כמו ב-AddressInput באפליקציה --- */
+.address-chips { margin-bottom: 8px; }
+.address-chips-tabs { display: flex; gap: 8px; margin-bottom: 8px; }
+.address-chip-tab {
+  border: none; border-radius: 14px; padding: 6px 12px; font-size: 0.8rem;
+  font-weight: 700; background: #F0F0F0; color: var(--text-muted); cursor: pointer;
+}
+.address-chip-tab.active { background: var(--green-light); color: var(--green-dark); }
+.address-chips-list { display: flex; flex-wrap: wrap; gap: 8px; }
+.address-chip {
+  display: flex; align-items: center; gap: 6px;
+  border: 1px solid rgba(14,92,67,0.25); border-radius: 20px;
+  background: var(--green-light); padding: 5px 6px 5px 12px;
+}
+.address-chip-select {
+  border: none; background: none; padding: 0; font-size: 0.82rem;
+  font-weight: 600; color: var(--green-dark); cursor: pointer; max-width: 220px;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.address-chip-star {
+  border: none; background: none; padding: 2px; font-size: 0.85rem; cursor: pointer; color: var(--amber-strong);
+  line-height: 1;
+}
+.address-chip-empty { font-size: 0.78rem; color: var(--text-muted); }
+
+/* --- קלט + רשימת הצעות --- */
+.address-input-wrap { position: relative; }
+.address-dropdown {
+  position: absolute; z-index: 40; top: calc(100% + 4px); right: 0; left: 0;
+  background: var(--white); border: 1px solid var(--border); border-radius: var(--radius-sm);
+  box-shadow: var(--shadow-md); max-height: 260px; overflow-y: auto; padding: 6px;
+}
+.address-dropdown button {
+  display: block; width: 100%; text-align: right; border: none; background: none;
+  padding: 10px; border-radius: 8px; cursor: pointer;
+}
+.address-dropdown button:hover, .address-dropdown button:focus-visible {
+  background: var(--green-light); outline: none;
+}
+.address-dropdown-main { font-size: 0.88rem; font-weight: 700; color: var(--text); }
+.address-dropdown-sub { font-size: 0.74rem; color: var(--text-muted); margin-top: 2px; }
+.address-dropdown-empty { padding: 10px; font-size: 0.82rem; color: var(--text-muted); }
+
+.address-hint { font-size: 0.76rem; color: var(--text-muted); margin-top: 4px; }
+
+.address-badge {
+  display: inline-block; margin-top: 6px; padding: 3px 10px; border-radius: 20px;
+  font-size: 0.76rem; font-weight: 700;
+}
+.address-badge.ok   { background: var(--green-light); color: var(--green-dark); }
+.address-badge.warn { background: #FBEFD9; color: var(--amber-strong); }
