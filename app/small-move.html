@@ -47,6 +47,21 @@
     .selected-item-row:first-child { border-top: none; padding-top: 0; }
     .selected-item-name { font-weight: 700; font-size: 0.92rem; color: var(--text); }
 
+    /* ⚠️ 17.9 — פריט מיוחד (freeItems, ללא התאמת קטלוג) בתוך "הפריטים
+       שנבחרו" — בדיוק כמו freeTextItems בתוך selectedBox ב-
+       SmallMoveItemsScreen באפליקציה: לא כרטיס נפרד, אלא שורה בתוך
+       אותה רשימה, בצבע ענבר (colors.amberStrong) שמבדיל "פריט מיוחד"
+       מפריט קטלוגי רגיל, ועם שדה תיאור חופשי לתמחור ידני. */
+    .selected-item-row.free-item-row { flex-direction: column; align-items: stretch; gap: 8px; }
+    .selected-item-row.free-item-row .free-item-top { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+    .selected-item-name.free-item-name { color: var(--amber-strong); }
+    .free-item-desc {
+      width: 100%; resize: vertical; min-height: 40px; font-family: inherit;
+      font-size: 0.84rem; padding: 8px 10px; border-radius: 8px;
+      border: 1px solid #F0DFA8; background: #FFFDF6; color: var(--text);
+    }
+    .free-item-desc::placeholder { color: var(--text-muted); }
+
     /* ⚠️ 15.9 — בספארי ה-Tab מדלג על <button>, <a> ו-input[type=file]
        כברירת מחדל, **אבל מכבד tabindex="0" מפורש**. בלי זה הדף הזה
        עמד על תחנת Tab אחת מול 136 בכרום. רק outline — אינו תופס מקום
@@ -90,15 +105,6 @@
 
         <!-- Step 1: items -->
         <section class="wizard-step" data-step="1">
-          <!-- ⚠️ 16.9 — הפריטים שנבחרו, בראש אזור ההזמנה, מתעדכן חי מכל
-               נתיב שמוסיף/מסיר פריט (סריקת AI, צ'אט, שאלות המשך, בחירה
-               ידנית) — בדיוק כמו "הפריטים שנבחרו" ב-SmallMoveItemsScreen
-               באפליקציה. renderSelectedItemsBar() רץ בסוף renderItems(). -->
-          <div class="app-card selected-items-card" id="selected-items-card" style="display:none;">
-            <h2>הפריטים שנבחרו <span id="selected-items-count"></span></h2>
-            <div class="selected-items-list" id="selected-items-list"></div>
-          </div>
-
           <div class="ai-upload-card">
             <div class="ai-upload-icon-wrap"><div class="ai-upload-icon">📸</div></div>
             <div class="ai-upload-body">
@@ -110,6 +116,10 @@
               </div>
               <div id="ai-progress-text" class="form-hint" style="display:none; margin-bottom:10px;"></div>
               <div id="ai-error" role="alert"></div>
+              <!-- 17.9 — מקביל ל-successBox/aiDone ב-AIRoomScanScreen/
+                   SmallMoveItemsScreen באפליקציה: אחרי סריקה, כמה פריטים
+                   זוהו (או שלא זוהה כלום בבטחה) — לא רק שקט אחרי פס ההתקדמות. -->
+              <div id="ai-scan-result" class="form-hint" role="status" aria-live="polite"></div>
               <!-- ⚠️ 15.9 — label שעוטף input ב-display:none **אינו נגיש
                    למקלדת בשום דפדפן**: ה-label אינו מקבל מיקוד, וה-input
                    המוסתר אינו ניתן למיקוד. כלומר אי אפשר היה להוסיף תמונות
@@ -125,19 +135,32 @@
             </div>
           </div>
 
-          <div class="ai-chat-card">
+          <!-- ⚠️ 17.9 — סדר הצ'אט זהה ל-AIItemChat.tsx באפליקציה: שרשור
+               השיחה, ואז שורת הקלט, ואז שאלות ההמשך (בקשה מפורשת של גיא:
+               השאלות בין תיבת ההודעה ל"או בחר ידנית", לא מעל תיבת ההודעה).
+               "חושב..." מתחלף לאותם ארבעה נוסחים ובאותו הקצב כמו
+               CHAT_LOADING_PHRASES באפליקציה — כדי שהאתר לא ייראה תקוע. -->
+          <div class="ai-chat-card" id="start-chat">
             <h2>💬 או כתוב לנו מה יש לך</h2>
             <p>למשל: "יש לי מיטה זוגית ושתי ספות" — נוסיף את זה בעצמנו.</p>
             <div class="ai-chat-thread" id="ai-chat-thread"></div>
-            <!-- ⚠️ 16.9 — שאלות ההמשך יורדו לכאן, מתחת לשיחה (היו מעליה),
-                 כדי להתאים ל-AIItemChat באפליקציה: השאלה נפתחת מתחת לצ'אט.
-                 (אותו תיקון כמו ב-apartment.html) -->
-            <div id="ai-questions"></div>
-            <div id="ai-free-items" class="ai-free-items"></div>
             <div class="ai-chat-input-row">
               <input type="text" id="ai-chat-input" placeholder="כתוב כאן..." aria-label="הודעה לעוזר ה-AI">
               <button tabindex="0" class="btn btn-primary" id="ai-chat-send-btn">שלח</button>
             </div>
+            <div id="ai-questions"></div>
+          </div>
+
+          <!-- ⚠️ 17.9 — הפריטים שנבחרו, בדיוק במיקום הזה כמו ב-
+               SmallMoveItemsScreen באפליקציה: אחרי סריקת ה-AI והצ'אט,
+               ולפני הקטלוג הידני הארוך — כדי שפריט שנוסף לא "ייעלם"
+               בגלילה מטה. כולל גם פריטים מיוחדים (freeItems, ללא מחיר
+               קטלוגי) — בדיוק כמו freeTextItems בתוך selectedBox
+               באפליקציה, לא בכרטיס נפרד. renderSelectedItemsBar() רץ
+               בסוף renderItems() וגם מכל נתיב שמשנה freeItems. -->
+          <div class="app-card selected-items-card" id="selected-items-card" style="display:none;">
+            <h2>הפריטים שנבחרו <span id="selected-items-count"></span></h2>
+            <div class="selected-items-list" id="selected-items-list"></div>
           </div>
 
           <div class="app-card" id="start-list" style="scroll-margin-top:90px">
@@ -459,6 +482,18 @@
       }));
     }
 
+    /**
+     * ⚠️ 15.9 — בריחת HTML לכל ערך שמגיע מהקלדה חופשית של הלקוח (כתובות,
+     * תוויות פריטים שנוספו ידנית ב-freeItems, תיאורי פריטים מיוחדים)
+     * ונכתב דרך `innerHTML`. זהה ל-`esc` ב-order-status.html — כולל `"`
+     * ו-`'`, שסוגרים מאפיין ופותחים מאפיין חדש בלי שום תו `<`.
+     * מוגדרת כאן (לא רק ליד השימוש בסיכום) כי renderSelectedItemsBar
+     * למטה משתמשת בה כבר מהרינדור הראשון של הדף.
+     */
+    const escHtml = (v) => String(v ?? '')
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+
     function computePrice() {
       const selected = selectedItems();
       const itemsTotal = selected.reduce((s, i) => s + i.unitPrice * i.qty, 0);
@@ -590,10 +625,12 @@
     document.getElementById('ai-analyze-btn').addEventListener('click', async () => {
       const btn = document.getElementById('ai-analyze-btn');
       const errBox = document.getElementById('ai-error');
+      const scanResultBox = document.getElementById('ai-scan-result');
       const progressWrap = document.getElementById('ai-progress-wrap');
       const progressFill = document.getElementById('ai-progress-fill');
       const progressText = document.getElementById('ai-progress-text');
       errBox.innerHTML = '';
+      scanResultBox.textContent = '';
       btn.disabled = true;
       progressWrap.style.display = 'block';
       progressText.style.display = 'block';
@@ -614,8 +651,20 @@
         // 17.9 — עובר דרך applyAIItemChanges: קודם לכן זה כתב ישירות ל-state.items
         // בלי לבדוק את תקרת נפח הטנדר (ראו applyWithinCapacity ב-data/smallMoveItems.js
         // ותזכיר 60.4 — הכפתורים הידניים כבר בדקו את זה, נתיבי ה-AI לא).
-        applyAIItemChanges(result.items);
+        const blocked = applyAIItemChanges(result.items);
         pendingQuestions = pendingQuestions.concat(result.questions);
+        // ⚠️ 17.9 — מקביל ל-successBox/aiDone באפליקציה: בלי זה הסריקה
+        // מסתיימת בשקט, והלקוח לא יודע אם היא בכלל מצאה משהו עד שהוא
+        // גולל וחיפש. כשהטנדר חסם פריטים, ה-alert המפורט כבר ב-ai-error
+        // (showCapacityBlockedAlert) — לא כופלים אותו כאן.
+        if (!blocked || blocked.length === 0) {
+          const scannedQty = result.items.reduce((s, it) => s + it.qty, 0);
+          scanResultBox.textContent = scannedQty === 0 && result.questions.length === 0
+            ? 'לא זוהו פריטים בבטחה — אפשר לענות על שאלות ההבהרה למטה, או לבחור ידנית'
+            : scannedQty === 1 ? 'זוהה פריט אחד — פירוט ב״הפריטים שנבחרו״ למטה'
+            : scannedQty > 1 ? `זוהו ${scannedQty} פריטים — פירוט ב״הפריטים שנבחרו״ למטה`
+            : 'יש שאלת הבהרה על מה שזוהה בתמונה — למטה';
+        }
         aiPhotos = [];
         renderAIPhotos();
         renderQuestions();
@@ -692,6 +741,28 @@
     // ---------- AI chat-to-add-items ----------
     let chatHistory = []; // {role:'user'|'assistant', text}
     let chatThinking = false;
+    // ⚠️ 17.9 — זהה ל-CHAT_LOADING_PHRASES ב-AIItemChat.tsx (הרכיב
+    // המשותף לצ'אט הפריטים באפליקציה): המלל מתחלף בזמן ההמתנה כדי
+    // שהאתר לא ייראה תקוע אלא באמת חושב, באותו קצב בדיוק (2.6 שניות).
+    const CHAT_LOADING_PHRASES = ['קורא את ההודעה...', 'מזהה פריטים...', 'בודק מול הקטלוג...', 'כמעט מוכן...'];
+    let chatLoadingPhraseIdx = 0;
+    let chatLoadingInterval = null;
+
+    function startChatThinking() {
+      chatThinking = true;
+      chatLoadingPhraseIdx = 0;
+      renderChatThread();
+      chatLoadingInterval = setInterval(() => {
+        chatLoadingPhraseIdx = (chatLoadingPhraseIdx + 1) % CHAT_LOADING_PHRASES.length;
+        renderChatThread();
+      }, 2600);
+    }
+
+    function stopChatThinking() {
+      chatThinking = false;
+      if (chatLoadingInterval) { clearInterval(chatLoadingInterval); chatLoadingInterval = null; }
+      renderChatThread();
+    }
 
     /**
      * הנתיב היחיד להוספה/הסרה של פריטים מה-AI (סריקת תמונות, צ'אט, ותשובה
@@ -744,7 +815,9 @@
         const idx = state.freeItems.findIndex(x => x.label === f.label);
         if (idx >= 0) state.freeItems.splice(idx, 1);
       } else {
-        state.freeItems.push({ label: f.label, qty: f.qty });
+        // description — בדיוק כמו freeTextItems באפליקציה: שדה חופשי
+        // שהלקוח ממלא (גודל/מצב) כדי שהצוות יתמחר ידנית בדיוק.
+        state.freeItems.push({ label: f.label, qty: f.qty, description: '' });
       }
     }
 
@@ -754,21 +827,24 @@
       // הוא מה שנשלח ל-AI כהיסטוריה. שמירת שני השדות בנפרד מונעת מ-HTML
       // של כפתורים לזלוג לתוך הפרומפט של הקריאה הבאה.
       box.innerHTML = chatHistory.map(m => `<div class="ai-chat-msg ${m.role === 'user' ? 'user' : 'ai'}">${m.html || m.text}</div>`).join('')
-        + (chatThinking ? '<div class="ai-chat-msg ai typing">חושב...</div>' : '');
+        + (chatThinking ? `<div class="ai-chat-msg ai typing">${CHAT_LOADING_PHRASES[chatLoadingPhraseIdx]}</div>` : '');
       box.scrollTop = box.scrollHeight;
     }
 
-    function renderFreeItems() {
-      const box = document.getElementById('ai-free-items');
-      box.innerHTML = state.freeItems.map((f, i) => `
-        <div class="ai-free-item-row">
-          <span>${f.label} × ${f.qty} <span class="form-hint">(מחיר ייקבע ידנית)</span></span>
-          <button tabindex="0" class="ai-free-item-remove" data-i="${i}" aria-label="הסר ${String(f.label).replace(/"/g, '&quot;')}">✕</button>
-        </div>
-      `).join('');
-      box.querySelectorAll('.ai-free-item-remove').forEach(btn => btn.addEventListener('click', () => {
-        state.freeItems.splice(Number(btn.dataset.i), 1); renderFreeItems(); updateItemsHeader();
-      }));
+    /**
+     * ⚠️ 17.9 — נמצא בבדיקת דגש 2 בפועל: לפני התיקון, הודעה שהחזירה
+     * *רק* שאלת המשך (בלי items/freeItems) עדיין הוצגה כ"הוספתי ✓" —
+     * בדיוק המקרה שגיא דיווח עליו ("תוסיף ספה" → שאלה, בלי שום דבר
+     * שהוסף בפועל עדיין). מקביל ל-autoReply ב-AIItemChat.tsx: תשובת
+     * ה-AI קודמת אם קיימת (הפרומפט כבר מנוסח לתאר מה נעשה), ורק
+     * כשאין reply בכלל בוחרים בין "הוספתי"/"יש שאלה"/"לא זיהיתי" לפי
+     * מה שבאמת קרה.
+     */
+    function buildChatAutoReply(result) {
+      if (result.reply && result.reply.trim()) return result.reply.trim();
+      if (result.items.length > 0 || result.freeItems.length > 0) return 'הוספתי ✓';
+      if (result.questions.length > 0) return 'יש לי עוד שאלת הבהרה — אנא בחר מהאפשרויות למטה';
+      return 'לא הצלחתי לזהות את הפריט, נסה לתאר אחרת';
     }
 
     async function sendChatMessage() {
@@ -779,16 +855,15 @@
       const historyForPrompt = chatHistory.slice();
       chatHistory.push({ role: 'user', text: message });
       input.value = '';
-      chatThinking = true;
       input.disabled = true; sendBtn.disabled = true;
-      renderChatThread();
+      startChatThinking();
       try {
         const currentQuantities = selectedItems().map(i => ({ key: i.key, label: i.label, qty: i.qty }));
         const result = await chatAddItemsWithCatalog(AI_CATALOG, 'ההובלה', currentQuantities, message, historyForPrompt);
         applyAIItemChanges(result.items, { channel: 'chat' });
-        if (result.freeItems.length > 0) { result.freeItems.forEach(applyFreeItem); renderFreeItems(); }
+        if (result.freeItems.length > 0) result.freeItems.forEach(applyFreeItem);
         pendingQuestions = pendingQuestions.concat(result.questions);
-        chatHistory.push({ role: 'assistant', text: result.reply || 'הוספתי ✓' });
+        chatHistory.push({ role: 'assistant', text: buildChatAutoReply(result) });
         renderQuestions();
         renderItems();
         updateItemsHeader();
@@ -802,8 +877,7 @@
               html: guestQuotaPanelHTML({ manualLabel: QUOTA_MANUAL_LABEL, note: QUOTA_NOTE, boxed: false }) }
           : { role: 'assistant', text: friendlyAIError(err) });
       } finally {
-        chatThinking = false;
-        renderChatThread();
+        stopChatThinking();
         input.disabled = false; sendBtn.disabled = false; input.focus();
       }
     }
@@ -967,8 +1041,9 @@
       const card = document.getElementById('selected-items-card');
       const listEl = document.getElementById('selected-items-list');
       const sel = selectedItems();
-      document.getElementById('selected-items-count').textContent = sel.length ? `(${sel.length})` : '';
-      if (sel.length === 0) { card.style.display = 'none'; listEl.innerHTML = ''; return; }
+      const totalCount = sel.length + state.freeItems.length;
+      document.getElementById('selected-items-count').textContent = totalCount ? `(${totalCount})` : '';
+      if (totalCount === 0) { card.style.display = 'none'; listEl.innerHTML = ''; return; }
       card.style.display = 'block';
       const activeEl = document.activeElement;
       const keepFocus = (activeEl && listEl.contains(activeEl) && activeEl.dataset.action)
@@ -985,7 +1060,25 @@
             <button tabindex="0" data-action="inc" aria-label="הוסף ${i.label}, כמות נוכחית ${i.qty}" ${full ? 'disabled' : ''}>+</button>
           </div>
         </div>`;
-      }).join('');
+      }).join('')
+      // ⚠️ 17.9 — פריטים מיוחדים (freeItems) בתוך אותה רשימה בדיוק, לא
+      // בכרטיס נפרד — כמו freeTextItems בתוך selectedBox באפליקציה
+      // (SmallMoveItemsScreen). שדה התיאור מוזן ל-manualPricingItems
+      // בשליחת ההזמנה, כדי שהצוות יתמחר בדיוק.
+      + state.freeItems.map((f, i) => `
+        <div class="selected-item-row free-item-row" data-free-i="${i}">
+          <div class="free-item-top">
+            <span class="selected-item-name free-item-name">${escHtml(f.label)} · פריט מיוחד</span>
+            <div class="qty-control">
+              <button tabindex="0" data-free-action="dec" aria-label="הפחת ${escHtml(f.label)}, כמות נוכחית ${f.qty}">−</button>
+              <span class="qty-value">${f.qty}</span>
+              <button tabindex="0" data-free-action="inc" aria-label="הוסף ${escHtml(f.label)}, כמות נוכחית ${f.qty}">+</button>
+              <button tabindex="0" data-free-action="remove" aria-label="הסר ${escHtml(f.label)}">✕</button>
+            </div>
+          </div>
+          <textarea class="free-item-desc" data-free-desc="${i}" placeholder="תארו את הפריט (גודל, מצב...) — כדי שנתמחר בדיוק" aria-label="תיאור ${escHtml(f.label)}">${escHtml(f.description || '')}</textarea>
+        </div>
+      `).join('');
       listEl.querySelectorAll('[data-action="inc"]').forEach(btn => btn.addEventListener('click', () => {
         const key = btn.closest('.selected-item-row').dataset.key;
         if (currentVolume() + itemVolume(key) > MAX_VOLUME) return;
@@ -996,6 +1089,28 @@
         const key = btn.closest('.selected-item-row').dataset.key;
         state.items[key] = Math.max(0, (state.items[key] || 0) - 1);
         renderItems(); updateItemsHeader();
+      }));
+      listEl.querySelectorAll('[data-free-action="inc"]').forEach(btn => btn.addEventListener('click', () => {
+        const i = Number(btn.closest('.free-item-row').dataset.freeI);
+        state.freeItems[i].qty += 1;
+        renderSelectedItemsBar(); updateItemsHeader();
+      }));
+      listEl.querySelectorAll('[data-free-action="dec"]').forEach(btn => btn.addEventListener('click', () => {
+        const i = Number(btn.closest('.free-item-row').dataset.freeI);
+        if (state.freeItems[i].qty > 1) state.freeItems[i].qty -= 1; else state.freeItems.splice(i, 1);
+        renderSelectedItemsBar(); updateItemsHeader();
+      }));
+      listEl.querySelectorAll('[data-free-action="remove"]').forEach(btn => btn.addEventListener('click', () => {
+        const i = Number(btn.closest('.free-item-row').dataset.freeI);
+        state.freeItems.splice(i, 1);
+        renderSelectedItemsBar(); updateItemsHeader();
+      }));
+      // ⚠️ בכוונה בלי רינדור מחדש בכל הקלדה — זה היה מאפס את מיקום
+      // הסמן בכל תו. כותבים ל-state ישירות, ורק לחיצה על +/-/הסרה
+      // (מבנה, לא טקסט) גורמת לרינדור מחדש.
+      listEl.querySelectorAll('[data-free-desc]').forEach(ta => ta.addEventListener('input', () => {
+        const i = Number(ta.dataset.freeDesc);
+        if (state.freeItems[i]) state.freeItems[i].description = ta.value;
       }));
       if (keepFocus) {
         const el = listEl.querySelector(`.selected-item-row[data-key="${keepFocus.key}"] [data-action="${keepFocus.action}"]`);
@@ -1157,17 +1272,6 @@
     document.getElementById('has-packing').addEventListener('change', (e) => { state.hasPacking = e.target.checked; renderSummary(); });
     document.getElementById('notes').addEventListener('input', (e) => { state.notes = e.target.value; });
     document.getElementById('back-to-3').addEventListener('click', () => goToStep(3));
-
-    /**
-     * ⚠️ 15.9 — הסיכום שלפני התשלום. בריחת HTML לכל ערך, כי שלושה מהם
-     * מגיעים מהקלדה חופשית של הלקוח (שתי הכתובות ותוויות הפריטים שנוספו
-     * ידנית ב-freeItems), והם נכתבים כאן דרך `innerHTML`. זהה ל-`esc`
-     * ב-order-status.html — כולל `"` ו-`'`, שסוגרים מאפיין ופותחים
-     * מאפיין חדש בלי שום תו `<`.
-     */
-    const escHtml = (v) => String(v ?? '')
-      .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
-      .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
 
     /** "קומת קרקע" · "קומה 3 · אין מעלית". במפלס הקרקע המעלית חסרת משמעות. */
     const floorText = (floor, hasElevator) =>
@@ -1354,7 +1458,7 @@
           craneFloor: state.needsCrane ? state.craneFloor : null,
           craneCost: p.craneCost,
           craneItems: state.needsCrane ? state.craneItems : [],
-          manualPricingItems: state.freeItems.map(f => ({ label: f.label, qty: f.qty })),
+          manualPricingItems: state.freeItems.map(f => ({ label: f.label, qty: f.qty, description: f.description || null })),
           // ראיית ההסכמה לתקנון — נשמרת על ההזמנה עצמה, לא רק חוסמת בממשק.
           // נקרא אחרי הבדיקה של termsBox למעלה, ולכן לעולם לא נכתבת הסכמה
           // שלא ניתנה בפועל. ראו legal.js.
@@ -1436,7 +1540,6 @@
     }
     document.getElementById('next-btn').addEventListener('click', () => goToStep(2));
     renderAIPhotos();
-    renderFreeItems();
     updateItemsHeader();
     if (restoredDraft) {
       applyDraftToForm(state);
