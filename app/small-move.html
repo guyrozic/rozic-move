@@ -378,7 +378,7 @@
     import { isValidFullName, FULL_NAME_ERROR } from './auth.js';
     import { ALL_ROOMS, findItemAnywhere, getItemPriceAnyCategory, getFullAICatalog, getSizeSiblings } from './data/items.js';
     import { PRICE_PER_KM, FLOOR_SURCHARGE_PER_FLOOR, getSurgePricing, calculatePackingFromItems, INSURANCE_PRICE_SMALL_MOVE } from './data/pricing.js';
-    import { BOX_ITEMS, MAX_VOLUME, estimateVolume } from './data/smallMoveItems.js';
+    import { BOX_ITEMS, MAX_VOLUME, estimateVolume, applyWithinCapacity } from './data/smallMoveItems.js';
     import { FLOORS, craneCostFor, distanceAndCoords, formatDateApp, parseDateApp } from './geo.js';
     import { insurancePriceInPilot } from './pilot-mode.js';
     import { analyzeImagesWithCatalog, isAIConfigured, friendlyAIError, chatAddItemsWithCatalog } from './ai-vision.js';
@@ -607,7 +607,10 @@
           images.push({ base64: await resizeImageToBase64(file), mimeType: 'image/jpeg' });
         }
         const result = await analyzeImagesWithCatalog(AI_CATALOG, 'ההובלה', images);
-        result.items.forEach(it => { state.items[it.itemKey] = (state.items[it.itemKey] || 0) + it.qty; });
+        // 17.9 — עובר דרך applyAIItemChanges: קודם לכן זה כתב ישירות ל-state.items
+        // בלי לבדוק את תקרת נפח הטנדר (ראו applyWithinCapacity ב-data/smallMoveItems.js
+        // ותזכיר 60.4 — הכפתורים הידניים כבר בדקו את זה, נתיבי ה-AI לא).
+        applyAIItemChanges(result.items);
         pendingQuestions = pendingQuestions.concat(result.questions);
         aiPhotos = [];
         renderAIPhotos();
@@ -674,7 +677,9 @@
         renderQuestions();
         return;
       }
-      state.items[option.itemKey] = (state.items[option.itemKey] || 0) + option.qty;
+      // 17.9 — עובר דרך applyAIItemChanges (ראו שם) כמו כל הוספה אחרת מה-AI —
+      // זו בדיוק שאלת ההמשך ("כמה כיסאות?") שהבאג המקורי דווח דרכה.
+      applyAIItemChanges([{ itemKey: option.itemKey, qty: option.qty, action: 'add' }], { channel: 'chat' });
       renderQuestions();
       renderItems();
       updateItemsHeader();
@@ -684,11 +689,50 @@
     let chatHistory = []; // {role:'user'|'assistant', text}
     let chatThinking = false;
 
-    function applyItemAction(item) {
-      const current = state.items[item.itemKey] || 0;
-      if (item.action === 'remove') state.items[item.itemKey] = Math.max(0, current - item.qty);
-      else if (item.action === 'set') state.items[item.itemKey] = Math.max(0, item.qty);
-      else state.items[item.itemKey] = current + item.qty;
+    /**
+     * הנתיב היחיד להוספה/הסרה של פריטים מה-AI (סריקת תמונות, צ'אט, ותשובה
+     * לשאלת המשך) — אוכף את תקרת נפח הטנדר, בדיוק כמו applyChanges ב-
+     * SmallMoveItemsScreen באפליקציה (ראו applyWithinCapacity ב-
+     * data/smallMoveItems.js). מחליף את applyItemAction הישן, שכתב ישירות
+     * ל-state.items בלי לבדוק את התקרה — בדיוק כמו הכפתורים הידניים
+     * (renderItemCard/renderSelectedItemsBar) עושים כבר מול MAX_VOLUME.
+     */
+    function applyAIItemChanges(changes, options) {
+      const { next, blocked } = applyWithinCapacity(state.items, changes);
+      state.items = next;
+      if (blocked.length > 0) {
+        if (options && options.channel === 'chat') {
+          // ⚠️ html לתצוגה, text נקי מתגיות — כדי שה-HTML לא ידלוף להיסטוריית
+          // הפרומפט של הקריאה הבאה (ראו ההערה ב-renderChatThread).
+          const html = capacityBlockedMessage(blocked);
+          chatHistory.push({ role: 'assistant', html, text: html.replace(/<br\s*\/?>/gi, ' ').replace(/<[^>]+>/g, '') });
+          renderChatThread();
+        } else {
+          showCapacityBlockedAlert(blocked);
+        }
+      }
+      return blocked;
+    }
+
+    function capacityBlockedLines(blocked) {
+      return blocked.map(b => {
+        const label = itemLabel(b.itemKey);
+        return b.applied > 0
+          ? `ביקשת ${b.requested} ${label} — נכנסו ${b.applied}`
+          : `ביקשת ${b.requested} ${label} — לא נכנס אף אחד`;
+      }).join('<br>');
+    }
+
+    /** נוסח אחיד ל"לא הכל נכנס" — ראו capacityBlockedText ב-AIItemChat.tsx באפליקציה. */
+    function capacityBlockedMessage(blocked) {
+      return `הטנדר מלא, אז לא הכל נכנס:<br>${capacityBlockedLines(blocked)}<br>`
+        + `אפשר להסיר פריטים כדי לפנות מקום, או להזמין דרך "עוברים דירה" — שם אין הגבלת נפח.`;
+    }
+
+    /** מוצג בתיבת ai-error (סריקת תמונות) — ראו notifyCapacityBlocked ב-SmallMoveItemsScreen באפליקציה. */
+    function showCapacityBlockedAlert(blocked) {
+      document.getElementById('ai-error').innerHTML =
+        `<div class="alert alert-info">${capacityBlockedMessage(blocked)}</div>`;
     }
 
     function applyFreeItem(f) {
@@ -737,7 +781,7 @@
       try {
         const currentQuantities = selectedItems().map(i => ({ key: i.key, label: i.label, qty: i.qty }));
         const result = await chatAddItemsWithCatalog(AI_CATALOG, 'ההובלה', currentQuantities, message, historyForPrompt);
-        result.items.forEach(applyItemAction);
+        applyAIItemChanges(result.items, { channel: 'chat' });
         if (result.freeItems.length > 0) { result.freeItems.forEach(applyFreeItem); renderFreeItems(); }
         pendingQuestions = pendingQuestions.concat(result.questions);
         chatHistory.push({ role: 'assistant', text: result.reply || 'הוספתי ✓' });
