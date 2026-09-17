@@ -41,6 +41,31 @@
     }
     .selected-item-row:first-child { border-top: none; padding-top: 0; }
     .selected-item-name { font-weight: 700; font-size: 0.92rem; color: var(--text); }
+
+    /* ⚠️ 17.9 — שאלת "הארגזים כבר ארוזים?" בשלב האריזה. מקבילה מדויקת ל-
+       boxesCard/boxesOption ב-PackingOfferScreen באפליקציה (החלטה 60.2,
+       סנכרון תמחור אתר/אפליקציה). בלי תשובה מפורשת "כן, ארוזים", ארגזי
+       הלקוח (box_S/M/L/XL) נכנסים לחישוב שירות האריזה — ברירת המחדל
+       (countCustomerBoxes) מתעדפת לא-להחסיר הכנסה, כמו באפליקציה.
+       הצבע הנבחר למצב "נבחר" הוא הירוק הבהיר (--green-line/--green-tint/
+       --green-ink) ולא הכהה — בדיוק כמו באפליקציה כאן: זה אלמנט בחירה
+       שנשאר מסגרת, לא כפתור פעולה שמתמלא (כלל שני-הירוקים). */
+    .boxes-packed-card {
+      background: var(--card-bg); border: 2px solid var(--border);
+      border-radius: 14px; padding: 14px 16px; margin: 14px 0;
+    }
+    .boxes-packed-title { font-weight: 700; color: var(--text); margin: 0 0 6px; font-size: 0.95rem; }
+    .boxes-packed-subtitle { color: var(--text-muted); font-size: 0.82rem; line-height: 1.5; margin: 0 0 12px; }
+    .boxes-packed-options { display: flex; flex-direction: column; gap: 8px; }
+    .boxes-packed-option {
+      display: block; width: 100%; text-align: right; font-family: inherit;
+      padding: 11px 14px; border-radius: 12px; border: 1.5px solid var(--border);
+      background: var(--card-bg); color: var(--text); font-size: 0.9rem; cursor: pointer;
+    }
+    .boxes-packed-option.selected {
+      border-color: var(--green-line); background: var(--green-tint);
+      color: var(--green-ink); font-weight: 700;
+    }
   </style>
 </head>
 <body class="app-body">
@@ -139,6 +164,17 @@
           <div class="app-card">
             <h2>📦 רוצים גם שירות אריזה?</h2>
             <p class="app-card-desc" id="packing-desc">הצוות שלנו יארוז את כל הפריטים שנבחרו לפני ההובלה, בזהירות ובמהירות.</p>
+            <!-- ⚠️ 17.9 — מוצג רק כשיש ארגזי קרטון שהלקוח סימן ברשימת
+                 הפריטים (hasCustomerBoxes ב-renderPackingOffer). מקביל
+                 מדויק לשאלה ב-PackingOfferScreen באפליקציה. -->
+            <div class="boxes-packed-card" id="boxes-packed-card" style="display:none;">
+              <p class="boxes-packed-title">הארגזים שסימנת — כבר ארוזים?</p>
+              <p class="boxes-packed-subtitle" id="boxes-packed-subtitle"></p>
+              <div class="boxes-packed-options" role="radiogroup" aria-label="הארגזים שסימנת — כבר ארוזים?">
+                <button type="button" tabindex="0" class="boxes-packed-option" id="boxes-packed-yes" role="radio" aria-checked="false">כן, הם סגורים ומוכנים להובלה</button>
+                <button type="button" tabindex="0" class="boxes-packed-option" id="boxes-packed-no" role="radio" aria-checked="false">לא, זו תכולה שעדיין בארונות</button>
+              </div>
+            </div>
             <div id="packing-preview" class="alert alert-info"></div>
             <button tabindex="0" class="btn btn-primary btn-block" id="packing-add-btn" style="margin-bottom:10px;">הוסף שירות אריזה</button>
             <button tabindex="0" class="btn btn-secondary btn-block" id="packing-skip-btn">דלג, אני אארוז בעצמי</button>
@@ -363,7 +399,7 @@
     import { orderTermsConsent } from './legal.js';
     import { isValidFullName, FULL_NAME_ERROR } from './auth.js';
     import { ALL_ROOMS, findItemAnywhere, getItemPriceAnyCategory, getFullAICatalog, getSizeSiblings } from './data/items.js';
-    import { BASE_PRICE, PRICE_PER_KM, FLOOR_SURCHARGE_PER_FLOOR, getVolumeDiscount, getSurgePricing, calculatePackingFromItems, INSURANCE_PRICE_APARTMENT } from './data/pricing.js';
+    import { BASE_PRICE, PRICE_PER_KM, FLOOR_SURCHARGE_PER_FLOOR, getVolumeDiscount, getSurgePricing, calculatePackingFromItems, getBoxSizeFromKey, INSURANCE_PRICE_APARTMENT } from './data/pricing.js';
     import { FLOORS, craneCostFor, distanceAndCoords, formatDateApp, parseDateApp } from './geo.js';
     import { insurancePriceInPilot } from './pilot-mode.js';
     import { analyzeImagesWithCatalog, isAIConfigured, friendlyAIError, chatAddItemsWithCatalog } from './ai-vision.js';
@@ -383,6 +419,11 @@
       items: {},           // itemKey -> qty
       freeItems: [],        // [{label, qty}] — no catalog match, priced manually by the team
       hasPacking: false,
+      // 17.9 — תשובת הלקוח ל"הארגזים כבר ארוזים?" בשלב 2 (מוצגת רק אם יש
+      // ארגזי קרטון שנבחרו). ברירת המחדל false מקבילה ל-boxesAlreadyPacked
+      // ב-OrderContext באפליקציה — כלומר עד תשובה מפורשת, הארגזים נחשבים
+      // "עדיין לא ארוזים" ונכנסים לחישוב שירות האריזה (countCustomerBoxes).
+      boxesAlreadyPacked: false,
       fromAddress: '', toAddress: '',
       fromFloor: 'קרקע', toFloor: 'קרקע', fromElevator: true, toElevator: true,
       needsCrane: false, craneFloor: 'קרקע', craneItems: [],
@@ -432,7 +473,15 @@
       const surge = getSurgePricing(parseDateApp(state.date));
       const roundedBase = Math.round(BASE_PRICE + afterDiscount + travelCost + floorSurcharge);
       const surgeAmount = surge ? Math.round(roundedBase * surge.rate) : 0;
-      const packingCalc = calculatePackingFromItems(selected.map(i => ({ itemKey: i.key, qty: i.qty })));
+      // 17.9 — כמה ארגזי קרטון (box_S/M/L/XL) הלקוח סימן, על פני כל
+      // הפריטים שנבחרו. השאלה "כבר ארוזים?" בשלב 2 מוצגת רק אם יש כאלה,
+      // בדיוק כמו ב-PackingOfferScreen באפליקציה. בלי countCustomerBoxes
+      // האתר היה משמיט את מחיר הארגזים לגמרי מחישוב שירות האריזה — זה
+      // הבאג שתוקן כאן (החלטה 60.2, סנכרון תמחור אתר/אפליקציה).
+      const boxesQty = selected.reduce((s, i) => s + (getBoxSizeFromKey(i.key) ? i.qty : 0), 0);
+      const hasCustomerBoxes = boxesQty > 0;
+      const countCustomerBoxes = hasCustomerBoxes && !state.boxesAlreadyPacked;
+      const packingCalc = calculatePackingFromItems(selected.map(i => ({ itemKey: i.key, qty: i.qty })), { countCustomerBoxes });
       const craneCost = state.needsCrane ? craneCostFor(state.craneFloor) : 0;
       // ⚠️ 15.9 — עובר דרך `insurancePriceInPilot`: בשלב ההרצה התקנון
       // מבטיח במפורש שלא ייגבו דמי כיסוי, והאתר גבה. ראו `pilot-mode.js`.
@@ -446,7 +495,7 @@
       // כדי ששתי הזרימות יכתבו מסמך זהה.
       const commissionAmount = 0;
       const totalPrice = baseTotal;
-      return { selected, itemsSubtotal, volumeDiscountRate, volumeDiscount, travelCost, floorSurcharge, surge, surgeAmount, packingCalc, insuranceAmount, packingAmount, craneCost, commissionAmount, totalPrice };
+      return { selected, itemsSubtotal, volumeDiscountRate, volumeDiscount, travelCost, floorSurcharge, surge, surgeAmount, packingCalc, boxesQty, hasCustomerBoxes, insuranceAmount, packingAmount, craneCost, commissionAmount, totalPrice };
     }
 
     function renderSidePrice() {
@@ -893,7 +942,22 @@
 
     // ---------- Step 2: packing ----------
     function renderPackingOffer() {
-      const { packingCalc } = computePrice();
+      const { packingCalc, boxesQty, hasCustomerBoxes } = computePrice();
+      const boxesCard = document.getElementById('boxes-packed-card');
+      boxesCard.style.display = hasCustomerBoxes ? '' : 'none';
+      if (hasCustomerBoxes) {
+        document.getElementById('boxes-packed-subtitle').textContent =
+          (boxesQty === 1 ? 'סימנת ארגז קרטון אחד' : `סימנת ${boxesQty} ארגזי קרטון`) +
+          '. אם התכולה שלהם עדיין בארונות, הצוות ימלא ויסגור אותם — וזו עבודת אריזה לכל דבר.';
+        const yesBtn = document.getElementById('boxes-packed-yes');
+        const noBtn = document.getElementById('boxes-packed-no');
+        const yesSelected = state.boxesAlreadyPacked === true;
+        const noSelected = state.boxesAlreadyPacked === false;
+        yesBtn.classList.toggle('selected', yesSelected);
+        yesBtn.setAttribute('aria-checked', String(yesSelected));
+        noBtn.classList.toggle('selected', noSelected);
+        noBtn.setAttribute('aria-checked', String(noSelected));
+      }
       const parts = [];
       if (packingCalc.totalBoxes > 0) parts.push(`כ-${Math.ceil(packingCalc.totalBoxes)} ארגזים`);
       if (packingCalc.wrapCount > 0) parts.push(`${packingCalc.wrapCount} פריטי ריהוט עטופים`);
@@ -902,6 +966,10 @@
         : 'לא נבחרו פריטים לאריזה עדיין.';
       document.getElementById('packing-add-btn').textContent = `הוסף שירות אריזה — ₪${packingCalc.total}`;
     }
+    // 17.9 — נרשמים פעם אחת מחוץ ל-render (לא בכל renderPackingOffer),
+    // אחרת כל render היה מוסיף מאזין כפול על אותו כפתור.
+    document.getElementById('boxes-packed-yes').addEventListener('click', () => { state.boxesAlreadyPacked = true; renderPackingOffer(); });
+    document.getElementById('boxes-packed-no').addEventListener('click', () => { state.boxesAlreadyPacked = false; renderPackingOffer(); });
     document.getElementById('packing-add-btn').addEventListener('click', () => { state.hasPacking = true; goToStep(3); });
     document.getElementById('packing-skip-btn').addEventListener('click', () => { state.hasPacking = false; goToStep(3); });
     document.getElementById('back-to-1').addEventListener('click', () => goToStep(1));

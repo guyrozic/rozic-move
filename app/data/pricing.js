@@ -498,12 +498,42 @@ export function classifyRoomItemForPacking(item) {
     }
     return { packingType: 'box', boxCount: info.boxCount, fragile: item.fragile, qty: 0, itemPrice };
 }
-/** Convenience wrapper over calculatePackingFromClassified() for items.ts-backed selections (by item key). */
-export function calculatePackingFromItems(selections) {
+/**
+ * ארגז קרטון שהלקוח סימן בשאלת ה-AI, כשהוא הצהיר במסך תמחור האריזה שהתכולה
+ * **עדיין לא ארוזה** — כלומר הצוות הוא זה שימלא ויסגור אותו.
+ *
+ * `boxCount: 1` ולא שבריר: פריט רגיל בקטלוג מקבל 0.2–0.5 ארגז כי כמה פריטים
+ * נכנסים לארגז אחד, אבל כאן הארגז *הוא* היחידה — 18 ארגזים הם 18 ארגזים.
+ *
+ * מחוץ למצב הזה `box_S/M/L/XL` נשארים ב-PACKING_NONE_KEYS (ראו items.js) ואינם
+ * חלק מהאריזה כלל — זו ההתנהגות כשהלקוח מצהיר שהארגזים כבר סגורים ומוכנים.
+ *
+ * מקבילה מדויקת ל-classifyCustomerBoxForPacking ב-Hovalot/src/data/pricing.ts.
+ */
+export function classifyCustomerBoxForPacking(itemKey) {
+    const size = getBoxSizeFromKey(itemKey);
+    if (!size) return null;
+    return { packingType: 'box', boxCount: 1, fragile: false, qty: 0, itemPrice: BOX_PRICES[size].move };
+}
+/**
+ * Convenience wrapper over calculatePackingFromClassified() for items.js-backed selections (by item key).
+ *
+ * `countCustomerBoxes` — ברירת המחדל `false` משמרת את ההתנהגות ההיסטורית
+ * (ארגזי הלקוח מחוץ לאריזה). זרימת "עוברים דירה" מעבירה `true` כשהלקוח ענה
+ * שהארגזים עדיין לא ארוזים. **חשוב:** לא לשנות את הסיווג ב-items.js גלובלית
+ * במקום זה — שם השינוי היה נוזל לכל נתיב אחר (מחיר ההובלה עצמו, smallMove).
+ *
+ * מקבילה מדויקת ל-calculatePackingFromItems ב-Hovalot/src/data/pricing.ts.
+ */
+export function calculatePackingFromItems(selections, opts = {}) {
     const entries = [];
     for (const { itemKey, qty } of selections) {
         if (qty <= 0)
             continue;
+        if (opts.countCustomerBoxes) {
+            const asBox = classifyCustomerBoxForPacking(itemKey);
+            if (asBox) { entries.push({ ...asBox, qty }); continue; }
+        }
         const item = findItemAnywhere(itemKey);
         if (!item)
             continue;
