@@ -249,6 +249,10 @@
           <label for="login-password">סיסמה</label>
           <input id="login-password" type="password" required autocomplete="current-password">
         </div>
+        <!-- זהה ל-handleForgotPassword ב-LoginScreen.tsx: שליחת מייל איפוס
+             לכתובת שבשדה, עם צינון 60 שניות ותקרת 5 שליחות לאותה כתובת. -->
+        <button tabindex="0" type="button" class="btn-text" id="forgot-password-btn" style="padding:4px 0; font-size:0.85rem; font-weight:700; margin-bottom:12px;">שכחתי סיסמה</button>
+        <div id="reset-note"></div>
         <button tabindex="0" type="submit" class="btn btn-primary btn-block" id="login-submit">התחבר</button>
         <p class="terms-note">בלחיצה על הכפתור אתה מאשר את <a tabindex="0" href="/terms.html" target="_blank" rel="noopener">תנאי השימוש</a> ו<a tabindex="0" href="/privacy.html" target="_blank" rel="noopener">מדיניות הפרטיות</a></p>
       </form>
@@ -267,10 +271,17 @@
           <input id="reg-email" type="email" required autocomplete="email">
         </div>
         <div class="form-group">
+          <!-- 8+ תווים, אותיות באנגלית וגם ספרות — זהה ל-RegisterScreen.tsx
+               (validate ב-handleRegister). Firebase עצמו דורש רק 6, ולכן
+               ה-minlength כאן חייב להיות מחמיר יותר משם, לא סתם עותק. -->
           <label for="reg-password">סיסמה</label>
-          <input id="reg-password" type="password" required minlength="6" autocomplete="new-password"
+          <input id="reg-password" type="password" required minlength="8" autocomplete="new-password"
                  aria-describedby="reg-password-hint">
-          <div class="form-hint" id="reg-password-hint">לפחות 6 תווים</div>
+          <div class="form-hint" id="reg-password-hint">לפחות 8 תווים, אותיות באנגלית וגם ספרות</div>
+        </div>
+        <div class="form-group">
+          <label for="reg-password-confirm">אימות סיסמה</label>
+          <input id="reg-password-confirm" type="password" required autocomplete="new-password" placeholder="הקלד שוב את הסיסמה">
         </div>
         <div class="form-group">
           <label class="terms-label">
@@ -310,7 +321,13 @@
 
   <script type="module">
     import { login, registerCustomer, subscribeToAuth,
-             signInWithProvider, setProfilePhone, normalizePhone } from './auth.js';
+             signInWithProvider, setProfilePhone, normalizePhone,
+             isValidFullName, FULL_NAME_ERROR, sendPasswordReset, getPasswordResetCooldown } from './auth.js';
+
+    // זהה למספר התמיכה שכבר קשיח בכל שאר האתר (support-chat.html, index.html
+    // וכו') — ראו SUPPORT_WHATSAPP_URL באפליקציה (constants/support.ts). האתר
+    // אינו מחזיק עדיין קובץ קבועים משותף למספר הזה, ולכן נשמר אותו דפוס.
+    const SUPPORT_WHATSAPP_URL = 'https://wa.me/972508811085';
 
     /**
      * ⚠️ Sign in with Apple **באתר** אינו עובד מעצם היותו מופעל באפליקציה —
@@ -364,8 +381,14 @@
     });
 
     const errorBox = document.getElementById('error-box');
-    function showError(message) {
-      errorBox.innerHTML = message ? `<div class="alert alert-error">${message}</div>` : '';
+    // `code` אופציונלי — זהה ל-LoginScreen.tsx: חשבון מושעה מקבל כפתור
+    // "פנייה בוואטסאפ" ליד השגיאה, כי אין למשתמש דרך אחרת לצאת מהמצב הזה.
+    function showError(message, code) {
+      if (!message) { errorBox.innerHTML = ''; return; }
+      const whatsappBtn = code === 'auth/account-suspended'
+        ? `<a tabindex="0" class="btn btn-secondary" style="margin-top:8px; display:inline-block;" href="${SUPPORT_WHATSAPP_URL}" target="_blank" rel="noopener">פנייה בוואטסאפ</a>`
+        : '';
+      errorBox.innerHTML = `<div class="alert alert-error">${message}${whatsappBtn}</div>`;
     }
 
     /**
@@ -421,9 +444,16 @@
       if (code === 'auth/invalid-email') return 'כתובת אימייל לא תקינה.';
       if (code === 'auth/invalid-credential' || code === 'auth/wrong-password' || code === 'auth/user-not-found') return 'אימייל או סיסמה שגויים.';
       if (code === 'auth/email-already-in-use') return 'כתובת האימייל הזו כבר רשומה. נסה להתחבר.';
-      if (code === 'auth/weak-password') return 'הסיסמה חלשה מדי — לפחות 6 תווים.';
+      // 8+ תווים, אותיות וגם ספרות — זהה ל-authErrors.ts (Firebase עצמו דורש
+      // רק 6; ה-8+letters+digits הוא כלל האפליקציה, לא מגבלת הספק).
+      if (code === 'auth/weak-password') return 'הסיסמה חלשה מדי — לפחות 8 תווים, אותיות באנגלית וספרות.';
       if (code === 'auth/account-suspended') return 'החשבון הזה הושעה. פנה לתמיכה.';
       if (code === 'auth/too-many-requests') return 'יותר מדי ניסיונות. נסה שוב מאוחר יותר.';
+      if (code === 'auth/network-request-failed') return 'בעיית רשת — בדוק את החיבור לאינטרנט ונסה שוב.';
+      // ⚠️ זהה ל-authErrors.ts: הרשמה שנקטעה בין יצירת המשתמש ל-setDoc
+      // משאירה חשבון ב-Auth בלי מסמך ב-Firestore — login() למטה בקובץ זורק
+      // את הקוד הזה, וללא המיפוי כאן ההודעה הייתה נופלת ל"משהו השתבש".
+      if (code === 'auth/profile-missing') return 'ההרשמה לא הושלמה והחשבון אינו מוכן. פנה לתמיכה כדי לשחזר אותו.';
       if (code === 'auth/terms-not-accepted') return TERMS_REQUIRED_MSG;
       return 'משהו השתבש. נסה שוב.';
     }
@@ -437,18 +467,70 @@
         await login(document.getElementById('login-email').value.trim(), document.getElementById('login-password').value);
         location.href = nextUrl();
       } catch (err) {
-        showError(friendlyError(err));
+        showError(friendlyError(err), err && err.code);
         btn.disabled = false; btn.textContent = 'התחבר';
       }
     });
+
+    /**
+     * "שכחתי סיסמה" — זהה ל-handleForgotPassword ב-LoginScreen.tsx: אין שום
+     * אימות שהמלחיץ הוא בעל הכתובת (ראו ההערה שם), ולכן צינון 60 שניות +
+     * תקרת 5 שליחות לאותה כתובת הוא ההגנה היחידה מפני הצפת תיבה זרה.
+     */
+    function resetSecondsLabel(n) {
+      if (n === 1) return 'שנייה אחת';
+      if (n === 2) return 'שתי שניות';
+      return `${n} שניות`;
+    }
+    function showResetNote(kind, message) {
+      document.getElementById('reset-note').innerHTML = `<div class="alert alert-${kind}">${message.replace(/\n/g, '<br>')}</div>`;
+    }
+    document.getElementById('forgot-password-btn').addEventListener('click', async () => {
+      const email = document.getElementById('login-email').value.trim();
+      if (!email) {
+        showResetNote('info', 'הכנס את כתובת האימייל שלך בשדה למעלה ולחץ שוב');
+        document.getElementById('login-email').focus();
+        return;
+      }
+      const cooldown = getPasswordResetCooldown(email);
+      if (!cooldown.canSend) {
+        showResetNote('info', cooldown.exhausted
+          ? 'שלחנו כבר כמה מיילים לאיפוס סיסמה לכתובת הזו. בדוק את תיקיית הספאם, ואם עדיין לא הגיע — פנה לתמיכה.'
+          : `שלחנו מייל ממש עכשיו. בדוק את תיבת הדואר (וגם ספאם), ואם לא הגיע — אפשר לשלוח שוב בעוד ${resetSecondsLabel(cooldown.secondsLeft)}.`);
+        return;
+      }
+      try {
+        await sendPasswordReset(email);
+        showResetNote('success', `שלחנו לך הוראות לאיפוס הסיסמה לכתובת:\n${email}`);
+      } catch {
+        showResetNote('error', 'לא הצלחנו לשלוח אימייל. בדוק שהכתובת נכונה');
+      }
+    });
+
+    // 8+ תווים, אותיות באנגלית וגם ספרות — זהה ל-handleRegister ב-RegisterScreen.tsx.
+    function registerPasswordError(pw) {
+      if (pw.length < 8) return 'סיסמה חייבת להכיל לפחות 8 תווים';
+      if (!/[a-zA-Z]/.test(pw) || !/[0-9]/.test(pw)) return 'הסיסמה חייבת לכלול אותיות באנגלית וגם ספרות';
+      return null;
+    }
 
     document.getElementById('register-form').addEventListener('submit', async (e) => {
       e.preventDefault();
       showError(null);
       const termsBox = document.getElementById('reg-terms');
-      if (!termsBox.checked) {
-        showError(TERMS_REQUIRED_MSG);
-        termsBox.focus();
+      // ⚠️ בדיקת שם מלא **לפני** יצירת החשבון — זהה ל-RegisterScreen.tsx.
+      // בלי זה, שם של מילה אחת (למשל דרך OAuth) נכשל רק בהמשך אצל Grow
+      // עם "יצירת קישור התשלום נכשלה", הודעה אטומה לגמרי (ראו ההערה
+      // ב-CompleteProfileScreen.tsx). כאן יש הזדמנות לתפוס את זה מיד.
+      const regName = document.getElementById('reg-name').value.trim();
+      if (!regName) {
+        showError('יש למלא שם מלא');
+        document.getElementById('reg-name').focus();
+        return;
+      }
+      if (!isValidFullName(regName)) {
+        showError(FULL_NAME_ERROR);
+        document.getElementById('reg-name').focus();
         return;
       }
       // ⚠️ השדה הוא type="tel" בלי pattern, והדפדפן לא חוסם כלום.
@@ -460,6 +542,25 @@
       if (!/^05\d{8}$/.test(regPhone)) {
         showError('מספר טלפון לא תקין. לדוגמה: 050-1234567');
         document.getElementById('reg-phone').focus();
+        return;
+      }
+      const regPassword = document.getElementById('reg-password').value;
+      const passwordErr = registerPasswordError(regPassword);
+      if (passwordErr) {
+        showError(passwordErr);
+        document.getElementById('reg-password').focus();
+        return;
+      }
+      // שדה אימות סיסמה — זהה ל-RegisterScreen.tsx (confirmPassword), חסר
+      // עד היום באתר: אפשר היה להקליד סיסמה שגויה בטעות בלי שום התרעה.
+      if (document.getElementById('reg-password-confirm').value !== regPassword) {
+        showError('הסיסמאות אינן תואמות');
+        document.getElementById('reg-password-confirm').focus();
+        return;
+      }
+      if (!termsBox.checked) {
+        showError(TERMS_REQUIRED_MSG);
+        termsBox.focus();
         return;
       }
       // ⚠️ בלי זה ההרשמה מייצרת חשבון יתום. subscribeToAuth מאזין ל-onSnapshot
@@ -482,7 +583,7 @@
         });
         location.href = nextUrl();
       } catch (err) {
-        showError(friendlyError(err));
+        showError(friendlyError(err), err && err.code);
         btn.disabled = false; btn.textContent = 'הירשם';
       }
     });
@@ -557,7 +658,7 @@
         // בזמן ההגדרה מול Apple. אין כאן מידע על המשתמש, רק הקוד.
         if (err && err.code) console.warn('[oauth]', kind, err.code);
         const msg = friendlyOAuthError(err);
-        if (msg) showError(msg);
+        if (msg) showError(msg, err && err.code);
         btn.disabled = false; btn.querySelector('span').textContent = label;
       }
     }
