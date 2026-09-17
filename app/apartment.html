@@ -128,6 +128,10 @@
               </div>
               <div id="ai-progress-text" class="form-hint" style="display:none; margin-bottom:10px;"></div>
               <div id="ai-error" role="alert"></div>
+              <!-- 17.9 — מקביל ל-successBox/aiDone ב-AIRoomScanScreen/
+                   SmallMoveItemsScreen באפליקציה: אחרי סריקה, כמה פריטים
+                   זוהו (או שלא זוהה כלום בבטחה) — לא רק שקט אחרי פס ההתקדמות. -->
+              <div id="ai-scan-result" class="form-hint" role="status" aria-live="polite"></div>
               <!-- ⚠️ 15.9 — label שעוטף input ב-display:none **אינו נגיש
                    למקלדת בשום דפדפן**: ה-label אינו מקבל מיקוד, וה-input
                    המוסתר אינו ניתן למיקוד. כלומר אי אפשר היה להוסיף תמונות
@@ -638,10 +642,12 @@
     document.getElementById('ai-analyze-btn').addEventListener('click', async () => {
       const btn = document.getElementById('ai-analyze-btn');
       const errBox = document.getElementById('ai-error');
+      const scanResultBox = document.getElementById('ai-scan-result');
       const progressWrap = document.getElementById('ai-progress-wrap');
       const progressFill = document.getElementById('ai-progress-fill');
       const progressText = document.getElementById('ai-progress-text');
       errBox.innerHTML = '';
+      scanResultBox.textContent = '';
       btn.disabled = true;
       progressWrap.style.display = 'block';
       progressText.style.display = 'block';
@@ -662,6 +668,15 @@
         const result = await analyzeImagesWithCatalog(catalog, 'הדירה', images);
         result.items.forEach(it => { state.items[it.itemKey] = (state.items[it.itemKey] || 0) + it.qty; });
         pendingQuestions = pendingQuestions.concat(result.questions);
+        // ⚠️ 17.9 — מקביל ל-successBox/aiDone באפליקציה: בלי זה הסריקה
+        // מסתיימת בשקט, והלקוח לא יודע אם היא בכלל מצאה משהו עד שהוא
+        // גולל וחיפש. סופרים לפי התוצאה של הסריקה הזו בלבד.
+        const scannedQty = result.items.reduce((s, it) => s + it.qty, 0);
+        scanResultBox.textContent = scannedQty === 0 && result.questions.length === 0
+          ? 'לא זוהו פריטים בבטחה — אפשר לענות על שאלות ההבהרה למטה, או לבחור ידנית'
+          : scannedQty === 1 ? 'זוהה פריט אחד — פירוט ב״הפריטים שנבחרו״ למטה'
+          : scannedQty > 1 ? `זוהו ${scannedQty} פריטים — פירוט ב״הפריטים שנבחרו״ למטה`
+          : 'יש שאלת הבהרה על מה שזוהה בתמונה — למטה';
         aiPhotos = [];
         renderAIPhotos();
         renderQuestions();
