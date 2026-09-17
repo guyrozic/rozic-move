@@ -85,7 +85,7 @@
            (WebKit, 15.9). בלי זה אי אפשר היה להגיע מהלוח למסך הפרסום כלל. -->
       <a href="index.html" class="btn-text" tabindex="0" style="padding:0; margin-bottom:10px; display:inline-block;">→ בחירת שירות</a>
       <h1>מעבירים את זה הלאה</h1>
-      <p>תנו פריטים שאינכם צריכים, וקבלו בחינם ממי שגר קרוב. הצפייה פתוחה לכולם — בלי חשבון.</p>
+      <p>תן פריטים שאינך צריך, וקבל בחינם ממי שגר קרוב. הצפייה פתוחה לכולם — בלי חשבון.</p>
     </div>
   </div>
 
@@ -310,7 +310,7 @@
         const box = document.createElement('div');
         box.className = 'alert alert-info';
         box.setAttribute('role', 'status');
-        box.textContent = 'הפריט שביקשתם כבר לא בלוח — כנראה מישהו הקדים. יש כאן עוד דברים.';
+        box.textContent = 'הפריט שביקשת כבר לא בלוח — כנראה מישהו הקדים. יש כאן עוד דברים.';
         host?.prepend(box);
         return;
       }
@@ -391,7 +391,7 @@
         <div id="modal-contact">
           ${listing.status === 'sold' ? '<div class="alert alert-info">כבר נמסר</div>' :
             isOwner ? '<div class="alert alert-info">זו המודעה שלך</div>' :
-            !myUid ? `<p class="app-card-desc" style="margin-bottom:10px;">כדי לבקש את הפריט צריך חשבון — כך המוסר יודע מי פונה אליו. זה לוקח דקה, ואנחנו נחזיר אתכם בדיוק לפריט הזה.</p>
+            !myUid ? `<p class="app-card-desc" style="margin-bottom:10px;">כדי לבקש את הפריט צריך חשבון — כך המוסר יודע מי פונה אליו. זה לוקח דקה, ואנחנו נחזיר אותך בדיוק לפריט הזה.</p>
                       <button class="btn btn-primary btn-block" id="guest-want-btn" tabindex="0">אני רוצה את הפריט</button>` :
             '<button class="btn btn-primary btn-block" disabled>טוען פרטי קשר…</button>'}
         </div>

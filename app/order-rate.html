@@ -27,8 +27,8 @@
   <div class="step-hero">
     <div class="step-hero-inner">
       <a href="order-status.html" id="hero-back-link" class="btn-text" style="padding:0; margin-bottom:10px; display:inline-block;">→ פרטי ההזמנה</a>
-      <h1 id="hero-title">דרגו את ההובלה</h1>
-      <p>המשוב שלכם עוזר לנו לשמור על חוויה טובה לכולם.</p>
+      <h1 id="hero-title">דרג את ההובלה</h1>
+      <p>המשוב שלך עוזר לנו לשמור על חוויה טובה לכולם.</p>
     </div>
   </div>
 
@@ -48,24 +48,24 @@
         <div class="rating-tags" id="rating-tags"></div>
         <div class="form-group" style="margin-top:14px;">
           <label for="rating-text">רוצה להוסיף עוד? (לא חובה)</label>
-          <textarea id="rating-text" rows="3" maxlength="1000" placeholder="ספרו לנו עוד..."></textarea>
+          <textarea id="rating-text" rows="3" maxlength="1000" placeholder="ספר לנו עוד..."></textarea>
         </div>
       </div>
 
       <div class="rating-section-divider"><span class="line"></span><span>דירוג האפליקציה</span><span class="line"></span></div>
 
       <div class="app-card">
-        <h2 id="stars-app-title">לפני שסיימתם</h2>
-        <p class="app-card-desc">איך אתם מרגישים לגבי השימוש באתר עד כה? (לא חובה)</p>
+        <h2 id="stars-app-title">לפני שסיימת</h2>
+        <p class="app-card-desc">איך אתה מרגיש לגבי השימוש באתר עד כה? (לא חובה)</p>
         <div class="star-row small" role="radiogroup" aria-labelledby="stars-app-title" id="stars-app"></div>
         <div class="form-group" style="margin-top:14px;">
-          <label for="app-text">יש לכם רעיון לשיפור? (לא חובה)</label>
+          <label for="app-text">יש לך רעיון לשיפור? (לא חובה)</label>
           <textarea id="app-text" rows="3" maxlength="1000" placeholder="נשמח לשמוע..."></textarea>
         </div>
       </div>
 
       <button class="btn btn-primary btn-block" id="submit-btn" disabled>שלח</button>
-      <p class="rating-submit-hint" id="submit-hint">כדי לשלוח, בחרו קודם כמה כוכבים</p>
+      <p class="rating-submit-hint" id="submit-hint">כדי לשלוח, בחר קודם כמה כוכבים</p>
     </div>
 
     <div id="thanks-box" class="app-card" style="display:none; text-align:center;">
@@ -154,8 +154,8 @@
         document.getElementById('hero-title').textContent = 'תודה!';
         contentEl.style.display = 'none';
         document.getElementById('thanks-box').style.display = 'block';
-        document.getElementById('thanks-box').querySelector('h2').textContent = 'כבר דירגתם את ההובלה הזו';
-        document.getElementById('thanks-box').querySelector('.app-card-desc').textContent = 'תודה שהקדשתם מזמנכם.';
+        document.getElementById('thanks-box').querySelector('h2').textContent = 'כבר דירגת את ההובלה הזו';
+        document.getElementById('thanks-box').querySelector('.app-card-desc').textContent = 'תודה שהקדשת מזמנך.';
       } else {
         contentEl.style.display = 'block';
         runForm(order);
@@ -251,7 +251,7 @@
         } catch (err) {
           submitBtn.disabled = false;
           submitBtn.textContent = 'שלח';
-          alert('לא הצלחנו לשמור את הדירוג. נסו שוב.');
+          alert('לא הצלחנו לשמור את הדירוג. נסה שוב.');
         }
       });
     }

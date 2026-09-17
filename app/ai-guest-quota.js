@@ -77,13 +77,13 @@ export const GUEST_QUOTA_TEXT = `${QUOTA_TITLE}. ${QUOTA_BODY}`;
  * @param {boolean} [opts.boxed] מסגרת `alert` (ברירת מחדל). בצ'אט — `false`,
  *   כי הבועה עצמה כבר מסגרת.
  */
-export function guestQuotaPanelHTML({ manualLabel = 'או המשיכו להוסיף פריטים ידנית', note = '', boxed = true } = {}) {
+export function guestQuotaPanelHTML({ manualLabel = 'או המשך להוסיף פריטים ידנית', note = '', boxed = true } = {}) {
   return `<div class="ai-quota-gate${boxed ? ' alert alert-info' : ''}">
     <strong class="ai-quota-gate-title">${QUOTA_TITLE}</strong>
     <span class="ai-quota-gate-body">${QUOTA_BODY}</span>
     ${note ? `<span class="ai-quota-gate-note">${note}</span>` : ''}
     <span class="ai-quota-gate-actions">
-      <button tabindex="0" type="button" class="btn btn-primary" data-ai-quota="login">התחברו והמשיכו ←</button>
+      <button tabindex="0" type="button" class="btn btn-primary" data-ai-quota="login">התחבר והמשך ←</button>
       <button tabindex="0" type="button" class="btn btn-text" data-ai-quota="manual">${manualLabel}</button>
     </span>
   </div>`;
@@ -238,8 +238,8 @@ export function scanPhotosNotice(restored, signedIn) {
   // ⚠️ "התחברתם" רק למי שבאמת התחבר: אורח יכול לחזור לאותה לשונית גם
   // בכפתור "אחורה", ומשפט שמברך אותו על התחברות שלא קרתה הוא בדיוק
   // סוג הבלבול שהמסך הזה נועד למנוע.
-  const lead = signedIn ? 'התחברתם — ' : '';
+  const lead = signedIn ? 'התחברת — ' : '';
   return restored.dropped
-    ? `${lead}מה שהוספתם לרשימה נשמר. את התמונות לסריקה צריך לבחור שוב (הן לא שרדו את המעבר), ואז אפשר לסרוק.`
-    : `${lead}החזרנו את התמונות שהעליתם ואת הרשימה. אפשר להמשיך מכאן.`;
+    ? `${lead}מה שהוספת לרשימה נשמר. את התמונות לסריקה צריך לבחור שוב (הן לא שרדו את המעבר), ואז אפשר לסרוק.`
+    : `${lead}החזרנו את התמונות שהעלית ואת הרשימה. אפשר להמשיך מכאן.`;
 }

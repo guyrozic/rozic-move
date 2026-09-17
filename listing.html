@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>ROZIC MOVE — מוצר</title>
+  <title>ROZIC MOVE — פריט</title>
   <!-- ⚠️ 15.9 — הכותרת הזו היא ברירת מחדל בלבד: `setListingHead()` בתחתית
        הקובץ מחליפה אותה בשם המודעה בפועל ברגע שהיא נטענת. עד היום **כל**
        מודעה שותפה תחת אותה כותרת גנרית — בלשונית, בהיסטוריה ובסימנייה. -->
@@ -31,7 +31,7 @@
   <meta property="og:type" content="website">
   <meta property="og:site_name" content="ROZIC MOVE">
   <meta property="og:locale" content="he_IL">
-  <meta property="og:title" content="מוצר בחינם ב-ROZIC MOVE">
+  <meta property="og:title" content="פריט בחינם ב-ROZIC MOVE">
   <meta property="og:description" content="מודעת מסירה חינם ב-ROZIC MOVE — פריט שמישהו מעביר הלאה בחינם. פתחו את המודעה כדי לראות פרטים וליצור קשר עם המפרסם.">
   <meta name="twitter:card" content="summary_large_image">
   <!-- 15.9 — תמונת השיתוף. המקור: scripts/og-image.svg, נבנית מחדש ב-node scripts/make-og-image.mjs -->
@@ -203,8 +203,8 @@
     <div id="status" role="status" aria-live="polite">מנסה לפתוח את האפליקציה...</div>
 
     <div class="opening" id="opening">
-      שותפו איתך מוצר דרך ROZIC MOVE.<br>
-      לצפייה במוצר — פתח את האפליקציה.
+      שותף איתך פריט דרך ROZIC MOVE.<br>
+      לצפייה בפריט — פתח את האפליקציה.
     </div>
 
     <div id="listing-body" style="display:none; text-align:right;">
@@ -291,7 +291,7 @@
 
         // textContent ולא innerHTML: כותרת/תיאור/עיר הם טקסט חופשי שמשתמש
         // אחר הקליד, והדף הזה נפתח לכל אדם באינטרנט בלי התחברות.
-        document.getElementById('listing-title').textContent = listing.title || 'מוצר';
+        document.getElementById('listing-title').textContent = listing.title || 'פריט';
         setListingHead(listing);
         document.getElementById('listing-meta').textContent =
           [CATEGORY_INFO[listing.category]?.label, listing.city, formatListingAge(listing.createdAt)].filter(Boolean).join(' · ');
@@ -326,7 +326,7 @@
      */
     function setListingHead(listing) {
       const title = (listing.title || '').trim();
-      document.title = title ? `${title} — חינם ב-ROZIC MOVE` : 'ROZIC MOVE — מוצר';
+      document.title = title ? `${title} — חינם ב-ROZIC MOVE` : 'ROZIC MOVE — פריט';
 
       let link = document.querySelector('link[rel="canonical"]');
       if (!link) {
@@ -342,7 +342,7 @@
       if (listing.status === 'sold') {
         // מודעה שנמסרה — אין יותר יצירת קשר, ולכן גם הדיסקליימר מיותר.
         document.getElementById('listing-disclaimer').style.display = 'none';
-        box.innerHTML = '<div class="info-box">המוצר כבר נמסר.</div>';
+        box.innerHTML = '<div class="info-box">הפריט כבר נמסר.</div>';
         return;
       }
       box.innerHTML = '<div class="info-box">בודק אם אתה מחובר...</div>';

@@ -34,7 +34,7 @@
     <div class="step-hero-inner">
       <a tabindex="0" href="account.html" class="btn-text" style="padding:0; margin-bottom:10px; display:inline-block;">→ החשבון שלי</a>
       <h1>כתובות שמורות</h1>
-      <p>שמרו כתובות לשימוש מהיר בהזמנה הבאה.</p>
+      <p>שמור כתובות לשימוש מהיר בהזמנה הבאה.</p>
     </div>
   </div>
 
@@ -137,7 +137,7 @@
               await removeSavedAddress(state.authUser.uid, btn.dataset.addr);
             } catch {
               btn.disabled = false; btn.textContent = 'מחק';
-              errBox.innerHTML = '<div class="alert alert-error">לא הצלחנו למחוק את הכתובת. נסו שוב.</div>';
+              errBox.innerHTML = '<div class="alert alert-error">לא הצלחנו למחוק את הכתובת. נסה שוב.</div>';
             }
           });
         });
@@ -170,7 +170,7 @@
         await saveAddress(state.authUser.uid, value);
         input.value = '';
       } catch {
-        errBox.innerHTML = '<div class="alert alert-error">לא הצלחנו לשמור את הכתובת. נסו שוב.</div>';
+        errBox.innerHTML = '<div class="alert alert-error">לא הצלחנו לשמור את הכתובת. נסה שוב.</div>';
       } finally {
         btn.disabled = false; btn.textContent = 'הוסף';
       }

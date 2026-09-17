@@ -90,8 +90,8 @@
            (generateReferralCode) ולא הוצג עד היום בשום מקום, לא באתר
            ולא באפליקציה. -->
       <div class="app-card" id="referral">
-        <h2>הזמינו חברים</h2>
-        <p class="app-card-desc">שתפו את הקוד האישי שלכם. כשחבר יזין אותו בהרשמה לאפליקציה ויבצע איתנו הובלה ראשונה, תקבלו ₪50 — זיכוי לארנק למובילים, קופון ללקוחות.</p>
+        <h2>הזמן חברים</h2>
+        <p class="app-card-desc">שתף את הקוד האישי שלך. כשחבר יזין אותו בהרשמה לאפליקציה ויבצע איתנו הובלה ראשונה, תקבל ₪50 — זיכוי לארנק למובילים, קופון ללקוחות.</p>
         <div class="referral-code-box">
           <span class="referral-code-text" id="referral-code-text">—</span>
           <button tabindex="0" type="button" class="btn btn-secondary" id="referral-copy-btn">העתק קוד</button>
@@ -227,8 +227,8 @@
             btn.disabled = false; btn.textContent = 'שלח שוב קישור אימות';
             emailBox.insertAdjacentHTML('beforeend',
               err?.code === 'auth/too-many-requests'
-                ? '<div class="alert alert-error">נשלחו יותר מדי בקשות. נסו שוב בעוד כמה דקות.</div>'
-                : '<div class="alert alert-error">השליחה נכשלה. נסו שוב.</div>');
+                ? '<div class="alert alert-error">נשלחו יותר מדי בקשות. נסה שוב בעוד כמה דקות.</div>'
+                : '<div class="alert alert-error">השליחה נכשלה. נסה שוב.</div>');
           }
         });
       }

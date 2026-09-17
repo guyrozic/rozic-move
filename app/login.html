@@ -204,7 +204,7 @@
           <span>המשך עם Apple</span>
         </button>
         <p class="terms-note" style="margin-top:10px">
-          בהמשך אתם מאשרים את
+          בהמשך אתה מאשר את
           <a tabindex="0" href="/terms.html" target="_blank" rel="noopener">תנאי השימוש</a>
           ו<a tabindex="0" href="/privacy.html" target="_blank" rel="noopener">מדיניות הפרטיות</a>
         </p>
@@ -250,7 +250,7 @@
           <input id="login-password" type="password" required autocomplete="current-password">
         </div>
         <button tabindex="0" type="submit" class="btn btn-primary btn-block" id="login-submit">התחבר</button>
-        <p class="terms-note">בלחיצה על הכפתור אתם מאשרים את <a tabindex="0" href="/terms.html" target="_blank" rel="noopener">תנאי השימוש</a> ו<a tabindex="0" href="/privacy.html" target="_blank" rel="noopener">מדיניות הפרטיות</a></p>
+        <p class="terms-note">בלחיצה על הכפתור אתה מאשר את <a tabindex="0" href="/terms.html" target="_blank" rel="noopener">תנאי השימוש</a> ו<a tabindex="0" href="/privacy.html" target="_blank" rel="noopener">מדיניות הפרטיות</a></p>
       </form>
 
       <form id="register-form" class="auth-form">
@@ -405,7 +405,7 @@
      * ערך שאינו בטבלה אינו מציג דבר.
      */
     const REASON_NOTES = {
-      'ai-quota': 'נגמרו הסריקות החינמיות ללא חשבון. ההתחברות חינם ולוקחת שנייה, ומשם ממשיכים לסרוק — ומה שכבר הוספתם מחכה לכם בחזרה.',
+      'ai-quota': 'נגמרו הסריקות החינמיות ללא חשבון. ההתחברות חינם ולוקחת שנייה, ומשם ממשיכים לסרוק — ומה שכבר הוספת מחכה לך בחזרה.',
     };
     const reasonNote = REASON_NOTES[new URLSearchParams(location.search).get('reason')];
     if (reasonNote) {
@@ -505,17 +505,17 @@
       const code = err && err.code;
       // סגירת החלונית בידי המשתמש אינה תקלה — אין מה להציג לו.
       if (code === 'auth/popup-closed-by-user' || code === 'auth/cancelled-popup-request') return null;
-      if (code === 'auth/popup-blocked') return 'הדפדפן חסם את חלון ההתחברות. אפשרו חלונות קופצים ונסו שוב.';
-      if (code === 'auth/operation-not-allowed') return 'שיטת ההתחברות הזו עדיין לא פעילה. נסו עם אימייל.';
+      if (code === 'auth/popup-blocked') return 'הדפדפן חסם את חלון ההתחברות. אפשר חלונות קופצים ונסה שוב.';
+      if (code === 'auth/operation-not-allowed') return 'שיטת ההתחברות הזו עדיין לא פעילה. נסה עם אימייל.';
       if (code === 'auth/account-exists-with-different-credential')
-        return 'כבר קיים חשבון עם האימייל הזה. התחברו עם אימייל וסיסמה.';
-      if (code === 'auth/unauthorized-domain') return 'הדומיין הזה אינו מאושר להתחברות. פנו לתמיכה.';
+        return 'כבר קיים חשבון עם האימייל הזה. התחבר עם אימייל וסיסמה.';
+      if (code === 'auth/unauthorized-domain') return 'הדומיין הזה אינו מאושר להתחברות. פנה לתמיכה.';
       // ⚠️ 15.9 — `signInWithProvider` מתנתקת וזורקת את זה כשהחשבון מושעה.
       // עד היום הבדיקה הייתה ב-`login()` בלבד, ולכן מושעה שלחץ "המשך עם
       // Google" פשוט נכנס. הנוסח זהה למסלול המייל, כדי ששני המסלולים
       // יראו אותו דבר.
       if (code === 'auth/account-suspended') return 'החשבון הזה הושעה. פנה לתמיכה.';
-      return 'ההתחברות נכשלה. נסו שוב.';
+      return 'ההתחברות נכשלה. נסה שוב.';
     }
 
     async function runProvider(kind, btn) {
@@ -543,7 +543,7 @@
               await setProfilePhone(profile.uid, val.replace(/[\s-]/g, ''));
               holdRedirect = false;
               location.href = nextUrl();
-            } catch { showError('שמירת הטלפון נכשלה. נסו שוב.'); }
+            } catch { showError('שמירת הטלפון נכשלה. נסה שוב.'); }
           };
           return;
         }

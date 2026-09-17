@@ -83,7 +83,7 @@
            מפורש **כן** נכנס לסדר גם במצב הזה (WebKit, 15.9). -->
       <a href="marketplace.html" class="btn-text" tabindex="0" style="padding:0; margin-bottom:10px; display:inline-block;">→ מעבירים את זה הלאה</a>
       <h1>פרסום מודעה</h1>
-      <p>כמה פרטים קטנים, ותוכלו למסור בקלות למי שגר קרוב.</p>
+      <p>כמה פרטים קטנים, ותוכל למסור בקלות למי שגר קרוב.</p>
     </div>
   </div>
 
@@ -151,10 +151,10 @@
 
     <div class="ai-chat-card">
       <h2>💬 צריך עזרה בכתיבת המודעה?</h2>
-      <p>שאלו איך לכתוב כותרת טובה, לתאר מצב, ועוד.</p>
+      <p>שאל איך לכתוב כותרת טובה, לתאר מצב, ועוד.</p>
       <div class="ai-chat-thread" id="listing-chat-thread"></div>
       <div class="ai-chat-input-row">
-        <input type="text" id="listing-chat-input" placeholder="שאלו כאן..." aria-label="הודעה לעוזר ה-AI">
+        <input type="text" id="listing-chat-input" placeholder="שאל כאן..." aria-label="הודעה לעוזר ה-AI">
         <button class="btn btn-primary" id="listing-chat-send-btn" tabindex="0">שלח</button>
       </div>
     </div>
@@ -215,8 +215,8 @@
          ההרשמה מגיע בלי שום התראה מוקדמת: כאן מה שהמשתמש מילא כולל
          תמונות, והן החלק שעלול לא לשרוד את המעבר להרשמה. עדיף שיֵדע
          שנייה לפני הלחיצה מאשר שיגלה אחריה. -->
-    <p class="consent-note" id="guest-publish-note" hidden>הפרסום דורש חשבון — נשמור את מה שמילאתם, ונחזיר אתכם בדיוק לכאן.</p>
-    <p class="terms-note">בלחיצה על הכפתור אתם מאשרים את <a href="/terms.html" tabindex="0" target="_blank" rel="noopener">תנאי השימוש</a> ו<a href="/privacy.html" tabindex="0" target="_blank" rel="noopener">מדיניות הפרטיות</a></p>
+    <p class="consent-note" id="guest-publish-note" hidden>הפרסום דורש חשבון — נשמור את מה שמילאת, ונחזיר אותך בדיוק לכאן.</p>
+    <p class="terms-note">בלחיצה על הכפתור אתה מאשר את <a href="/terms.html" tabindex="0" target="_blank" rel="noopener">תנאי השימוש</a> ו<a href="/privacy.html" tabindex="0" target="_blank" rel="noopener">מדיניות הפרטיות</a></p>
   </div>
 
   </main>
@@ -407,8 +407,8 @@
 
        הכותרת והשורה הראשונה נשארות מילה במילה כפי שגיא אישר.
        ─────────────────────────────────────────────────────────────── */
-    const QUOTA_MANUAL_LABEL = 'או המשיכו למלא את הפרטים ידנית';
-    const QUOTA_NOTE = 'מה שמילאתם והתמונות שהעליתם נשמרים — תחזרו לכאן בדיוק לאותו מקום.';
+    const QUOTA_MANUAL_LABEL = 'או המשך למלא את הפרטים ידנית';
+    const QUOTA_NOTE = 'מה שמילאת והתמונות שהעלית נשמרים — תחזור לכאן בדיוק לאותו מקום.';
 
     attachGuestQuotaHandlers({
       /**
@@ -591,7 +591,7 @@
         // התיאור לבדו מוגבל ל-2000, אבל יחד עם תשובות ה-AI ו"למה אני מעביר"
         // הוא עלול לחרוג — ואז הפרסום נכשל בלי שהמשתמש מבין למה. גודרים כאן.
         if (fullDescription.length > 2000) {
-          errBox.innerHTML = '<div class="alert alert-error">התיאור והתשובות יחד ארוכים מדי (מעל 2000 תווים). קצרו מעט את התיאור או התשובות ונסו שוב.</div>';
+          errBox.innerHTML = '<div class="alert alert-error">התיאור והתשובות יחד ארוכים מדי (מעל 2000 תווים). קצר מעט את התיאור או התשובות ונסה שוב.</div>';
           btn.disabled = false; btn.textContent = 'פרסם מודעה';
           return;
         }
@@ -819,8 +819,8 @@
       box.className = 'alert alert-info';
       box.setAttribute('role', 'status');
       box.textContent = draftPhotosDropped
-        ? 'החזרנו את מה שמילאתם. את התמונות צריך לבחור שוב — ואז אפשר לפרסם.'
-        : 'החזרנו את מה שמילאתם — אפשר לפרסם.';
+        ? 'החזרנו את מה שמילאת. את התמונות צריך לבחור שוב — ואז אפשר לפרסם.'
+        : 'החזרנו את מה שמילאת — אפשר לפרסם.';
       host.prepend(box);
     }
 

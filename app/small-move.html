@@ -103,7 +103,7 @@
             <div class="ai-upload-icon-wrap"><div class="ai-upload-icon">📸</div></div>
             <div class="ai-upload-body">
               <h2>סריקת פריטים ב-AI</h2>
-              <p>העלו תמונות מהמחשב או מהנייד — נזהה את הפריטים בעצמנו.</p>
+              <p>העלה תמונות מהמחשב או מהנייד — נזהה את הפריטים בעצמנו.</p>
               <div class="ai-photo-thumbs" id="ai-photo-thumbs"></div>
               <div class="ai-upload-progress" id="ai-progress-wrap" style="display:none;">
                 <div class="ai-upload-progress-fill" id="ai-progress-fill" style="width:0%"></div>
@@ -118,7 +118,7 @@
                    את ה-input שיצא החוצה. -->
               <label class="btn btn-secondary" for="ai-photo-input"
                      id="ai-photo-label" tabindex="0" role="button" style="cursor:pointer;">
-                ＋ הוסיפו תמונות
+                ＋ הוסף תמונות
               </label>
               <input type="file" id="ai-photo-input" accept="image/*" multiple style="display:none;">
               <button tabindex="0" class="btn btn-primary" id="ai-analyze-btn" style="margin-right:10px;" disabled>נתח עם AI ✨</button>
@@ -126,7 +126,7 @@
           </div>
 
           <div class="ai-chat-card">
-            <h2>💬 או כתבו לנו מה יש לכם</h2>
+            <h2>💬 או כתוב לנו מה יש לך</h2>
             <p>למשל: "יש לי מיטה זוגית ושתי ספות" — נוסיף את זה בעצמנו.</p>
             <div class="ai-chat-thread" id="ai-chat-thread"></div>
             <!-- ⚠️ 16.9 — שאלות ההמשך יורדו לכאן, מתחת לשיחה (היו מעליה),
@@ -135,13 +135,13 @@
             <div id="ai-questions"></div>
             <div id="ai-free-items" class="ai-free-items"></div>
             <div class="ai-chat-input-row">
-              <input type="text" id="ai-chat-input" placeholder="כתבו כאן..." aria-label="הודעה לעוזר ה-AI">
+              <input type="text" id="ai-chat-input" placeholder="כתוב כאן..." aria-label="הודעה לעוזר ה-AI">
               <button tabindex="0" class="btn btn-primary" id="ai-chat-send-btn">שלח</button>
             </div>
           </div>
 
           <div class="app-card" id="start-list" style="scroll-margin-top:90px">
-            <h2>או בחרו ידנית</h2>
+            <h2>או בחר ידנית</h2>
             <div class="van-gauge"><div class="van-gauge-fill" id="van-gauge-fill" style="width:0%"></div></div>
             <div class="form-hint" id="van-gauge-label">0% מהטנדר</div>
             <div class="room-tabs" id="room-tabs" role="group" aria-label="קטגוריות פריטים"></div>
@@ -152,7 +152,7 @@
         <!-- Step 2: packing offer -->
         <section class="wizard-step" data-step="2" style="display:none;">
           <div class="app-card">
-            <h2>📦 רוצים גם שירות אריזה?</h2>
+            <h2>📦 רוצה גם שירות אריזה?</h2>
             <p class="app-card-desc">הצוות שלנו יארוז את כל הפריטים שנבחרו לפני ההובלה.</p>
             <div id="packing-preview" class="alert alert-info"></div>
             <button tabindex="0" class="btn btn-primary btn-block" id="packing-add-btn" style="margin-bottom:10px;">הוסף שירות אריזה</button>
@@ -522,8 +522,8 @@
        ההאזנה היא האצלה מ-`document` (`ai-guest-quota.js`) ולא מאזין על
        הכפתור עצמו, שהיה מת ברינדור הבא.
        ─────────────────────────────────────────────────────────────── */
-    const QUOTA_MANUAL_LABEL = 'או המשיכו להוסיף פריטים ידנית';
-    const QUOTA_NOTE = 'הפריטים שכבר הוספתם והתמונות שבחרתם נשמרים — תחזרו לכאן בדיוק לאותו מקום.';
+    const QUOTA_MANUAL_LABEL = 'או המשך להוסיף פריטים ידנית';
+    const QUOTA_NOTE = 'הפריטים שכבר הוספת והתמונות שבחרת נשמרים — תחזור לכאן בדיוק לאותו מקום.';
 
     attachGuestQuotaHandlers({
       /**
@@ -1328,7 +1328,7 @@
         if (!btn.disabled) return;
         btn.disabled = false; btn.textContent = 'מעבר לתשלום';
         errBox.innerHTML = '<div class="alert alert-error">לא קיבלנו אישור מהשרת. '
-          + 'בדקו את החיבור ונסו שוב — ההזמנה לא נוצרה פעמיים גם אם תלחצו שוב.</div>';
+          + 'בדוק את החיבור ונסה שוב — ההזמנה לא נוצרה פעמיים גם אם תלחץ שוב.</div>';
       }, 20000);
       const p = computePrice();
       try {
@@ -1373,9 +1373,9 @@
     // ---------- Step machine ----------
     const STEP_TITLES = {
       1: ['מובילים בקטנה — אילו פריטים?', 'מתאים לפריטים בודדים או כמה ארגזים — טנדר אחד, קיבולת מוגבלת.'],
-      2: ['רוצים גם שירות אריזה?', 'נצא לדרך רגועים — הצוות יארוז הכול בזהירות.'],
+      2: ['רוצה גם שירות אריזה?', 'נצא לדרך רגועים — הצוות יארוז הכול בזהירות.'],
       3: ['פרטי ההובלה', 'כתובות, קומות, תזמון — הכול כאן.'],
-      4: ['סיכום ואישור', 'בדקו את הפירוט ואשרו את ההזמנה.'],
+      4: ['סיכום ואישור', 'בדוק את הפירוט ואשר את ההזמנה.'],
     };
 
     /**

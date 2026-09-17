@@ -216,7 +216,7 @@
         } catch (err) {
           pwError.innerHTML = err?.code === 'auth/wrong-password' || err?.code === 'auth/invalid-credential'
             ? '<div class="alert alert-error">הסיסמה הנוכחית שגויה</div>'
-            : '<div class="alert alert-error">לא הצלחנו לעדכן את הסיסמה. נסו שוב.</div>';
+            : '<div class="alert alert-error">לא הצלחנו לעדכן את הסיסמה. נסה שוב.</div>';
           btn.disabled = false; btn.textContent = 'עדכן סיסמה';
         }
       });

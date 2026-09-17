@@ -20,7 +20,7 @@
     <div class="step-hero-inner">
       <a tabindex="0" href="account.html" class="btn-text" style="padding:0; margin-bottom:10px; display:inline-block;">→ החשבון שלי</a>
       <h1>עריכת פרופיל</h1>
-      <p>עדכנו את השם והטלפון שלכם.</p>
+      <p>עדכן את השם והטלפון שלך.</p>
     </div>
   </div>
 
@@ -124,7 +124,7 @@
         successBox.innerHTML = '<div class="alert alert-success">✓ הפרטים עודכנו. חוזרים לחשבון שלך...</div>';
         setTimeout(() => { location.href = 'account.html'; }, 1200);
       } catch (err) {
-        errBox.innerHTML = '<div class="alert alert-error">לא הצלחנו לשמור. נסו שוב.</div>';
+        errBox.innerHTML = '<div class="alert alert-error">לא הצלחנו לשמור. נסה שוב.</div>';
         btn.disabled = false; btn.textContent = 'שמור שינויים';
       }
     });

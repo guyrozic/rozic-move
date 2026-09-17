@@ -28,7 +28,7 @@
     <div class="step-hero-inner">
       <a href="order-status.html" id="hero-back-link" class="btn-text" style="padding:0; margin-bottom:10px; display:inline-block;">→ פרטי ההזמנה</a>
       <h1>צ'אט עם המוביל</h1>
-      <p>הודעות צמודות להזמנה שלכם.</p>
+      <p>הודעות צמודות להזמנה שלך.</p>
     </div>
   </div>
 
@@ -47,7 +47,7 @@
         <div id="chat-thread" class="chat-thread" role="log" aria-live="polite" aria-label="הודעות הצ'אט"></div>
         <form id="chat-form" class="chat-input-row">
           <label class="sr-only" for="chat-text">הודעה</label>
-          <textarea id="chat-text" rows="1" maxlength="1000" placeholder="הקלידו הודעה..."></textarea>
+          <textarea id="chat-text" rows="1" maxlength="1000" placeholder="הקלד הודעה..."></textarea>
           <button type="submit" class="chat-send-btn" id="chat-send-btn" aria-label="שליחת הודעה" disabled>←</button>
         </form>
       </div>
@@ -138,7 +138,7 @@
 
       subscribeToMessages(orderId, (messages) => {
         if (!messages.length) {
-          threadEl.innerHTML = '<div class="chat-empty">שלחו הודעה ראשונה</div>';
+          threadEl.innerHTML = '<div class="chat-empty">שלח הודעה ראשונה</div>';
         } else {
           threadEl.innerHTML = messages.map(m => {
             const mine = m.senderId === myUid;
@@ -176,7 +176,7 @@
           textEl.value = '';
           textEl.style.height = 'auto';
         } catch (err) {
-          alert('ההודעה לא נשלחה. בדקו את חיבור האינטרנט ונסו שוב.');
+          alert('ההודעה לא נשלחה. בדוק את חיבור האינטרנט ונסה שוב.');
         } finally {
           textEl.disabled = false;
           updateSendState();

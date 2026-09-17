@@ -54,7 +54,7 @@
 
         <form id="chat-form" class="chat-input-row">
           <label class="sr-only" for="chat-text">הודעה</label>
-          <textarea id="chat-text" rows="1" maxlength="500" placeholder="כתבו הודעה..."></textarea>
+          <textarea id="chat-text" rows="1" maxlength="500" placeholder="כתוב הודעה..."></textarea>
           <button type="submit" class="chat-send-btn" id="chat-send-btn" aria-label="שליחת הודעה" disabled>←</button>
         </form>
 
@@ -69,7 +69,7 @@
         </div>
 
         <div class="support-direct-contact">
-          מעדיפים ליצור קשר ישיר? <a tabindex="0" href="https://wa.me/972508811085" target="_blank" rel="noopener">וואטסאפ</a>
+          מעדיף ליצור קשר ישיר? <a tabindex="0" href="https://wa.me/972508811085" target="_blank" rel="noopener">וואטסאפ</a>
           · <a tabindex="0" href="mailto:support@rozicmove.com">support@rozicmove.com</a>
           · <a tabindex="0" href="tel:+972508811085">050-881-1085</a>
         </div>
@@ -251,7 +251,7 @@
         sending = false;
         updateSendState();
         renderThread();
-        alert('ההודעה לא נשלחה. בדקו את חיבור האינטרנט ונסו שוב — ההודעה נשארה בשדה.');
+        alert('ההודעה לא נשלחה. בדוק את חיבור האינטרנט ונסה שוב — ההודעה נשארה בשדה.');
         return;
       }
       if (textEl.value.trim() === msg) textEl.value = '';
@@ -291,8 +291,8 @@
         let errText;
         const msgStr = String(err && err.message || err);
         if (msgStr.includes('AI_NOT_CONFIGURED')) errText = 'רוני לא זמין כרגע. ההודעה שלך נשמרה — אפשר ללחוץ על "דבר עם נציג אנושי" למטה.';
-        else if (msgStr.includes('AI_RATE_LIMITED')) errText = 'הגענו למגבלת השימוש של רוני לכמה דקות. ההודעה שלך נשמרה — נסו שוב עוד רגע, או לחצו על "דבר עם נציג אנושי" למטה.';
-        else errText = 'רוני לא הצליח לענות כרגע. ההודעה שלך נשמרה — נסו לשלוח שוב, או לחצו על "דבר עם נציג אנושי" למטה.';
+        else if (msgStr.includes('AI_RATE_LIMITED')) errText = 'הגענו למגבלת השימוש של רוני לכמה דקות. ההודעה שלך נשמרה — נסה שוב עוד רגע, או לחץ על "דבר עם נציג אנושי" למטה.';
+        else errText = 'רוני לא הצליח לענות כרגע. ההודעה שלך נשמרה — נסה לשלוח שוב, או לחץ על "דבר עם נציג אנושי" למטה.';
         try { await sendSupportMessage(ticketId, 'ai', errText); }
         catch { alert(errText); }
       } finally {
@@ -311,7 +311,7 @@
         pendingQuestions = [];
         renderQuestions();
       } catch (err) {
-        alert('לא הצלחנו להעביר לנציג. בדקו את חיבור האינטרנט ונסו שוב.');
+        alert('לא הצלחנו להעביר לנציג. בדוק את חיבור האינטרנט ונסה שוב.');
       } finally {
         btn.disabled = false;
       }
@@ -327,7 +327,7 @@
       try {
         ticketId = await createOrGetTicket(authState.authUser.uid, authState.profile?.name || '', authState.profile?.phone || '');
       } catch (err) {
-        showError('<div class="empty-icon">🚫</div>לא הצלחנו להתחבר לתמיכה. בדקו את חיבור האינטרנט ונסו שוב, או פנו בוואטסאפ/מייל למטה.');
+        showError('<div class="empty-icon">🚫</div>לא הצלחנו להתחבר לתמיכה. בדוק את חיבור האינטרנט ונסה שוב, או פנה בוואטסאפ/מייל למטה.');
         return;
       }
       /**

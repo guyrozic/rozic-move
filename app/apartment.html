@@ -92,7 +92,7 @@
       <!-- ⚠️ `tabindex="-1"` — ראו goToStep. מאפשר מיקוד תכנותי בלבד;
            הכותרת אינה נכנסת לסדר ה-Tab ואינה משנה דבר במראה. -->
       <h1 id="step-title" tabindex="-1">עוברים דירה — אילו פריטים מובילים?</h1>
-      <p id="step-desc">העלו תמונה של כל חדר ונזהה פריטים אוטומטית, או בחרו ידנית מהרשימה.</p>
+      <p id="step-desc">העלה תמונה של כל חדר ונזהה פריטים אוטומטית, או בחר ידנית מהרשימה.</p>
     </div>
   </div>
 
@@ -115,7 +115,7 @@
             <div class="ai-upload-icon-wrap"><div class="ai-upload-icon">📸</div></div>
             <div class="ai-upload-body">
               <h2>סריקת פריטים ב-AI</h2>
-              <p>העלו תמונות מהמחשב או מהנייד — נזהה את הפריטים בעצמנו.</p>
+              <p>העלה תמונות מהמחשב או מהנייד — נזהה את הפריטים בעצמנו.</p>
               <div class="ai-photo-thumbs" id="ai-photo-thumbs"></div>
               <div class="ai-upload-progress" id="ai-progress-wrap" style="display:none;">
                 <div class="ai-upload-progress-fill" id="ai-progress-fill" style="width:0%"></div>
@@ -130,7 +130,7 @@
                    את ה-input שיצא החוצה. -->
               <label class="btn btn-secondary" for="ai-photo-input"
                      id="ai-photo-label" tabindex="0" role="button" style="cursor:pointer;">
-                ＋ הוסיפו תמונות
+                ＋ הוסף תמונות
               </label>
               <input type="file" id="ai-photo-input" accept="image/*" multiple style="display:none;">
               <button tabindex="0" class="btn btn-primary" id="ai-analyze-btn" style="margin-right:10px;" disabled>נתח עם AI ✨</button>
@@ -138,7 +138,7 @@
           </div>
 
           <div class="ai-chat-card" id="start-chat" style="scroll-margin-top:90px">
-            <h2>💬 או כתבו לנו מה יש לכם</h2>
+            <h2>💬 או כתוב לנו מה יש לך</h2>
             <p>למשל: "יש לי מיטה זוגית ושתי ספות" — נוסיף את זה בעצמנו.</p>
             <div class="ai-chat-thread" id="ai-chat-thread"></div>
             <!-- ⚠️ 16.9 — שאלות ההמשך יורדו לכאן, מתחת לשיחה (היו מעליה),
@@ -146,14 +146,14 @@
             <div id="ai-questions"></div>
             <div id="ai-free-items" class="ai-free-items"></div>
             <div class="ai-chat-input-row">
-              <input type="text" id="ai-chat-input" placeholder="כתבו כאן..." aria-label="הודעה לעוזר ה-AI">
+              <input type="text" id="ai-chat-input" placeholder="כתוב כאן..." aria-label="הודעה לעוזר ה-AI">
               <button tabindex="0" class="btn btn-primary" id="ai-chat-send-btn">שלח</button>
             </div>
           </div>
 
           <div class="app-card" id="start-list" style="scroll-margin-top:90px">
-            <h2>או בחרו ידנית</h2>
-            <p class="app-card-desc">בחרו כמות לכל פריט. אפשר לעבור בין הקטגוריות.</p>
+            <h2>או בחר ידנית</h2>
+            <p class="app-card-desc">בחר כמות לכל פריט. אפשר לעבור בין הקטגוריות.</p>
             <div class="room-tabs" id="room-tabs" role="group" aria-label="קטגוריות פריטים"></div>
             <div class="item-card-grid" id="item-list"></div>
           </div>
@@ -162,7 +162,7 @@
         <!-- Step 2: packing offer -->
         <section class="wizard-step" data-step="2" style="display:none;">
           <div class="app-card">
-            <h2>📦 רוצים גם שירות אריזה?</h2>
+            <h2>📦 רוצה גם שירות אריזה?</h2>
             <p class="app-card-desc" id="packing-desc">הצוות שלנו יארוז את כל הפריטים שנבחרו לפני ההובלה, בזהירות ובמהירות.</p>
             <!-- ⚠️ 17.9 — מוצג רק כשיש ארגזי קרטון שהלקוח סימן ברשימת
                  הפריטים (hasCustomerBoxes ב-renderPackingOffer). מקביל
@@ -537,8 +537,8 @@
        ההאזנה היא האצלה מ-`document` (`ai-guest-quota.js`) ולא מאזין על
        הכפתור עצמו, שהיה מת ברינדור הבא.
        ─────────────────────────────────────────────────────────────── */
-    const QUOTA_MANUAL_LABEL = 'או המשיכו להוסיף פריטים ידנית';
-    const QUOTA_NOTE = 'הפריטים שכבר הוספתם והתמונות שבחרתם נשמרים — תחזרו לכאן בדיוק לאותו מקום.';
+    const QUOTA_MANUAL_LABEL = 'או המשך להוסיף פריטים ידנית';
+    const QUOTA_NOTE = 'הפריטים שכבר הוספת והתמונות שבחרת נשמרים — תחזור לכאן בדיוק לאותו מקום.';
 
     attachGuestQuotaHandlers({
       /**
@@ -1288,7 +1288,7 @@
         if (!btn.disabled) return;
         btn.disabled = false; btn.textContent = 'מעבר לתשלום';
         errBox.innerHTML = '<div class="alert alert-error">לא קיבלנו אישור מהשרת. '
-          + 'בדקו את החיבור ונסו שוב — ההזמנה לא נוצרה פעמיים גם אם תלחצו שוב.</div>';
+          + 'בדוק את החיבור ונסה שוב — ההזמנה לא נוצרה פעמיים גם אם תלחץ שוב.</div>';
       }, 20000);
       const p = computePrice();
       try {
@@ -1332,10 +1332,10 @@
 
     // ---------- Step machine ----------
     const STEP_TITLES = {
-      1: ['עוברים דירה — אילו פריטים מובילים?', 'העלו תמונה של כל חדר ונזהה פריטים אוטומטית, או בחרו ידנית מהרשימה.'],
-      2: ['רוצים גם שירות אריזה?', 'נצא לדרך רגועים — הצוות יארוז הכול בזהירות.'],
+      1: ['עוברים דירה — אילו פריטים מובילים?', 'העלה תמונה של כל חדר ונזהה פריטים אוטומטית, או בחר ידנית מהרשימה.'],
+      2: ['רוצה גם שירות אריזה?', 'נצא לדרך רגועים — הצוות יארוז הכול בזהירות.'],
       3: ['פרטי ההובלה', 'כתובות, קומות, תזמון — הכול כאן.'],
-      4: ['סיכום ואישור', 'בדקו את הפירוט ואשרו את ההזמנה.'],
+      4: ['סיכום ואישור', 'בדוק את הפירוט ואשר את ההזמנה.'],
     };
 
     /**
