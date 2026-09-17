@@ -349,3 +349,30 @@ export async function promoteDraftToOrder(orderId, finalFields) {
     draftUpdatedAt: null, draftReminderSent: null,
   });
 }
+
+/**
+ * 17.9 — "המוביל לא הגיע לנקודת האיסוף?" (דיווח שהמוביל שולח), צד הלקוח.
+ *
+ * מראה `CUSTOMER_NO_SHOW_RESPONSES` ב-Hovalot/src/services/orders.ts —
+ * שלוש התשובות שהלקוח יכול לתת כשמוביל מדווח שהוא בכתובת ולא מוצא אותה.
+ * **זכות תגובה, לא הכרעה**: התשובה נכנסת לתיק שהצוות בודק לפיו, ואינה
+ * מבטלת ואינה מאשרת דבר בעצמה.
+ */
+export const CUSTOMER_NO_SHOW_RESPONSES = {
+  here:          'אני כאן',
+  wrong_address: 'אתה בכתובת הלא נכונה',
+  on_the_way:    'אני בדרך, מאחר',
+};
+
+/**
+ * מראה `respondToCustomerNoShow` ב-orders.ts — כתיבת לקוח ישירה (לא Cloud
+ * Function): אין כאן שום דבר שהשרת צריך לאמת (זו דעתו של הלקוח) ואין תנועת
+ * כסף, ו-firestore.rules כבר מתירות ללקוח לכתוב על ההזמנה שלו כל שדה שאינו
+ * שדה כסף.
+ */
+export async function respondToCustomerNoShow(orderId, response) {
+  await updateDoc(doc(db, 'orders', orderId), {
+    customerNoShowResponse: response,
+    customerNoShowRespondedAt: serverTimestamp(),
+  });
+}

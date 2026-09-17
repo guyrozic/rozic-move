@@ -29,6 +29,27 @@
   <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="../style.css?v=93d67ba9">
   <link rel="stylesheet" href="style-app.css?v=9f33b089">
+  <style>
+    /* 17.9 — עמוד ייעודי, לא style-app.css המשותף (ראו saved-addresses.html
+       לאותה מוסכמה): ניואנסים שהושלמו מול OrderDetailsScreen.tsx. */
+    .order-title-row { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; }
+    .order-title-row h2 { margin-bottom: 4px; }
+    .order-number-text { font-size: 0.78rem; font-weight: 600; color: var(--text-muted); }
+    .share-order-btn { flex-shrink: 0; padding: 8px 16px; font-size: 0.82rem; }
+    .no-charge-text { color: var(--green-dark); }
+    .favorite-btn[data-active="1"] { border-color: var(--green); color: var(--green-dark); background: var(--green-light); }
+    .modal-overlay {
+      position: fixed; inset: 0; background: rgba(20,30,25,0.55);
+      display: flex; align-items: flex-end; justify-content: center; z-index: 200; padding: 0;
+    }
+    .modal-card { background: var(--white); border-radius: 20px 20px 0 0; padding: 24px 20px; width: 100%; max-width: 480px; max-height: 85vh; overflow-y: auto; }
+    @media (min-width: 640px) {
+      .modal-overlay { align-items: center; padding: 20px; }
+      .modal-card { border-radius: 20px; }
+    }
+    .no-show-notice p { font-size: 0.88rem; color: var(--text-mid); margin-bottom: 10px; }
+    .no-show-choices { display: flex; flex-direction: column; gap: 8px; }
+  </style>
 </head>
 <body class="app-body">
 <div data-build-stamp class="build-stamp" aria-hidden="true">עודכן 17.09 · 19:52</div>
@@ -84,8 +105,23 @@
     import {
       subscribeToOrder, cancelOrder, customerTotalOf, STATUS_LABELS,
       ORDER_PROGRESS_STEPS, customerConfirmCompletion,
+      CUSTOMER_NO_SHOW_RESPONSES, respondToCustomerNoShow,
     } from './orders.js';
     import { getUserProfile, formatVehicle } from './users.js';
+    import { toggleFavoriteDriver } from './account.js';
+    import { PILOT_MODE } from './pilot-mode.js';
+    import { addDoc, collection, serverTimestamp as reportServerTimestamp } from 'https://www.gstatic.com/firebasejs/12.16.0/firebase-firestore.js';
+    import { db } from './firebase.js';
+
+    // מראה PAYMENT_LABELS ב-OrderDetailsScreen.tsx. האתר יוצר היום רק
+    // הזמנות 'card', אבל שדה זה נכתב גם בהזמנות ישנות/של האפליקציה
+    // שהלקוח יכול לצפות בהן דרך אותו מסך בדיוק.
+    const PAYMENT_LABELS = {
+      cash: 'מזומן', bit: 'ביט', card: 'אשראי', apple_pay: 'Apple Pay', google_pay: 'Google Pay',
+    };
+
+    // מראה INSURANCE_COVERAGE ב-OrderDetailsScreen.tsx.
+    const INSURANCE_COVERAGE = { apartment: 5000, smallMove: 2000 };
 
     /**
      * בריחת HTML לכל ערך שמגיע ממסמך ההזמנה. **זו לא הגנה תיאורטית:**
@@ -143,6 +179,27 @@
         </div>`;
     }
 
+    /**
+     * טווח השעות של ההובלה, ממותח מ-`scheduledDate` ("D/M/YYYY") ו-`timeSlot`
+     * ("09:00-12:00") — אותו פענוח בדיוק כמו `canReportNoShow` ב-orders.ts
+     * באפליקציה. `null` כשאין תאריך תקין, כדי שהוסף-ליומן פשוט לא יעשה כלום
+     * במקום ליצור אירוע בתאריך שגוי.
+     */
+    function buildCalendarTimes(order) {
+      if (!order.scheduledDate) return null;
+      const parts = order.scheduledDate.split('/').map(Number);
+      if (parts.length !== 3 || parts.some(Number.isNaN)) return null;
+      const [day, month, year] = parts;
+      const [startStr, endStr] = (order.timeSlot || '09:00-12:00').split('-');
+      const [startH, startM] = (startStr || '09:00').trim().split(':').map(Number);
+      const [endH, endM] = (endStr || '').trim().split(':').map(Number);
+      const start = new Date(year, month - 1, day, Number.isNaN(startH) ? 9 : startH, Number.isNaN(startM) ? 0 : startM);
+      const end = new Date(year, month - 1, day,
+        Number.isNaN(endH) ? (Number.isNaN(startH) ? 11 : startH + 2) : endH,
+        Number.isNaN(endM) ? 0 : endM);
+      return { start, end };
+    }
+
     /** מראה OrderProgressBar.tsx — פס 5 שלבים + תווית השלב הנוכחי. */
     function renderProgressBar(stepIndex) {
       const segs = ORDER_PROGRESS_STEPS
@@ -160,6 +217,15 @@
         </div>`;
     }
 
+    // מראה REPORT_REASONS_BY_TYPE['driver'] + REPORT_REASONS ב-src/services/reports.ts.
+    const DRIVER_REPORT_REASONS = {
+      no_show: 'לא הגיע לנקודת האיסוף',
+      inappropriate_behavior: 'התנהגות לא הולמת',
+      damaged_items: 'נזק לרכוש',
+      overcharge: 'דרש תשלום מעבר למוסכם',
+      other: 'אחר',
+    };
+
     /** מראה כרטיס המוביל ב-FindDriverScreen (מצב "נמצא") וב-OrderDetailsScreen ("המוביל שלך"). */
     function renderDriverCardInner(driver, order) {
       const heading = order.status === 'assigned' ? 'נמצא לך מוביל!' : 'המוביל שלך';
@@ -168,6 +234,13 @@
       const vehicle = formatVehicle(driver);
       const verified = driver?.idVerificationStatus === 'verified';
       const phone = driver?.phone;
+      // 17.9 — מועדפים ו"דווח על בעיה": מראה canFavorite/isFavorite ו-ReportModal
+      // ב-OrderDetailsScreen.tsx. מועדפים רק אחרי השלמה (כמו באפליקציה) —
+      // לפני כן עוד אין לקוח שום בסיס לדעת אם היה שווה לסמן.
+      const canFavorite = order.status === 'completed';
+      const isFavorite = canFavorite && (authState.profile.favoriteDrivers ?? []).includes(order.driverId);
+      const reasonOptions = Object.entries(DRIVER_REPORT_REASONS)
+        .map(([key, label]) => `<option value="${esc(key)}">${esc(label)}</option>`).join('');
       return `
         <h2>${esc(heading)}</h2>
         <div class="driver-avatar-row">
@@ -180,6 +253,23 @@
         ${phone
           ? `<a class="call-btn" href="tel:${esc(phone)}">התקשר למוביל — ${esc(phone)}</a>`
           : `<div class="call-btn disabled">${driver ? 'המוביל טרם הוסיף מספר טלפון' : 'טוען פרטי מוביל…'}</div>`}
+        ${canFavorite ? `
+        <button type="button" class="btn btn-secondary btn-block favorite-btn" id="favorite-btn" data-active="${isFavorite ? '1' : '0'}" style="margin-top:10px;">
+          ${isFavorite ? '★ מוביל מועדף שלך' : '☆ הוסף למועדפים'}
+        </button>` : ''}
+        <button type="button" class="btn-text" id="report-toggle-btn" style="margin-top:8px;">דווח על בעיה</button>
+        <div id="report-form" style="display:none; margin-top:10px;">
+          <div class="form-group">
+            <label for="report-reason">סיבת הדיווח</label>
+            <select id="report-reason">${reasonOptions}</select>
+          </div>
+          <div class="form-group">
+            <label for="report-details">פרטים (לא חובה)</label>
+            <textarea id="report-details" rows="3" maxlength="2000"></textarea>
+          </div>
+          <div id="report-error" role="alert"></div>
+          <button type="button" class="btn btn-danger btn-block" id="report-submit-btn">שלח דיווח</button>
+        </div>
       `;
     }
 
@@ -190,7 +280,70 @@
       // המשתמש עשוי לנווט משם/ההזמנה עשויה להתעדכן שוב לפני שהקריאה חוזרת —
       // ה-id עדיין קיים ב-DOM רק אם render() לא רץ מחדש בינתיים.
       const stillThere = document.getElementById('driver-card');
-      if (stillThere) stillThere.innerHTML = renderDriverCardInner(driver, order);
+      if (!stillThere) return;
+      stillThere.innerHTML = renderDriverCardInner(driver, order);
+
+      /**
+       * מראה `toggleFavoriteDriver` — כתיבה על מסמך המשתמש שלי, לא של
+       * המוביל. `authState.profile.favoriteDrivers` מתעדכן מקומית מיד כדי
+       * שהכפתור יתהפך בלי לחכות למנוי חוזר על users/{uid}.
+       */
+      document.getElementById('favorite-btn')?.addEventListener('click', async (e) => {
+        const btn = e.currentTarget;
+        btn.disabled = true;
+        try {
+          const updated = await toggleFavoriteDriver(authState.authUser.uid, order.driverId, authState.profile.favoriteDrivers);
+          authState.profile.favoriteDrivers = updated;
+          const isFav = updated.includes(order.driverId);
+          btn.textContent = isFav ? '★ מוביל מועדף שלך' : '☆ הוסף למועדפים';
+        } catch {
+          alert('לא הצלחנו לעדכן. נסה שוב.');
+        } finally {
+          btn.disabled = false;
+        }
+      });
+
+      document.getElementById('report-toggle-btn')?.addEventListener('click', () => {
+        const form = document.getElementById('report-form');
+        form.style.display = form.style.display === 'none' ? 'block' : 'none';
+      });
+
+      /**
+       * מראה `submitReport` ב-src/services/reports.ts — כתיבה ישירה ל-
+       * Firestore (לא Cloud Function): `firestore.rules` (`match /reports/{reportId}`)
+       * מתירות ליצור מסמך דיווח לכל משתמש מחובר כל עוד `reporterId==uid()`,
+       * `status=='open'` והשדות נכנסים לרשימות הסגורות. אין כאן שום השפעה
+       * על ההזמנה או על כסף — הדיווח נכנס לתור מודרציה שהאדמין קורא.
+       */
+      document.getElementById('report-submit-btn')?.addEventListener('click', async (e) => {
+        const btn = e.currentTarget;
+        const errBox = document.getElementById('report-error');
+        errBox.innerHTML = '';
+        const reason = document.getElementById('report-reason').value;
+        const details = document.getElementById('report-details').value.trim();
+        btn.disabled = true; btn.textContent = 'שולח...';
+        try {
+          await addDoc(collection(db, 'reports'), {
+            reporterId: authState.authUser.uid,
+            reporterName: authState.profile.name || '',
+            type: 'driver',
+            targetId: order.driverId,
+            targetName: driver?.name || 'המוביל',
+            targetUserId: order.driverId,
+            targetUserName: driver?.name || 'המוביל',
+            orderId: order.id,
+            reason,
+            details,
+            status: 'open',
+            createdAt: reportServerTimestamp(),
+          });
+          document.getElementById('report-form').innerHTML =
+            '<div class="alert alert-success" role="status">הדיווח נשלח. צוות ROZIC MOVE יטפל בו בהקדם.</div>';
+        } catch {
+          errBox.innerHTML = '<div class="alert alert-error">לא הצלחנו לשלוח את הדיווח. נסה שוב.</div>';
+          btn.disabled = false; btn.textContent = 'שלח דיווח';
+        }
+      });
     }
 
     function render(order) {
@@ -215,10 +368,24 @@
       const stepIndex = ORDER_PROGRESS_STEPS.findIndex(s => s.status === order.status);
       const canRate = order.status === 'completed' && typeof order.driverRating !== 'number';
 
+      /**
+       * 11.9 — האם באמת נגבה כסף מהלקוח על ההזמנה. מראה `wasCharged`/
+       * `cancelledNoCharge` ב-OrderDetailsScreen.tsx: הזמנה שבוטלה מ-
+       * 'pending_payment' (לפני שהלקוח הגיע לתשלום בכלל) המשיכה להציג
+       * "מחיר סופי" ואמצעי תשלום, בלי שום סימן שלא חויב.
+       */
+      const wasCharged = order.paymentStatus === 'paid';
+      const cancelledNoCharge = order.status === 'cancelled' && !wasCharged;
+
       contentEl.innerHTML = `
         <div class="app-card">
-          <h2>${esc(order.title || 'הזמנה')}</h2>
-          <p><span class="status-badge ${esc(order.status)}">${esc(STATUS_LABELS[order.status] || order.status)}</span></p>
+          <div class="order-title-row">
+            <div>
+              <h2>${esc(order.title || 'הזמנה')}${order.orderNumber ? ` <span class="order-number-text">#${esc(order.orderNumber)}</span>` : ''}</h2>
+              <p><span class="status-badge ${esc(order.status)}">${esc(STATUS_LABELS[order.status] || order.status)}</span></p>
+            </div>
+            <button type="button" class="btn btn-secondary share-order-btn" id="share-order-btn">שתף</button>
+          </div>
           ${stepIndex >= 0 ? renderProgressBar(stepIndex) : ''}
         </div>
 
@@ -266,18 +433,68 @@
           ${order.fromAddress ? `<div class="price-line"><span>מוצא</span><span>${esc(order.fromAddress)}</span></div>` : ''}
           ${order.toAddress ? `<div class="price-line"><span>יעד</span><span>${esc(order.toAddress)}</span></div>` : ''}
           ${order.scheduledDate ? `<div class="price-line"><span>תאריך</span><span>${esc(order.scheduledDate)}${order.timeSlot ? ' · ' + esc(order.timeSlot) : ''}</span></div>` : ''}
+          ${order.scheduledDate ? `<button type="button" class="btn-text calendar-btn" id="calendar-btn" style="padding:0; margin-bottom:8px;">הוסף ליומן</button>
+          <div id="calendar-links" style="display:none;"></div>` : ''}
           ${order.itemsSummary ? `<div class="price-line"><span>פריטים</span><span>${esc(order.itemsSummary)}</span></div>` : ''}
           ${order.notes ? `<div class="price-line"><span>הערות</span><span>${esc(order.notes)}</span></div>` : ''}
           ${manualItems.length ? `
           <div class="price-line"><span>פריטים לתמחור ידני</span><span>${
             manualItems.map(mi => `${esc(mi.label)} ×${esc(mi.qty)}${mi.price !== undefined ? ` — ₪${esc(mi.price)}` : ' — ממתין לתמחור'}`).join('<br>')
           }</span></div>` : ''}
-          <div class="price-total"><span>${order.status === 'pending_pricing' ? 'סה"כ עד כה' : 'סה"כ'}</span><strong>₪${esc(total)}</strong></div>
+          ${order.hasInsurance && order.insuranceAmount > 0 ? `<div class="price-line discount"><span>כולל ביטוח תכולה</span><span>₪${esc(order.insuranceAmount)}</span></div>` : ''}
+          ${order.packingService && order.packingServicePrice > 0 ? `<div class="price-line discount"><span>כולל שירות אריזה</span><span>₪${esc(order.packingServicePrice)}</span></div>` : ''}
+          ${order.craneNeeded ? `<div class="price-line discount"><span>נדרש מנוף — קומה ${esc(order.craneFloor ?? '')}</span><span>${order.craneCost ? `₪${esc(order.craneCost)}` : ''}</span></div>` : ''}
+          ${order.craneNeeded && order.craneItems?.length ? `<div class="price-line"><span>פריטים למנוף</span><span>${esc(order.craneItems.join(', '))}</span></div>` : ''}
+          ${cancelledNoCharge ? `
+          <div class="price-line"><span>מחיר ההזמנה</span><span>₪${esc(total)}</span></div>
+          <div class="price-total"><span>חיוב</span><strong class="no-charge-text">לא בוצע חיוב</strong></div>
+          ` : `
+          <div class="price-total"><span>${
+            order.status === 'pending_pricing' ? 'סה"כ עד כה'
+              : order.status === 'cancelled' ? 'שולם'
+              : !wasCharged ? 'לתשלום'
+              : 'סה"כ'
+          }</span><strong>₪${esc(total)}</strong></div>
+          `}
           ${order.growInvoiceUrl ? `
           <a class="invoice-link-row" href="${esc(order.growInvoiceUrl)}" target="_blank" rel="noopener">
             📄 ${order.growInvoiceNumber ? `חשבונית מס ${esc(order.growInvoiceNumber)}` : 'צפה בחשבונית'}
           </a>` : ''}
+          ${cancelledNoCharge ? `<p class="form-hint">ההזמנה בוטלה לפני שבוצע תשלום — לא נגבה ממך כסף, ואין מה להחזיר.</p>` : ''}
+          ${order.paymentMethod && !cancelledNoCharge ? `<div class="price-line"><span>${wasCharged ? 'אמצעי תשלום' : 'אמצעי התשלום שנבחר'}</span><span>${esc(PAYMENT_LABELS[order.paymentMethod] ?? order.paymentMethod)}</span></div>` : ''}
+          ${order.hasInsurance && !PILOT_MODE && (order.insuranceAmount ?? 0) > 0 ? `
+          <button type="button" class="btn btn-secondary btn-block" id="insurance-cert-btn" style="margin-top:10px;">הצג אישור ביטוח ROZIC GUARD</button>` : ''}
+          ${order.hasInsurance && (PILOT_MODE || (order.insuranceAmount ?? 0) === 0) ? `
+          <div class="price-line"><span>ביטוח תכולה</span><span>לא פעיל בשלב ההרצה — לא נגבו דמי כיסוי</span></div>` : ''}
+          ${order.tipAmount > 0 ? `<div class="price-line discount"><span>טיפ למוביל</span><span>₪${esc(order.tipAmount)}</span></div>` : ''}
+          ${order.cancellationFee > 0 ? `<div class="price-line"><span>דמי ביטול</span><span>₪${esc(order.cancellationFee)}</span></div>` : ''}
+          ${order.status === 'cancelled' && typeof order.refundDue === 'number' && order.refundDue > 0 ? `
+          <div class="price-line discount"><span>${order.refundStatus === 'paid' ? 'הוחזר לך' : 'יוחזר לך'}</span><span>₪${esc(order.refundDue)}</span></div>
+          ${order.refundStatus !== 'paid' ? `<p class="form-hint">ההחזר מבוצע ידנית ע"י הצוות ויכול לקחת עד 5 ימי עסקים.</p>` : ''}
+          ` : ''}
         </div>
+
+        <div id="insurance-modal" class="modal-overlay" style="display:none;">
+          <div class="modal-card">
+            <h2>ROZIC GUARD</h2>
+            <p class="app-card-desc">כיסוי תכולה להובלה</p>
+            <div class="price-line"><span>מספר פוליסה</span><span>ROZIC-${esc(order.id.slice(0, 8).toUpperCase())}</span></div>
+            <div class="price-line"><span>סכום כיסוי מקסימלי</span><span>₪${esc(INSURANCE_COVERAGE[order.serviceType] ?? 2000)}</span></div>
+            <div class="price-line"><span>תוקף</span><span>${esc(order.scheduledDate ?? 'תאריך ההזמנה')}</span></div>
+            <div class="price-line"><span>מבוטח</span><span>${esc(authState.profile.name ?? '—')}</span></div>
+            <a class="btn btn-primary btn-block" style="margin-top:10px;" href="support-chat.html">פתח תביעה</a>
+            <button type="button" class="btn btn-secondary btn-block" id="insurance-modal-close" style="margin-top:8px;">סגור</button>
+          </div>
+        </div>
+
+        ${!!order.customerNoShowReportedAt && !order.customerNoShowResolvedAt ? `
+        <div class="app-card no-show-notice">
+          <p>המוביל מדווח שהוא בנקודת האיסוף ולא מצא אותך. מה קרה?</p>
+          ${order.customerNoShowResponse
+            ? `<p>השבת: "${esc(CUSTOMER_NO_SHOW_RESPONSES[order.customerNoShowResponse] ?? order.customerNoShowResponse)}". הצוות בודק מול שני הצדדים.</p>`
+            : `<div class="no-show-choices">${Object.entries(CUSTOMER_NO_SHOW_RESPONSES).map(([key, label]) =>
+                `<button type="button" class="btn btn-secondary btn-block no-show-choice-btn" data-response="${esc(key)}">${esc(label)}</button>`).join('')}</div>`}
+        </div>` : ''}
 
         ${canRate ? `
         <div class="app-card rate-link-card">
@@ -294,6 +511,91 @@
       if (order.driverId && order.status !== 'pending') {
         loadDriverCard(order);
       }
+
+      /**
+       * שיתוף — מראה `Share.share` בכותרת OrderDetailsScreen.tsx. הדפדפן
+       * הוא היעד: Web Share API בנייד, ואם אינו קיים (רוב הדפדפנים בשולחן
+       * העבודה) נופלים להעתקה ללוח, כדי שהכפתור לא יעשה כלום בשקט.
+       */
+      document.getElementById('share-order-btn')?.addEventListener('click', async () => {
+        const text = `פרטי ההובלה שלנו\n\n${order.title || ''}${order.fromAddress ? `\nמ: ${order.fromAddress}` : ''}${order.toAddress ? `\nל: ${order.toAddress}` : ''}${order.scheduledDate ? `\n${order.scheduledDate}` : ''}${order.timeSlot ? ` · ${order.timeSlot}` : ''}\n₪${total}\n\nבוצע דרך ROZIC MOVE`;
+        if (navigator.share) {
+          try { await navigator.share({ title: 'פרטי ההובלה', text }); } catch {}
+          return;
+        }
+        try {
+          await navigator.clipboard.writeText(text);
+          const btn = document.getElementById('share-order-btn');
+          const original = btn.textContent;
+          btn.textContent = 'הועתק!';
+          setTimeout(() => { btn.textContent = original; }, 2000);
+        } catch {}
+      });
+
+      /**
+       * הוסף ליומן — מראה `handleAddToCalendar`/`chooseCalendar` ב-
+       * OrderDetailsScreen.tsx. Google Calendar נפתח בכרטיסייה חדשה עם
+       * טופס אירוע ממולא (המשתמש עדיין צריך לשמור, בדיוק כמו באפליקציה —
+       * לכן "פתח ביומן" ולא "נוסף ליומן"); קובץ ICS מוריד אירוע סטנדרטי
+       * שכל יומן במחשב יודע לפתוח, למי שלא משתמש ב-Google Calendar.
+       */
+      document.getElementById('calendar-btn')?.addEventListener('click', () => {
+        const box = document.getElementById('calendar-links');
+        if (box.style.display !== 'none') { box.style.display = 'none'; return; }
+        const times = buildCalendarTimes(order);
+        if (!times) return;
+        const fmt = (d) => d.toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z';
+        const title = encodeURIComponent(`${order.title || 'הובלה'} — ROZIC MOVE`);
+        const details = encodeURIComponent(`הובלה עם ROZIC MOVE${order.fromAddress ? `\nמ: ${order.fromAddress}` : ''}${order.toAddress ? `\nל: ${order.toAddress}` : ''}`);
+        const location = encodeURIComponent(order.fromAddress || '');
+        const gcalUrl = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${title}&dates=${fmt(times.start)}/${fmt(times.end)}&details=${details}&location=${location}`;
+        box.innerHTML = `
+          <a class="btn-text" href="${gcalUrl}" target="_blank" rel="noopener" style="display:block;">📅 Google Calendar</a>
+          <a class="btn-text" id="ics-download-link" style="display:block;">📥 הורדת קובץ ליומן (ICS)</a>
+        `;
+        box.style.display = 'block';
+        document.getElementById('ics-download-link').addEventListener('click', (e) => {
+          e.preventDefault();
+          const ics = [
+            'BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//ROZIC MOVE//he', 'BEGIN:VEVENT',
+            `UID:${order.id}@rozicmove.com`, `DTSTART:${fmt(times.start)}`, `DTEND:${fmt(times.end)}`,
+            `SUMMARY:${(order.title || 'הובלה')} — ROZIC MOVE`,
+            `DESCRIPTION:הובלה עם ROZIC MOVE`,
+            `LOCATION:${order.fromAddress || ''}`,
+            'END:VEVENT', 'END:VCALENDAR',
+          ].join('\r\n');
+          const url = URL.createObjectURL(new Blob([ics], { type: 'text/calendar' }));
+          const a = document.createElement('a');
+          a.href = url; a.download = 'rozic-move-order.ics';
+          document.body.appendChild(a); a.click(); a.remove();
+          URL.revokeObjectURL(url);
+        });
+      });
+
+      document.getElementById('insurance-cert-btn')?.addEventListener('click', () => {
+        document.getElementById('insurance-modal').style.display = 'flex';
+      });
+      document.getElementById('insurance-modal-close')?.addEventListener('click', () => {
+        document.getElementById('insurance-modal').style.display = 'none';
+      });
+
+      /**
+       * זכות תגובה של הלקוח לדיווח "הלקוח לא נמצא" — מראה
+       * `handleRespondToNoShow` ב-OrderDetailsScreen.tsx. כתיבה ישירה,
+       * לא הכרעה: התשובה נכנסת לתיק שהצוות בודק לפיו.
+       */
+      document.querySelectorAll('.no-show-choice-btn').forEach(btn => {
+        btn.addEventListener('click', async () => {
+          document.querySelectorAll('.no-show-choice-btn').forEach(b => b.disabled = true);
+          try {
+            await respondToCustomerNoShow(order.id, btn.dataset.response);
+            // ההזמנה תתעדכן מיד דרך המנוי החי ו-render() ירוץ מחדש.
+          } catch {
+            document.querySelectorAll('.no-show-choice-btn').forEach(b => b.disabled = false);
+            alert('לא הצלחנו לשלוח את התשובה. נסה שוב.');
+          }
+        });
+      });
 
       document.getElementById('confirm-completion-btn')?.addEventListener('click', async (e) => {
         const btn = e.currentTarget;

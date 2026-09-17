@@ -123,3 +123,24 @@ export async function unblockUser(uid, targetId) {
     updatedAt: serverTimestamp(),
   });
 }
+
+/* ══════════════════════════════════════════════════════════════════
+   מובילים מועדפים
+   ══════════════════════════════════════════════════════════════════
+
+   `favoriteDrivers` יושב על מסמך המשתמש הראשי (`users/{uid}`, לא private) —
+   בדיוק כמו notificationsEnabled — כי הלקוח עצמו הוא היחיד שכותב וקורא אותו
+   דרך state.profile הרגיל. מראה `toggleFavoriteDriver` ב-AuthContext.tsx:
+   לא arrayUnion/arrayRemove, אלא חישוב הרשימה בצד הלקוח וכתיבתה שלמה —
+   כאן זה נשמר זהה כדי ששני הצדדים יתנהגו אותו דבר בעדכון בו-זמני.
+*/
+
+/** מראה את `toggleFavoriteDriver` ב-AuthContext.tsx. `currentFavorites` הוא user.favoriteDrivers כפי שהאתר כבר מחזיק אותו (state.profile). מחזיר את הרשימה החדשה, כדי שהמסך יעדכן תצוגה בלי לחכות למנוי חוזר. */
+export async function toggleFavoriteDriver(uid, driverUid, currentFavorites) {
+  const current = Array.isArray(currentFavorites) ? currentFavorites : [];
+  const updated = current.includes(driverUid)
+    ? current.filter(id => id !== driverUid)
+    : [...current, driverUid];
+  await updateDoc(doc(db, 'users', uid), { favoriteDrivers: updated });
+  return updated;
+}
