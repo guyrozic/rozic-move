@@ -29,6 +29,13 @@
   <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="../style.css?v=93d67ba9">
   <link rel="stylesheet" href="style-app.css?v=9f33b089">
+  <style>
+    /* 17.9 — עמוד ייעודי, לא style-app.css המשותף (ראו saved-addresses.html
+       לאותה מוסכמה). */
+    .order-number-text { font-size: 0.76rem; font-weight: 600; color: var(--text-muted); }
+    .order-row-meta { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+    .order-row-date { font-size: 0.76rem; color: var(--text-muted); }
+  </style>
 </head>
 <body class="app-body">
 <div data-build-stamp class="build-stamp" aria-hidden="true">עודכן 17.09 · 19:52</div>
@@ -96,6 +103,14 @@
           <span class="referral-code-text" id="referral-code-text">—</span>
           <button tabindex="0" type="button" class="btn btn-secondary" id="referral-copy-btn">העתק קוד</button>
         </div>
+      </div>
+
+      <!-- 17.9 — מובילים מועדפים. מראה `favoriteNames` ב-ProfileScreen.tsx —
+           מוצג רק כשיש לפחות מועדף אחד (הבחירה עצמה נעשית מפרטי ההזמנה,
+           order-status.html, אחרי השלמה). -->
+      <div class="app-card" id="favorite-drivers" style="display:none;">
+        <h2>מובילים מועדפים</h2>
+        <div class="settings-list" id="favorite-drivers-list"></div>
       </div>
 
       <div class="app-card" id="orders">
@@ -181,6 +196,8 @@
     import { clearAllOrderDrafts, loadOrderDraft, clearOrderDraft } from './guest-checkout.js';
     import { doc, updateDoc } from 'https://www.gstatic.com/firebasejs/12.16.0/firebase-firestore.js';
     import { db } from './firebase.js';
+    import { toggleFavoriteDriver } from './account.js';
+    import { getUserProfile } from './users.js';
 
     /**
      * בריחת HTML לכל ערך שמגיע ממסמך ההזמנה. **זו לא הגנה תיאורטית:**
@@ -203,6 +220,7 @@
     document.getElementById('content').style.display = 'block';
     render(state.profile);
     renderReferralCode(state.profile, state.authUser.uid);
+    renderFavoriteDrivers(state.profile);
 
     function render(profile) {
       document.getElementById('profile-name').textContent = profile.name || 'ללא שם';
@@ -264,6 +282,38 @@
           copyBtn.textContent = code;
         }
         setTimeout(() => { copyBtn.textContent = 'העתק קוד'; }, 2000);
+      });
+    }
+
+    /**
+     * מובילים מועדפים — מראה `favoriteNames` ב-ProfileScreen.tsx. `getUserProfile`
+     * הוא `get` בודד (לא `list`) על מסמך מוביל, שמותר לכל משתמש מחובר —
+     * אותה קריאה בדיוק ש-order-status.html כבר עושה בכרטיס המוביל.
+     */
+    async function renderFavoriteDrivers(profile) {
+      const uids = profile.favoriteDrivers ?? [];
+      const section = document.getElementById('favorite-drivers');
+      const list = document.getElementById('favorite-drivers-list');
+      if (uids.length === 0) { section.style.display = 'none'; return; }
+      const results = await Promise.all(uids.map(uid => getUserProfile(uid).then(p => p ? { uid, name: p.name || 'מוביל' } : null)));
+      const drivers = results.filter(Boolean);
+      if (drivers.length === 0) { section.style.display = 'none'; return; }
+      section.style.display = 'block';
+      list.innerHTML = drivers.map(d => `
+        <div class="settings-row">
+          <span class="settings-row-label">${esc(d.name)}</span>
+          <button tabindex="0" type="button" class="settings-row-remove" data-uid="${esc(d.uid)}">הסר</button>
+        </div>`).join('');
+      list.querySelectorAll('.settings-row-remove').forEach(btn => {
+        btn.addEventListener('click', async () => {
+          btn.disabled = true; btn.textContent = 'מסיר...';
+          try {
+            profile.favoriteDrivers = await toggleFavoriteDriver(state.authUser.uid, btn.dataset.uid, profile.favoriteDrivers);
+            renderFavoriteDrivers(profile);
+          } catch {
+            btn.disabled = false; btn.textContent = 'הסר';
+          }
+        });
       });
     }
 
@@ -390,11 +440,18 @@
     }
 
     function renderOrderRow(o) {
+      // 17.9 — תאריך ומספר הזמנה: מראה `cardDate`/`orderNumberText` ב-
+      // OrdersScreen.tsx. בלי זה שתי הזמנות פעילות מאותו שירות נראו זהות
+      // ברשימה, וללקוח לא הייתה דרך להבדיל ביניהן בלי לפתוח כל אחת.
+      const dateLabel = o.scheduledDate || (o.createdAt?.toDate ? o.createdAt.toDate().toLocaleDateString('he-IL', { day: '2-digit', month: '2-digit', year: 'numeric' }) : '');
       return `
         <a tabindex="0" class="order-row-card" href="order-status.html?id=${encodeURIComponent(o.id)}">
           <div>
-            <div class="order-row-title">${esc(o.title || 'הזמנה')}</div>
-            <div class="order-row-meta"><span class="status-badge ${esc(o.status)}">${esc(STATUS_LABELS[o.status] || o.status)}</span></div>
+            <div class="order-row-title">${esc(o.title || 'הזמנה')}${o.orderNumber ? ` <span class="order-number-text">#${esc(o.orderNumber)}</span>` : ''}</div>
+            <div class="order-row-meta">
+              <span class="status-badge ${esc(o.status)}">${esc(STATUS_LABELS[o.status] || o.status)}</span>
+              ${dateLabel ? `<span class="order-row-date">${esc(dateLabel)}</span>` : ''}
+            </div>
           </div>
           <div class="order-row-price">₪${esc(customerTotalOf(o))}</div>
         </a>`;

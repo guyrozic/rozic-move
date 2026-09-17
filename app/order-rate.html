@@ -103,6 +103,7 @@
   <script type="module">
     import { requireAuth } from './auth.js';
     import { getOrder, submitCustomerRating } from './orders.js';
+    import { getUserProfile } from './users.js';
 
     const esc = (v) => String(v ?? '')
       .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
@@ -158,6 +159,14 @@
         document.getElementById('thanks-box').querySelector('.app-card-desc').textContent = 'תודה שהקדשת מזמנך.';
       } else {
         contentEl.style.display = 'block';
+        // מראה RatingScreen.tsx: הכותרת אומרת "דרג את דני", לא "דרג את
+        // ההובלה" — נטען אחרי הבדיקות למעלה, כדי לא לבזבז קריאה על הזמנה
+        // שלא ניתן לדרג בכלל.
+        if (order.driverId) {
+          getUserProfile(order.driverId).then(driver => {
+            if (driver?.name) document.getElementById('hero-title').textContent = `דרג את ${driver.name}`;
+          });
+        }
         runForm(order);
       }
     }

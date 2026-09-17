@@ -9,6 +9,21 @@
   <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="../style.css?v=93d67ba9">
   <link rel="stylesheet" href="style-app.css?v=9f33b089">
+  <style>
+    /* 17.9 — עמוד ייעודי, לא style-app.css המשותף (ראו saved-addresses.html
+       לאותה מוסכמה). תמונת פרופיל: עיגול תצוגה מקדימה + כפתור החלפה. */
+    .avatar-picker { display: flex; align-items: center; gap: 14px; margin-bottom: 18px; }
+    .avatar-picker-preview {
+      width: 64px; height: 64px; border-radius: 50%; flex-shrink: 0;
+      background: var(--green-light); border: 2px solid var(--green);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.5rem; font-weight: 800; color: var(--green-dark);
+      overflow: hidden;
+    }
+    .avatar-picker-preview img { width: 100%; height: 100%; object-fit: cover; }
+    .avatar-picker-col { display: flex; flex-direction: column; gap: 6px; }
+    .avatar-picker-btn { padding: 8px 16px; font-size: 0.85rem; cursor: pointer; }
+  </style>
 </head>
 <body class="app-body">
 <div data-build-stamp class="build-stamp" aria-hidden="true">עודכן 17.09 · 19:52</div>
@@ -37,6 +52,17 @@
 
         <div id="form-error" role="alert"></div>
         <div id="form-success" style="display:none;"></div>
+
+        <!-- 17.9 — תמונת פרופיל. מראה pickPhoto ב-EditProfileScreen.tsx:
+             מוצגת לצד השני של ההזמנה (המוביל רואה אותה בפרטי ההזמנה). -->
+        <div class="avatar-picker">
+          <div class="avatar-picker-preview" id="avatar-preview" aria-hidden="true">?</div>
+          <div class="avatar-picker-col">
+            <label class="btn btn-secondary avatar-picker-btn" for="avatar-input">שנה תמונת פרופיל</label>
+            <input id="avatar-input" type="file" accept="image/*" class="sr-only">
+            <span class="form-hint" id="avatar-hint"></span>
+          </div>
+        </div>
 
         <div class="form-group">
           <label for="name-input">שם מלא</label>
@@ -84,7 +110,31 @@
   </footer>
 
   <script type="module">
-    import { requireAuth, updateProfileFields, isValidFullName, FULL_NAME_ERROR } from './auth.js';
+    import { requireAuth, isValidFullName, FULL_NAME_ERROR, cleanName, normalizePhone } from './auth.js';
+    import { doc, updateDoc } from 'https://www.gstatic.com/firebasejs/12.16.0/firebase-firestore.js';
+    import { db } from './firebase.js';
+    import { uploadProfilePhoto } from './storage.js';
+    import { resizeImageToBlob } from './image-resize.js';
+
+    /**
+     * ⚠️ 17.9 — `updateProfileFields` (auth.js) מקבל רק name/phone; photoUrl
+     * אינו מסלול שלה, ו-auth.js אינו קובץ שסוכן זה נוגע בו (בעבודה מקבילה
+     * על טופסי ההתחברות). הכתיבה כאן ישירה ל-Firestore, באותו נורמול בדיוק
+     * (cleanName/normalizePhone מיובאים משם) — כמו קוד ההפניה ב-account.html,
+     * שכבר עושה `updateDoc` ישיר על users/{uid} מאותו קובץ סוג.
+     */
+    async function updateNameAndPhone(uid, { name, phone, currentPhone }) {
+      const updates = {};
+      const trimmedName = cleanName(name);
+      if (trimmedName) updates.name = trimmedName;
+      if (phone !== undefined) {
+        const normalized = normalizePhone(phone);
+        updates.phone = normalized;
+        if (normalized !== normalizePhone(currentPhone ?? '')) updates.phoneVerified = false;
+      }
+      if (Object.keys(updates).length === 0) return;
+      await updateDoc(doc(db, 'users', uid), updates);
+    }
 
     const state = await requireAuth();
     document.getElementById('loading').style.display = 'none';
@@ -97,6 +147,29 @@
 
     const errBox = document.getElementById('form-error');
     const successBox = document.getElementById('form-success');
+
+    /* ---------- תמונת פרופיל ---------- */
+    const avatarPreview = document.getElementById('avatar-preview');
+    const avatarInput = document.getElementById('avatar-input');
+    const avatarHint = document.getElementById('avatar-hint');
+    let pendingPhotoFile = null;
+
+    function renderAvatarPreview(url) {
+      if (url) {
+        avatarPreview.innerHTML = `<img alt="תמונת הפרופיל שלך" src="${url}">`;
+      } else {
+        avatarPreview.textContent = (profile.name || '?').trim().charAt(0).toUpperCase() || '?';
+      }
+    }
+    renderAvatarPreview(profile.photoUrl);
+
+    avatarInput.addEventListener('change', () => {
+      const file = avatarInput.files?.[0];
+      if (!file) return;
+      pendingPhotoFile = file;
+      renderAvatarPreview(URL.createObjectURL(file));
+      avatarHint.textContent = 'התמונה תישמר עם "שמור שינויים".';
+    });
 
     document.getElementById('save-btn').addEventListener('click', async () => {
       errBox.innerHTML = '';
@@ -119,7 +192,14 @@
       const btn = document.getElementById('save-btn');
       btn.disabled = true; btn.textContent = 'שומר...';
       try {
-        await updateProfileFields(state.authUser.uid, { name, phone, currentPhone: profile.phone });
+        if (pendingPhotoFile) {
+          btn.textContent = 'מעלה תמונה...';
+          const blob = await resizeImageToBlob(pendingPhotoFile);
+          const url = await uploadProfilePhoto(state.authUser.uid, blob);
+          await updateDoc(doc(db, 'users', state.authUser.uid), { photoUrl: url });
+          btn.textContent = 'שומר...';
+        }
+        await updateNameAndPhone(state.authUser.uid, { name, phone, currentPhone: profile.phone });
         successBox.style.display = 'block';
         successBox.innerHTML = '<div class="alert alert-success">✓ הפרטים עודכנו. חוזרים לחשבון שלך...</div>';
         setTimeout(() => { location.href = 'account.html'; }, 1200);
