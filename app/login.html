@@ -544,6 +544,15 @@
         document.getElementById('reg-phone').focus();
         return;
       }
+      // `type="email"` בלבד סומך על ולידציית הדפדפן, ששונה בין דפדפנים ומקלה
+      // יותר מדי (Chrome למשל מקבל "a@b" בלי סיומת דומיין). אותה regex בדיוק
+      // כמו handleRegister ב-RegisterScreen.tsx.
+      const regEmail = document.getElementById('reg-email').value.trim();
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(regEmail)) {
+        showError('כתובת אימייל לא תקינה');
+        document.getElementById('reg-email').focus();
+        return;
+      }
       const regPassword = document.getElementById('reg-password').value;
       const passwordErr = registerPasswordError(regPassword);
       if (passwordErr) {
