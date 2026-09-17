@@ -28,7 +28,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="../style.css?v=93d67ba9">
-  <link rel="stylesheet" href="style-app.css?v=d23040de">
+  <link rel="stylesheet" href="style-app.css?v=fdbb8c13">
   <style>
     /* 17.9 — עמוד ייעודי, לא style-app.css המשותף (ראו saved-addresses.html
        לאותה מוסכמה). */
@@ -38,7 +38,7 @@
   </style>
 </head>
 <body class="app-body">
-<div data-build-stamp class="build-stamp" aria-hidden="true">עודכן 17.09 · 23:02</div>
+<div data-build-stamp class="build-stamp" aria-hidden="true">עודכן 17.09 · 23:07</div>
   <!-- ⚠️ 15.9 — "דלג לתוכן המרכזי" (WCAG 2.4.1, רמה A). זהו האלמנט הממוקד
        הראשון בדף: מוסתר מהעין, מופיע בפינה ברגע שמגיעים אליו ב-Tab, ומעביר
        את המיקוד אל <main id="main-content" tabindex="-1">. בלי ה-tabindex
@@ -325,6 +325,33 @@
     let verificationId = null;
     const phoneError = document.getElementById('phone-error');
 
+    /**
+     * ⚠️ 17.9 — שני ה-catch של אימות הטלפון הציגו הודעה גנרית קבועה ובלעו
+     * את `err` לגמרי. זה בדיוק מה שהסתיר תקלה אמיתית: מספר בדיקה שהשרת
+     * דוחה נראה למשתמש כמו "קוד שגוי", ואין שום דרך — למשתמש או לנו —
+     * לדעת מה קרה באמת. עכשיו הקוד ממופה להודעה מדויקת, והקוד הגולמי
+     * נרשם לקונסולה לאבחון.
+     */
+    function phoneErrMessage(err, fallback) {
+      const code = (err && err.code) || '';
+      console.warn('[אימות טלפון] קוד שגיאה:', code, err);
+      const MAP = {
+        'auth/invalid-phone-number': 'מספר הטלפון אינו תקין. בדוק אותו ונסה שוב.',
+        'auth/missing-phone-number': 'לא הוזן מספר טלפון.',
+        'auth/too-many-requests': 'נשלחו יותר מדי בקשות מהמכשיר הזה. המתן כמה דקות ונסה שוב.',
+        'auth/quota-exceeded': 'מכסת הודעות ה-SMS מוצתה כרגע. נסה שוב מאוחר יותר.',
+        'auth/captcha-check-failed': 'אימות ה-reCAPTCHA נכשל. רענן את הדף ונסה שוב.',
+        'auth/operation-not-allowed': 'אימות טלפון אינו פעיל כרגע. פנה לתמיכה.',
+        'auth/invalid-verification-code': 'הקוד שהזנת שגוי. בדוק ונסה שוב.',
+        'auth/code-expired': 'תוקף הקוד פג. בקש קוד חדש.',
+        'auth/missing-verification-code': 'לא הוזן קוד אימות.',
+        'auth/credential-already-in-use': 'מספר הטלפון הזה כבר משויך לחשבון אחר.',
+        'auth/provider-already-linked': 'כבר קיים מספר טלפון מאומת בחשבון הזה.',
+        'auth/network-request-failed': 'אין חיבור לרשת. בדוק את החיבור ונסה שוב.',
+      };
+      return MAP[code] || fallback;
+    }
+
     document.getElementById('send-code-btn').addEventListener('click', async () => {
       phoneError.innerHTML = '';
       const btn = document.getElementById('send-code-btn');
@@ -336,7 +363,7 @@
         document.getElementById('phone-step-number').style.display = 'none';
         document.getElementById('phone-step-code').style.display = 'block';
       } catch (err) {
-        phoneError.innerHTML = `<div class="alert alert-error">שליחת הקוד נכשלה. ודא שהמספר תקין ונסה שוב.</div>`;
+        phoneError.innerHTML = `<div class="alert alert-error">${phoneErrMessage(err, 'שליחת הקוד נכשלה. ודא שהמספר תקין ונסה שוב.')}</div>`;
       } finally {
         btn.disabled = false; btn.textContent = 'שלח קוד אימות';
       }
@@ -375,7 +402,7 @@
         if (phoneCard) phoneCard.style.display = 'none';
         btn.textContent = 'אומת ✓';
       } catch (err) {
-        phoneError.innerHTML = `<div class="alert alert-error">קוד שגוי או שפג תוקפו. נסה שוב.</div>`;
+        phoneError.innerHTML = `<div class="alert alert-error">${phoneErrMessage(err, 'קוד שגוי או שפג תוקפו. נסה שוב.')}</div>`;
         btn.disabled = false; btn.textContent = 'אשר קוד';
       }
     });
