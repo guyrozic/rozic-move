@@ -377,7 +377,8 @@
     import { orderTermsConsent } from './legal.js';
     import { isValidFullName, FULL_NAME_ERROR } from './auth.js';
     import { ALL_ROOMS, findItemAnywhere, getItemPriceAnyCategory, getFullAICatalog, getSizeSiblings } from './data/items.js';
-    import { PRICE_PER_KM, FLOOR_SURCHARGE_PER_FLOOR, getSurgePricing, calculatePackingFromItems, INSURANCE_PRICE_SMALL_MOVE } from './data/pricing.js';
+    import { PRICE_PER_KM, FLOOR_SURCHARGE_PER_FLOOR, getSurgePricing, calculatePackingFromItems, INSURANCE_PRICE_SMALL_MOVE, SMALL_MOVE_BASE_PRICE } from './data/pricing.js';
+    import { loadRemotePricingConfig } from './pricing-config.js';
     import { BOX_ITEMS, MAX_VOLUME, estimateVolume, applyWithinCapacity } from './data/smallMoveItems.js';
     import { FLOORS, craneCostFor, distanceAndCoords, formatDateApp, parseDateApp } from './geo.js';
     import { insurancePriceInPilot } from './pilot-mode.js';
@@ -392,7 +393,10 @@
     // נדרשת רק לפני התשלום. ראו guest-checkout.js לנימוק המלא.
     const authState = await getAuthOptional();
     if (isDriverAccount(authState)) showDriverBlockAndHalt();
-    const BASE = 100; // smallMove-only constant — NOT pricing.js's BASE_PRICE (150), confirmed distinct in the source app
+    // 60.5 — טוען מחירים חיים מ-config/pricing לפני חישוב המחיר הראשון,
+    // כך ששינוי מחיר במסך האדמין באפליקציה מופיע גם כאן. מחיר הבסיס עצמו
+    // עבר ל-SMALL_MOVE_BASE_PRICE ב-data/pricing.js (היה const BASE=100 מקומי).
+    await loadRemotePricingConfig();
     // 12.9 — נגזר מ-data/pricing.js, שם הוא מסונכרן מול האפליקציה.
     const BOXES_TAB = 'boxes';
     // AI detection only knows the catalog + BOX_ITEMS keys (same AI_CATALOG shape the app builds for this flow).
@@ -464,7 +468,7 @@
       let floorSurcharge = 0;
       if (!state.fromElevator && fromFloorNum > 0) floorSurcharge += fromFloorNum * FLOOR_SURCHARGE_PER_FLOOR;
       if (!state.toElevator && toFloorNum > 0) floorSurcharge += toFloorNum * FLOOR_SURCHARGE_PER_FLOOR;
-      const baseTotal = BASE + itemsTotal + travelCost + floorSurcharge;
+      const baseTotal = SMALL_MOVE_BASE_PRICE + itemsTotal + travelCost + floorSurcharge;
       const surge = getSurgePricing(parseDateApp(state.date));
       const surgeAmount = surge ? Math.round(baseTotal * surge.rate) : 0;
       const packingCalc = calculatePackingFromItems(selected.filter(i => findItemAnywhere(i.key)).map(i => ({ itemKey: i.key, qty: i.qty })));
@@ -1219,7 +1223,7 @@
       document.getElementById('packing-price-label').textContent = `(+₪${p.packingCalc.total})`;
 
       const lines = [];
-      lines.push(['עלות בסיס', `₪${BASE}`]);
+      lines.push(['עלות בסיס', `₪${SMALL_MOVE_BASE_PRICE}`]);
       lines.push([`סכום פריטים (${p.selected.length})`, `₪${p.itemsTotal}`]);
       if (p.travelCost > 0) lines.push([`נסיעה (${state.distance} ק"מ)`, `₪${p.travelCost}`]);
       if (p.floorSurcharge > 0) lines.push(['תוספת קומות', `₪${p.floorSurcharge}`]);

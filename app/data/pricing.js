@@ -340,9 +340,12 @@ export function getVolumeDiscount(subtotal) {
     }
     return 0.20;
 }
-export const BASE_PRICE = 150;
-export const PRICE_PER_KM = 9;
-export const FLOOR_SURCHARGE_PER_FLOOR = 40;
+export let BASE_PRICE = 150;
+/** מחיר בסיס "מובילים בקטנה" — אוחד לכאן מ-small-move.html (היה const BASE=100 מקומי),
+ *  כדי שיתעדכן מ-config/pricing.smallMoveBasePrice כמו כל שאר הקצבים (60.5). */
+export let SMALL_MOVE_BASE_PRICE = 100;
+export let PRICE_PER_KM = 9;
+export let FLOOR_SURCHARGE_PER_FLOOR = 40;
 /**
  * העמלה שהפלטפורמה מנכה מתשלום הלקוח לפני העברת חלק המוביל.
  *
@@ -353,7 +356,7 @@ export const FLOOR_SURCHARGE_PER_FLOOR = 40;
  * 11.9 — תוקן מ-0.05 ל-0.10. הערך השגוי סתר את האפליקציה ואת השרת
  * בלי שאף אחד ראה את זה, כי איש לא קורא אותו.
  */
-export const PLATFORM_FEE_RATE = 0.10;
+export let PLATFORM_FEE_RATE = 0.10;
 // ── Crane pricing (based on Israeli market research 2024-2026) ──
 export const APARTMENT_CRANE_PRICE_PER_HOUR = {
     'floor_1_6': 500, // קומה 1-6
@@ -451,9 +454,9 @@ export function getCancellationFee(totalPrice, hoursUntilPickup) {
     return Math.round((tier?.feePct ?? 0.5) * totalPrice);
 }
 /** Fixed component of the packing-service price (Option B — priced from the customer's actual items), added on top of the percentage below. Set 2026-07-21 per business decision — was a bottom-up box/wrap unit-price calculation before. */
-export const PACKING_BASE_FEE = 149;
+export let PACKING_BASE_FEE = 149;
 /** Percentage of the packed items' own ₪ price subtotal (not the full order — excludes travel/floors/insurance/etc) added to PACKING_BASE_FEE. */
-export const PACKING_PERCENT_RATE = 0.30;
+export let PACKING_PERCENT_RATE = 0.30;
 /**
  * Single source of packing pricing math — catalog-agnostic on purpose, so both the
  * items.ts-backed flows (apartment/smallMove add-on) and the separately-maintained
@@ -564,5 +567,54 @@ export function getSurgePricing(date) {
  * של אותו מספר, מעבר לשני המסכים באפליקציה. שינוי מחיר היה דורש
  * עריכה בשלושה מקומות.
  */
-export const INSURANCE_PRICE_APARTMENT = 99;
-export const INSURANCE_PRICE_SMALL_MOVE = 49;
+export let INSURANCE_PRICE_APARTMENT = 99;
+export let INSURANCE_PRICE_SMALL_MOVE = 49;
+
+// ══════════════════════════════════════════════════════════════════
+//  סנכרון מחירים חי מ-config/pricing + config/itemPrices (60.5)
+//  פורט מ-Hovalot/src/data/pricing.ts. האדמין כותב את המסמכים האלה דרך
+//  מסך התמחור באפליקציה; pricing-config.js טוען אותם בכל דף שמציג מחיר
+//  ומחיל אותם כאן מעל ברירות המחדל המקומפלות, כך ששינוי מחיר באפליקציה
+//  מופיע גם באתר. ITEM_PRICES מוגדר בקובץ הזה, לכן ה-override נוגע באותו
+//  אובייקט ש-items.js קורא ממנו — עדכון חי בשני הצדדים.
+// ══════════════════════════════════════════════════════════════════
+
+/** ערך קביל בלבד — מחרוזת/NaN/שלילי/מעל התקרה נזרקים ונשארת ברירת המחדל (זהה ל-acceptedValue ב-pricing.ts). */
+function acceptedValue(value, max) {
+  return typeof value === 'number' && Number.isFinite(value) && value >= 0 && value < max ? value : null;
+}
+const MAX_RATE = 1;      // שיעורים (0-1) — חוסם הקלדת 12 במקום 0.12
+const MAX_FEE = 100000;  // תקרת שפיות לשדות ₪ מפני ערך משובש
+
+/** מחיל את config/pricing מעל הקבועים. ערך לא-קביל נזרק. מקבילה ל-applyPricingRates ב-pricing.ts. */
+export function applyPricingRates(rates) {
+  const applied = {
+    basePrice: acceptedValue(rates.basePrice, MAX_FEE),
+    smallMoveBasePrice: acceptedValue(rates.smallMoveBasePrice, MAX_FEE),
+    pricePerKm: acceptedValue(rates.pricePerKm, MAX_FEE),
+    floorSurchargePerFloor: acceptedValue(rates.floorSurchargePerFloor, MAX_FEE),
+    platformFeeRate: acceptedValue(rates.platformFeeRate, MAX_RATE),
+    packingBaseFee: acceptedValue(rates.packingBaseFee, MAX_FEE),
+    packingPercentRate: acceptedValue(rates.packingPercentRate, MAX_RATE),
+    insurancePriceApartment: acceptedValue(rates.insurancePriceApartment, MAX_FEE),
+    insurancePriceSmallMove: acceptedValue(rates.insurancePriceSmallMove, MAX_FEE),
+  };
+  if (applied.basePrice != null) BASE_PRICE = applied.basePrice;
+  if (applied.smallMoveBasePrice != null) SMALL_MOVE_BASE_PRICE = applied.smallMoveBasePrice;
+  if (applied.pricePerKm != null) PRICE_PER_KM = applied.pricePerKm;
+  if (applied.floorSurchargePerFloor != null) FLOOR_SURCHARGE_PER_FLOOR = applied.floorSurchargePerFloor;
+  if (applied.platformFeeRate != null) PLATFORM_FEE_RATE = applied.platformFeeRate;
+  if (applied.packingBaseFee != null) PACKING_BASE_FEE = applied.packingBaseFee;
+  if (applied.packingPercentRate != null) PACKING_PERCENT_RATE = applied.packingPercentRate;
+  if (applied.insurancePriceApartment != null) INSURANCE_PRICE_APARTMENT = applied.insurancePriceApartment;
+  if (applied.insurancePriceSmallMove != null) INSURANCE_PRICE_SMALL_MOVE = applied.insurancePriceSmallMove;
+}
+
+/** מחיל את config/itemPrices — override למחיר פריט בכל קטגוריה שהוא מופיע בה. זהה ל-applyItemPriceOverrides ב-pricing.ts. */
+export function applyItemPriceOverrides(overrides) {
+  for (const [itemKey, price] of Object.entries(overrides)) {
+    for (const category of Object.keys(ITEM_PRICES)) {
+      if (itemKey in ITEM_PRICES[category]) ITEM_PRICES[category][itemKey] = price;
+    }
+  }
+}

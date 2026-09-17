@@ -400,6 +400,7 @@
     import { isValidFullName, FULL_NAME_ERROR } from './auth.js';
     import { ALL_ROOMS, findItemAnywhere, getItemPriceAnyCategory, getFullAICatalog, getSizeSiblings } from './data/items.js';
     import { BASE_PRICE, PRICE_PER_KM, FLOOR_SURCHARGE_PER_FLOOR, getVolumeDiscount, getSurgePricing, calculatePackingFromItems, getBoxSizeFromKey, INSURANCE_PRICE_APARTMENT } from './data/pricing.js';
+    import { loadRemotePricingConfig } from './pricing-config.js';
     import { FLOORS, craneCostFor, distanceAndCoords, formatDateApp, parseDateApp } from './geo.js';
     import { insurancePriceInPilot } from './pilot-mode.js';
     import { analyzeImagesWithCatalog, isAIConfigured, friendlyAIError, chatAddItemsWithCatalog } from './ai-vision.js';
@@ -413,6 +414,9 @@
     // נדרשת רק לפני התשלום. ראו guest-checkout.js לנימוק המלא.
     const authState = await getAuthOptional();
     if (isDriverAccount(authState)) showDriverBlockAndHalt();
+    // 60.5 — טוען מחירים חיים מ-config/pricing לפני חישוב המחיר הראשון,
+    // כך ששינוי מחיר במסך האדמין באפליקציה מופיע גם כאן.
+    await loadRemotePricingConfig();
     // 12.9 — נגזר מ-data/pricing.js, שם הוא מסונכרן מול האפליקציה.
 
     const state = {
