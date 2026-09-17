@@ -90,7 +90,7 @@
   <div class="app-container">
     <div class="app-card">
       <h2>תמונות</h2>
-      <p class="app-card-desc">עד 10 תמונות — תמונה ראשונה תוצג ברשימה.</p>
+      <p class="app-card-desc">עד 4 תמונות — תמונה ראשונה תוצג ברשימה.</p>
       <div class="photo-grid" id="photo-grid">
         <!-- ⚠️ ה-`label` הזה הוא הפקד היחיד שמוסיף תמונות, ותמונה אחת היא
              תנאי לפרסום. `input#photo-input` הוא `display:none` ולכן אינו
@@ -105,7 +105,7 @@
         <div class="ai-upload-progress-fill" id="ai-listing-progress-fill" style="width:0%"></div>
       </div>
       <div id="ai-listing-error" role="alert"></div>
-      <button class="btn btn-secondary" id="ai-analyze-listing-btn" tabindex="0" style="margin-top:6px;" disabled>נתח תמונות עם AI ✨</button>
+      <button class="btn btn-secondary" id="ai-analyze-listing-btn" tabindex="0" style="margin-top:6px;" disabled>נתח עם AI וצור פרסום אוטומטי</button>
       <!-- ⚠️ אצל אורח הכפתור שמעל **נשאר כבוי גם אחרי שהוא מוסיף תמונות**,
            בלי מילה. כפתור מושתק בלי הסבר נראה כמו תקלה בדף. ההודעה מוצגת
            ב-JS לאורחים בלבד (ראו סוף הסקריפט).
@@ -121,14 +121,19 @@
 
     <div class="app-card">
       <h2>פרטי הפריט</h2>
-      <div id="ai-filled-badge" class="alert alert-success" style="display:none;">✓ AI מילא עבורך את הפרטים למטה — אפשר לערוך</div>
+      <div id="ai-filled-badge" class="alert alert-success" style="display:none;">AI מילא עבורך את הפרטים למטה — אפשר לערוך</div>
+      <!-- 17.9 — 40/600 מיושרים ל-`LISTING_TITLE_MAX`/`maxLength` ב-
+           CreateGiveawayScreen.tsx (היו 100/2000, תקרת חוק Firestore בלבד —
+           ראו ההערה על MAX_PHOTOS למעלה, אותו עקרון בדיוק). 40 תווים נגזר
+           שם מהכרטיס בלוח (`numberOfLines={2}` בכרטיס 47% רוחב) — כותרת
+           ארוכה יותר נחתכת בגלריה בין כה וכה. -->
       <div class="form-group">
         <label for="title">כותרת</label>
-        <input id="title" type="text" required maxlength="100" placeholder="לדוגמה: ספה תלת מושבית">
+        <input id="title" type="text" required maxlength="40" placeholder="לדוגמה: ספה, מדף, בגדים...">
       </div>
       <div class="form-group">
         <label for="description">תיאור</label>
-        <textarea id="description" rows="4" maxlength="2000" placeholder="מצב הפריט, מידות, כל פרט שיעזור..."></textarea>
+        <textarea id="description" rows="4" maxlength="600" placeholder="מידות, צבע, פרטים..."></textarea>
       </div>
       <!-- ⚠️ 16.9 — השדה הזה היה קיים ב-CreateGiveawayScreen באפליקציה
            ("למה אתה מעביר?") ולא באתר. שדה קטן, אבל הוא בדיוק מה שהופך
@@ -150,7 +155,7 @@
     </div>
 
     <div class="ai-chat-card">
-      <h2>💬 צריך עזרה בכתיבת המודעה?</h2>
+      <h2>צריך עזרה בכתיבת המודעה?</h2>
       <p>שאל איך לכתוב כותרת טובה, לתאר מצב, ועוד.</p>
       <div class="ai-chat-thread" id="listing-chat-thread"></div>
       <div class="ai-chat-input-row">
@@ -261,12 +266,20 @@
      * (`guest-checkout.js`): ממלאים בלי חשבון, ונרשמים ברגע השליחה.
      *
      * ⚠️ **ומכאן נובעת חובת שמירת הטיוטה, והיא לא אופציונלית כאן יותר
-     * מאשר שם.** מי שהעלה עשר תמונות, נתח אותן ב-AI וענה על שאלות
+     * מאשר שם.** מי שהעלה כמה תמונות, נתח אותן ב-AI וענה על שאלות
      * ההנחיה — ואז נשלח להירשם וחוזר לדף ריק — קיבל חוויה גרועה מהחסימה
      * בכניסה, שבה לפחות ידע מראש. ראו `saveListingDraft` למטה.
      */
     const authState = await getAuthOptional();
-    const MAX_PHOTOS = 10;
+    /**
+     * 17.9 — היה 10 (התקרה שחוק Firestore מתיר, `listings/{id}` ב-
+     * firestore.rules). **4 הוא המספר הנכון**: זו התקרה שהמשתמש בפועל
+     * רואה — `CreateGiveawayScreen.tsx` (`selectionLimit: 4`). חוק ה-10
+     * הוא רשת ביטחון בשרת, לא עיצוב UX; שני משטחים שמציגים מגבלה שונה
+     * לאותה פעולה בדיוק הם בדיוק ה"עותק שני שלא מסכים" שה-CLAUDE.md
+     * מזהיר עליו, גם כשזה לא כסף.
+     */
+    const MAX_PHOTOS = 4;
     let photos = []; // File objects
     let category = 'furniture';
     let condition = null;
@@ -308,7 +321,7 @@
     Object.entries(CATEGORY_INFO).forEach(([key, info]) => {
       const chip = document.createElement('div');
       chip.className = 'room-tab' + (key === category ? ' active' : '');
-      chip.textContent = `${info.icon} ${info.label}`;
+      chip.textContent = info.label;
       chip.dataset.cat = key;
       makeChipAccessible(chip, key === category);
       const selectCat = () => {
@@ -442,8 +455,11 @@
         const images = [];
         for (const file of photos) images.push({ base64: await resizeImageToBase64(file), mimeType: 'image/jpeg' });
         const result = await analyzeListingPhoto(images);
-        if (result.title) document.getElementById('title').value = result.title;
-        if (result.description) document.getElementById('description').value = result.description;
+        // `maxlength` על ה-`<input>` חוסם הקלדה בלבד, לא כתיבה תוכניתית —
+        // בלי החיתוך כאן כותרת שה-AI מייצר יכולה לעקוף את הגבול, בדיוק
+        // כמו ב-`runAI` ב-CreateGiveawayScreen.tsx (שם `.slice(0, LISTING_TITLE_MAX)`).
+        if (result.title) document.getElementById('title').value = result.title.slice(0, 40);
+        if (result.description) document.getElementById('description').value = result.description.slice(0, 600);
         if (result.category) {
           category = result.category;
           [...tabsEl.children].forEach(c => {
@@ -475,7 +491,7 @@
         clearInterval(tick);
         progressFill.style.width = '100%';
         setTimeout(() => { progressWrap.style.display = 'none'; progressFill.style.width = '0%'; }, 400);
-        btn.disabled = photos.length === 0 || !isAIConfigured(); btn.textContent = 'נתח תמונות עם AI ✨';
+        btn.disabled = photos.length === 0 || !isAIConfigured(); btn.textContent = 'נתח עם AI וצור פרסום אוטומטי';
       }
     });
 

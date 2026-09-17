@@ -6,16 +6,23 @@ import {
 } from 'https://www.gstatic.com/firebasejs/12.16.0/firebase-firestore.js';
 import { db } from './firebase.js';
 
-// Emoji substitutes for the app's {lib:'ion'|'mci', name} vector-icon refs — this
-// site doesn't load those icon fonts, only the labels/keys need to stay identical.
+/**
+ * 17.9 — הוסר שדה `icon` (היה תחליף אמוג'י ל-{lib:'ion'|'mci', name}
+ * וקטורי-האייקון של האפליקציה). **הלוח "מעבירים את זה הלאה" עוצב מחדש
+ * ב-24.7 במכוון בלי אמוג'י** — `GiveawayScreen.tsx`/`ListingDetailsScreen.tsx`/
+ * `CreateGiveawayScreen.tsx` לא נושאים ולו תו אמוג'י אחד, ומחליפים אותם
+ * ב-Ionicons/MaterialCommunityIcons (למשל `EmptyState` שהחליף את "📭" ב-SVG
+ * קווי). האתר לא טוען את גופני האייקונים האלה, ולכן במקום להמציא תחליף —
+ * התוויות עומדות בפני עצמן, בדיוק כמו קטגוריה שנקראת בקול.
+ */
 export const CATEGORY_INFO = {
-  furniture:   { icon: '🛋️', label: 'רהיטים' },
-  electronics: { icon: '📺', label: 'אלקטרוניקה' },
-  appliances:  { icon: '🧊', label: 'מכשירי חשמל' },
-  clothing:    { icon: '👕', label: 'ביגוד' },
-  sports:      { icon: '⚽', label: 'ספורט' },
-  books:       { icon: '📚', label: 'ספרים' },
-  other:       { icon: '📦', label: 'שונות' },
+  furniture:   { label: 'רהיטים' },
+  electronics: { label: 'אלקטרוניקה' },
+  appliances:  { label: 'מכשירי חשמל' },
+  clothing:    { label: 'ביגוד' },
+  sports:      { label: 'ספורט' },
+  books:       { label: 'ספרים' },
+  other:       { label: 'שונות' },
 };
 
 /** מודעה בודדת. `listings/{id}` הוא ציבורי (allow read: if true) — עובד גם בלי התחברות. */
@@ -104,6 +111,108 @@ export async function markListingSold(listingId) {
 
 export async function deleteListing(listingId) {
   await deleteDoc(doc(db, 'listings', listingId));
+}
+
+/* ══════════════════════════════════════════════════════════════════
+   חסימה ודיווח — פורט של src/services/blocks.ts + src/services/reports.ts
+   ══════════════════════════════════════════════════════════════════
+
+   ⚠️ 17.9 — עד עכשיו האתר לא נשא שום דרך לחסום מפרסם או לדווח על מודעה,
+   בזמן ש-`ListingDetailsScreen.tsx` באפליקציה מציג את שתי הפעולות לכל
+   צופה שאינו הבעלים (מדיניות ה-UGC של גוגל דורשת ששתיהן יהיו נבדלות
+   ומסומנות בבירור — לכן שני כפתורים נפרדים, לא אחד).
+
+   `subscribeToBlockedUsers`/`unblockUser` (מי **אני** חסמתי) כבר קיימים
+   ב-`account.js` עבור מסך "אזור אישי", ומיובאים משם ולא משוכפלים כאן.
+   מה שחסר, וזה מקומו — כי הוא נוצר ונצרך רק מהקשר של מודעה — הוא כתיבת
+   חסימה חדשה, קריאת "מי חסם אותי", ודיווח על מודעה.
+*/
+
+/**
+ * מי חסם אותי — מסמך שנכתב אך ורק ע"י `mirrorUserBlocks` (Admin SDK, ראו
+ * functions/src/mirrorUserBlocks.ts ב-Hovalot). מראה את
+ * `subscribeToWhoBlockedMe` ב-`src/services/blocks.ts`.
+ *
+ * בכוונה מנוי חי ולא קריאה חד-פעמית: הלוח (`marketplace.html`) מסתיר
+ * לפיו כרטיסים שלמים בזמן אמת — אותה סיבה בדיוק ש-`subscribeToActiveListings`
+ * הוא מנוי ולא `getDocs`.
+ */
+export function subscribeToWhoBlockedMe(uid, callback) {
+  return onSnapshot(
+    doc(db, 'users', uid, 'private', 'blockedBy'),
+    (snap) => {
+      const ids = snap.exists() ? snap.data()?.blockedByIds : null;
+      callback(Array.isArray(ids) ? ids : []);
+    },
+    () => callback([]),
+  );
+}
+
+/**
+ * מראה את `blockUser` ב-`src/services/blocks.ts` — אותו מבנה נתונים בדיוק
+ * (`users/{uid}/private/blocks` → `{ blocked: { [targetId]: {name, at} } }`),
+ * כדי שחסימה מהאתר תיראה מיד גם באפליקציה של אותו חשבון, ולהפך.
+ */
+export async function blockUser(uid, targetId, targetName) {
+  if (!uid || !targetId || uid === targetId) return;
+  await setDoc(
+    doc(db, 'users', uid, 'private', 'blocks'),
+    { blocked: { [targetId]: { name: (targetName ?? '').trim() || 'משתמש', at: serverTimestamp() } }, updatedAt: serverTimestamp() },
+    { merge: true },
+  );
+}
+
+/**
+ * בדיקה חד-פעמית — האם יש יחס חסימה (בכל כיוון) בין `uid` למפרסם המודעה.
+ *
+ * ⚠️ **לא מנוי חי, ובכוונה.** מיועדת לדפים שנטענים פעם אחת (`listing.html`,
+ * דף השיתוף הציבורי) ולא ללוח החי — שם `subscribeToWhoBlockedMe` +
+ * `subscribeToBlockedUsers` (מ-`account.js`) כבר עושים את זה כמנוי מתמשך.
+ * שתי קריאות `getDoc` בודדות ולא שני מנויים ששרידים אחרי שהדף כבר הוצג.
+ */
+export async function checkListingBlockHidden(uid, listing) {
+  if (!uid || !listing?.userId || listing.userId === uid) return { hidden: false, blockedByMe: false };
+  const [blocksSnap, blockedBySnap] = await Promise.all([
+    getDoc(doc(db, 'users', uid, 'private', 'blocks')).catch(() => null),
+    getDoc(doc(db, 'users', uid, 'private', 'blockedBy')).catch(() => null),
+  ]);
+  const blockedByMe = !!blocksSnap?.data()?.blocked?.[listing.userId];
+  const blockedMe = (blockedBySnap?.data()?.blockedByIds || []).includes(listing.userId);
+  return { hidden: blockedByMe || blockedMe, blockedByMe };
+}
+
+/**
+ * סיבות הדיווח שרלוונטיות למודעה בלוח — תת-קבוצה של
+ * `REPORT_REASONS_BY_TYPE.listing` ב-`src/services/reports.ts` (שם
+ * הרשימה המלאה, שכוללת גם סיבות עבור מוביל/לקוח/משתמש שלא רלוונטיות כאן).
+ */
+export const LISTING_REPORT_REASONS = {
+  offensive_content:  'תוכן פוגעני או לא הולם',
+  prohibited_item:    'פריט אסור לפרסום',
+  misleading_listing: 'מודעה מטעה או ספאם',
+  wrong_contact:      'פרטי קשר שגויים',
+  other:              'אחר',
+};
+
+/**
+ * מראה את `submitReport` ב-`src/services/reports.ts`, מוגבל ל-`type:'listing'`
+ * — האתר לא מדווח על מוביל/לקוח/הזמנה, רק על מודעה בלוח.
+ */
+export async function submitListingReport({ reporterId, reporterName, listingId, listingTitle, targetUserId, targetUserName, reason, details }) {
+  await addDoc(collection(db, 'reports'), {
+    reporterId, reporterName,
+    type: 'listing',
+    targetId: listingId,
+    targetName: listingTitle,
+    reason,
+    details: (details ?? '').trim(),
+    status: 'open',
+    createdAt: serverTimestamp(),
+    // פריסה מותנית ולא `?? null`: `undefined` מפיל את הכתיבה כולה — אותו
+    // לקח כמו `createListing` למעלה.
+    ...(targetUserId ? { targetUserId } : {}),
+    ...(targetUserName ? { targetUserName } : {}),
+  });
 }
 
 /**

@@ -49,6 +49,21 @@
     /* דיסקליימר — יושב בין פרטי המודעה לכפתור יצירת הקשר, כלומר בשורה
        האחרונה שנקראת לפני הפנייה למפרסם. */
     .listing-disclaimer { background: var(--bg); border: 1px solid var(--border); border-radius: 12px; padding: 12px 14px; margin: 14px 0 12px; font-size: 0.8rem; color: var(--text-muted); line-height: 1.75; }
+    /* 17.9 — דווח/חסום, מראה את ReportModal/blockBtn ב-ListingDetailsScreen.tsx.
+       שני כפתורים נפרדים בכוונה (לא אחד) — מדיניות ה-UGC דורשת שדיווח (פונה
+       אלינו) וחסימה (מסתירה, לא מדווחת) יישארו נבדלים ומסומנים בבירור. */
+    .listing-safety-row { display: flex; gap: 8px; margin-top: 14px; flex-wrap: wrap; }
+    .listing-safety-row button { flex: 1; min-width: 140px; }
+    .report-reasons { display: flex; flex-direction: column; gap: 8px; margin: 10px 0 14px; }
+    .report-reasons .room-tab { justify-content: flex-start; width: 100%; }
+    /* מונוגרם ניטרלי במקום תמונה — לא אמוג'י (ראו ההערה על CATEGORY_INFO
+       ב-listings.js). אות ראשונה של הקטגוריה, בגוון הפלטה הקיים. */
+    .listing-photo-initial { font-size: 2rem; font-weight: 800; color: var(--green-dark); opacity: 0.45; }
+    /* 17.9 — מראה את `EmptyState.tsx`: תחליף ל"📭"/"🎁" — תג עגול עם ציור
+       קווי (מסלול מקווקו + נקודת יעד), באותה פלטה שהאתר כבר משתמש בה.
+       `.empty-icon`/`.empty-state` המשותפים (style-app.css) לא נגעו בהם —
+       דפים אחרים עדיין עובדים איתם כרגיל; זה מקומי לעמוד הזה בלבד. */
+    .empty-badge { width: 96px; height: 96px; border-radius: 48px; background: var(--green-light); display: flex; align-items: center; justify-content: center; margin: 0 auto 14px; }
 
     /* --- נגישות מקלדת --- */
     /* טבעת מיקוד נראית על כל מה שהפך ממוקד. `outline` בלבד ומחוץ לקופסה
@@ -106,7 +121,13 @@
          GiveawayScreen.tsx. עד היום כל מקרה קיבל אותה הודעה בדיוק,
          גם כשחיפשו "מקרר" בלוח מלא רהיטים. -->
     <div id="empty-state" class="empty-state" style="display:none;">
-      <div class="empty-icon">🎁</div>
+      <div class="empty-badge">
+        <svg width="48" height="48" viewBox="0 0 64 64" fill="none" aria-hidden="true">
+          <path d="M10 50 C 10 30, 30 40, 32 24 C 34 8, 50 18, 52 10" stroke="var(--green-dark)" stroke-width="2.5" stroke-linecap="round" stroke-dasharray="1.5,9"/>
+          <circle cx="10" cy="50" r="3.5" fill="var(--green-dark)" opacity="0.35"/>
+          <circle cx="52" cy="10" r="4.5" fill="var(--green-dark)"/>
+        </svg>
+      </div>
       <div id="empty-state-title">עדיין אין פריטים להעברה</div>
       <p class="app-card-desc" id="empty-state-subtitle" style="margin-top:6px;">היו הראשונים לתת לקהילה — זה לוקח רק דקה</p>
     </div>
@@ -124,6 +145,22 @@
     <div class="modal-box" id="modal-box" role="dialog" aria-modal="true" aria-labelledby="modal-title" tabindex="-1">
       <button class="modal-close" id="modal-close" tabindex="0" aria-label="סגירה">✕</button>
       <div id="modal-content"></div>
+    </div>
+  </div>
+
+  <!-- דיווח על מודעה — חלונית נפרדת מהמודעה עצמה, מראה את ReportModal.tsx.
+       נבנית ריקה ומתמלאת ב-openReportModal (ראו JS). -->
+  <div class="modal-overlay" id="report-overlay" style="display:none;">
+    <div class="modal-box" id="report-box" role="dialog" aria-modal="true" aria-labelledby="report-title" tabindex="-1">
+      <button class="modal-close" id="report-close" tabindex="0" aria-label="סגירה">✕</button>
+      <h2 id="report-title">דיווח על מודעה</h2>
+      <div class="report-reasons" id="report-reasons" role="radiogroup" aria-label="סיבת הדיווח"></div>
+      <div class="form-group">
+        <label for="report-details">פרטים נוספים (אופציונלי)</label>
+        <textarea id="report-details" rows="3" maxlength="2000" placeholder="פרט מה קרה..."></textarea>
+      </div>
+      <div id="report-error" role="alert"></div>
+      <button class="btn btn-primary btn-block" id="report-submit-btn" tabindex="0">שלח דיווח</button>
     </div>
   </div>
 
@@ -155,7 +192,13 @@
   <script type="module">
     import { normalizePhone } from './auth.js';
     import { getAuthOptional } from './guest-checkout.js';
-    import { subscribeToActiveListings, subscribeToUserListings, markListingSold, deleteListing, getListingContact, CATEGORY_INFO, stripHouseNumber, formatListingAge } from './listings.js';
+    import {
+      subscribeToActiveListings, subscribeToUserListings, markListingSold, deleteListing, getListingContact,
+      CATEGORY_INFO, stripHouseNumber, formatListingAge,
+      subscribeToWhoBlockedMe, blockUser, LISTING_REPORT_REASONS, submitListingReport,
+    } from './listings.js';
+    /* מי **אני** חסמתי — כבר קיים עבור מסך "אזור אישי", מיובא ולא משוכפל. */
+    import { subscribeToBlockedUsers, unblockUser } from './account.js';
     /* הכלל "כדי לקחת צריך למסור" — ההכרעה, הדגלים ונקודת התלייה לעיצוב
        יושבים כולם ב-`giveaway-gate.js`, ולא כאן. ראו ההערה בראש הקובץ. */
     import { evaluateTakeGate, emitTakeGate, takeGatePanelHTML, recordFreeTake } from './giveaway-gate.js';
@@ -200,6 +243,29 @@
     let searchQuery = '';
 
     /**
+     * חסימות — מראה את `BlockContext.tsx` באפליקציה. `blockedMap` הוא מי
+     * **אני** חסמתי (`{ [uid]: {name, at} }`), `blockedByIds` הוא מי חסם
+     * **אותי**. `hiddenUserIds` הוא האיחוד, ומשמש בדיוק כמו `hiddenUserIds`
+     * ב-`GiveawayScreen.tsx`: מודעה של מי שנמצא בו לא מוצגת בלוח בכלל —
+     * לא רק שכפתור יצירת הקשר מוסתר בה.
+     *
+     * ⚠️ שני מסמכים בודדים, שני מנויים חיים לכל אורך חיי הדף — בדיוק כמו
+     * באפליקציה, ומאותה סיבה: בדיקה בכל כרטיס חייבת להיות `Set.has` בזיכרון
+     * ולא קריאה לכל מודעה.
+     */
+    let blockedMap = {};
+    let blockedByIds = [];
+    let hiddenUserIds = new Set();
+    function recomputeHidden() {
+      hiddenUserIds = new Set([...Object.keys(blockedMap), ...blockedByIds]);
+      renderGrid();
+    }
+    if (myUid) {
+      subscribeToBlockedUsers(myUid, (m) => { blockedMap = m; recomputeHidden(); });
+      subscribeToWhoBlockedMe(myUid, (ids) => { blockedByIds = ids; recomputeHidden(); });
+    }
+
+    /**
      * המודעה שצריך לפתוח מיד עם הטעינה, אם חזרנו לכאן מההרשמה.
      *
      * ⚠️ בלי זה "בקשת פריט" שולחת אורח להתחברות ומחזירה אותו ללוח
@@ -239,7 +305,7 @@
     categories.forEach(cat => {
       const chip = document.createElement('div');
       chip.className = 'room-tab' + (cat === 'all' ? ' active' : '');
-      chip.textContent = cat === 'all' ? '🎁 הכל' : `${CATEGORY_INFO[cat].icon} ${CATEGORY_INFO[cat].label}`;
+      chip.textContent = cat === 'all' ? 'הכל' : CATEGORY_INFO[cat].label;
       chip.dataset.cat = cat;
       // הצ'יפ הוא `div` שמתנהג ככפתור-מיתוג: `role="button"` + `aria-pressed`
       // מוסרים לקורא מסך גם מה הוא, וגם אם הפילטר הזה דלוק כרגע.
@@ -319,7 +385,10 @@
     }
 
     function renderGrid() {
-      let filtered = allListings;
+      // מודעה של מי שחסמתי, או של מי שחסם אותי, פשוט לא קיימת בשבילי בלוח —
+      // מראה את `visibleListings` ב-GiveawayScreen.tsx. הבעלים עצמו לעולם
+      // אינו ב-hiddenUserIds (אי אפשר לחסום את עצמך), אז אין צורך לחרוג עבורו.
+      let filtered = allListings.filter(l => !hiddenUserIds.has(l.userId));
       if (activeCategory !== 'all') filtered = filtered.filter(l => l.category === activeCategory);
       if (searchQuery) filtered = filtered.filter(l => l.title?.toLowerCase().includes(searchQuery) || l.city?.toLowerCase().includes(searchQuery));
 
@@ -348,7 +417,7 @@
       // והעיר לא יישמעו כמחרוזת אחת דבוקה.
       grid.innerHTML = filtered.map(l => `
         <div class="listing-card" data-id="${esc(l.id)}" tabindex="0" role="button" aria-label="פתיחת המודעה ${esc(l.title)}${l.city ? `, ${esc(l.city)}` : ''}, חינם">
-          ${l.photos?.[0] ? `<img class="listing-photo" src="${esc(l.photos[0])}" alt="${esc(l.title)}">` : `<div class="listing-photo">${CATEGORY_INFO[l.category]?.icon || '📦'}</div>`}
+          ${l.photos?.[0] ? `<img class="listing-photo" src="${esc(l.photos[0])}" alt="${esc(l.title)}">` : `<div class="listing-photo"><span class="listing-photo-initial">${esc((CATEGORY_INFO[l.category]?.label || '?')[0])}</span></div>`}
           <div class="listing-info">
             <div class="listing-title">${esc(l.title)}</div>
             <div class="listing-city">${esc(l.city || '')}</div>
@@ -379,6 +448,32 @@
       const isOwner = !!myUid && listing.userId === myUid;
       const token = ++modalToken;
       modalOpener = opener || (document.activeElement !== document.body ? document.activeElement : null);
+
+      /**
+       * מודעה של מי שמוסתר ממני — עוצרת כאן, לפני שנבנה תוכן כלשהו.
+       * מראה את הענף המקביל ב-`ListingDetailsScreen.tsx` (16.9): שני נוסחים
+       * שונים בכוונה — כשאני החוסם מותר להגיד לי את זה ולהציע ביטול; כשהצד
+       * השני חסם **אותי** המודעה מוצגת כ"לא זמינה", בדיוק כמו מודעה שנמחקה.
+       * ⚠️ נדרש כאן למרות שהלוח כבר מסנן מודעות חסומות: מודעה שנפתחת דרך
+       * `openPendingListing` (חזרה מהרשמה) לא עוברת דרך `renderGrid`.
+       */
+      if (!isOwner && hiddenUserIds.has(listing.userId)) {
+        const blockedByMe = !!blockedMap[listing.userId];
+        document.getElementById('modal-content').innerHTML = `
+          <h2 id="modal-title">${blockedByMe ? 'המשתמש הזה חסום על ידך' : 'המודעה אינה זמינה'}</h2>
+          <p class="app-card-desc">${blockedByMe
+            ? `המודעות של ${esc(listing.userName || 'המשתמש')} מוסתרות ממך כל עוד החסימה פעילה.`
+            : 'ייתכן שהמודעה הוסרה או שהקישור שגוי'}</p>
+          ${blockedByMe ? `<button class="btn btn-secondary btn-block" id="modal-unblock-btn" tabindex="0" style="margin-top:12px;">בטל חסימה</button>` : ''}
+        `;
+        overlay.style.display = 'flex';
+        document.getElementById('modal-box').focus();
+        if (blockedByMe) {
+          document.getElementById('modal-unblock-btn')?.addEventListener('click', () => unblockUser(myUid, listing.userId));
+        }
+        return;
+      }
+
       document.getElementById('modal-content').innerHTML = `
         ${listing.photos?.length ? `<div class="modal-photos">${listing.photos.map((p, i) => `<img src="${esc(p)}" alt="${esc(listing.title)} — תמונה ${i + 1}">`).join('')}</div>` : ''}
         <h2 id="modal-title">${esc(listing.title)}</h2>
@@ -395,12 +490,31 @@
                       <button class="btn btn-primary btn-block" id="guest-want-btn" tabindex="0">אני רוצה את הפריט</button>` :
             '<button class="btn btn-primary btn-block" disabled>טוען פרטי קשר…</button>'}
         </div>
+        ${(!isOwner && myUid) ? `
+          <div class="listing-safety-row">
+            <button class="btn-text" id="modal-report-btn" tabindex="0" style="color:var(--danger);">דווח על מודעה</button>
+            <button class="btn-text" id="modal-block-btn" tabindex="0">חסום את ${esc(listing.userName || 'המפרסם')}</button>
+          </div>
+        ` : ''}
       `;
       overlay.style.display = 'flex';
       // המיקוד עובר אל החלון עצמו ולא אל הכפתור הראשון שבו: כך קורא מסך
       // מכריז על הכותרת (aria-labelledby) לפני שהמשתמש מתחיל לגלול פקדים,
       // וה-Tab הבא נופל בתוך החלון ולא מאחוריו.
       document.getElementById('modal-box').focus();
+
+      document.getElementById('modal-report-btn')?.addEventListener('click', () => openReportModal(listing));
+      document.getElementById('modal-block-btn')?.addEventListener('click', () => {
+        /* אותו נוסח בדיוק כמו `handleBlock` ב-ListingDetailsScreen.tsx —
+           כולל ההבחנה מדיווח, וההפניה למקום שממנו מבטלים חסימה. */
+        if (!confirm(
+          `חסימת ${listing.userName || 'המשתמש'}\n\n` +
+          `לא תראה את המודעות שלו, והוא לא יראה את שלך. גם יצירת קשר דרך הלוח תיחסם. ` +
+          `אפשר לבטל בכל רגע דרך "אזור אישי" > משתמשים חסומים.\n\n` +
+          `חסימה אינה דיווח — אם יש כאן הפרה, דווח עליה בנפרד.`
+        )) return;
+        blockUser(myUid, listing.userId, listing.userName).then(closeModal);
+      });
 
       /**
        * ⚠️ **האורח יוצא כאן, לפני `getListingContact`, וזה לא רק ייעול.**
@@ -496,7 +610,9 @@
         return;
       }
       const whatsapp = `https://wa.me/972${localPhone.slice(1)}?text=${encodeURIComponent(`היי ${listing.userName}, ראיתי את "${listing.title}" ב-ROZIC MOVE ואשמח לקחת אותו. האם עדיין זמין?`)}`;
-      contactBox.innerHTML = `<a class="btn btn-primary btn-block" tabindex="0" href="${esc(whatsapp)}" target="_blank" rel="noopener">💬 יצירת קשר בוואטסאפ</a>`;
+      // הנוסח מדויק ל-`freeTakeBtnText` ב-ListingDetailsScreen.tsx — לא
+      // "יצירת קשר" גנרי. אין אמוג'י: הלוח עוצב במכוון בלעדיהם (24.7).
+      contactBox.innerHTML = `<a class="btn btn-primary btn-block" tabindex="0" href="${esc(whatsapp)}" target="_blank" rel="noopener">אני רוצה! — צור קשר בוואטסאפ</a>`;
 
       /**
        * ⚠️ המכסה של `FIRST_TAKE_FREE` נשרפת **בלחיצה**, לא בפתיחת
@@ -553,6 +669,105 @@
       if (!modalBoxEl.contains(active)) { e.preventDefault(); (e.shiftKey ? last : first).focus(); return; }
       if (!e.shiftKey && active === last) { e.preventDefault(); first.focus(); }
       else if (e.shiftKey && (active === first || active === modalBoxEl)) { e.preventDefault(); last.focus(); }
+    }, true);
+
+    /* ═══════════ דיווח על מודעה — פאנל נפרד, מראה את ReportModal.tsx ═══════════
+       חלונית שנייה, נבנית לפי אותו דפוס בדיוק כמו modal-overlay למעלה
+       (מלכודת Tab, Escape, החזרת מיקוד) — כי דיווח הוא פעולה שנפתחת *מתוך*
+       מודעה פתוחה, ולא מחליפה אותה. */
+    const reportOverlayEl = document.getElementById('report-overlay');
+    const reportBoxEl = document.getElementById('report-box');
+    const isReportOpen = () => reportOverlayEl.style.display === 'flex';
+    let reportListing = null;
+    let reportReason = null;
+    let reportOpener = null;
+
+    function renderReportReasons() {
+      const box = document.getElementById('report-reasons');
+      box.innerHTML = Object.entries(LISTING_REPORT_REASONS).map(([key, label]) => `
+        <div class="room-tab" data-reason="${key}" tabindex="0" role="radio" aria-checked="false">${esc(label)}</div>
+      `).join('');
+      box.querySelectorAll('[data-reason]').forEach(chip => {
+        const select = () => {
+          reportReason = chip.dataset.reason;
+          [...box.children].forEach(c => {
+            const on = c === chip;
+            c.classList.toggle('active', on);
+            c.setAttribute('aria-checked', on ? 'true' : 'false');
+          });
+        };
+        chip.addEventListener('click', select);
+        activateOnKey(chip, select);
+      });
+    }
+
+    /** נקראת מכפתור "דווח על מודעה" בתוך modal-content — ראו openModal. */
+    function openReportModal(listing) {
+      reportListing = listing;
+      reportReason = null;
+      reportOpener = document.activeElement !== document.body ? document.activeElement : null;
+      document.getElementById('report-title').textContent = 'דיווח על מודעה';
+      document.getElementById('report-details').value = '';
+      document.getElementById('report-error').innerHTML = '';
+      document.querySelector('#report-box .form-group').style.display = '';
+      const btn = document.getElementById('report-submit-btn');
+      btn.style.display = ''; btn.disabled = false; btn.textContent = 'שלח דיווח';
+      renderReportReasons();
+      reportOverlayEl.style.display = 'flex';
+      reportBoxEl.focus();
+    }
+
+    function closeReportModal() {
+      if (!isReportOpen()) return;
+      reportOverlayEl.style.display = 'none';
+      if (reportOpener && reportOpener.isConnected) reportOpener.focus();
+      reportOpener = null;
+    }
+
+    document.getElementById('report-close').addEventListener('click', closeReportModal);
+    reportOverlayEl.addEventListener('click', (e) => { if (e.target === reportOverlayEl) closeReportModal(); });
+
+    document.getElementById('report-submit-btn').addEventListener('click', async () => {
+      const errBox = document.getElementById('report-error');
+      errBox.innerHTML = '';
+      if (!reportReason) { errBox.innerHTML = '<div class="alert alert-error">יש לבחור סיבה.</div>'; return; }
+      const btn = document.getElementById('report-submit-btn');
+      btn.disabled = true; btn.textContent = 'שולח...';
+      try {
+        await submitListingReport({
+          reporterId: myUid,
+          reporterName: authState?.profile?.name || '',
+          listingId: reportListing.id,
+          listingTitle: reportListing.title,
+          targetUserId: reportListing.userId,
+          targetUserName: reportListing.userName,
+          reason: reportReason,
+          details: document.getElementById('report-details').value,
+        });
+        document.getElementById('report-title').textContent = 'הדיווח נשלח, תודה';
+        document.getElementById('report-reasons').innerHTML = '';
+        document.querySelector('#report-box .form-group').style.display = 'none';
+        btn.style.display = 'none';
+        setTimeout(closeReportModal, 1400);
+      } catch {
+        errBox.innerHTML = '<div class="alert alert-error">שליחת הדיווח נכשלה. נסה שוב.</div>';
+        btn.disabled = false; btn.textContent = 'שלח דיווח';
+      }
+    });
+
+    /* Escape סוגר, Tab לא יוצא — אותו דפוס בדיוק כמו modal-overlay, לחלונית השנייה. */
+    document.addEventListener('keydown', (e) => {
+      if (!isReportOpen()) return;
+      if (e.key === 'Escape') { e.preventDefault(); closeReportModal(); return; }
+      if (e.key !== 'Tab') return;
+      const focusables = [...reportBoxEl.querySelectorAll('a[href], button:not(:disabled), input, select, textarea, [tabindex]:not([tabindex="-1"])')]
+        .filter(el => el.offsetParent !== null || el === document.activeElement);
+      if (focusables.length === 0) { e.preventDefault(); reportBoxEl.focus(); return; }
+      const first = focusables[0], last = focusables[focusables.length - 1];
+      const active = document.activeElement;
+      if (!reportBoxEl.contains(active)) { e.preventDefault(); (e.shiftKey ? last : first).focus(); return; }
+      if (!e.shiftKey && active === last) { e.preventDefault(); first.focus(); }
+      else if (e.shiftKey && (active === first || active === reportBoxEl)) { e.preventDefault(); last.focus(); }
     }, true);
 
     /* "המודעות שלי" הוא מסך של בעלים, ואין לאורח מודעות. `where userId ==

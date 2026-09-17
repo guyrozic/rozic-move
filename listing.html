@@ -64,7 +64,6 @@
       text-align: center;
       box-shadow: 0 8px 40px rgba(14,92,67,0.15);
     }
-    .logo { font-size: 47px; margin-bottom: 12px; }
     .brand { font-size: 25px; font-weight: 900; color: #0E5C43; margin-bottom: 6px; }
     /* 15.9 — #888 על לבן = 3.54:1, מתחת לסף. #6E6E6E => 5.0:1 */
     .tagline { font-size: 17px; color: #6E6E6E; margin-bottom: 28px; }
@@ -134,6 +133,16 @@
     }
     .contact-row { font-size: 16px; color: #555; margin-bottom: 8px; }
     .contact-row strong { color: #1A2E1A; }
+    /* 17.9 — דווח/חסום, מראה את ReportModal/blockBtn ב-ListingDetailsScreen.tsx.
+       הדף הזה לא טוען style.css (הוא עצמאי, ראו ההערה בראש הקובץ), ולכן
+       הכפתורים כאן פשוטים ובלי מסגרת — טקסט בלבד, כמו .btn-text באתר הראשי. */
+    .safety-row { display: flex; gap: 14px; justify-content: center; margin-top: 14px; flex-wrap: wrap; }
+    .safety-btn { background: none; border: none; font-family: inherit; font-size: 13.5px; font-weight: 700; cursor: pointer; padding: 6px 4px; color: #40604F; }
+    .safety-btn.danger { color: #C0392B; }
+    .report-panel { text-align: right; margin-top: 12px; }
+    .report-reasons { display: flex; flex-direction: column; gap: 8px; margin: 10px 0; }
+    .report-reason-row { display: flex; align-items: center; gap: 8px; font-size: 15px; color: #555; }
+    .report-panel textarea { width: 100%; border: 1px solid #DCEFE5; border-radius: 10px; padding: 10px; font-family: inherit; font-size: 15px; resize: vertical; min-height: 70px; box-sizing: border-box; }
     /* דיסקליימר — לפני פרטי הקשר, כלומר לפני שאפשר לפנות למפרסם. */
     .listing-disclaimer {
       background: #FAFCFB; border: 1px solid #E4EFE9; border-radius: 12px;
@@ -190,7 +199,9 @@
        הבא חוזר לתחילת הניווט — כלומר הקישור לא עושה כלום. -->
   <a class="skip-link" href="#main-content">דלג לתוכן המרכזי</a>
   <main class="card" id="main-content" tabindex="-1">
-    <div class="logo" aria-hidden="true">🚚</div>
+    <!-- 17.9 — הוסר "🚚": הלוח "מעבירים את זה הלאה" עוצב במכוון בלי אמוג'י
+         (24.7, ראו CATEGORY_INFO ב-app/listings.js), ודף המודעה הציבורי הזה
+         חלק ממנו. שם המותג לבדו (למטה) כבר עומד בפני עצמו בפוטר ובכל דף אחר. -->
     <!-- ⚠️ 15.9 — לדף הזה לא הייתה ולו כותרת אחת: הכול היה `div`, וניווט
          לפי כותרות (דרך הניווט העיקרית של קורא מסך) פשוט לא היה קיים.
          ה-`div` הפך ל-`h1` בלי לשנות פיקסל: `.brand` קובע גודל, משקל
@@ -226,8 +237,8 @@
     <div class="divider"></div>
 
     <button tabindex="0" class="btn btn-primary" onclick="openApp()">פתח באפליקציה</button>
-    <a tabindex="0" class="btn btn-apple" href="https://apps.apple.com/app/id6783814838">📱 הורד ל-iPhone</a>
-    <a tabindex="0" class="btn btn-android" href="https://play.google.com/store/apps/details?id=com.rozicmove.app">🤖 הורד לאנדרואיד</a>
+    <a tabindex="0" class="btn btn-apple" href="https://apps.apple.com/app/id6783814838">הורד ל-iPhone</a>
+    <a tabindex="0" class="btn btn-android" href="https://play.google.com/store/apps/details?id=com.rozicmove.app">הורד לאנדרואיד</a>
 
     <div class="note">אין לך את האפליקציה? הורד בחינם ↑</div>
 
@@ -256,7 +267,7 @@
     const id = getListingId();
     if (id) {
       setTimeout(() => {
-        document.getElementById('status').textContent = '✓ אם האפליקציה לא נפתחה — הורד אותה למטה';
+        document.getElementById('status').textContent = 'אם האפליקציה לא נפתחה — הורד אותה למטה';
         window.location.href = `rozicmove://listing/${id}`;
       }, 800);
     } else {
@@ -269,7 +280,11 @@
     // ועד היום לא היה לו שום דבר לראות — לא את המודעה ולא דרך ליצור קשר.
     import { auth } from './app/firebase.js';
     import { onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/12.16.0/firebase-auth.js';
-    import { getListing, getListingContact, CATEGORY_INFO, stripHouseNumber, formatListingAge } from './app/listings.js';
+    import {
+      getListing, getListingContact, CATEGORY_INFO, stripHouseNumber, formatListingAge,
+      checkListingBlockHidden, blockUser, LISTING_REPORT_REASONS, submitListingReport,
+    } from './app/listings.js';
+    import { unblockUser } from './app/account.js';
     import { normalizePhone } from './app/auth.js';
     /* אותו שער בדיוק כמו ב-`app/marketplace.html` — הדף הזה הוא הקישור
        שנשלח בוואטסאפ, כלומר הדלת השנייה לאותה לקיחה. שער שנאכף בדלת
@@ -337,6 +352,81 @@
       link.href = `https://rozicmove.com/listing.html?id=${encodeURIComponent(listing.id || listingId)}`;
     }
 
+    /**
+     * פאנל דיווח מוטמע בתוך `contact-box` — לא חלונית נפרדת, כי הדף הזה
+     * הוא כרטיס יחיד ואינו נושא מערכת מודלים (בשונה מ-`app/marketplace.html`).
+     * מראה את `ReportModal.tsx`: סיבה + פרטים אופציונליים + שליחה.
+     * לחיצה נוספת על "דווח" סוגרת את הפאנל (toggle), במקום לפתוח שני.
+     */
+    function openReportPanel(box, listing, user) {
+      const existing = document.getElementById('report-panel');
+      if (existing) { existing.remove(); return; }
+
+      const panel = document.createElement('div');
+      panel.className = 'report-panel';
+      panel.id = 'report-panel';
+
+      const reasonsWrap = document.createElement('div');
+      reasonsWrap.className = 'report-reasons';
+      reasonsWrap.setAttribute('role', 'radiogroup');
+      reasonsWrap.setAttribute('aria-label', 'סיבת הדיווח');
+      Object.entries(LISTING_REPORT_REASONS).forEach(([key, label]) => {
+        const row = document.createElement('label');
+        row.className = 'report-reason-row';
+        const input = document.createElement('input');
+        input.type = 'radio';
+        input.name = 'report-reason';
+        input.value = key;
+        row.appendChild(input);
+        row.append(label);
+        reasonsWrap.appendChild(row);
+      });
+
+      const details = document.createElement('textarea');
+      details.placeholder = 'פרטים נוספים (אופציונלי)';
+      details.maxLength = 2000;
+      details.setAttribute('aria-label', 'פרטים נוספים לדיווח');
+
+      const errBox = document.createElement('div');
+      errBox.setAttribute('role', 'alert');
+
+      const submitBtn = document.createElement('button');
+      submitBtn.type = 'button';
+      submitBtn.className = 'btn btn-primary';
+      submitBtn.tabIndex = 0;
+      submitBtn.style.marginTop = '10px';
+      submitBtn.textContent = 'שלח דיווח';
+      submitBtn.addEventListener('click', async () => {
+        errBox.textContent = '';
+        const reason = reasonsWrap.querySelector('input[name="report-reason"]:checked')?.value;
+        if (!reason) { errBox.innerHTML = '<div class="info-box" style="color:#C0392B;">יש לבחור סיבה.</div>'; return; }
+        submitBtn.disabled = true; submitBtn.textContent = 'שולח...';
+        try {
+          await submitListingReport({
+            reporterId: user.uid,
+            reporterName: user.displayName || '',
+            listingId: listing.id,
+            listingTitle: listing.title,
+            targetUserId: listing.userId,
+            targetUserName: listing.userName,
+            reason,
+            details: details.value,
+          });
+          panel.innerHTML = '<div class="info-box">הדיווח נשלח, תודה.</div>';
+        } catch {
+          submitBtn.disabled = false; submitBtn.textContent = 'שלח דיווח';
+          errBox.innerHTML = '<div class="info-box" style="color:#C0392B;">שליחת הדיווח נכשלה. נסה שוב.</div>';
+        }
+      });
+
+      panel.appendChild(reasonsWrap);
+      panel.appendChild(details);
+      panel.appendChild(errBox);
+      panel.appendChild(submitBtn);
+      box.appendChild(panel);
+      reasonsWrap.querySelector('input')?.focus();
+    }
+
     function renderContact(listing) {
       const box = document.getElementById('contact-box');
       if (listing.status === 'sold') {
@@ -357,6 +447,35 @@
           box.innerHTML = `
             <div class="info-box">פרטי הקשר של המפרסם מוצגים למשתמשים מחוברים בלבד.</div>
             <a tabindex="0" class="btn btn-primary" href="app/login.html?next=${next}">התחבר כדי לראות טלפון</a>`;
+          return;
+        }
+
+        /**
+         * מודעה של מי שמוסתר ממני — עוצרת כאן, ומחליפה גם את מה שכבר
+         * הוצג (תמונות/כותרת/תיאור) לפני שידענו מי מחובר. מראה את
+         * `hiddenByBlock` ב-`ListingDetailsScreen.tsx` ואת אותו הענף
+         * ב-`app/marketplace.html`. בדיקה חד-פעמית ולא מנוי חי — הדף
+         * הזה נטען פעם אחת ואינו לוח.
+         */
+        const blockCheck = await checkListingBlockHidden(user.uid, listing).catch(() => ({ hidden: false, blockedByMe: false }));
+        if (blockCheck.hidden) {
+          document.getElementById('listing-photos').style.display = 'none';
+          document.getElementById('listing-title').textContent = blockCheck.blockedByMe ? 'המשתמש הזה חסום על ידך' : 'המודעה אינה זמינה';
+          document.getElementById('listing-meta').textContent = '';
+          document.getElementById('listing-desc').textContent = blockCheck.blockedByMe
+            ? `המודעות של ${listing.userName || 'המשתמש'} מוסתרות ממך כל עוד החסימה פעילה.`
+            : 'ייתכן שהמודעה הוסרה או שהקישור שגוי';
+          document.getElementById('listing-disclaimer').style.display = 'none';
+          box.innerHTML = '';
+          if (blockCheck.blockedByMe) {
+            const unblockBtn = document.createElement('button');
+            unblockBtn.type = 'button';
+            unblockBtn.className = 'btn btn-primary';
+            unblockBtn.tabIndex = 0;
+            unblockBtn.textContent = 'בטל חסימה';
+            unblockBtn.addEventListener('click', () => unblockUser(user.uid, listing.userId).then(() => location.reload()));
+            box.appendChild(unblockBtn);
+          }
           return;
         }
 
@@ -439,13 +558,49 @@
         wa.target = '_blank';
         wa.rel = 'noopener';
         wa.href = `https://wa.me/972${phone.slice(1)}?text=${encodeURIComponent(text)}`;
-        wa.textContent = '💬 יצירת קשר בוואטסאפ';
+        // הנוסח מדויק ל-`freeTakeBtnText` ב-ListingDetailsScreen.tsx — אין
+        // אמוג'י, הלוח עוצב במכוון בלעדיהם (24.7).
+        wa.textContent = 'אני רוצה! — צור קשר בוואטסאפ';
         // המכסה של `FIRST_TAKE_FREE` נשרפת בלחיצה ולא בפתיחת הדף — ראו
         // ההערה המלאה ב-`app/marketplace.html`.
         if (gate.consumesFreeTake) {
           wa.addEventListener('click', () => { recordFreeTake(user.uid, listing.id).catch(() => {}); });
         }
         box.appendChild(wa);
+
+        /* דווח/חסום — אותם שני כפתורים נבדלים כמו ב-`app/marketplace.html`
+           וב-ListingDetailsScreen.tsx. לא לבעלים. */
+        if (!isOwner) {
+          const safetyRow = document.createElement('div');
+          safetyRow.className = 'safety-row';
+
+          const reportBtn = document.createElement('button');
+          reportBtn.type = 'button';
+          reportBtn.className = 'safety-btn danger';
+          reportBtn.tabIndex = 0;
+          reportBtn.textContent = 'דווח על מודעה';
+          reportBtn.addEventListener('click', () => openReportPanel(box, listing, user));
+
+          const blockBtn = document.createElement('button');
+          blockBtn.type = 'button';
+          blockBtn.className = 'safety-btn';
+          blockBtn.tabIndex = 0;
+          blockBtn.textContent = `חסום את ${listing.userName || 'המפרסם'}`;
+          blockBtn.addEventListener('click', () => {
+            // אותו נוסח בדיוק כמו `handleBlock` ב-ListingDetailsScreen.tsx.
+            if (!confirm(
+              `חסימת ${listing.userName || 'המשתמש'}\n\n` +
+              `לא תראה את המודעות שלו, והוא לא יראה את שלך. גם יצירת קשר דרך הלוח תיחסם. ` +
+              `אפשר לבטל בכל רגע דרך "אזור אישי" > משתמשים חסומים.\n\n` +
+              `חסימה אינה דיווח — אם יש כאן הפרה, דווח עליה בנפרד.`
+            )) return;
+            blockUser(user.uid, listing.userId, listing.userName).then(() => location.reload());
+          });
+
+          safetyRow.appendChild(reportBtn);
+          safetyRow.appendChild(blockBtn);
+          box.appendChild(safetyRow);
+        }
       });
     }
   </script>
