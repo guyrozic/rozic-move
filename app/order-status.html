@@ -48,7 +48,61 @@
       .modal-card { border-radius: 20px; }
     }
     .no-show-notice p { font-size: 0.88rem; color: var(--text-mid); margin-bottom: 10px; }
+    .no-show-notice p:last-child { margin-bottom: 0; }
     .no-show-choices { display: flex; flex-direction: column; gap: 8px; }
+
+    /* תמונת הפרופיל של המוביל — אותן מידות בדיוק כמו .driver-avatar
+       שב-style-app.css, כדי ששני המצבים יתפסו את אותו מקום בשורה. */
+    .driver-avatar-photo {
+      width: 54px; height: 54px; border-radius: 50%; flex-shrink: 0;
+      object-fit: cover; border: 2px solid var(--green); background: var(--green-light);
+    }
+    /* ⚠️ נדרש במפורש: ל-`.driver-avatar` יש `display:flex` מגיליון המחבר
+       (style-app.css), וכלל מחבר גובר תמיד על `[hidden]` שמגיע מגיליון
+       ברירת המחדל של הדפדפן — בלי השורה הזו האות הראשונה הייתה מוצגת
+       *לצד* התמונה במקום להיות מוסתרת מאחוריה. */
+    .driver-avatar[hidden] { display: none; }
+
+    /* טופס הדיווח — מראה ReportModal.tsx (כותרת + שם היעד, ואזהרת 24 השעות). */
+    .report-form-head { font-size: 0.86rem; font-weight: 800; color: var(--text); margin-bottom: 10px; }
+    .report-disclaimer { font-size: 0.74rem; color: var(--text-muted); line-height: 1.55; margin-bottom: 10px; }
+
+    /* "פריטים שהוזמנו" — מראה ItemsSummaryList. */
+    .items-fallback { font-size: 0.88rem; color: var(--text-mid); line-height: 1.6; }
+    .order-item-row {
+      display: flex; align-items: center; justify-content: space-between; gap: 10px;
+      padding: 9px 0; border-bottom: 1px solid var(--border);
+    }
+    .order-item-row:last-child { border-bottom: none; }
+    .order-item-label { font-size: 0.88rem; font-weight: 600; color: var(--text); }
+    .order-item-qty {
+      flex-shrink: 0; font-size: 0.76rem; font-weight: 800; color: var(--green-ink);
+      background: var(--green-tint); border: 1px solid var(--green-line);
+      border-radius: 50px; padding: 2px 10px;
+    }
+    .order-room-group + .order-room-group { margin-top: 14px; }
+    .order-room-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 2px; }
+    .order-room-title { font-size: 0.88rem; font-weight: 800; color: var(--text); }
+    .order-room-count { font-size: 0.74rem; color: var(--text-muted); }
+
+    /* "פריטים לתמחור ידני" — מראה את המקטע הנפרד ב-OrderDetailsScreen. */
+    .manual-item + .manual-item { margin-top: 10px; }
+    .manual-item-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+    .manual-item-label { font-size: 0.88rem; color: var(--text); }
+    .manual-item-price { flex-shrink: 0; font-size: 0.85rem; font-weight: 800; }
+    .manual-item-price.priced  { color: var(--green-dark); }
+    .manual-item-price.pending { color: var(--amber-strong); }
+    .manual-item-desc { font-size: 0.74rem; color: var(--text-muted); margin-top: 2px; line-height: 1.5; }
+
+    /* כוכבי **תצוגה** של דירוג שכבר ניתן. ⚠️ כתומים ולא ירוקים בכוונה:
+       זו הכרעה של גיא מ-26.8 (CLAUDE.md של Hovalot) — ירוק = "אתה מדרג
+       עכשיו" (order-rate.html), כתום = "זה הדירוג שנצבר". האפליקציה
+       משתמשת ב-#F4A261; כאן `--orange` מהפלטה, כי check-a11y אוסר ערך
+       צבע גולמי על טקסט. הכוכבים עצמם aria-hidden והערך נמסר ב-aria-label,
+       ולכן הקריאוּת אינה תלויה בהם. */
+    .star-row.rated { justify-content: center; gap: 4px; font-size: 1.5rem; line-height: 1; color: var(--text-gray); }
+    .star-row.rated .filled { color: var(--orange); }
+    .rated-label { font-size: 0.82rem; color: var(--text-muted); margin-bottom: 6px; }
   </style>
 </head>
 <body class="app-body">
@@ -104,7 +158,7 @@
     import { requireAuth } from './auth.js';
     import {
       subscribeToOrder, cancelOrder, customerTotalOf, STATUS_LABELS,
-      ORDER_PROGRESS_STEPS, customerConfirmCompletion,
+      ORDER_PROGRESS_STEPS, customerConfirmCompletion, parseItemsSummary,
       CUSTOMER_NO_SHOW_RESPONSES, respondToCustomerNoShow,
     } from './orders.js';
     import { getUserProfile, formatVehicle } from './users.js';
@@ -200,6 +254,70 @@
       return { start, end };
     }
 
+    /**
+     * מקטע "פריטים שהוזמנו" — מראה `ItemsSummaryList` ב-OrderDetailsScreen.tsx:
+     * שורה לכל פריט עם תג כמות, ובהזמנת דירה קיבוץ לפי חדר עם מונה פריטים
+     * ("3 פריטים" / "פריט אחד"). כשהטקסט אינו בתבנית שאנחנו מייצרים —
+     * נופלים למחרוזת הגולמית בדיוק כמו שם, במקום להסתיר מידע.
+     */
+    function renderItemsSection(order) {
+      if (!order.itemsSummary) return '';
+      const groups = parseItemsSummary(order.itemsSummary, order.serviceType === 'apartment');
+      const body = !groups
+        ? `<p class="items-fallback">${esc(order.itemsSummary)}</p>`
+        : groups.map(group => {
+            const count = group.items.reduce((sum, it) => sum + it.qty, 0);
+            const rows = group.items.map(it => `
+              <div class="order-item-row">
+                <span class="order-item-label">${esc(it.label)}</span>
+                <span class="order-item-qty">×${esc(it.qty)}</span>
+              </div>`).join('');
+            if (!group.room) return rows;
+            return `
+              <div class="order-room-group">
+                <div class="order-room-head">
+                  <span class="order-room-title">${esc(group.room)}</span>
+                  <span class="order-room-count">${count === 1 ? 'פריט אחד' : `${esc(count)} פריטים`}</span>
+                </div>
+                ${rows}
+              </div>`;
+          }).join('');
+      return `
+        <div class="app-card">
+          <h2>פריטים שהוזמנו</h2>
+          ${body}
+        </div>`;
+    }
+
+    /**
+     * מקטע "פריטים לתמחור ידני" — מראה את המקטע הנפרד ב-OrderDetailsScreen.tsx.
+     *
+     * ⚠️ 17.9 — האתר דחס את הרשימה לשורה אחת בטבלת הפרטים, **בלי
+     * ה-`description`** שהלקוח עצמו כתב על הפריט. זה בדיוק הטקסט שלפיו
+     * הצוות מתמחר, והוא לא הוצג לו בחזרה בשום מקום.
+     *
+     * ⚠️ כפתור ההסרה (✕) שקיים באפליקציה ב-'pending_pricing' **לא הועתק
+     * לכאן בכוונה** — `removeManualPricingItem` מחשב מחדש את `price` של
+     * ההזמנה, וזו לוגיקת כסף. דווח בנפרד.
+     */
+    function renderManualPricingSection(manualItems) {
+      if (!manualItems.length) return '';
+      return `
+        <div class="app-card">
+          <h2>פריטים לתמחור ידני</h2>
+          ${manualItems.map(mi => `
+            <div class="manual-item">
+              <div class="manual-item-row">
+                <span class="manual-item-label">${esc(mi.label)} × ${esc(mi.qty)}</span>
+                <span class="manual-item-price ${mi.price !== undefined ? 'priced' : 'pending'}">${
+                  mi.price !== undefined ? `✓ ₪${esc(mi.price)}` : 'ממתין לתמחור'
+                }</span>
+              </div>
+              ${mi.description ? `<p class="manual-item-desc">${esc(mi.description)}</p>` : ''}
+            </div>`).join('')}
+        </div>`;
+    }
+
     /** מראה OrderProgressBar.tsx — פס 5 שלבים + תווית השלב הנוכחי. */
     function renderProgressBar(stepIndex) {
       const segs = ORDER_PROGRESS_STEPS
@@ -226,6 +344,13 @@
       other: 'אחר',
     };
 
+    /**
+     * ⚠️ 17.9 — **האזהרה שנלווית לכל דיווח באפליקציה נעדרה כאן לגמרי.**
+     * `ReportModal.tsx` מציג אותה מעל כפתור השליחה, והיא לא קישוט: היא
+     * מה שמרתיע דיווח כוזב, וגם מה שמונע פנייה לתמיכה בשאלה "מתי יטפלו".
+     */
+    const REPORT_DISCLAIMER = 'כל דיווח נבדק תוך 24 שעות. דיווחים כוזבים עלולים לגרור השעיית חשבון.';
+
     /** מראה כרטיס המוביל ב-FindDriverScreen (מצב "נמצא") וב-OrderDetailsScreen ("המוביל שלך"). */
     function renderDriverCardInner(driver, order) {
       const heading = order.status === 'assigned' ? 'נמצא לך מוביל!' : 'המוביל שלך';
@@ -239,12 +364,29 @@
       // לפני כן עוד אין לקוח שום בסיס לדעת אם היה שווה לסמן.
       const canFavorite = order.status === 'completed';
       const isFavorite = canFavorite && (authState.profile.favoriteDrivers ?? []).includes(order.driverId);
-      const reasonOptions = Object.entries(DRIVER_REPORT_REASONS)
-        .map(([key, label]) => `<option value="${esc(key)}">${esc(label)}</option>`).join('');
+      /**
+       * ⚠️ 17.9 — **האפשרות הראשונה הייתה נבחרת מראש, ולכן דיווח שנשלח
+       * בלי לבחור סיבה יצא כ"לא הגיע לנקודת האיסוף".**
+       *
+       * ב-`ReportModal.tsx` הבחירה מתחילה ריקה (`useState<ReportReason|null>(null)`)
+       * וכפתור השליחה מנוטרל עד שנבחרה סיבה — כלומר אי אפשר לדווח בטעות על
+       * הברזה. `<select>` נותן את הבחירה הראשונה חינם, ולכן צריך פריט-ריק
+       * מפורש (`disabled`, כדי שלא יהיה אפשר לחזור אליו) + שער על הכפתור.
+       */
+      const reasonOptions = ['<option value="" disabled selected>בחר סיבה…</option>']
+        .concat(Object.entries(DRIVER_REPORT_REASONS)
+          .map(([key, label]) => `<option value="${esc(key)}">${esc(label)}</option>`))
+        .join('');
       return `
         <h2>${esc(heading)}</h2>
         <div class="driver-avatar-row">
-          <div class="driver-avatar" aria-hidden="true">${initial}</div>
+          ${/* ⚠️ 17.9 — תמונת הפרופיל של המוביל נשמרת ב-`users/{uid}.photoUrl`
+                ומוצגת ב-OrderDetailsScreen (`partyAvatar`); כאן הוצגה תמיד
+                אות ראשונה בלבד, גם כשהייתה תמונה. פנים הן חלק ממה שמזהה את
+                מי שעומד בדלת. שני האלמנטים מרונדרים תמיד, וה-listener למטה
+                מחליף ביניהם אם ה-URL נשבר — במקום להשאיר ריבוע שבור. */''}
+          ${driver?.photoUrl ? `<img class="driver-avatar-photo" id="driver-photo" src="${esc(driver.photoUrl)}" alt="תמונת הפרופיל של ${esc(name)}">` : ''}
+          <div class="driver-avatar" id="driver-initial" ${driver?.photoUrl ? 'hidden' : ''} aria-hidden="true">${initial}</div>
           <div class="driver-info">
             <div class="driver-name">${esc(name)}${verified ? '<span class="driver-verified">✓ מאומת</span>' : ''}</div>
             ${vehicle ? `<div class="driver-vehicle">${esc(vehicle)}${driver?.vehiclePlate ? ' · ' + esc(driver.vehiclePlate) : ''}</div>` : ''}
@@ -252,23 +394,25 @@
         </div>
         ${phone
           ? `<a class="call-btn" href="tel:${esc(phone)}">התקשר למוביל — ${esc(phone)}</a>`
-          : `<div class="call-btn disabled">${driver ? 'המוביל טרם הוסיף מספר טלפון' : 'טוען פרטי מוביל…'}</div>`}
+          : `<div class="call-btn disabled">המוביל טרם הוסיף מספר טלפון</div>`}
         ${canFavorite ? `
         <button type="button" class="btn btn-secondary btn-block favorite-btn" id="favorite-btn" data-active="${isFavorite ? '1' : '0'}" style="margin-top:10px;">
           ${isFavorite ? '★ מוביל מועדף שלך' : '☆ הוסף למועדפים'}
         </button>` : ''}
         <button type="button" class="btn-text" id="report-toggle-btn" style="margin-top:8px;">דווח על בעיה</button>
         <div id="report-form" style="display:none; margin-top:10px;">
+          <div class="report-form-head">דיווח על מוביל · ${esc(name)}</div>
           <div class="form-group">
             <label for="report-reason">סיבת הדיווח</label>
             <select id="report-reason">${reasonOptions}</select>
           </div>
           <div class="form-group">
-            <label for="report-details">פרטים (לא חובה)</label>
-            <textarea id="report-details" rows="3" maxlength="1000"></textarea>
+            <label for="report-details">פרטים נוספים (אופציונלי)</label>
+            <textarea id="report-details" rows="3" maxlength="1000" placeholder="תאר את הבעיה בפירוט..."></textarea>
           </div>
+          <p class="report-disclaimer">${esc(REPORT_DISCLAIMER)}</p>
           <div id="report-error" role="alert"></div>
-          <button type="button" class="btn btn-danger btn-block" id="report-submit-btn">שלח דיווח</button>
+          <button type="button" class="btn btn-danger btn-block" id="report-submit-btn" disabled>שלח דיווח</button>
         </div>
       `;
     }
@@ -281,7 +425,23 @@
       // ה-id עדיין קיים ב-DOM רק אם render() לא רץ מחדש בינתיים.
       const stillThere = document.getElementById('driver-card');
       if (!stillThere) return;
+      /**
+       * ⚠️ 17.9 — **הכרטיס נשאר תקוע על "טוען פרטי מוביל…" לנצח.**
+       * `getUserProfile` מחזירה `null` גם כשהמסמך לא קיים וגם על כשל
+       * רשת — ואז הכרטיס רונדר עם השם הגנרי "המוביל שלך" ועם שורת
+       * "טוען פרטי מוביל…" שכבר לא הייתה נכונה: הטעינה הסתיימה.
+       * ב-OrderDetailsScreen התנאי הוא `order.driverId && otherParty`,
+       * כלומר בלי פרטי המוביל המקטע פשוט אינו מוצג — עדיף לא להראות
+       * כרטיס מאשר להראות כרטיס שמשקר. `subscribeToOrder` ירנדר מחדש
+       * בעדכון הבא וינסה שוב.
+       */
+      if (!driver) { stillThere.remove(); return; }
       stillThere.innerHTML = renderDriverCardInner(driver, order);
+
+      document.getElementById('driver-photo')?.addEventListener('error', (e) => {
+        e.currentTarget.remove();
+        document.getElementById('driver-initial')?.removeAttribute('hidden');
+      });
 
       /**
        * מראה `toggleFavoriteDriver` — כתיבה על מסמך המשתמש שלי, לא של
@@ -308,6 +468,11 @@
         form.style.display = form.style.display === 'none' ? 'block' : 'none';
       });
 
+      // השער שמקביל ל-`disabled={!reason || submitting}` ב-ReportModal.tsx.
+      document.getElementById('report-reason')?.addEventListener('change', (e) => {
+        document.getElementById('report-submit-btn').disabled = !e.currentTarget.value;
+      });
+
       /**
        * מראה `submitReport` ב-src/services/reports.ts — כתיבה ישירה ל-
        * Firestore (לא Cloud Function): `firestore.rules` (`match /reports/{reportId}`)
@@ -320,6 +485,7 @@
         const errBox = document.getElementById('report-error');
         errBox.innerHTML = '';
         const reason = document.getElementById('report-reason').value;
+        if (!reason) return; // רשת שנייה לשער שעל הכפתור
         const details = document.getElementById('report-details').value.trim();
         btn.disabled = true; btn.textContent = 'שולח...';
         try {
@@ -337,8 +503,9 @@
             status: 'open',
             createdAt: reportServerTimestamp(),
           });
+          // הנוסח של `infoDialog('הדיווח נשלח', …)` ב-ReportModal.tsx.
           document.getElementById('report-form').innerHTML =
-            '<div class="alert alert-success" role="status">הדיווח נשלח. צוות ROZIC MOVE יטפל בו בהקדם.</div>';
+            '<div class="alert alert-success" role="status">הדיווח נשלח. תודה — צוות ROZIC MOVE יטפל בדיווח בהקדם.</div>';
         } catch {
           errBox.innerHTML = '<div class="alert alert-error">לא הצלחנו לשלוח את הדיווח. נסה שוב.</div>';
           btn.disabled = false; btn.textContent = 'שלח דיווח';
@@ -435,12 +602,7 @@
           ${order.scheduledDate ? `<div class="price-line"><span>תאריך</span><span>${esc(order.scheduledDate)}${order.timeSlot ? ' · ' + esc(order.timeSlot) : ''}</span></div>` : ''}
           ${order.scheduledDate ? `<button type="button" class="btn-text calendar-btn" id="calendar-btn" style="padding:0; margin-bottom:8px;">הוסף ליומן</button>
           <div id="calendar-links" style="display:none;"></div>` : ''}
-          ${order.itemsSummary ? `<div class="price-line"><span>פריטים</span><span>${esc(order.itemsSummary)}</span></div>` : ''}
           ${order.notes ? `<div class="price-line"><span>הערות</span><span>${esc(order.notes)}</span></div>` : ''}
-          ${manualItems.length ? `
-          <div class="price-line"><span>פריטים לתמחור ידני</span><span>${
-            manualItems.map(mi => `${esc(mi.label)} ×${esc(mi.qty)}${mi.price !== undefined ? ` — ₪${esc(mi.price)}` : ' — ממתין לתמחור'}`).join('<br>')
-          }</span></div>` : ''}
           ${order.hasInsurance && order.insuranceAmount > 0 ? `<div class="price-line discount"><span>כולל ביטוח תכולה</span><span>₪${esc(order.insuranceAmount)}</span></div>` : ''}
           ${order.packingService && order.packingServicePrice > 0 ? `<div class="price-line discount"><span>כולל שירות אריזה</span><span>₪${esc(order.packingServicePrice)}</span></div>` : ''}
           ${order.craneNeeded ? `<div class="price-line discount"><span>נדרש מנוף — קומה ${esc(order.craneFloor ?? '')}</span><span>${order.craneCost ? `₪${esc(order.craneCost)}` : ''}</span></div>` : ''}
@@ -449,11 +611,18 @@
           <div class="price-line"><span>מחיר ההזמנה</span><span>₪${esc(total)}</span></div>
           <div class="price-total"><span>חיוב</span><strong class="no-charge-text">לא בוצע חיוב</strong></div>
           ` : `
+          ${/* ⚠️ 17.9 — 'סה"כ' היה 'מחיר סופי' באפליקציה, וההבדל מכוון שם:
+                שלוש התוויות נבחרו ב-11.9 בדיוק כדי להבחין בין כוונה לעובדה
+                (ראו ההערה הארוכה ב-OrderDetailsScreen.tsx) — 'לתשלום' לפני
+                שנגבה, 'שולם' על הזמנה שבוטלה אחרי תשלום, ו'מחיר סופי' רק
+                כשבאמת נגבה. 'סה"כ' סתמי מחק את ההבחנה במקום שבו היא כן
+                נכונה. הענף של `pending_pricing` הוא תוספת של האתר ונשאר:
+                הוא מחוזק ע"י ההסבר שמעליו ("הסכום למטה הוא ביניים"). */''}
           <div class="price-total"><span>${
             order.status === 'pending_pricing' ? 'סה"כ עד כה'
               : order.status === 'cancelled' ? 'שולם'
               : !wasCharged ? 'לתשלום'
-              : 'סה"כ'
+              : 'מחיר סופי'
           }</span><strong>₪${esc(total)}</strong></div>
           `}
           ${order.growInvoiceUrl ? `
@@ -474,6 +643,9 @@
           ` : ''}
         </div>
 
+        ${renderItemsSection(order)}
+        ${renderManualPricingSection(manualItems)}
+
         <div id="insurance-modal" class="modal-overlay" style="display:none;">
           <div class="modal-card">
             <h2>ROZIC GUARD</h2>
@@ -486,6 +658,25 @@
             <button type="button" class="btn btn-secondary btn-block" id="insurance-modal-close" style="margin-top:8px;">סגור</button>
           </div>
         </div>
+
+        ${/* ⚠️ 17.9 — **ההזמנה יכולה לשאת דיווח "המוביל לא הגיע" והאתר לא
+              ידע להציג אותו בכלל.** הדיווח נשלח מהאפליקציה (`reportDriverNoShow`),
+              ושם `noShowReportedAt` נשאר על מסמך ההזמנה עד שאדמין מכריע —
+              לקוחה שדיווחה בטלפון ואז פתחה את ההזמנה בדפדפן ראתה מסך שלא
+              מזכיר את הדיווח במילה, ולא ידעה אם הוא בכלל התקבל.
+
+              ⚠️ **הכפתור "המוביל לא הגיע" עצמו לא נוסף כאן, והסיבה טכנית
+              וחיצונית לאתר:** `reportNoShow` נפרסה כ-`onRequest(handler)`
+              בלי `{ cors: true }` — נמדד מול הפונקציה החיה (17.9):
+              preflight מ-`Origin: https://rozicmove.com` מחזיר 405 בלי
+              `access-control-allow-origin`, כלומר הדפדפן חוסם את הקריאה
+              לפני שהיא יוצאת. זהו בדיוק החסם שנפתר עבור `customerCancelOrder`
+              (ראו orders.js), ותיקונו דורש שינוי ב-`~/Hovalot/functions`
+              ופריסה מחדש. דווח בנפרד. */''}
+        ${!!order.noShowReportedAt && !order.noShowResolvedAt ? `
+        <div class="app-card no-show-notice">
+          <p>הדיווח התקבל ואנחנו בודקים מול המוביל. נעדכן אותך בהקדם.</p>
+        </div>` : ''}
 
         ${!!order.customerNoShowReportedAt && !order.customerNoShowResolvedAt ? `
         <div class="app-card no-show-notice">
@@ -503,8 +694,22 @@
           <a class="btn btn-primary" href="order-rate.html?id=${encodeURIComponent(order.id)}">דרג את ההובלה</a>
         </div>` : ''}
 
+        ${/* ⚠️ 17.9 — **אחרי הדירוג המקטע נעלם כאן לגמרי.** באפליקציה
+              (`alreadyRated` ב-OrderDetailsScreen) מקטע "דירוג" נשאר על
+              המסך ומציג "הדירוג שלך" עם הכוכבים שניתנו — כך שהלקוח יכול
+              לחזור להזמנה ולראות מה הוא דירג. באתר הכרטיס פשוט נעלם,
+              ולא היה שום מקום שבו הדירוג שנשלח מוצג בחזרה. */''}
+        ${order.status === 'completed' && typeof order.driverRating === 'number' ? `
+        <div class="app-card rate-link-card">
+          <h2>דירוג</h2>
+          <p class="rated-label">הדירוג שלך</p>
+          <div class="star-row rated" role="img" aria-label="דירוג ${esc(order.driverRating)} מתוך 5">
+            ${[1, 2, 3, 4, 5].map(s => `<span class="${s <= order.driverRating ? 'filled' : ''}" aria-hidden="true">★</span>`).join('')}
+          </div>
+        </div>` : ''}
+
         ${cancellable ? `
-        <button class="btn btn-danger btn-block" id="cancel-btn">ביטול הזמנה</button>
+        <button class="btn btn-danger btn-block" id="cancel-btn">בטל הזמנה</button>
         <div id="cancel-error" role="alert"></div>` : ''}
       `;
 
@@ -598,6 +803,15 @@
       });
 
       document.getElementById('confirm-completion-btn')?.addEventListener('click', async (e) => {
+        /**
+         * ⚠️ 17.9 — באפליקציה הפעולה הזו עוברת דרך
+         * `confirmDialog('אישור סיום הובלה', 'המוביל דיווח שההובלה הושלמה. לאשר שהיא בוצעה בהצלחה?', 'מאשר/ת')`
+         * ורק אז נכתבת. באתר היא נשלחה על לחיצה בודדת — וזו **הפעולה
+         * היחידה שמשלימה את ההזמנה בפועל**: היא נועלת את הסטטוס ל-
+         * 'completed' וזוקפת את הרווח למוביל, ואין ממנה דרך חזרה בממשק
+         * הלקוח. לחיצה בטעות על מסך נייד סוגרת הובלה שאולי לא הסתיימה.
+         */
+        if (!confirm('אישור סיום הובלה\n\nהמוביל דיווח שההובלה הושלמה. לאשר שהיא בוצעה בהצלחה?')) return;
         const btn = e.currentTarget;
         btn.disabled = true; btn.textContent = 'מאשר...';
         try {
@@ -670,10 +884,30 @@
           if (refundDue > 0) parts.push(`יוחזרו לך ₪${refundDue} — ההחזר מבוצע ידנית ע"י הצוות.`);
           box.innerHTML = `<div class="alert alert-success" role="status">${parts.join(' ')}</div>`;
         } catch (err) {
-          // ⚠️ הודעה שאומרת מה הצעד הבא. "נכשל" לבדו משאיר את הלקוח
-          // בלי לדעת אם ההזמנה עדיין פעילה.
+          /**
+           * ⚠️ 17.9 — **"ההזמנה עדיין פעילה" על הזמנה שבדיוק בוטלה.**
+           *
+           * `customerCancelOrder` מחזיר 409 עם המשפט המדויק
+           * *"ההזמנה כבר אינה ניתנת לביטול"* (או *"ההזמנה לא נמצאה"*),
+           * ו-`cancelOrder` ב-orders.js מעביר אותו כ-`Error.message` —
+           * הקוד כאן פשוט בלע אותו והציג כשל גנרי. זהו בדיוק התרחיש
+           * שנמדד חי באפליקציה ב-13.9 (האדמין ביטל באותה שנייה שהלקוח
+           * לחץ), ושתוקן שם **בשני** הנתיבים — `OrderDetailsScreen` וגם
+           * `tabs/OrdersScreen`. האתר הוא הנתיב השלישי, והוא נשאר מאחור.
+           *
+           * ⚠️ והנוסח כאן היה חמור מזה שבאפליקציה: "ההזמנה עדיין פעילה"
+           * אינה סתם הודעת כשל, היא **קביעת עובדה שגויה** — הלקוח יוצא
+           * מהמסך בטוח שההזמנה חיה, בזמן שהיא בוטלה.
+           */
+          const msg = err instanceof Error ? err.message : '';
+          if (msg.includes('אינה ניתנת לביטול') || msg.includes('לא נמצאה')) {
+            box.innerHTML = '<div class="alert alert-success" role="status">ההזמנה כבר בוטלה. הסטטוס שלה כבר עודכן — אין צורך בפעולה נוספת.</div>';
+            return; // הכפתור נשאר מנוטרל: אין מה לנסות שוב
+          }
+          // כאן, ורק כאן, הביטול באמת לא יצא לפועל — ולכן ההודעה אומרת
+          // גם שההזמנה חיה וגם מה הצעד הבא.
           box.innerHTML = '<div class="alert alert-error" role="alert">לא הצלחנו לבטל את ההזמנה. ההזמנה עדיין פעילה — אפשר לנסות שוב, או לפנות לתמיכה.</div>';
-          btn.disabled = false; btn.textContent = 'ביטול הזמנה';
+          btn.disabled = false; btn.textContent = 'בטל הזמנה';
         }
       });
     }

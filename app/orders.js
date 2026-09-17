@@ -8,16 +8,43 @@ import {
 } from 'https://www.gstatic.com/firebasejs/12.16.0/firebase-firestore.js';
 import { db, auth } from './firebase.js';
 
+/**
+ * ⚠️ 17.9 — **חמש מתוך תשע התוויות כאן לא היו אותן תוויות שהלקוח רואה
+ * באפליקציה,** ושלוש מהן אף סתרו טקסט אחר באותו מסך עצמו.
+ *
+ * באפליקציה זהו **מקור אמת אחד** — `STATUS_INFO` מוגדר פעמיים, ב-
+ * `OrderDetailsScreen.tsx` וב-`tabs/OrdersScreen.tsx`, ושתי ההגדרות
+ * זהות מילה במילה (שם גם `Record<OrderStatus>` מלא, כדי שסטטוס עשירי
+ * יפיל את tsc במקום להיות מוצג כקוד באנגלית).
+ *
+ * | סטטוס | האתר הציג | האפליקציה מציגה |
+ * |---|---|---|
+ * | `pending`     | ממתין למוביל     | מחפשים מוביל |
+ * | `en_route`    | המוביל בדרך      | המוביל בדרך אליך |
+ * | `in_progress` | הובלה בעיצומה    | המוביל מבצע את ההובלה |
+ * | `completed`   | הושלם            | ההובלה הושלמה |
+ * | `cancelled`   | בוטל             | בוטלה |
+ *
+ * ⚠️ **וזה לא היה רק ניסוח.** ב-`order-status.html` התג יושב ישירות מעל
+ * `ORDER_PROGRESS_STEPS` (שכן הועתק נכון), כך שאותו רגע בהובלה נקרא
+ * בשתי שורות סמוכות בשני נוסחים — "ממתין למוביל" מעל "מחפשים מוביל",
+ * "המוביל בדרך" מעל "המוביל בדרך אליך". זו בדיוק הבעיה שהאיחוד
+ * ב-`OrderProgressBar.tsx` נועד למנוע, רק שהיא נכנסה כאן מהצד השני.
+ *
+ * `draft` נשאר 'טיוטה' ולא `null` כמו באפליקציה: שם לטיוטה יש מסך משלה,
+ * וכאן `subscribeToUserOrders` מסנן אותן ממילא — התווית היא רשת ביטחון
+ * ולא מצב שמוצג בפועל.
+ */
 export const STATUS_LABELS = {
   draft: 'טיוטה',
   pending_pricing: 'ממתין לתמחור',
   pending_payment: 'ממתין לתשלום',
-  pending: 'ממתין למוביל',
+  pending: 'מחפשים מוביל',
   assigned: 'מוביל שובץ',
-  en_route: 'המוביל בדרך',
-  in_progress: 'הובלה בעיצומה',
-  completed: 'הושלם',
-  cancelled: 'בוטל',
+  en_route: 'המוביל בדרך אליך',
+  in_progress: 'המוביל מבצע את ההובלה',
+  completed: 'ההובלה הושלמה',
+  cancelled: 'בוטלה',
 };
 
 /**
@@ -149,6 +176,56 @@ export const ORDER_PROGRESS_STEPS = [
   { status: 'in_progress', label: 'המוביל מבצע את ההובלה' },
   { status: 'completed', label: 'ההובלה הושלמה' },
 ];
+
+/**
+ * פירוק `itemsSummary` לרשימה מובנית — פורט מ-`parseItemsSummary()`
+ * ב-`OrderDetailsScreen.tsx` (שם הוא מיוצא ונבדק), כולל המלכודת שתוקנה שם.
+ *
+ * ⚠️ 17.9 — **האתר הציג את המחרוזת הזו כשורת טקסט אחת.** באפליקציה זו
+ * מקטע משלו ("פריטים שהוזמנו") עם שורה לכל פריט וקיבוץ לפי חדר; באתר
+ * הזמנת דירה בת חמישה חדרים נדחסה לשורה אחת ארוכה בתוך טבלת הפרטים, ולא
+ * הייתה שום דרך לוודא בה שהפריטים שהוזמנו הם אלה שנבחרו.
+ *
+ * `isRoomGrouped` חייב לבוא מ-`serviceType` ולא להיגזר מהמחרוזת: הזמנה
+ * עם חדר **אחד** אין בה `" | "` בכלל, ושם החדר שלה היה נבלע לתוך התווית
+ * של הפריט הראשון.
+ *
+ * ⚠️ אין פיצול על `","`. תווית פריט יכולה להכיל פסיק משלה ("נברשת גדולה
+ * (מפוארת, קוטר 50-100 ס״מ) x1") — פיצול כזה שבר פריט אחד לשני מקטעים
+ * שאף אחד מהם לא התאים, וכל הסיכום נפל בשקט לטקסט גולמי. סורקים ישירות
+ * את סמני `... xN`.
+ *
+ * @returns מערך קבוצות, או `null` כשהטקסט אינו בתבנית שאנחנו מייצרים —
+ *          ואז הקורא מציג את המחרוזת כמות שהיא במקום להסתיר מידע.
+ */
+export function parseItemsSummary(itemsSummary, isRoomGrouped) {
+  const parseItemList = (str) => {
+    const items = [];
+    const re = /(.+?)\s+x(\d+)(?:,\s*|$)/g;
+    let consumed = 0;
+    let m;
+    while ((m = re.exec(str)) !== null) {
+      items.push({ label: m[1], qty: parseInt(m[2], 10) });
+      consumed = m.index + m[0].length;
+    }
+    return items.length > 0 && consumed === str.length ? items : null;
+  };
+
+  if (isRoomGrouped) {
+    const groups = [];
+    for (const segment of itemsSummary.split(' | ')) {
+      const idx = segment.indexOf(': ');
+      if (idx === -1) return null;
+      const items = parseItemList(segment.slice(idx + 2));
+      if (!items) return null;
+      groups.push({ room: segment.slice(0, idx), items });
+    }
+    return groups;
+  }
+
+  const items = parseItemList(itemsSummary);
+  return items ? [{ room: null, items }] : null;
+}
 
 /**
  * הלקוח מאשר את דיווח הסיום של המוביל — הפעולה היחידה שבאמת משלימה
