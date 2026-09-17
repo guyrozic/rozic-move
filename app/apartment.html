@@ -81,6 +81,24 @@
       border-color: var(--green-line); background: var(--green-tint);
       color: var(--green-ink); font-weight: 700;
     }
+
+    /* ⚠️ 17.9 — חלון זמן שהשעה שלו כבר עברה. מקבילה ל-`chipPast` ב-
+       `TimeSlotPicker.tsx` באפליקציה, כולל ההכרעה שם: **מעומעם ולא
+       מוסתר** — חלון שנעלם משאיר את הלקוח בלי להבין למה נשארו שלושה,
+       וכאן הוא רואה שהיה כאן משהו ושהשעה שלו פשוט עברה.
+       ⚠️ בלי `opacity` (באפליקציה 0.55 על #AAA): הצהרת הנגישות מבטיחה
+       AA, ועמעום על טקסט אפור מוריד את היחס מתחת ל-4.5:1. הקו החוצה
+       והרקע האפור נושאים את המשמעות, ו-`--text-muted` על `--bg` הוא
+       6.02:1. */
+    .room-tab.slot-past {
+      background: var(--bg);
+      border-color: var(--border);
+      color: var(--text-muted);
+      text-decoration: line-through;
+      box-shadow: none;
+      cursor: not-allowed;
+    }
+    .room-tab.slot-past:hover { border-color: var(--border); }
   </style>
 </head>
 <body class="app-body">
@@ -173,6 +191,10 @@
           <div class="app-card selected-items-card" id="selected-items-card" style="display:none;">
             <h2>הפריטים שנבחרו <span id="selected-items-count"></span></h2>
             <div class="selected-items-list" id="selected-items-list"></div>
+            <!-- ⚠️ 17.9 — "חסר תיאור לפריט" מוצג כאן, בתוך הכרטיס שבו
+                 יושב השדה החסר, ולא בראש הדף: המיקוד עובר לשדה, וההודעה
+                 חייבת להיות במקום שאליו המשתמש הגיע. -->
+            <div id="free-item-error" role="alert"></div>
           </div>
 
           <div class="app-card" id="start-list" style="scroll-margin-top:90px">
@@ -241,7 +263,8 @@
                      מכיל את הטקסט הנראה במלואו, כנדרש ב-2.5.3. -->
                 <select id="from-floor" aria-label="קומה בכתובת המוצא"></select>
               </div>
-              <div class="form-group">
+              <!-- ⚠️ 17.9 — מוסתר בקומת קרקע. ראו syncElevatorVisibility. -->
+              <div class="form-group" id="from-elevator-group">
                 <label for="from-elevator">מעלית</label>
                 <select id="from-elevator" aria-label="מעלית בכתובת המוצא"><option value="1">יש מעלית</option><option value="0">אין מעלית</option></select>
               </div>
@@ -270,7 +293,7 @@
                 <label for="to-floor">קומה</label>
                 <select id="to-floor" aria-label="קומה בכתובת היעד"></select>
               </div>
-              <div class="form-group">
+              <div class="form-group" id="to-elevator-group">
                 <label for="to-elevator">מעלית</label>
                 <select id="to-elevator" aria-label="מעלית בכתובת היעד"><option value="1">יש מעלית</option><option value="0">אין מעלית</option></select>
               </div>
@@ -279,17 +302,24 @@
           </div>
 
           <div class="app-card">
-            <h2>🏗️ פריט שלא עובר במדרגות?</h2>
+            <!-- ⚠️ 17.9 — הנוסח מיושר ל-`craneToggle` באפליקציה: הכותרת
+                 "יש פריט שלא עובר במדרגות?" והשורה שמתחתיה שנושאת את
+                 **המחיר**. באתר הכיתוב היה "נדרש מנוף הרמה" בלבד, בלי
+                 שום רמז לעלות — הלקוח גילה ש-₪300 נוספו רק אחרי שסימן. -->
+            <h2>🏗️ יש פריט שלא עובר במדרגות?</h2>
             <div class="form-group">
-              <label><input type="checkbox" id="needs-crane"> נדרש מנוף הרמה</label>
+              <label><input type="checkbox" id="needs-crane"> הוסף מנוף הרמה לדירה — החל מ-₪300</label>
             </div>
             <div id="crane-fields" style="display:none;">
               <div class="form-group">
                 <label for="crane-floor">קומת הפריט</label>
                 <select id="crane-floor"></select>
               </div>
-              <div class="form-group">
-                <label id="crane-items-label">אילו פריטים?</label>
+              <!-- ⚠️ 17.9 — הקבוצה כולה מוסתרת כשאין פריטים לבחור מהם,
+                   כמו `{pickableCraneItems.length > 0 && …}` באפליקציה:
+                   תווית "אילו פריטים" מעל אזור ריק היא שאלה בלי תשובות. -->
+              <div class="form-group" id="crane-items-group">
+                <label id="crane-items-label">אילו פריטים לא עוברים במדרגות?</label>
                 <div id="crane-items" role="group" aria-labelledby="crane-items-label"></div>
               </div>
               <div class="alert alert-info" id="crane-price-preview"></div>
@@ -346,7 +376,10 @@
             </div>
             <div class="form-group">
               <label for="notes">הערות למוביל (לא חובה)</label>
-              <textarea id="notes" rows="3" maxlength="500"></textarea>
+              <!-- ⚠️ 17.9 — ה-placeholder של האפליקציה, מילה במילה. השדה
+                   כאן היה ריק לגמרי, והלקוח לא ידע מה בכלל שימושי לכתוב
+                   בו — בזמן שהאפליקציה מדגימה לו שלושה דברים קונקרטיים. -->
+              <textarea id="notes" rows="3" maxlength="500" placeholder="לדוגמה: יש להיזהר עם הפריטים, קוד כניסה, שעה מועדפת, וכו'..."></textarea>
             </div>
           </div>
 
@@ -492,6 +525,25 @@
       .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
       .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
 
+    /**
+     * ⚠️ 17.9 — פסיק כמפריד אלפים, כמו `formatPrice` ב-
+     * `~/Hovalot/src/utils/money.ts`. האתר הציג `₪2132` בכל מקום בזמן
+     * שהאפליקציה ודף התשלום של Grow — השלב הבא בדיוק — מציגים
+     * `₪2,132`. ההכרעה שם: *"בעברית נהוג פסיק כמפריד אלפים, וזה גם מה
+     * שהסולק מציג. לכן הפסיק הוא התקן."*
+     *
+     * ⚠️ מימוש ידני ולא `toLocaleString`, בדיוק כמו באפליקציה — שם זה
+     * היה תיקון באג (Hermes מתעלם מהמפריד), וכאן זה שומר על שורה אחת
+     * זהה בין שני העותקים. מחזיר את המספר **בלי** סימן השקל, כדי שכל
+     * קריאה תישאר `₪${formatPrice(x)}`.
+     */
+    function formatPrice(amount) {
+      const n = amount ?? 0;
+      if (!Number.isFinite(n)) return '0';
+      const rounded = Math.round(n);
+      return (rounded < 0 ? '-' : '') + Math.abs(rounded).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+    }
+
     function selectedItems() {
       return Object.entries(state.items).filter(([, q]) => q > 0).map(([key, qty]) => ({
         key, qty, unitPrice: getItemPriceAnyCategory(key), label: findItemAnywhere(key)?.label || key,
@@ -541,16 +593,18 @@
     function renderSidePrice() {
       const p = computePrice();
       const lines = [];
-      lines.push([`פריטים (${p.selected.length})`, `₪${p.itemsSubtotal}`]);
-      if (p.volumeDiscount > 0) lines.push(['הנחת נפח', `−₪${p.volumeDiscount}`]);
-      if (p.travelCost > 0) lines.push(['נסיעה', `₪${p.travelCost}`]);
-      if (p.floorSurcharge > 0) lines.push(['קומות', `₪${p.floorSurcharge}`]);
-      if (state.hasInsurance) lines.push(['ביטוח תכולה', `₪${p.insuranceAmount}`]);
-      if (state.hasPacking) lines.push(['אריזה', `₪${p.packingAmount}`]);
-      if (state.needsCrane) lines.push(['מנוף', `₪${p.craneCost}`]);
+      lines.push([`פריטים (${p.selected.length})`, `₪${formatPrice(p.itemsSubtotal)}`]);
+      if (p.travelCost > 0) lines.push(['נסיעה', `₪${formatPrice(p.travelCost)}`]);
+      if (p.floorSurcharge > 0) lines.push(['קומות', `₪${formatPrice(p.floorSurcharge)}`]);
+      if (state.hasInsurance) lines.push(['ביטוח תכולה', `₪${formatPrice(p.insuranceAmount)}`]);
+      if (state.hasPacking) lines.push(['אריזה', `₪${formatPrice(p.packingAmount)}`]);
+      // ⚠️ ההנחה אחרי התוספות גם בכרטיס הצדדי — אותו סדר בדיוק כמו
+      // בפירוט המלא בשלב 4, אחרת אותה הזמנה נקראת בשני סדרים באותו מסך.
+      if (p.volumeDiscount > 0) lines.push(['הנחת נפח', `−₪${formatPrice(p.volumeDiscount)}`]);
+      if (state.needsCrane) lines.push(['מנוף', `₪${formatPrice(p.craneCost)}`]);
       document.getElementById('side-price-lines').innerHTML = lines.map(([l, v]) => `<div class="price-line"><span>${l}</span><span>${v}</span></div>`).join('');
-      document.getElementById('side-price-total').textContent = `₪${p.totalPrice}`;
-      document.getElementById('bottom-price').textContent = step === 1 ? `₪${p.itemsSubtotal}` : `₪${p.totalPrice}`;
+      document.getElementById('side-price-total').textContent = `₪${formatPrice(p.totalPrice)}`;
+      document.getElementById('bottom-price').textContent = step === 1 ? `₪${formatPrice(p.itemsSubtotal)}` : `₪${formatPrice(p.totalPrice)}`;
       return p;
     }
 
@@ -1050,6 +1104,14 @@
       listEl.querySelectorAll('[data-free-desc]').forEach(ta => ta.addEventListener('input', () => {
         const i = Number(ta.dataset.freeDesc);
         if (state.freeItems[i]) state.freeItems[i].description = ta.value;
+        // ⚠️ השגיאה "חסר תיאור" נמחקת ברגע שהוקלד תו — אחרת היא
+        // נשארת על המסך אחרי שהמשתמש כבר תיקן, וקורא מסך ממשיך
+        // להכריז את השדה כשגוי.
+        if (ta.value.trim()) {
+          ta.removeAttribute('aria-invalid');
+          ta.removeAttribute('aria-describedby');
+          document.getElementById('free-item-error').innerHTML = '';
+        }
       }));
       if (keepFocus) {
         const el = listEl.querySelector(`.selected-item-row[data-key="${keepFocus.key}"] [data-action="${keepFocus.action}"]`);
@@ -1080,9 +1142,30 @@
       if (packingCalc.totalBoxes > 0) parts.push(`כ-${Math.ceil(packingCalc.totalBoxes)} ארגזים`);
       if (packingCalc.wrapCount > 0) parts.push(`${packingCalc.wrapCount} פריטי ריהוט עטופים`);
       document.getElementById('packing-preview').textContent = parts.length
-        ? `הצוות יארוז: ${parts.join(' + ')} — +₪${packingCalc.total}`
-        : 'לא נבחרו פריטים לאריזה עדיין.';
-      document.getElementById('packing-add-btn').textContent = `הוסף שירות אריזה — ₪${packingCalc.total}`;
+        ? `הצוות יארוז: ${parts.join(' + ')} — +₪${formatPrice(packingCalc.total)}`
+        : 'לא בחרת פריטים, ולכן אין מה לארוז. אפשר לחזור ולהוסיף פריטים, או להמשיך.';
+      /**
+       * ⚠️ 17.9 — **אין מה לארוז ⇒ אין כפתור "הוסף שירות אריזה".**
+       *
+       * הבאג שהאפליקציה סגרה, מילה במילה מההערה ב-`PackingOfferScreen`:
+       * *"המסך הציג '0 ארגזים', '0 פריטים', ו-'₪0', **ועדיין הציע
+       * 'הוסף שירות אריזה — ₪0'**"*. באתר זה עדיין קרה, וזה מצב שניתן
+       * להגיע אליו בפועל: הזמנה שכולה פריטים מיוחדים (`freeItems`)
+       * עוברת את שלב 1, ואין לה שום פריט קטלוגי לארוז.
+       *
+       * כשאין מה לארוז הכפתור הראשי מוסתר וכפתור הדילוג הופך ל"המשך" —
+       * בדיוק הענף `packingCalc.total > 0 ? 'דלג, אני אארוז בעצמי' :
+       * 'המשך'` באפליקציה.
+       */
+      const addBtn = document.getElementById('packing-add-btn');
+      const skipBtn = document.getElementById('packing-skip-btn');
+      const nothingToPack = packingCalc.total <= 0;
+      addBtn.style.display = nothingToPack ? 'none' : '';
+      addBtn.textContent = `הוסף שירות אריזה — ₪${formatPrice(packingCalc.total)}`;
+      // ⚠️ `accessibilityLabel` מפורש באפליקציה, מאותה סיבה: הכפתור
+      // מוסיף כסף, והכרזה "המשך" עליו הייתה באג נגישות אמיתי שם.
+      addBtn.setAttribute('aria-label', `הוסף שירות אריזה בעלות ${packingCalc.total} שקלים`);
+      skipBtn.textContent = nothingToPack ? 'המשך' : 'דלג, אני אארוז בעצמי';
     }
     // 17.9 — נרשמים פעם אחת מחוץ ל-render (לא בכל renderPackingOffer),
     // אחרת כל render היה מוסיף מאזין כפול על אותו כפתור.
@@ -1097,6 +1180,33 @@
       const sel = document.getElementById(id);
       FLOORS.forEach(f => { const o = document.createElement('option'); o.value = f; o.textContent = f; sel.appendChild(o); });
     });
+    /**
+     * ⚠️ 17.9 — **בקומת קרקע אין שאלת מעלית.**
+     *
+     * האפליקציה מסתירה את הבורר לגמרי (`{fromFloor !== 'קרקע' && (…)}`
+     * ב-`DeliveryDetailsScreen`/`SmallMoveAddressScreen`), לפי בקשה
+     * מפורשת מ-20.8: *"בקומת קרקע אין משמעות למעלית (התמחור כבר מתעלם
+     * ממנה שם) — השאלה מבלבלת ומיותרת ולכן מוסתרת."*
+     *
+     * באתר היא נשארה על המסך תמיד, כלומר הלקוח נשאל האם יש מעלית
+     * לקומת הקרקע — ו-`computePrice` ממילא מתעלם מהתשובה
+     * (`if (!state.fromElevator && fromFloorNum > 0)`). כלומר שאלה
+     * שנשאלת ואינה משפיעה על כלום.
+     *
+     * ⚠️ הערך ב-`state` **נשאר** כפי שהיה, בדיוק כמו באפליקציה: הסתרה
+     * ויזואלית בלבד. לקוח שבחר קומה 3 בלי מעלית וחזר ל"קרקע" אינו
+     * מאבד את הבחירה אם יחזור לקומה 3.
+     */
+    function syncElevatorVisibility() {
+      for (const side of ['from', 'to']) {
+        const isGround = document.getElementById(`${side}-floor`).value === 'קרקע';
+        document.getElementById(`${side}-elevator-group`).style.display = isGround ? 'none' : '';
+      }
+    }
+    document.getElementById('from-floor').addEventListener('change', syncElevatorVisibility);
+    document.getElementById('to-floor').addEventListener('change', syncElevatorVisibility);
+    syncElevatorVisibility();
+
     // ⚠️ 16.9 — רכיב כתובת ברמת האפליקציה (0.2). ראו address-autocomplete.js.
     mountAddressField({ prefix: 'from-address', authState });
     mountAddressField({ prefix: 'to-address', authState });
@@ -1105,25 +1215,82 @@
 
     const TIME_SLOTS = ['08:00-11:00', '11:00-14:00', '14:00-17:00', '17:00-20:00'];
     const timeSlotsEl = document.getElementById('time-slots');
-    TIME_SLOTS.forEach(slot => {
-      const chip = document.createElement('div');
-      chip.className = 'room-tab';
-      chip.textContent = slot;
-      // חלון הזמן הוא בחירה יחידה שניתן גם לבטל (לחיצה חוזרת מנקה אותה),
-      // ולכן `aria-pressed` ולא `aria-selected`.
-      makeChipAccessible(chip, false);
-      const pickSlot = () => {
-        state.timeSlot = state.timeSlot === slot ? '' : slot;
-        [...timeSlotsEl.children].forEach(c => {
-          const on = c.textContent === state.timeSlot;
-          c.classList.toggle('active', on);
-          c.setAttribute('aria-pressed', on ? 'true' : 'false');
-        });
-      };
-      chip.addEventListener('click', pickSlot);
-      activateOnKey(chip, pickSlot);
-      timeSlotsEl.appendChild(chip);
-    });
+
+    /**
+     * ⚠️ 17.9 — **חלון זמן שהשעה שלו כבר עברה מושבת.**
+     *
+     * האתר הציג את ארבעת החלונות תמיד, בלי קשר לשעה. כלומר לקוח שהזמין
+     * ב-22:26 לתאריך **היום** יכול היה לבחור 08:00-11:00, לשלם, ולקבל
+     * הזמנה שאף מוביל אינו יכול לבצע — היא אפילו מוצגת לו כ*"דחוף ·
+     * המועד בתוך 24 שעות"*. זו תקרית ייצור אמיתית באפליקציה (סבב
+     * סימולציה 4, ₪442 ו-₪402 שולמו בפועל), וגיא הכריע ב-14.9 בין שלוש
+     * דרכים — להשבית · להזהיר ולתת לאשר · לקפוץ למחר — ובחר **להשבית**.
+     * האפליקציה הוקשחה אז, האתר לא.
+     *
+     * הלוגיקה להלן היא העתק בית-לבית של `src/utils/timeSlotAvailability.ts`
+     * (הופרד שם מהרכיב כדי שיהיה ניתן לבדיקה), על שלוש ההכרעות שלו:
+     *
+     * 1. **נמדד מול סוף החלון ולא מול תחילתו** — מי שמזמין ב-09:00 לחלון
+     *    08:00-11:00 עדיין יכול לקבל שירות; רק מי שמזמין ב-11:30 לא.
+     * 2. **השוואת יום/חודש/שנה ולא `toISOString()`** — האחרון ממיר ל-UTC
+     *    ומזיז את התאריך אחורה בישראל בכל שעה שאחרי 21:00, כלומר בדיוק
+     *    בשעות שבהן כל החלונות אמורים להיסגר הם היו נשארים פתוחים.
+     * 3. **בלי תאריך — שום דבר לא "עבר"** — אסור להשבית אפשרות על סמך
+     *    ניחוש לפני שהלקוח בחר.
+     */
+    const slotEndHour = (slot) => Number(slot.split('-')[1]?.split(':')[0] ?? 0);
+    const isSameDayLocal = (a, b) =>
+      a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate();
+    function isSlotPast(slot, selectedDate, now = new Date()) {
+      if (!selectedDate || !isSameDayLocal(selectedDate, now)) return false;
+      return slotEndHour(slot) <= now.getHours();
+    }
+    /** התאריך שבשדה כאובייקט `Date` מקומי, או `null` כשהשדה ריק. */
+    function selectedDateObj() {
+      const v = document.getElementById('move-date').value; // YYYY-MM-DD
+      if (!v) return null;
+      const [y, m, d] = v.split('-').map(Number);
+      return new Date(y, m - 1, d);
+    }
+
+    function renderTimeSlots() {
+      const when = selectedDateObj();
+      /* ⚠️ חלון שנבחר בעודו פתוח והפך ל"עבר" — הלקוח בחר 08:00-11:00
+         למחר ואז החזיר את התאריך להיום, או פשוט השאיר את הדף פתוח מעבר
+         לשעה — היה נשאר מסומן ונשלח להזמנה, כי הצ'יפ שמבטל אותו כבר
+         מושבת. ניקוי כאן הוא מה שמונע בדיוק את התרחיש שההשבתה באה
+         למנוע. */
+      if (state.timeSlot && isSlotPast(state.timeSlot, when)) state.timeSlot = '';
+      timeSlotsEl.innerHTML = '';
+      TIME_SLOTS.forEach(slot => {
+        const past = isSlotPast(slot, when);
+        const on = state.timeSlot === slot;
+        const chip = document.createElement('div');
+        chip.className = 'room-tab' + (past ? ' slot-past' : '') + (on ? ' active' : '');
+        chip.textContent = slot;
+        // חלון הזמן הוא בחירה יחידה שניתן גם לבטל (לחיצה חוזרת מנקה אותה),
+        // ולכן `aria-pressed` ולא `aria-selected`.
+        makeChipAccessible(chip, on);
+        if (past) {
+          /* ⚠️ `aria-disabled` ולא הסרה מסדר ה-Tab: החלון **נשאר נראה**
+             (ראו ה-CSS), ומשתמש מקלדת שלא יכול להגיע אליו כלל לא ישמע
+             למה נשארו שלושה. `accessibilityState={{disabled}}` באפליקציה
+             עושה בדיוק את זה — משאיר בעץ הנגישות ומכריז כמושבת. */
+          chip.setAttribute('aria-disabled', 'true');
+          chip.setAttribute('aria-label', `${slot} — המועד עבר`);
+          timeSlotsEl.appendChild(chip);
+          return;
+        }
+        const pickSlot = () => { state.timeSlot = state.timeSlot === slot ? '' : slot; renderTimeSlots(); };
+        chip.addEventListener('click', pickSlot);
+        activateOnKey(chip, pickSlot);
+        timeSlotsEl.appendChild(chip);
+      });
+    }
+    // ⚠️ שינוי תאריך חייב לרנדר מחדש: מי שעבר מ"היום" ל"מחר" צריך לראות
+    // את כל ארבעת החלונות חוזרים, וההפך.
+    document.getElementById('move-date').addEventListener('change', renderTimeSlots);
+    renderTimeSlots();
 
     document.getElementById('needs-crane').addEventListener('change', (e) => {
       state.needsCrane = e.target.checked;
@@ -1136,24 +1303,43 @@
     function renderCraneItems() {
       const box = document.getElementById('crane-items');
       box.innerHTML = '';
-      selectedItems().forEach(i => {
+      /**
+       * ⚠️ 17.9 — **פריטים מיוחדים (`freeItems`) נכללים ברשימה.**
+       *
+       * `pickableCraneItems` ב-`DeliveryDetailsScreen` סוגר עם
+       * `for (const fi of freeItems) labels.add(fi.label);` — כלומר גם
+       * פריט שהלקוח תיאר בעצמו ואין לו מחיר קטלוגי. באתר הרשימה נבנתה
+       * מ-`selectedItems()` בלבד, ודווקא הפריטים האלה — הדברים החריגים
+       * שהלקוח טרח לתאר במילים שלו — הם המועמדים הסבירים ביותר לכך
+       * שלא ייכנסו למדרגות, ולא היה לו שום אופן לסמן אותם.
+       *
+       * ⚠️ הרשימה מיוחדת (`Set` על התווית) כי `freeItems` עשוי לשאת
+       * תווית שזהה לפריט קטלוגי, ו-`state.craneItems` מחזיק תוויות ולא
+       * מפתחות — צ'יפ כפול היה נדלק וכבה פעמיים.
+       */
+      const labels = [...new Set([
+        ...selectedItems().map(i => i.label),
+        ...state.freeItems.map(f => f.label),
+      ])];
+      document.getElementById('crane-items-group').style.display = labels.length ? '' : 'none';
+      labels.forEach(label => {
         const chip = document.createElement('div');
-        const on = state.craneItems.includes(i.label);
+        const on = state.craneItems.includes(label);
         chip.className = 'room-tab' + (on ? ' active' : '');
-        chip.textContent = i.label;
+        chip.textContent = label;
         // בחירה מרובה — כל פריט נדלק וכבה בנפרד, ולכן `aria-pressed` לכל צ'יפ.
         makeChipAccessible(chip, on);
         /**
          * ⚠️ הצ'יפ מתעדכן במקומו ולא דרך `renderCraneItems()` שבונה את כל
          * הרשימה מחדש: בנייה מחדש מוחקת את האלמנט הממוקד, והפוקוס של משתמש
-         * המקלדת היה נופל לראש הדף אחרי כל Enter. הרשימה עצמה
-         * (`selectedItems()`) לא משתנה מהלחיצה, ולכן התוצאה בעכבר זהה.
+         * המקלדת היה נופל לראש הדף אחרי כל Enter. הרשימה עצמה (`labels`)
+         * לא משתנה מהלחיצה, ולכן התוצאה בעכבר זהה.
          */
         const toggleCraneItem = () => {
-          const picked = !state.craneItems.includes(i.label);
+          const picked = !state.craneItems.includes(label);
           state.craneItems = picked
-            ? [...state.craneItems, i.label]
-            : state.craneItems.filter(l => l !== i.label);
+            ? [...state.craneItems, label]
+            : state.craneItems.filter(l => l !== label);
           chip.classList.toggle('active', picked);
           chip.setAttribute('aria-pressed', picked ? 'true' : 'false');
         };
@@ -1205,6 +1391,23 @@
         missing[0][1].focus();
         return;
       }
+      /* ⚠️ 17.9 — **תאריך שכבר עבר.** `min` על `<input type="date">`
+         מאפיר את הימים שעברו בבורר של הדפדפן, אבל **אינו אוכף דבר** על
+         הקלדה ידנית בשדה — ואין `<form>` בדף שיריץ ולידציה (אותה מלכודת
+         בדיוק שהשאירה את התאריך הריק בלי בדיקה עד 15.9). באפליקציה
+         `parseDisplayDate` מחזיר את היום לכל ערך שעבר, עם הנימוק המפורש
+         *"אי אפשר להזמין הובלה לאתמול"*, ו-`minimumDate` בבורר מונע את
+         זה מלכתחילה. כאן הבדיקה היא מה שחוסם. */
+      const todayMidnight = new Date(); todayMidnight.setHours(0, 0, 0, 0);
+      const pickedDate = selectedDateObj();
+      if (pickedDate && pickedDate < todayMidnight) {
+        errBox.innerHTML = '<div class="alert alert-error" id="delivery-error-msg">'
+          + 'אי אפשר להזמין הובלה לתאריך שכבר עבר. בחר תאריך מהיום והלאה.</div>';
+        dateEl.setAttribute('aria-invalid', 'true');
+        dateEl.setAttribute('aria-describedby', 'delivery-error-msg');
+        dateEl.focus();
+        return;
+      }
       state.fromFloor = document.getElementById('from-floor').value;
       state.toFloor = document.getElementById('to-floor').value;
       state.fromElevator = document.getElementById('from-elevator').value === '1';
@@ -1219,8 +1422,43 @@
       state.distance = geo.km;
       state.fromLat = geo.fromLat; state.fromLng = geo.fromLng;
       state.toLat = geo.toLat;     state.toLng = geo.toLng;
-      document.getElementById('distance-note').textContent = state.distance > 0 ? `מרחק משוער: ${state.distance} ק"מ` : 'לא הצלחנו לחשב מרחק — נמשיך בלי עלות נסיעה.';
       btn.disabled = false; btn.textContent = 'המשך';
+
+      /**
+       * ⚠️ 17.9 — **מרחק 0 חוסם, ואינו "נמשיך בלי עלות נסיעה".**
+       *
+       * האתר כתב במפורש *"לא הצלחנו לחשב מרחק — נמשיך בלי עלות נסיעה"*
+       * והעביר לשלב 4. כלומר כל כשל גיאוקודינג — וגם **מוצא ויעד
+       * זהים** — הפך את עלות הנסיעה ל-₪0 והלקוח שילם מחיר מלא על
+       * הזמנה שחסר בה רכיב מחיר שלם.
+       *
+       * באפליקציה זה נחסם פעמיים: `canContinue` כולל `distance > 0`,
+       * ו-`handleContinue` עוצר עם דיאלוג. ההערה שם (17.8): *"מגן: לא
+       * לתת להמשיך אם המרחק עדיין 0 … בעבר: עלות נסיעה התאפסה בשקט"*.
+       *
+       * ⚠️ ושני נוסחים ולא אחד — תיקון 12.9 (ב5) באפליקציה: *"מרחק 0
+       * נובע משתי סיבות שונות לגמרי … ההודעה הישנה אמרה 'בדוק
+       * שהכתובות נכונות' בשני המקרים, וזה מטעה מי שהזין את אותה כתובת
+       * פעמיים — הכתובות שלו נכונות לחלוטין."* המיקוד נשלח בהתאם:
+       * לכתובת היעד כשהיא זהה למוצא, ולמוצא בכל כשל אחר.
+       */
+      const noteEl = document.getElementById('distance-note');
+      if (state.distance <= 0) {
+        noteEl.textContent = '';
+        const sameAddress = !!state.fromAddress && state.fromAddress === state.toAddress;
+        const target = sameAddress ? toEl : fromEl;
+        errBox.innerHTML = '<div class="alert alert-error" id="delivery-error-msg">' + (sameAddress
+          ? 'כתובת המוצא והיעד זהות — ההובלה מתחילה ומסתיימת באותה כתובת. עדכן את כתובת היעד כדי להמשיך.'
+          : 'לא הצלחנו לחשב את עלות הנסיעה. בדוק שהכתובות נכונות ונסה שוב.') + '</div>';
+        target.setAttribute('aria-invalid', 'true');
+        target.setAttribute('aria-describedby', 'delivery-error-msg');
+        target.focus();
+        return;
+      }
+      // ⚠️ גם עלות הנסיעה ולא רק המרחק — באפליקציה `distanceBox` מציג
+      // שתי שורות (`מרחק משוער` + `עלות נסיעה`), ובאתר הופיע רק המרחק.
+      // הלקוח ראה "12 ק"מ" ולא ידע שזה ₪108 עד שלב 4.
+      noteEl.textContent = `מרחק משוער: ${state.distance} ק"מ · עלות נסיעה: ₪${formatPrice(state.distance * PRICE_PER_KM)}`;
       goToStep(4);
     });
     document.getElementById('back-to-2').addEventListener('click', () => goToStep(2));
@@ -1284,21 +1522,37 @@
       const p = computePrice();
       document.getElementById('packing-price-label').textContent = `(+₪${p.packingCalc.total})`;
 
+      /**
+       * ⚠️ 17.9 — **סדר השורות מיושר ל-`SummaryScreen.tsx`, וזו הכרעה
+       * מפורשת של גיא (27.8) שהאתר הפר.**
+       *
+       * ההערה באפליקציה: *"שירות אריזה (תוספת) מוצג לפני הנחת נפח
+       * (הפחתה) — גיא ביקש שהתוספות יופיעו קודם וההנחה אחריהן, כסיכום
+       * שיורד לקראת הסה"כ."* באתר הנחת הנפח הופיעה **שלישית**, מיד
+       * אחרי סכום הפריטים, כלומר בדיוק ההפך: המספר ירד ואז טיפס חזרה.
+       *
+       * ⚠️ גם הסימן: `+` על כל תוספת מול `−` על ההנחה. האתר סימן רק את
+       * ההנחה, כך שהקורא לא ראה איזו שורה מוסיפה ואיזו מורידה — וזה כל
+       * מה שהעמודה הזאת אמורה לומר.
+       */
       const lines = [];
-      lines.push(['עלות בסיס', `₪${BASE_PRICE}`]);
-      lines.push([`סכום פריטים (${p.selected.length})`, `₪${p.itemsSubtotal}`]);
-      if (p.volumeDiscount > 0) lines.push([`הנחת נפח (${Math.round(p.volumeDiscountRate * 100)}%)`, `−₪${p.volumeDiscount}`, 'discount']);
-      if (p.travelCost > 0) lines.push([`נסיעה (${state.distance} ק"מ)`, `₪${p.travelCost}`]);
-      if (p.floorSurcharge > 0) lines.push(['תוספת קומות', `₪${p.floorSurcharge}`]);
-      if (p.surge) lines.push([`תוספת ${p.surge.label} (+${p.surge.rate * 100}%)`, `₪${p.surgeAmount}`]);
-      if (state.hasInsurance) lines.push(['ביטוח תכולה', `₪${p.insuranceAmount}`]);
-      if (state.hasPacking) lines.push(['שירות אריזה', `₪${p.packingAmount}`]);
-      if (state.needsCrane) lines.push(['מנוף הרמה', `₪${p.craneCost}`]);
+      lines.push(['עלות בסיס', `₪${formatPrice(BASE_PRICE)}`]);
+      lines.push([`סכום פריטים (${p.selected.length})`, `₪${formatPrice(p.itemsSubtotal)}`]);
+      // ⚠️ `× ₪9` בתוך התווית — באפליקציה השורה היא
+      // `נסיעה (12 ק"מ × ₪9)`. בלי התעריף הלקוח רואה סכום שאי אפשר
+      // לבדוק, וזו השורה היחידה בפירוט שנגזרת ממספר שהוא לא בחר.
+      if (p.travelCost > 0) lines.push([`נסיעה (${state.distance} ק"מ × ₪${PRICE_PER_KM})`, `+₪${formatPrice(p.travelCost)}`]);
+      if (p.floorSurcharge > 0) lines.push(['תוספת קומות', `+₪${formatPrice(p.floorSurcharge)}`]);
+      if (p.surge) lines.push([`תוספת ${p.surge.label} (+${p.surge.rate * 100}%)`, `+₪${formatPrice(p.surgeAmount)}`]);
+      if (state.hasInsurance) lines.push(['ביטוח תכולה', `+₪${formatPrice(p.insuranceAmount)}`]);
+      if (state.hasPacking) lines.push(['שירות אריזה', `+₪${formatPrice(p.packingAmount)}`]);
+      if (p.volumeDiscount > 0) lines.push([`הנחת נפח (${Math.round(p.volumeDiscountRate * 100)}%)`, `−₪${formatPrice(p.volumeDiscount)}`, 'discount']);
+      if (state.needsCrane) lines.push(['מנוף הרמה', `+₪${formatPrice(p.craneCost)}`]);
 
       document.getElementById('price-lines').innerHTML = lines.map(([label, val, cls]) =>
         `<div class="price-line ${cls || ''}"><span>${label}</span><span>${val}</span></div>`
       ).join('');
-      document.getElementById('price-total-value').textContent = `₪${p.totalPrice}`;
+      document.getElementById('price-total-value').textContent = `₪${formatPrice(p.totalPrice)}`;
       if (state.freeItems.length > 0) {
         const names = state.freeItems.map(f => `${f.label} ×${f.qty}`).join(', ');
         document.getElementById('price-lines').innerHTML += `<div class="alert alert-info" style="margin-top:10px;">פריטים נוספים ללא תמחור אוטומטי: ${names}. הצוות שלנו יצור קשר עם הצעת מחיר.</div>`;
@@ -1370,7 +1624,26 @@
         errBox.innerHTML = `<div class="alert alert-error">${FULL_NAME_ERROR} <a tabindex="0" href="edit-profile.html">לעריכת הפרופיל</a></div>`;
         return;
       }
-      btn.disabled = true; btn.textContent = 'יוצר הזמנה...';
+      /**
+       * ⚠️ 17.9 — **הטקסט מתחלף, כמו `SUBMIT_PHRASES` באפליקציה.**
+       *
+       * האתר הקפיא "יוצר הזמנה..." — ולצידו טיימר של **20 שניות** עד
+       * שמשהו קורה (ראו למטה). עשרים שניות של טקסט שאינו זז נקראות
+       * כתקיעה, וזו בדיוק הסיבה שהאפליקציה מחליפה נוסח כל 2200 מ"ש:
+       * *"so a static spinner doesn't read as the app being stuck"*
+       * (`useRotatingPhrases.ts`). אותם שלושה נוסחים, אותו קצב.
+       *
+       * ⚠️ הטיימר מנוקה בכל היציאות — גם בהצלחה, גם ב-`catch` וגם
+       * ב-`stuckTimer` — אחרת הוא ממשיך לכתוב על כפתור שכבר חזר
+       * ל"מעבר לתשלום".
+       */
+      const SUBMIT_PHRASES = ['שומר את ההזמנה...', 'מתחבר לעמוד התשלום...', 'כמעט מוכן, רגע...'];
+      let phraseIdx = 0;
+      btn.disabled = true; btn.textContent = SUBMIT_PHRASES[0];
+      const phraseTimer = setInterval(() => {
+        phraseIdx = (phraseIdx + 1) % SUBMIT_PHRASES.length;
+        btn.textContent = SUBMIT_PHRASES[phraseIdx];
+      }, 2200);
       /**
        * ⚠️ 15.9 — **כשל שקט השאיר את הכפתור "יוצר הזמנה..." לנצח.**
        *
@@ -1389,6 +1662,7 @@
        */
       const stuckTimer = setTimeout(() => {
         if (!btn.disabled) return;
+        clearInterval(phraseTimer);
         btn.disabled = false; btn.textContent = 'מעבר לתשלום';
         errBox.innerHTML = '<div class="alert alert-error">לא קיבלנו אישור מהשרת. '
           + 'בדוק את החיבור ונסה שוב — ההזמנה לא נוצרה פעמיים גם אם תלחץ שוב.</div>';
@@ -1424,11 +1698,17 @@
           ...orderTermsConsent(),
         });
         clearTimeout(stuckTimer);
+        clearInterval(phraseTimer);
         clearOrderDraft('apartment');
         location.href = `order-status.html?id=${orderId}`;
       } catch (err) {
         clearTimeout(stuckTimer);
-        errBox.innerHTML = '<div class="alert alert-error">יצירת ההזמנה נכשלה. נסה שוב.</div>';
+        clearInterval(phraseTimer);
+        // ⚠️ 17.9 — נוסח האפליקציה (`userFacingError` fallback), לא
+        // "יצירת ההזמנה נכשלה". "נכשלה" מדווח ללקוח על תקלה במערכת
+        // שלנו ומשאיר אותו בלי מה לעשות; "לא הצלחנו לשמור" מדבר עלינו
+        // ומזמין ניסיון נוסף. גיא דחה במפורש ניסוח-כשל ללקוח (18.8).
+        errBox.innerHTML = '<div class="alert alert-error">לא הצלחנו לשמור את ההזמנה, נסה שוב.</div>';
         btn.disabled = false; btn.textContent = 'מעבר לתשלום';
       }
     });
@@ -1497,7 +1777,37 @@
       const totalItems = Object.values(state.items).reduce((s, q) => s + q, 0) + state.freeItems.reduce((s, f) => s + f.qty, 0);
       document.getElementById('next-btn').disabled = totalItems === 0;
     }
-    document.getElementById('next-btn').addEventListener('click', () => goToStep(2));
+    /**
+     * ⚠️ 17.9 — **פריט מיוחד בלי תיאור חוסם את המעבר לשלב הבא.**
+     *
+     * שדה התיאור קיים באתר, עם אותו placeholder כמו באפליקציה — אבל
+     * שום דבר לא אכף אותו. פריט מיוחד הוא בדיוק הפריט שאין לו מחיר
+     * קטלוגי, והתיאור הוא **כל** מה שהצוות מקבל כדי לתמחר אותו; בלעדיו
+     * ההזמנה יוצאת ל-`pending_pricing` עם שורה כמו "ארון" ותו לא,
+     * ומישהו צריך להתקשר ללקוח. `blockedByIncompleteFreeItem` ב-
+     * `SmallMoveItemsScreen` חוסם שם, באותו נוסח בדיוק.
+     *
+     * ⚠️ המיקוד עובר לשדה עצמו — האפליקציה מסתפקת בדיאלוג ומפנה
+     * ל"רשימת הפריטים למעלה", כאן הוא פשוט מקבל את הסמן.
+     */
+    document.getElementById('next-btn').addEventListener('click', () => {
+      const errBox = document.getElementById('free-item-error');
+      errBox.innerHTML = '';
+      const incomplete = state.freeItems.find(f => !String(f.description || '').trim());
+      if (incomplete) {
+        errBox.innerHTML = '<div class="alert alert-error" id="free-item-error-msg">'
+          + `כדי שנוכל לתמחר את "${escHtml(incomplete.label)}" נכון, צריך קודם להוסיף לו תיאור קצר (גודל, מצב...).</div>`;
+        const ta = document.querySelector(`[data-free-desc="${state.freeItems.indexOf(incomplete)}"]`);
+        if (ta) {
+          ta.setAttribute('aria-invalid', 'true');
+          ta.setAttribute('aria-describedby', 'free-item-error-msg');
+          ta.scrollIntoView({ block: 'center', behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' });
+          ta.focus({ preventScroll: true });
+        }
+        return;
+      }
+      goToStep(2);
+    });
     renderAIPhotos();
     updateItemsHeader();
     if (restoredDraft) {
@@ -1509,6 +1819,13 @@
       // מעליה.
       document.getElementById('from-address').dispatchEvent(new Event('input'));
       document.getElementById('to-address').dispatchEvent(new Event('input'));
+      // ⚠️ 17.9 — אותה מלכודת בדיוק גם כאן: `applyDraftToForm` כותב
+      // `.value` לבוררי הקומה ולשדה התאריך בלי לשלוח `change`, ולכן
+      // בורר המעלית וחלונות הזמן היו נשארים על מה שחושב בטעינה. טיוטה
+      // עם קומה 3 הייתה מוצגת בלי שאלת מעלית, וטיוטה עם תאריך מחר
+      // הייתה מציגה את חלונות היום כ"עברו".
+      syncElevatorVisibility();
+      renderTimeSlots();
     }
     else if (draftDiscarded) showDraftDiscardedNotice();
     goToStep(1);
