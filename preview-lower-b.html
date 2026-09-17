@@ -220,13 +220,19 @@ a{color:inherit;}
   .stop{opacity:1; transform:none; transition:none;}
   .track-fill{display:none;}
 }
+
+  .sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+  .skip-link{position:absolute;inset-inline-start:-9999px;top:0;z-index:999;background:#0E5C43;color:#fff;padding:10px 16px;border-radius:0 0 6px 0;font-weight:700;text-decoration:none}
+  .skip-link:focus{inset-inline-start:0}
 </style>
 </head>
 <body>
+<a class="skip-link" href="#main-content">דלג לתוכן המרכזי</a>
 
 <div class="demo-note">דוגמת עיצוב · חלק תחתון של דף הבית · ההירו העליון לא מוצג כאן ולא נגעו בו</div>
 
-<main id="main-content">
+<main id="main-content" tabindex="-1">
+  <h1 class="sr-only">דף הבית — חלק תחתון · דוגמת עיצוב מסע מוצר</h1>
 
   <!-- ═══════════ המסע: איך זה עובד + מה ייחודי ═══════════ -->
   <section class="journey" id="how-it-works" aria-labelledby="journey-h">
@@ -256,10 +262,10 @@ a{color:inherit;}
             <div class="scene scene-list" aria-hidden="true">
               <div class="scene-bar"><span></span><span></span><span></span></div>
               <div class="scene-body">
-                <div class="row"><svg viewBox="0 0 24 24" fill="none"><path d="M4 12l5 5L20 6" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>מקרר</div>
-                <div class="row"><svg viewBox="0 0 24 24" fill="none"><path d="M4 12l5 5L20 6" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>ספה תלת מושבית</div>
-                <div class="row"><svg viewBox="0 0 24 24" fill="none"><path d="M4 12l5 5L20 6" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>מיטה זוגית</div>
-                <div class="row"><svg viewBox="0 0 24 24" fill="none"><path d="M4 12l5 5L20 6" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>ארון 4 דלתות</div>
+                <div class="row"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none"><path d="M4 12l5 5L20 6" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>מקרר</div>
+                <div class="row"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none"><path d="M4 12l5 5L20 6" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>ספה תלת מושבית</div>
+                <div class="row"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none"><path d="M4 12l5 5L20 6" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>מיטה זוגית</div>
+                <div class="row"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none"><path d="M4 12l5 5L20 6" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>ארון 4 דלתות</div>
               </div>
             </div>
           </div>
@@ -283,7 +289,7 @@ a{color:inherit;}
                 <div class="amt">₪1,240</div>
                 <div class="lbl">מחיר סופי, כולל הכול</div>
                 <div class="badge">
-                  <svg viewBox="0 0 24 24" fill="none"><path d="M4 12l5 5L20 6" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                  <svg aria-hidden="true" viewBox="0 0 24 24" fill="none"><path d="M4 12l5 5L20 6" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
                   לפני אישור ההזמנה
                 </div>
               </div>
@@ -310,7 +316,7 @@ a{color:inherit;}
                 <div class="line"><span>תאריך</span><b>12.10 · 09:00</b></div>
                 <div class="line"><span>סה״כ לתשלום</span><b>₪1,240</b></div>
                 <div class="go">
-                  <svg viewBox="0 0 24 24" fill="none"><rect x="4" y="10" width="16" height="10" rx="2" stroke="currentColor" stroke-width="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3" stroke="currentColor" stroke-width="2"/></svg>
+                  <svg aria-hidden="true" viewBox="0 0 24 24" fill="none"><rect x="4" y="10" width="16" height="10" rx="2" stroke="currentColor" stroke-width="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3" stroke="currentColor" stroke-width="2"/></svg>
                   אשר ושלם
                 </div>
               </div>
@@ -333,7 +339,7 @@ a{color:inherit;}
             <div class="scene" aria-hidden="true">
               <div class="scene-bar"><span></span><span></span><span></span></div>
               <div class="scene-map">
-                <svg class="route" viewBox="0 0 300 128" fill="none" preserveAspectRatio="none">
+                <svg aria-hidden="true" class="route" viewBox="0 0 300 128" fill="none" preserveAspectRatio="none">
                   <path d="M40 96 C 110 96, 120 40, 260 34" stroke="#00A651" stroke-width="2.5" stroke-dasharray="6 8" stroke-linecap="round" opacity=".7"/>
                 </svg>
                 <span class="pin" style="right:12px;bottom:14px"><span class="dotc"></span>איתך</span>
@@ -356,11 +362,11 @@ a{color:inherit;}
               <div class="scene-bar"><span></span><span></span><span></span></div>
               <div class="scene-body">
                 <div class="stars">
-                  <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l2.9 6.6 7.1.6-5.4 4.7 1.7 7-6.3-3.9L5.7 21l1.7-7L2 9.2l7.1-.6z"/></svg>
-                  <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l2.9 6.6 7.1.6-5.4 4.7 1.7 7-6.3-3.9L5.7 21l1.7-7L2 9.2l7.1-.6z"/></svg>
-                  <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l2.9 6.6 7.1.6-5.4 4.7 1.7 7-6.3-3.9L5.7 21l1.7-7L2 9.2l7.1-.6z"/></svg>
-                  <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l2.9 6.6 7.1.6-5.4 4.7 1.7 7-6.3-3.9L5.7 21l1.7-7L2 9.2l7.1-.6z"/></svg>
-                  <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l2.9 6.6 7.1.6-5.4 4.7 1.7 7-6.3-3.9L5.7 21l1.7-7L2 9.2l7.1-.6z"/></svg>
+                  <svg aria-hidden="true" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l2.9 6.6 7.1.6-5.4 4.7 1.7 7-6.3-3.9L5.7 21l1.7-7L2 9.2l7.1-.6z"/></svg>
+                  <svg aria-hidden="true" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l2.9 6.6 7.1.6-5.4 4.7 1.7 7-6.3-3.9L5.7 21l1.7-7L2 9.2l7.1-.6z"/></svg>
+                  <svg aria-hidden="true" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l2.9 6.6 7.1.6-5.4 4.7 1.7 7-6.3-3.9L5.7 21l1.7-7L2 9.2l7.1-.6z"/></svg>
+                  <svg aria-hidden="true" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l2.9 6.6 7.1.6-5.4 4.7 1.7 7-6.3-3.9L5.7 21l1.7-7L2 9.2l7.1-.6z"/></svg>
+                  <svg aria-hidden="true" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l2.9 6.6 7.1.6-5.4 4.7 1.7 7-6.3-3.9L5.7 21l1.7-7L2 9.2l7.1-.6z"/></svg>
                 </div>
                 <div class="num">5.0</div>
                 <div class="note">״הובלה מעולה, הכול תקין״</div>
@@ -372,7 +378,7 @@ a{color:inherit;}
         <!-- תחנה: למובילים עצמאיים -->
         <article class="stop stop-movers" data-stop id="for-movers">
           <span class="dot dot-alt" aria-hidden="true">
-            <svg viewBox="0 0 24 24" fill="none"><path d="M2 7h11v9H2zM13 10h4l3 3v3h-7M6 19a2 2 0 1 0 0-4 2 2 0 0 0 0 4M17 19a2 2 0 1 0 0-4 2 2 0 0 0 0 4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            <svg aria-hidden="true" viewBox="0 0 24 24" fill="none"><path d="M2 7h11v9H2zM13 10h4l3 3v3h-7M6 19a2 2 0 1 0 0-4 2 2 0 0 0 0 4M17 19a2 2 0 1 0 0-4 2 2 0 0 0 0 4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
           </span>
           <div class="stop-grid">
             <div class="movers-card">

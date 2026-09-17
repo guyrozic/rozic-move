@@ -10,6 +10,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
 <style>
   :root {
+    --clay-ink: #7A3D1E;
     --pine:       #0E5C43;
     --pine-dark:  #0A4433;
     --pine-deep:  #0C2A20;
@@ -64,7 +65,7 @@
     border-bottom: 1px solid rgba(177,90,49,0.3);
     padding: 10px 24px;
     font-size: 0.78rem;
-    color: #7A3D1E;
+    color: var(--clay-ink);
     text-align: center;
     line-height: 1.6;
   }
@@ -482,9 +483,16 @@
     .footer-top { flex-direction: column; }
     .footer-bottom { flex-direction: column; }
   }
+
+  .sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+  .skip-link{position:absolute;inset-inline-start:-9999px;top:0;z-index:999;background:#0E5C43;color:#fff;padding:10px 16px;border-radius:0 0 6px 0;font-weight:700;text-decoration:none}
+  .skip-link:focus{inset-inline-start:0}
 </style>
 </head>
 <body>
+<a class="skip-link" href="#main-content">דלג לתוכן המרכזי</a>
+<main id="main-content" tabindex="-1">
+  <h1 class="sr-only">דף הבית — חלק תחתון · דוגמת עיצוב מינימליסטית</h1>
 
 <div class="devnote"><b>תצוגה מקדימה, לא חלק מהאתר החי.</b> החלק התחתון של דף הבית, סגנון מינימליסטי עריכתי — ההירו הירוק למעלה אינו נוגע כאן בכלל.</div>
 
@@ -719,5 +727,6 @@
   });
 </script>
 
+</main>
 </body>
 </html>
