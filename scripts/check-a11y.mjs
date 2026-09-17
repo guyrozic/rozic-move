@@ -57,7 +57,7 @@
  */
 
 import { readFileSync, readdirSync, statSync } from 'node:fs';
-import { join, dirname, resolve, relative } from 'node:path';
+import { join, dirname, resolve, relative, basename } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
@@ -503,9 +503,49 @@ for (const f of files) {
   else { htmlCount++; findings.push(...checkDocument(rel, src, palette)); }
 }
 
+/* ------------------------------------------------------------------ *
+ * מספר הדפים שההצהרה מתחייבת עליו
+ *
+ * ⚠️ 17.9 — ההצהרה הכריזה על "17 דפים" כשבפועל היו 24. זו הצהרה לפי
+ * תקנה 35ה, כלומר מסמך רגולטורי שמצהיר על היקף — ומספר שגוי בו הוא
+ * פער-הצהרה-מול-מציאות, לא טעות הקלדה.
+ *
+ * וזו סחיפה שתחזור: המספר נכתב ביד, ו**כל דף חדש שנוסף לאתר מייתם
+ * אותו בשקט**, בלי שאיש נוגע בקובץ ההצהרה. לכן הוא נאכף כאן ולא
+ * נסמך על זיכרון.
+ *
+ * הספירה אינה כוללת `preview-*.html` — הם דפי רפרנס פנימיים לעיצוב,
+ * נושאים `noindex` ואינם בתפריט או ב-sitemap. (הם *כן* נגישים פומבית,
+ * וזו הכרעה פתוחה בפני עצמה — ראו CLAUDE.md.)
+ * ------------------------------------------------------------------ */
+if (!targets.length) {
+  const sitePages = files.filter((f) => {
+    const rel = relative(ROOT, f);
+    return rel.endsWith('.html')
+      && !rel.includes('.claude/')        // עצי עבודה של סוכנים
+      && !basename(rel).startsWith('preview-');
+  });
+  const declPath = resolve(ROOT, 'accessibility.html');
+  let decl;
+  try { decl = readFileSync(declPath, 'utf8'); } catch { decl = null; }
+  if (decl) {
+    const declared = [...decl.matchAll(/(\d+)\s+דפ(?:ים|י האתר)/g)].map((m) => Number(m[1]));
+    if (!declared.length) {
+      findings.push({ file: 'accessibility.html', line: 0, rule: 'page-count',
+        msg: 'לא נמצאה בהצהרה הצהרת היקף בצורת "<מספר> דפים" — אם הניסוח שונה, לעדכן את הבדיקה' });
+    }
+    for (const n of new Set(declared)) {
+      if (n !== sitePages.length) {
+        findings.push({ file: 'accessibility.html', line: 0, rule: 'page-count',
+          msg: `ההצהרה מכריזה על ${n} דפים, ובאתר יש ${sitePages.length}` });
+      }
+    }
+  }
+}
+
 findings.sort((a, b) => a.file.localeCompare(b.file) || a.line - b.line);
 
-const RULES = ['img-alt', 'control-name', 'field-label', 'svg-name', 'page-h1',
+const RULES = ['img-alt', 'control-name', 'field-label', 'svg-name', 'page-h1', 'page-count',
   'heading-skip', 'viewport-zoom', 'raw-color', 'unresolved-var',
   'landmark-main', 'skip-link', 'positive-tabindex'];
 
