@@ -1078,3 +1078,14 @@
 .support-resolved-bar p { color: var(--text-mid); font-size: 0.86rem; margin: 6px 0 14px; }
 .support-direct-contact { text-align: center; font-size: 0.8rem; color: var(--text-muted); padding: 12px 20px 18px; border-top: 1px solid var(--border); }
 .support-direct-contact a { color: var(--green-dark); font-weight: 700; }
+
+/* 17.9 — "+ חדש"/"סגור ✓", זהה ל-"actions" ב-SupportChatScreen.tsx.
+   .chat-header רקע כהה (var(--green)) — .btn-text הרגיל (טקסט ירוק כהה)
+   היה כמעט בלתי-נראה עליו, ולכן פאלטה משלו כאן, באותו דפוס בדיוק כמו
+   .step-hero.step-4 .btn-text למעלה בקובץ. */
+.chat-header-actions { display: flex; gap: 8px; margin-inline-start: auto; }
+.chat-header-actions .btn-text {
+  color: var(--white); background: rgba(255,255,255,0.16); border-radius: 10px;
+  padding: 6px 10px; font-size: 0.78rem; font-weight: 700;
+}
+.chat-header-actions .btn-text:hover { background: rgba(255,255,255,0.26); color: var(--white); }

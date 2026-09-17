@@ -44,7 +44,18 @@
             <div class="chat-header-name">רוני</div>
             <div class="chat-header-role">סוכן תמיכה AI</div>
           </div>
+          <!-- זהה ל-"actions" ב-SupportChatScreen.tsx: פתיחת פנייה חדשה
+               ("+ חדש") וסגירת הפנייה הנוכחית ("סגור ✓") זמינות בכל שלב
+               בשיחה, לא רק אחרי שהפנייה כבר נסגרה. -->
+          <div id="chat-header-actions" class="chat-header-actions" style="display:none;">
+            <button tabindex="0" type="button" class="btn-text" id="start-new-btn">+ חדש</button>
+            <button tabindex="0" type="button" class="btn-text" id="resolve-btn">סגור ✓</button>
+          </div>
         </div>
+
+        <!-- זהה ל-hasOlder ב-SupportChatScreen.tsx: מופיע רק כשהחלון מלא
+             (פנייה ארוכה מ-SUPPORT_PAGE_SIZE). -->
+        <button tabindex="0" type="button" class="btn-text" id="load-older-btn" style="display:none; margin:0 auto 8px;">טען הודעות קודמות</button>
 
         <div id="chat-thread" class="chat-thread" role="log" aria-live="polite" aria-label="הודעות הצ'אט"></div>
 
@@ -106,7 +117,7 @@
     import { requireAuth } from './auth.js';
     import {
       createOrGetTicket, sendSupportMessage, escalateToHuman, resolveTicket,
-      markUserRead, subscribeToTicketMessages, subscribeToTicket,
+      markUserRead, subscribeToTicketMessages, subscribeToTicket, SUPPORT_PAGE_SIZE,
     } from './support.js';
     import { chatSupportAgent, friendlyAIError } from './ai-vision.js';
 
@@ -142,6 +153,8 @@
     const sendBtn = document.getElementById('chat-send-btn');
     const escalateBar = document.getElementById('escalate-bar');
     const resolvedBar = document.getElementById('resolved-bar');
+    const headerActions = document.getElementById('chat-header-actions');
+    const loadOlderBtn = document.getElementById('load-older-btn');
 
     function showError(html) {
       loadingEl.style.display = 'none';
@@ -157,6 +170,11 @@
     let sending = false;
     let unsubMessages = null;
     let unsubTicket = null;
+    // זהה ל-windowSize/hasOlder/loadingOlderRef ב-SupportChatScreen.tsx:
+    // "טען הודעות קודמות" מגדיל את החלון בלי לגלול את המשתמש בחזרה לסוף.
+    let windowSize = SUPPORT_PAGE_SIZE;
+    let hasOlder = false;
+    let loadingOlder = false;
 
     function formatTime(ts) {
       if (!ts || typeof ts.toDate !== 'function') return '';
@@ -223,15 +241,25 @@
         }).join('');
         if (sending) threadEl.innerHTML += '<div class="chat-msg other typing">רוני מקליד...</div>';
       }
-      threadEl.scrollTop = threadEl.scrollHeight;
+      // ⚠️ snapshot שנובע מ"טען הודעות קודמות" **אינו** גולל לסוף — אחרת
+      // הלחיצה הייתה מחזירה את המשתמש בדיוק למקום שממנו ביקש לצאת.
+      // זהה ל-loadingOlderRef ב-SupportChatScreen.tsx.
+      if (loadingOlder) { loadingOlder = false; } else { threadEl.scrollTop = threadEl.scrollHeight; }
       renderTopics();
     }
 
     function renderTicketState() {
       const isResolved = ticket?.status === 'resolved';
+      const showTopics = messages.length === 0 && !sending;
       escalateBar.style.display = (!isResolved && ticket?.status === 'bot' && messages.length > 0) ? 'flex' : 'none';
       resolvedBar.style.display = isResolved ? 'block' : 'none';
       formEl.style.display = isResolved ? 'none' : 'flex';
+      // "+ חדש"/"סגור ✓" — זהה ל-actions ב-SupportChatScreen.tsx: מוצג
+      // ברגע שיש שיחה על המסך, לא רק אחרי סגירה. "סגור ✓" נעלם אחרי סגירה
+      // (resolvedBar מציע "פתיחת פנייה חדשה" במקומו).
+      headerActions.style.display = showTopics ? 'none' : 'flex';
+      document.getElementById('resolve-btn').style.display = isResolved ? 'none' : 'inline-block';
+      loadOlderBtn.style.display = hasOlder ? 'block' : 'none';
       renderQuestions();
     }
 
@@ -317,11 +345,26 @@
       }
     }
 
+    // זהה ל-hasOlder/windowSize ב-SupportChatScreen.tsx: נקרא מחדש כל פעם
+    // שהחלון גדל (לחיצה על "טען הודעות קודמות"), על אותו ticketId.
+    function subscribeMessages() {
+      if (unsubMessages) { unsubMessages(); unsubMessages = null; }
+      unsubMessages = subscribeToTicketMessages(ticketId, (msgs, older) => {
+        messages = msgs;
+        hasOlder = older;
+        markUserRead(ticketId);
+        renderThread();
+        renderTicketState();
+      }, windowSize);
+    }
+
     async function startTicket() {
       loadingEl.style.display = 'block';
       contentEl.style.display = 'none';
       pendingQuestions = [];
       messages = [];
+      windowSize = SUPPORT_PAGE_SIZE;
+      hasOlder = false;
       if (unsubMessages) { unsubMessages(); unsubMessages = null; }
       if (unsubTicket) { unsubTicket(); unsubTicket = null; }
       try {
@@ -350,12 +393,7 @@
         reveal();
         renderTicketState();
       });
-      unsubMessages = subscribeToTicketMessages(ticketId, (msgs) => {
-        messages = msgs;
-        markUserRead(ticketId);
-        renderThread();
-        renderTicketState();
-      });
+      subscribeMessages();
     }
 
     updateSendState();
@@ -372,6 +410,23 @@
     document.getElementById('new-ticket-btn').addEventListener('click', async () => {
       if (ticketId) await resolveTicket(ticketId, 'user').catch(() => {});
       startTicket();
+    });
+    // "+ חדש" — זהה ל-startNewChat ב-SupportChatScreen.tsx: סוגר את הפנייה
+    // הנוכחית (אם עוד פתוחה) ופותח פנייה חדשה, גם בלי לחכות שהיא תיסגר קודם.
+    document.getElementById('start-new-btn').addEventListener('click', async () => {
+      if (ticketId) await resolveTicket(ticketId, 'user').catch(() => {});
+      startTicket();
+    });
+    // "סגור ✓" — זהה ל-handleResolve ב-SupportChatScreen.tsx: המשתמש סוגר
+    // ביוזמתו, בכל שלב, לא רק דרך ה-AI/הנציג.
+    document.getElementById('resolve-btn').addEventListener('click', async () => {
+      if (!ticketId) return;
+      await resolveTicket(ticketId, 'user').catch(() => {});
+    });
+    loadOlderBtn.addEventListener('click', () => {
+      loadingOlder = true;
+      windowSize += SUPPORT_PAGE_SIZE;
+      subscribeMessages();
     });
 
     startTicket();

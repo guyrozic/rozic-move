@@ -8,6 +8,7 @@ import {
   RecaptchaVerifier, PhoneAuthProvider, updatePhoneNumber,
   GoogleAuthProvider, OAuthProvider, signInWithPopup,
   EmailAuthProvider, reauthenticateWithCredential, updatePassword as fbUpdatePassword,
+  sendPasswordResetEmail,
 } from 'https://www.gstatic.com/firebasejs/12.16.0/firebase-auth.js';
 import { doc, setDoc, getDoc, updateDoc, onSnapshot, serverTimestamp } from 'https://www.gstatic.com/firebasejs/12.16.0/firebase-firestore.js';
 import { auth, db } from './firebase.js';
@@ -109,11 +110,54 @@ export async function registerCustomer({ name, email, phone, password, termsAcce
 export async function login(email, password) {
   const credential = await signInWithEmailAndPassword(auth, email, password);
   const snap = await getDoc(doc(db, 'users', credential.user.uid));
-  if (snap.exists() && snap.data().suspended) {
+  /**
+   * ⚠️ 17.9 — חשבון יתום: זהה ל-`login()` ב-Hovalot's AuthContext.tsx (16.9).
+   * הרשמה שנקטעת בין `createUserWithEmailAndPassword` ל-`setDoc` (סגירת
+   * הדפדפן/נפילת רשת) משאירה חשבון ב-Auth בלי מסמך ב-Firestore. בלי הבדיקה
+   * הזו `snap.exists()` הוא `false`, שום דבר לא נזרק, וה-`subscribeToAuth`
+   * שבתחתית login.html מקבל `callback(null)` (ראו שם) — כלומר הכפתור נלחץ,
+   * הספינר נגמר, ושום דבר לא קורה, בדיוק כמו שהיה באפליקציה לפני התיקון.
+   * `signOut` הכרחי מאותה סיבה: בלעדיו יישאר משתמש מחובר בלי פרופיל.
+   */
+  if (!snap.exists()) {
+    await signOut(auth);
+    throw { code: 'auth/profile-missing' };
+  }
+  if (snap.data().suspended) {
     await signOut(auth);
     throw { code: 'auth/account-suspended' };
   }
   return credential.user;
+}
+
+/**
+ * בלם שליחה חוזרת לאיפוס סיסמה — זהה ל-`useSendCooldown('email', ...)` ב-
+ * LoginScreen.tsx: אין שום אימות שהמלחיץ הוא בעל הכתובת, ולכן בלי צינון
+ * זהו וקטור הצפה של תיבה זרה. 60 שניות בין שליחה לשליחה, עד 5 שליחות
+ * לאותה כתובת — אותם מספרים בדיוק כמו האפליקציה.
+ *
+ * ⚠️ מצב ברמת המודול, לא ברמת הרכיב/הדף — רענון הדף מאפס אותו (אין כאן
+ * localStorage), בדיוק כמו שסגירה ופתיחה מחדש של האפליקציה מאפסת את הצד
+ * שלה. זו הגנת קליינט בלבד, מרסן ולא מנעול.
+ */
+const RESET_COOLDOWN_MS = 60_000;
+const RESET_MAX_PER_TARGET = 5;
+const resetAttempts = new Map();
+const resetNextAllowedAt = new Map();
+
+export function getPasswordResetCooldown(email) {
+  const key = String(email ?? '').trim().toLowerCase();
+  const secondsLeft = Math.max(0, Math.ceil(((resetNextAllowedAt.get(key) ?? 0) - Date.now()) / 1000));
+  const exhausted = (resetAttempts.get(key) ?? 0) >= RESET_MAX_PER_TARGET;
+  return { canSend: !exhausted && secondsLeft === 0, secondsLeft, exhausted };
+}
+
+export async function sendPasswordReset(email) {
+  const trimmed = String(email ?? '').trim();
+  const key = trimmed.toLowerCase();
+  await sendPasswordResetEmail(auth, trimmed);
+  resetNextAllowedAt.set(key, Date.now() + RESET_COOLDOWN_MS);
+  resetAttempts.set(key, (resetAttempts.get(key) ?? 0) + 1);
 }
 
 export function logout() {
