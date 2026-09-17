@@ -79,7 +79,7 @@
   h2.h.on-dark { color: var(--cream); }
 
   .lede { font-size: 1rem; color: var(--text-mid); max-width: 640px; line-height:1.75; }
-  .lede.on-dark { color: rgba(251,246,236,.78); }
+  .lede.on-dark { color: rgba(255,255,255,.9); }
 
   /* ⚠️ הבהרה בין-פורטלית: כל אזור מקבל ריפוד עצמו, ולא מרווח קבוע בין
      סקשנים — כדי שהמעברים בין קרם/חול/pine כהה יהיו נשימה טבעית ולא קפיצה. */
@@ -208,8 +208,18 @@
   .fq-a p { padding: 0 22px 20px; font-size:.9rem; color: var(--text-mid); line-height:1.75; }
 
   /* ═══════════════ 4 · הורדה + פוטר, גוש pine כהה אחד ═══════════════ */
-  .dl { background: radial-gradient(120% 140% at 20% 0%, var(--pine-bright) 0%, var(--pine) 42%, var(--pine-dark) 100%);
+  /* ⚠️ גרדיאנט מוצק בין שני הירוקים הכהים בלבד (pine → pine-dark), בלי
+     תחנת pine-bright מתחת לטקסט — כל טקסט בגוש הזה נמדד ועובר AA מול
+     pine, הבהיר מבין השניים (ראו בדיקת הניגודיות בהערה על .kicker.on-dark). */
+  .dl { background: linear-gradient(165deg, var(--pine) 0%, var(--pine-dark) 100%);
     padding-top: clamp(64px,9vw,104px); padding-bottom: 0; overflow:clip; }
+
+  /* ⚠️ pine-bright מוגבל להילה דקורטיבית בפינה, מחוץ לאזור הטקסט הממורכז
+     (dl-inner ברוחב 640 ממורכז) ומחוץ לפוטר — ולכן לעולם לא יושב מתחת
+     לאותיות. */
+  .dl-glow { position:absolute; top:-160px; right:-140px; width:520px; height:520px;
+    border-radius:50%; background: radial-gradient(circle, var(--pine-bright) 0%, transparent 68%);
+    opacity:.55; pointer-events:none; }
 
   .dl-dots { position:absolute; inset:0; pointer-events:none; opacity:.5;
     background-image: radial-gradient(var(--green-wash) 1.4px, transparent 1.4px);
@@ -238,17 +248,21 @@
 
   .fw-brand-logo { display:flex; align-items:center; gap:8px; font-size:1.1rem; font-weight:900; color:#fff; }
   .fw-tag { font-size:.85rem; color: var(--green-wash); margin-top:8px; }
-  .fw-copy { font-size:.78rem; color: rgba(255,255,255,.5); margin-top:14px; }
+  /* ⚠️ ניגודיות — כל ה-rgba(255,255,255,x) כאן נמדדו מול --pine (הבהיר
+     מבין שני הכהים בגרדיאנט, ראו .dl): .72 => 5.0:1, .78 => 5.56:1.
+     ערכים נמוכים יותר (כמו ה-.5/.55/.48 שבסבב הקודם) עברו רק מול navy
+     כהה בהרבה ולא מול pine. */
+  .fw-copy { font-size:.78rem; color: rgba(255,255,255,.72); margin-top:14px; }
 
-  .fw-title { font-size:.78rem; font-weight:800; color: rgba(255,255,255,.55); letter-spacing:.03em;
+  .fw-title { font-size:.78rem; font-weight:800; color: rgba(255,255,255,.72); letter-spacing:.03em;
     text-transform:uppercase; margin-bottom:12px; }
-  .fw-col a { display:block; font-size:.87rem; color: rgba(255,255,255,.78); text-decoration:none;
+  .fw-col a { display:block; font-size:.87rem; color: rgba(255,255,255,.85); text-decoration:none;
     margin-bottom:9px; transition: color .2s ease; }
   .fw-col a:hover { color:#fff; }
 
   .footer-bottom-warm { border-top: 1px solid rgba(255,255,255,.10); padding: 20px 0 26px;
     display:flex; justify-content:space-between; gap:14px; flex-wrap:wrap; position:relative; z-index:1; }
-  .footer-bottom-warm p { font-size:.76rem; color: rgba(255,255,255,.48); }
+  .footer-bottom-warm p { font-size:.76rem; color: rgba(255,255,255,.72); }
 
   /* נגישות — יעד מגע מינימלי לכל אלמנט לחיץ בעמוד */
   a, button { min-height: 0; }
@@ -363,19 +377,24 @@
         <a class="btn-warm" href="#download">הצטרף כמוביל</a>
       </div>
 
+      <!-- ⚠️ 17.9 — היה כאן כרטיס "עדות" עם שם, ציטוט ונתוני ביצועים
+           (4.9 דירוג, מעל 120 הובלות, "כשנה וחצי"). זו הייתה המצאה
+           המיוחסת לאדם בשם, בזמן שהאתר עצמו מכריז שאין עדיין פעילות
+           הובלה סדירה — ובדיוק הסוג שכבר הוסר מהאתר בעבר. הוחלף
+           במוקאפ ממשק ניטרלי, כמו ה-driver-card ב-index.html החי. -->
       <div class="mv-card">
         <div class="mv-quote-head">
-          <span class="mv-ava" aria-hidden="true">י.פ</span>
+          <span class="mv-ava" aria-hidden="true">R</span>
           <div>
-            <p class="mv-name">יוסי פרידמן</p>
-            <p class="mv-role">מוביל עצמאי ברוזיק, כשנה וחצי</p>
+            <p class="mv-name">לוח ההזמנות שלך</p>
+            <p class="mv-role">כך זה נראה באפליקציית המוביל</p>
           </div>
         </div>
-        <p class="mv-quote">אני קובע מתי אני זמין, ובלי לחפש עבודה לבד — ההזמנות
-          פשוט מחכות לי באפליקציה כשאני פותח אותה בבוקר.</p>
+        <p class="mv-quote">הזמנות פתוחות באזור שלך — מסלול, חלון זמן והרווח נטו
+          על כל אחת. בוחר את מה שמתאים לך, בלי לחפש עבודה לבד.</p>
         <div class="mv-stats">
-          <span class="mv-stat"><svg aria-hidden="true"><use href="#w-star"/></svg>4.9 דירוג ממוצע</span>
-          <span class="mv-stat"><svg aria-hidden="true"><use href="#w-truck"/></svg>מעל 120 הובלות</span>
+          <span class="mv-stat"><svg aria-hidden="true"><use href="#w-star"/></svg>את/ה קובע/ת זמינות</span>
+          <span class="mv-stat"><svg aria-hidden="true"><use href="#w-truck"/></svg>תשלום כל שבועיים</span>
         </div>
       </div>
     </div>
@@ -435,6 +454,7 @@
        "מוכנים להתחיל" לפוטר. סיום חם במקום מסך כחול-כהה טכני.
        ══════════════════════════════════════════════════════════════════ -->
   <section class="dl" id="download">
+    <div class="dl-glow" aria-hidden="true"></div>
     <div class="dl-dots" aria-hidden="true"></div>
     <div class="wrap dl-inner">
       <p class="kicker on-dark">מוכנים להתחיל?</p>
