@@ -243,6 +243,36 @@
       window.location.href = 'rozicmove://payment-success' + (orderId ? ('?orderId=' + encodeURIComponent(orderId)) : '');
     }
 
+    /**
+     * ⚠️ 18.9 — **טיפ שחוזר מהסליקה נחת כאן ונפל בין הכיסאות.**
+     *
+     * טיפ מהאתר נשלח ל-Grow עם המזהה `tip_<orderId>_<ts>` (ראו
+     * `startTipCheckout` ב-`app/payments.js`) — התחילית היא מה שמנתב
+     * אותו ב-`createGrowCheckout` וב-`growNotify` אל האוסף `orderTips`.
+     * הדף הזה, לעומת זאת, חיפש **תמיד** `orders/<orderId>`:
+     *
+     * - מסמך בשם `tip_...` אינו קיים ב-`orders`, ולכן שש הסקירות היו
+     *   נכשלות תמיד והלקוח היה מקבל "עדיין מאשרים" גם על טיפ שנגבה;
+     * - והקישור "צפה בהזמנה שלך" היה מצביע ל-
+     *   `order-status.html?id=tip_...` — הזמנה שאינה קיימת.
+     *
+     * שניהם נפתרים מאותה פירוק: `tip_<orderId>_<timestamp>`. ההזמנה
+     * היא כל מה שביניהם, ולכן `slice(1, -1).join('_')` ולא `split[1]`
+     * — מזהה הזמנה עשוי להכיל `_` בעצמו.
+     *
+     * **באפליקציה אין את הבעיה הזו בכלל:** שם המסך נשאר חי מאחורי
+     * דפדפן פנימי ו-`waitForTipConfirmed` מאזין ישירות למסמך הטיפ.
+     * באתר `location.href` הורס את הדף — ולכן ההמתנה הזו היא המקבילה
+     * היחידה, והיא חייבת לסקור את אותו מסמך בדיוק.
+     */
+    function parseTipId(id) {
+      if (!id || id.indexOf('tip_') !== 0) return null;
+      var parts = id.split('_');
+      if (parts.length < 3) return null;
+      var orderId = parts.slice(1, -1).join('_');
+      return orderId ? { tipId: id, orderId: orderId } : null;
+    }
+
     // Orders placed from the website (app/apartment.html etc., via
     // createGrowCheckout's `fromWeb` flag) land here in a plain browser tab —
     // there's no app installed in this context, so skip the dead-end deep-link
@@ -263,12 +293,15 @@
      * התשלום…" — נייטרלי, כי ברגע הנחיתה **באמת לא ידוע**.
      */
     if (getParam('web') === '1') {
-      var orderId = getParam('orderId');
+      var checkoutId = getParam('orderId');
+      var tip = parseTipId(checkoutId);
+      var linkOrderId = tip ? tip.orderId : checkoutId;
       document.getElementById('app-buttons').style.display = 'none';
       document.getElementById('web-buttons').style.display = 'block';
       document.getElementById('note').style.display = 'none';
-      document.getElementById('order-status-link').href = 'app/order-status.html' + (orderId ? ('?id=' + encodeURIComponent(orderId)) : '');
-      if (orderId) verifyPayment(orderId);
+      document.getElementById('order-status-link').href = 'app/order-status.html' + (linkOrderId ? ('?id=' + encodeURIComponent(linkOrderId)) : '');
+      if (tip) verifyTipPayment(tip.tipId);
+      else if (checkoutId) verifyPayment(checkoutId);
       else {
         setStatus('התשלום נשלח');
         document.getElementById('opening').textContent = 'אפשר לבדוק את מצב ההזמנה בעמוד ההזמנות.';
@@ -283,31 +316,79 @@
      * ואומרים את האמת — "עדיין מאשרים" — ולא מכריזים כשל: התשלום
      * עשוי בהחלט להיות תקין, רק האישור טרם הגיע.
      */
+    /**
+     * סקירה חוזרת של מסמך אחד עד שהוא מסומן כשולם.
+     *
+     * הוצא מ-`verifyPayment` כדי שנתיב הטיפ (`orderTips`) יחלוק את
+     * **אותה** המתנה: אותן שש סקירות, אותה המתנה ל-Auth, ואותו כלל
+     * "אחרי ~12 שניות אומרים 'עדיין מאשרים' ולא מכריזים כשל".
+     *
+     * @returns {Promise<boolean>} האם אושר בתוך זמן הסקירה.
+     */
+    async function pollPaid(collectionName, docId, isPaid) {
+      var fb = await import('./app/firebase.js');
+      var fs = await import('https://www.gstatic.com/firebasejs/12.16.0/firebase-firestore.js');
+      var fa = await import('https://www.gstatic.com/firebasejs/12.16.0/firebase-auth.js');
+      /**
+       * ⚠️ בלי ההמתנה הזאת **כל קריאה נפלה ל-catch**, והדף אמר "לא
+       * הצלחנו לאמת" גם כשהכל תקין. Firebase Auth משחזר את הסשן
+       * אסינכרונית, ו-`getDoc` שרץ לפניו נדחה על הרשאה — בדיוק
+       * כשהלקוח חוזר מהסליקה, כלומר בטעינה טרייה של הדף.
+       */
+      await new Promise(function (resolve) {
+        var un = fa.onAuthStateChanged(fb.auth, function () { un(); resolve(); });
+        setTimeout(resolve, 4000);  // לא נתקעים אם ה-SDK לא עונה
+      });
+      for (var i = 0; i < 6; i++) {
+        var snap = await fs.getDoc(fs.doc(fb.db, collectionName, docId));
+        if (snap.exists() && isPaid(snap.data())) return true;
+        await new Promise(function (r) { setTimeout(r, 2000); });
+      }
+      return false;
+    }
+
+    /**
+     * טיפ למוביל — אותו מסלול המתנה, על `orderTips/{tipId}`.
+     *
+     * הסטטוס מתהפך ל-`'paid'` **רק** ע"י `growNotify` (Admin SDK), אותה
+     * פונקציה שמזכה את המוביל ומעדכנת `tipAmount` על ההזמנה. כלומר מה
+     * שנקרא כאן הוא עובדה מהשרת, לא ה-redirect של Grow — ה-redirect
+     * מגיע לפני ה-webhook, וזו בדיוק הסיבה שיש כאן סקירה ולא הצהרה.
+     *
+     * ⚠️ **ולקוח שסוגר את הדף באמצע אינו מאבד ואינו מסתכן בכלום:**
+     * מסמך הטיפ נשאר `pending_payment`, ההזמנה לא נגעה, והמוביל לא
+     * זוכה — בדיוק כמו באפליקציה כש-`waitForTipConfirmed` מבוטלת.
+     * ואם Grow כן חייבה, `growNotify` תשלים את הזיכוי בשרת בלי קשר
+     * לשאלה איזה דף פתוח.
+     */
+    async function verifyTipPayment(tipId) {
+      var openEl = document.getElementById('opening');
+      try {
+        var paid = await pollPaid('orderTips', tipId, function (d) { return d.status === 'paid'; });
+        if (paid) {
+          setStatus('הטיפ נשלח למוביל!', 'הטיפ נשלח');
+          openEl.textContent = 'תודה — הסכום נזקף לרווחי המוביל.';
+          return;
+        }
+        setStatus('הטיפ נשלח — עדיין מאשרים', 'עדיין מאשרים את הטיפ');
+        openEl.textContent = 'האישור מהסליקה יכול לקחת עוד רגע. '
+          + 'הטיפ יופיע בפירוט ההזמנה ברגע שיאושר, ואם הוא עדיין לא מופיע '
+          + 'בעוד כמה דקות — כדאי לפנות לתמיכה לפני ששולחים שוב.';
+      } catch (e) {
+        // ⚠️ כשל קריאה אינו כשל תשלום. הניסוח לא מכריז לשום כיוון.
+        setStatus('הטיפ נשלח', 'מצב התשלום');
+        openEl.textContent = 'לא הצלחנו לאמת את המצב מכאן. הטיפ יופיע בפירוט ההזמנה ברגע שיאושר.';
+      }
+    }
+
     async function verifyPayment(orderId) {
       var openEl = document.getElementById('opening');
       try {
-        var fb = await import('./app/firebase.js');
-        var fs = await import('https://www.gstatic.com/firebasejs/12.16.0/firebase-firestore.js');
-        var fa = await import('https://www.gstatic.com/firebasejs/12.16.0/firebase-auth.js');
-        /**
-         * ⚠️ בלי ההמתנה הזאת **כל קריאה נפלה ל-catch**, והדף אמר "לא
-         * הצלחנו לאמת" גם כשהכל תקין. Firebase Auth משחזר את הסשן
-         * אסינכרונית, ו-`getDoc` שרץ לפניו נדחה על הרשאה — בדיוק
-         * כשהלקוח חוזר מהסליקה, כלומר בטעינה טרייה של הדף.
-         */
-        await new Promise(function (resolve) {
-          var un = fa.onAuthStateChanged(fb.auth, function () { un(); resolve(); });
-          setTimeout(resolve, 4000);  // לא נתקעים אם ה-SDK לא עונה
-        });
-        for (var i = 0; i < 6; i++) {
-          var snap = await fs.getDoc(fs.doc(fb.db, 'orders', orderId));
-          var d = snap.exists() ? snap.data() : null;
-          if (d && d.paymentStatus === 'paid') {
-            setStatus('התשלום התקבל בהצלחה!', 'התשלום התקבל');
-            openEl.textContent = 'ההזמנה שלך אושרה.';
-            return;
-          }
-          await new Promise(function (r) { setTimeout(r, 2000); });
+        var paid = await pollPaid('orders', orderId, function (d) { return d.paymentStatus === 'paid'; });
+        if (paid) {
+          setStatus('התשלום התקבל בהצלחה!', 'התשלום התקבל');
+          openEl.textContent = 'ההזמנה שלך אושרה.';
+          return;
         }
         setStatus('התשלום נשלח — עדיין מאשרים', 'עדיין מאשרים את התשלום');
         openEl.textContent = 'האישור מהסליקה יכול לקחת עוד רגע. '

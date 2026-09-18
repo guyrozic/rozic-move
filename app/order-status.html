@@ -51,6 +51,38 @@
     .no-show-notice p:last-child { margin-bottom: 0; }
     .no-show-choices { display: flex; flex-direction: column; gap: 8px; }
 
+    /* ── גילוי דמי הביטול לפני הביטול ── מראה `cancelWarning`/`cancelWarningText`
+       ב-OrderDetailsScreen.tsx (ענבר, לא אדום: זו אזהרה על מחיר, לא כשל).
+       הענף החינמי הוא ירוק, כי שם התשובה היא בשורה טובה ולא אזהרה. */
+    .cancel-policy {
+      border-radius: 12px; padding: 12px; margin-bottom: 10px;
+      font-size: 0.82rem; line-height: 1.6; white-space: pre-line;
+    }
+    .cancel-policy.charged { background: #FFF8E8; border: 1px solid #FFD080; color: var(--amber-deep); }
+    .cancel-policy.free    { background: var(--green-tint); border: 1px solid var(--green-line); color: var(--green-ink); }
+
+    /* ── טיפ למוביל ── מראה `tipOption`/`tipSectionLabel` שבמודאל הטיפ
+       באפליקציה. אותם סכומים, אותה חלוקה לשתי שורות. */
+    .tip-section-label { font-size: 0.78rem; font-weight: 600; color: var(--text-muted); text-align: center; margin: 10px 0 6px; }
+    .tip-options { display: flex; gap: 8px; }
+    .tip-option {
+      flex: 1; background: var(--green-tint); border: 1px solid var(--green-line);
+      border-radius: 14px; padding: 12px 4px; cursor: pointer; text-align: center;
+      color: var(--green-ink); font-family: inherit;
+    }
+    .tip-option:hover:not(:disabled) { border-color: var(--green); }
+    .tip-option:disabled { opacity: 0.5; cursor: default; }
+    .tip-option-text { display: block; font-size: 1.05rem; font-weight: 800; }
+    .tip-option-sub { display: block; font-size: 0.76rem; margin-top: 2px; }
+    .tip-custom-row { display: flex; gap: 8px; margin-top: 12px; }
+    .tip-custom-row input {
+      flex: 1; min-width: 0; padding: 11px 14px; border-radius: 12px;
+      border: 1px solid var(--border); background: var(--white);
+      font-family: inherit; font-size: 0.9rem; color: var(--text);
+    }
+    .tip-custom-row input:focus-visible { outline: 3px solid var(--green); outline-offset: 2px; }
+    .tip-custom-row button { flex-shrink: 0; padding: 10px 20px; }
+
     /* תמונת הפרופיל של המוביל — אותן מידות בדיוק כמו .driver-avatar
        שב-style-app.css, כדי ששני המצבים יתפסו את אותו מקום בשורה. */
     .driver-avatar-photo {
@@ -160,6 +192,7 @@
       subscribeToOrder, cancelOrder, customerTotalOf, STATUS_LABELS,
       ORDER_PROGRESS_STEPS, customerConfirmCompletion, parseItemsSummary,
       CUSTOMER_NO_SHOW_RESPONSES, respondToCustomerNoShow,
+      getCancellationPolicy, formatPrice,
     } from './orders.js';
     import { getUserProfile, formatVehicle } from './users.js';
     import { toggleFavoriteDriver } from './account.js';
@@ -193,7 +226,7 @@
       .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
       .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
 
-    import { startGrowCheckout } from './payments.js';
+    import { startGrowCheckout, startTipCheckout, TIP_PERCENT_OPTIONS, TIP_FIXED_OPTIONS, TIP_MAX } from './payments.js';
     import { isValidFullName, FULL_NAME_ERROR } from './auth.js';
 
     const authState = await requireAuth();
@@ -534,6 +567,28 @@
       const isActive = order.status === 'assigned' || order.status === 'en_route' || order.status === 'in_progress';
       const stepIndex = ORDER_PROGRESS_STEPS.findIndex(s => s.status === order.status);
       const canRate = order.status === 'completed' && typeof order.driverRating !== 'number';
+      // הועתק מילה במילה מ-`canTip` ב-OrderDetailsScreen.tsx:
+      // `!isDriver && order.status === 'completed' && !order.tipAmount`.
+      // ה-`!isDriver` מתקיים כאן תמיד — האתר הוא צד הלקוח בלבד, ו-`isOwner`
+      // למעלה כבר חוסם כל צופה אחר.
+      const canTip = order.status === 'completed' && !order.tipAmount;
+
+      /**
+       * ⚠️ 18.9 — **דמי הביטול מוצגים ללקוח לפני שהוא מאשר.**
+       *
+       * ההערה שליד המאזין של `cancel-btn` למטה הסבירה למה זה לא מומש:
+       * חישוב צד-לקוח כאן הוא חישוב שני שיכול להיפרד מהשרת. **הנימוק
+       * נכון** — ולכן הפתרון אינו חישוב מקורב אלא פורט **מלא ומדויק**
+       * של `getCancellationPolicy` (ב-`orders.js`), שמדרג הזמן שלו נגזר
+       * מ-`data/pricing.js` המקומפל ולא מועתק ביד, והתוצאה שלו נשלחת
+       * לשרת כ-`shownFee` — כך שאם שני הצדדים כן נפרדים, זה נרשם ללוג
+       * במקום להיעלם.
+       *
+       * מה שהמשפט הגנרי עלה: התקנון §8 מבטיח שבשלושה מצבים (טרם שולם ·
+       * טרם שובץ מוביל · המוביל לא סימן שיצא והמועד עבר) **אין חיוב** —
+       * והאתר אמר לכולם "ייתכן חיוב דמי ביטול".
+       */
+      const policy = cancellable ? getCancellationPolicy(order, 'customer') : null;
 
       /**
        * 11.9 — האם באמת נגבה כסף מהלקוח על ההזמנה. מראה `wasCharged`/
@@ -708,9 +763,52 @@
           </div>
         </div>` : ''}
 
-        ${cancellable ? `
-        <button class="btn btn-danger btn-block" id="cancel-btn">בטל הזמנה</button>
-        <div id="cancel-error" role="alert"></div>` : ''}
+        ${/* ⚠️ 18.9 — **האתר הציג טיפ שכבר ניתן ולא היה בו שום דרך לתת אחד.**
+              `order.tipAmount` מוצג למעלה בפירוט המחיר, אבל מקטע הטיפ עצמו
+              (`canTip` + מודאל הסכומים ב-OrderDetailsScreen.tsx) פשוט לא
+              פורט. לקוח שסיים הובלה טובה דרך האתר לא יכול היה להודות
+              למוביל, והמוביל הפסיד הכנסה שהאפליקציה כן מאפשרת.
+
+              הסכומים כאן אינם נבחרים מחדש — הם `TIP_PERCENT_OPTIONS`
+              ו-`TIP_FIXED_OPTIONS` ב-payments.js, שהועתקו מהמודאל. */''}
+        ${canTip ? `
+        <div class="app-card" id="tip-card">
+          <h2>הוסף טיפ</h2>
+          <p class="app-card-desc">המוביל עשה עבודה טובה? שלח לו תודה</p>
+          <p class="tip-section-label">אחוז מהמחיר</p>
+          <div class="tip-options">
+            ${TIP_PERCENT_OPTIONS.map(pct => {
+              const amount = Math.round((order.price ?? 0) * pct);
+              return `<button type="button" class="tip-option tip-amount-btn" data-amount="${esc(amount)}"
+                ${amount < 1 ? 'disabled' : ''}
+                aria-label="טיפ של ${esc(Math.round(pct * 100))} אחוז מהמחיר — ${esc(amount)} שקלים">
+                <span class="tip-option-text">${esc(Math.round(pct * 100))}%</span>
+                <span class="tip-option-sub">₪${esc(amount)}</span>
+              </button>`;
+            }).join('')}
+          </div>
+          <p class="tip-section-label">או סכום קבוע</p>
+          <div class="tip-options">
+            ${TIP_FIXED_OPTIONS.map(amount => `
+              <button type="button" class="tip-option tip-amount-btn" data-amount="${esc(amount)}"
+                aria-label="טיפ של ${esc(amount)} שקלים">
+                <span class="tip-option-text">₪${esc(amount)}</span>
+              </button>`).join('')}
+          </div>
+          <div class="tip-custom-row">
+            <label class="sr-only" for="tip-custom">סכום טיפ אחר</label>
+            <input type="number" id="tip-custom" inputmode="numeric" min="1" max="${esc(TIP_MAX)}" step="1" placeholder="סכום אחר...">
+            <button type="button" class="btn btn-primary" id="tip-custom-btn">שלח</button>
+          </div>
+          <div id="tip-error" role="alert"></div>
+        </div>` : ''}
+
+        ${cancellable && policy?.allowed ? `
+        <div class="app-card">
+          <div class="cancel-policy ${policy.fee > 0 ? 'charged' : 'free'}" role="note">${esc(policy.warningMessage)}</div>
+          <button class="btn btn-danger btn-block" id="cancel-btn">בטל הזמנה</button>
+          <div id="cancel-error" role="alert"></div>
+        </div>` : ''}
       `;
 
       if (order.driverId && order.status !== 'pending') {
@@ -776,6 +874,62 @@
           URL.revokeObjectURL(url);
         });
       });
+
+      /**
+       * שליחת טיפ — מראה `submitTip` ב-OrderDetailsScreen.tsx.
+       *
+       * ⚠️ **ההבדל המבני מהאפליקציה:** שם `payTip` פותח דפדפן פנימי
+       * וממתין ל-`orderTips/{id}.status === 'paid'` בזמן שהמסך חי
+       * מאחוריו. כאן `startTipCheckout` מנווט את הלשונית אל Grow —
+       * הדף הזה **מת באותו רגע**, ואין מה להמתין לו. ההמתנה לאישור
+       * עברה ל-`payment-success.html`, שסוקר בדיוק את אותו מסמך.
+       *
+       * לכן אין כאן מקבילה ל-`GrowPaymentUnconfirmedError`: כל מצב
+       * "התחלנו לשלם ולא ידוע אם נגבה" מטופל בדף החזרה. מה שנתפס כאן
+       * הוא רק כשל **לפני** שיצאנו — יצירת מסמך הטיפ או קישור התשלום.
+       */
+      function bindTipButton(btn, getAmount) {
+        btn.addEventListener('click', async () => {
+          const box = document.getElementById('tip-error');
+          box.innerHTML = '';
+          const amount = getAmount();
+          if (!Number.isFinite(amount) || amount < 1) {
+            box.innerHTML = '<div class="alert alert-error">יש להזין סכום טיפ גדול מאפס.</div>';
+            return;
+          }
+          if (amount > TIP_MAX) {
+            box.innerHTML = `<div class="alert alert-error">הסכום המרבי לטיפ הוא ₪${formatPrice(TIP_MAX)}.</div>`;
+            return;
+          }
+          // ⚠️ `submitTip` באפליקציה יוצא בשקט כשאין `driverId`/`customerId`.
+          // כאן נאמר ללקוח למה כלום לא קרה, במקום כפתור מת.
+          if (!order.driverId || !order.customerId) {
+            box.innerHTML = '<div class="alert alert-error">לא ניתן לשלוח טיפ על ההזמנה הזו — אין מוביל משויך.</div>';
+            return;
+          }
+          // כפתור אחוז שסכומו מתעגל ל-0 נולד `disabled` (החוק ב-firestore
+          // דורש `amount > 0`) — הוא לא יחזור להיות פעיל אחרי כשל.
+          const allBtns = [...document.querySelectorAll('#tip-card button')]
+            .filter(b => !b.disabled);
+          allBtns.forEach(b => { b.disabled = true; });
+          // ⚠️ `innerHTML` ולא `textContent`: כפתורי הסכומים בנויים משני
+          // `<span>` (אחוז + ₪), ודריסת הטקסט הייתה מוחקת אותם ומחזירה
+          // כפתור "15%" בשם "שלח" אחרי כשל.
+          const originalHtml = btn.innerHTML;
+          btn.textContent = 'מעביר לתשלום...';
+          try {
+            await startTipCheckout(order.id, order.customerId, order.driverId, amount);
+          } catch {
+            box.innerHTML = '<div class="alert alert-error">לא הצלחנו להתחיל את התשלום. נסה שוב.</div>';
+            allBtns.forEach(b => { b.disabled = false; });
+            btn.innerHTML = originalHtml;
+          }
+        });
+      }
+      document.querySelectorAll('.tip-amount-btn').forEach(btn =>
+        bindTipButton(btn, () => Number(btn.dataset.amount)));
+      const tipCustomBtn = document.getElementById('tip-custom-btn');
+      if (tipCustomBtn) bindTipButton(tipCustomBtn, () => parseInt(document.getElementById('tip-custom').value, 10));
 
       document.getElementById('insurance-cert-btn')?.addEventListener('click', () => {
         document.getElementById('insurance-modal').style.display = 'flex';
@@ -862,26 +1016,45 @@
        * חויב 50% **וגילה את זה מדף החשבון**. באפליקציה מוצגת טבלת
        * המדרג לפני האישור.
        *
-       * ⚠️ **התיקון אינו לחשב את המדרג כאן** — זה בדיוק מה שהועבר
-       * לשרת. הפונקציה מחזירה את מה שנגבה בפועל ואת חוב ההחזר, והם
-       * מוצגים מיד. האזהרה שלפני האישור מנוסחת כללית ("ייתכן חיוב
-       * לפי מדיניות הביטול") ולא כמספר, כי מספר שיוצג כאן יהיה חישוב
-       * שני שיכול להיפרד מהשרת.
+       * התיקון הראשון היה להציג את מה שנגבה **אחרי** הביטול: הפונקציה
+       * מחזירה את דמי הביטול בפועל ואת חוב ההחזר, והם מוצגים מיד.
+       * האזהרה שלפני האישור נשארה אז כללית ("ייתכן חיוב לפי מדיניות
+       * הביטול"), בנימוק שמספר שיוצג כאן יהיה חישוב שני שיכול להיפרד
+       * מהשרת.
        *
-       * 16.9 — הכפתור נשאר פתוח גם ב-'en_route' (ראו `cancellable`
-       * למעלה): אותה הודעה כללית עדיין נכונה — "ייתכן חיוב" מכסה גם
-       * את השיעור הקבוע (75%) של השלב הזה, לא רק את מדרג הזמן.
+       * 16.9 — הכפתור נפתח גם ב-'en_route' (ראו `cancellable` למעלה),
+       * ואותה הודעה כללית כיסתה גם את השיעור הקבוע (75%) של השלב הזה.
+       *
+       * ⚠️ **18.9 — המשפט הכללי בוטל, והנימוק שמעליו נשמר.** הוא אכן
+       * מנע חישוב שני שיכול להיפרד — אבל הוא עלה במחיר שלא נספר: הוא
+       * אמר "ייתכן חיוב" גם לשלושת המצבים שבהם התקנון §8 מבטיח ביטול
+       * **ללא עלות**, וגם למי שעומד לשלם 75% בלי לראות מספר.
+       *
+       * מה שמחליף אותו אינו חישוב מקורב אלא הפורט המלא של
+       * `getCancellationPolicy` (ב-`orders.js`) — אותו מדרג, אותם
+       * נוסחים, ומדרג הזמן נגזר מ-`data/pricing.js` המקומפל. ושלוש
+       * הגנות מחליפות את ההימנעות: הנוסח כאן הוא `warningMessage`
+       * מילה במילה, החישוב אינו קובע דבר (`customerCancelOrder` היא
+       * שגובה), ו-`shownFee` מעביר את המספר שהוצג כדי שהשרת ירשום
+       * ללוג כל פער — במקום ש-`0` קבוע ישתיק את ההשוואה.
        */
       document.getElementById('cancel-btn')?.addEventListener('click', async (e) => {
-        if (!confirm('לבטל את ההזמנה?\n\nלפי מדיניות הביטול ייתכן חיוב דמי ביטול, בהתאם לשלב שבו נמצאת ההזמנה ולזמן שנותר עד מועד ההובלה.')) return;
+        // ⚠️ הנוסח כאן הוא `policy.warningMessage` ו-`policy.confirmLabel`
+        // **מילה במילה**, בדיוק כמו ה-`confirmDialog` ב-`handleCancel`
+        // באפליקציה. אין כאן ניסוח שני של אותה מדיניות.
+        if (!confirm(`ביטול הזמנה\n\n${policy.warningMessage}\n\n${policy.confirmLabel}`)) return;
         const btn = e.currentTarget;
         const box = document.getElementById('cancel-error');
         btn.disabled = true; btn.textContent = 'מבטל…';
         try {
-          const { fee, refundDue } = await cancelOrder(order.id);
+          // ⚠️ `policy.fee` — **הסכום שהלקוח בדיוק ראה על המסך**, כמו
+          // `cancelOrderAsCustomer(orderId, policy.fee)` באפליקציה. עד
+          // היום נשלח `0` קבוע, ולכן השוואת "מה הוצג מול מה נגבה" בשרת
+          // הייתה מושבתת על כל ביטול מהאתר.
+          const { fee, refundDue } = await cancelOrder(order.id, policy.fee);
           const parts = ['ההזמנה בוטלה.'];
-          if (fee > 0) parts.push(`נגבו דמי ביטול בסך ₪${fee}.`);
-          if (refundDue > 0) parts.push(`יוחזרו לך ₪${refundDue} — ההחזר מבוצע ידנית ע"י הצוות.`);
+          if (fee > 0) parts.push(`נגבו דמי ביטול בסך ₪${formatPrice(fee)}.`);
+          if (refundDue > 0) parts.push(`יוחזרו לך ₪${formatPrice(refundDue)} — ההחזר מבוצע ידנית ע"י הצוות.`);
           box.innerHTML = `<div class="alert alert-success" role="status">${parts.join(' ')}</div>`;
         } catch (err) {
           /**
