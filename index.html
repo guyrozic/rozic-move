@@ -599,6 +599,26 @@
         <li><a tabindex="0" href="#for-movers">למובילים</a></li>
         <li><a tabindex="0" href="#faq">שאלות</a></li>
       </ul>
+      <!-- ⚠️ 18.9 — הכניסה לאזור האישי, בבקשה מפורשת של גיא: לקוח קיים
+           מתחבר מהשורה העליונה ומגיע לחשבון שלו, ומי שרוצה להירשם נכנס
+           מאותו מקום בדיוק.
+           הפריט **מודע למצב** — גם ה-`href` וגם הכיתוב מוחלפים ע"י
+           `rmApplyNavAuth` (הסקריפט מיד מתחת לתפריט המובייל).
+           ⚠️ הפריט חוזר פעם שנייה ב-`#mobile-menu`, וזה לא כפל מיותר:
+           מתחת ל-680px הסרגל הזה מוסתר לטובת ההמבורגר, וכניסה שקיימת
+           רק כאן היא כניסה שאינה קיימת בטלפון. `data-auth-link` תופס את
+           שני המופעים יחד, כך שאי-אפשר לעדכן אחד ולשכוח את השני.
+           ⚠️ יעד ברירת המחדל הוא `login.html?next=account.html` ולא
+           `login.html` לבדו: בלי הפרמטר `nextUrl()` שם מפיל את המשתמש
+           ב-`app/index.html` (בחירת שירות), כלומר מי שלחץ «התחברות»
+           מגיע לזרימת ההזמנה ולא לאזור האישי שביקש. -->
+      <a tabindex="0" href="app/login.html?next=account.html" class="nav-auth" data-auth-link>
+        <svg aria-hidden="true" class="nav-auth-ic" viewBox="0 0 24 24" fill="none">
+          <circle cx="12" cy="8" r="3.4" stroke="currentColor" stroke-width="2"/>
+          <path d="M5 19.4c1-3.4 3.7-5.2 7-5.2s6 1.8 7 5.2" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+        <span data-auth-label>התחברות / הרשמה</span>
+      </a>
       <a tabindex="0" href="#download" class="nav-cta">הורד עכשיו</a>
       <!-- ⚠️ 15.9 — הכפתור הזה פותח וסוגר את תפריט המובייל, ולא היה שום
            אופן לדעת מקורא מסך אם התפריט פתוח או סגור: היה `aria-label`
@@ -617,9 +637,89 @@
       <li><a tabindex="0" href="#how-it-works" class="menu-link">איך זה עובד</a></li>
       <li><a tabindex="0" href="#for-movers" class="menu-link">למובילים</a></li>
       <li><a tabindex="0" href="#faq" class="menu-link">שאלות</a></li>
+      <!-- ⚠️ 18.9 — התאום של `.nav-auth` שבסרגל. `menu-link` כדי שהתפריט
+           ייסגר בלחיצה כמו כל שורה אחרת, ו-`data-auth-link` כדי ששני
+           המופעים יתעדכנו מאותה שורת קוד. -->
+      <li><a tabindex="0" href="app/login.html?next=account.html" class="menu-link menu-auth" data-auth-link>
+        <svg aria-hidden="true" class="nav-auth-ic" viewBox="0 0 24 24" fill="none">
+          <circle cx="12" cy="8" r="3.4" stroke="currentColor" stroke-width="2"/>
+          <path d="M5 19.4c1-3.4 3.7-5.2 7-5.2s6 1.8 7 5.2" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+        <span data-auth-label>התחברות / הרשמה</span>
+      </a></li>
       <li><a tabindex="0" href="#download" class="menu-link mobile-cta">הורד עכשיו</a></li>
     </ul>
   </div>
+
+  <!-- ══════════════════════════════════════════════════════════════════
+       מצב ההתחברות בסרגל הניווט — **נקבע לפני הציור הראשון**
+       ══════════════════════════════════════════════════════════════════
+       ⚠️ הכשל שהכול כאן נבנה כדי למנוע: לרנדר «התחברות / הרשמה», לחכות
+       ש-Firebase יענה, ואז להחליף ל«אזור אישי». זה הבהוב שנראה בדיוק
+       כמו תקלה — ובעמוד הבית הוא היה קורה לכל לקוח מחובר, בכל טעינה.
+
+       שתי הגנות, ביחד:
+
+       1. **מבנה יציב.** שני הכיתובים יושבים באותה תיבה (`min-width`
+          על `.nav-auth`, 210px — הרוחב הנמדד של הארוך מביניהם), כך
+          שגם אם הכיתוב מתחלף הסרגל עצמו לא זז. שם פרטי ארוך במיוחד
+          יכול להרחיב אותה ב-22px לכל היותר.
+
+       2. **הכרעה סינכרונית מ-`localStorage`.** הסקריפט הזה הוא `<script>`
+          רגיל בגוף הדף, כלומר הוא רץ תוך כדי הפרסור ולפני שהדפדפן צייר
+          ולו פריים אחד. אם הביקור הקודם הסתיים במצב «מחובר», הכיתוב
+          כבר נכון בפריים הראשון — בלי רשת, בלי המתנה ובלי החלפה.
+          זו אותה תבנית שמונעת הבזק-נושא-בהיר בדפים עם מצב כהה.
+
+       ⚠️ **ברירת המחדל שבקוד היא «התחברות / הרשמה» ולא «אזור אישי»** —
+       מבקר בלי רמז שמורה הוא כמעט תמיד מבקר ראשון, ומבקר ראשון אינו
+       מחובר. כלומר המצב שנכתב ב-HTML הוא הנכון כמעט תמיד, וה-Firebase
+       רק מאשר אותו.
+
+       ⚠️ **מה שהרמז הזה אינו:** הוא **אינו הרשאה ואינו זהות.** הוא
+       מחליט מילה בסרגל, וזה הכול. הדף שמאחורי הקישור הוא
+       `app/account.html`, והוא מוגן ב-`requireAuth()` בצד שלו — מי
+       שיערוך את הערך ביד יגיע למסך ההתחברות ותו לא.
+       ══════════════════════════════════════════════════════════════════ -->
+  <script>
+    (function () {
+      var KEY = 'rm-nav-auth';
+
+      /* ⚠️ השם הפרטי בלבד, וקצוץ ל-6 תווים — **מספר שנמדד.** תיבת
+         הפריט רחבה 210px, שזה רוחב «התחברות / הרשמה»; «אזור אישי · »
+         ועוד שם בן שש אותיות מגיע ל-218px, ושם מלא בלי קיצוץ מותח את
+         הסרגל ומזיז את «הורד עכשיו» שלצידו. */
+      function firstName(raw) {
+        var n = String(raw || '').replace(/\s+/g, ' ').trim().split(' ')[0];
+        return n.length > 6 ? n.slice(0, 6) + '…' : n;
+      }
+
+      /* גלובלי בכוונה: המודול שבתחתית הדף (שרץ מאוחר יותר) קורא לאותה
+         פונקציה בדיוק, כדי שהניסוח והיעד ייקבעו במקום אחד. */
+      window.rmApplyNavAuth = function (signedIn, name) {
+        var short = signedIn ? firstName(name) : '';
+        var label = signedIn
+          ? (short ? 'אזור אישי · ' + short : 'אזור אישי')
+          : 'התחברות / הרשמה';
+        var href = signedIn ? 'app/account.html' : 'app/login.html?next=account.html';
+        var links = document.querySelectorAll('[data-auth-link]');
+        for (var i = 0; i < links.length; i++) {
+          links[i].setAttribute('href', href);
+          /* ⚠️ `textContent` ולא `innerHTML`: `displayName` הוא טקסט
+             שהמשתמש הקליד בעצמו בהרשמה. */
+          var span = links[i].querySelector('[data-auth-label]');
+          if (span) span.textContent = label;
+        }
+      };
+
+      var hint = null;
+      /* גלישה פרטית חוסמת `localStorage` וזורקת. אין כאן מה לתקן ואין
+         מה להודיע — בלי רמז פשוט נשארת ברירת המחדל שב-HTML. */
+      try { hint = localStorage.getItem(KEY); } catch (e) { hint = null; }
+      if (hint && hint.indexOf('in|') === 0) window.rmApplyNavAuth(true, hint.slice(3));
+    })();
+  </script>
+
   <main id="main-content" tabindex="-1">
 
   <!-- ══════════════════════════════════════════════════════════════════
@@ -1407,6 +1507,79 @@
     import { getAllItemsFlat } from './app/data/items.js';
     const el = document.getElementById('hp-catalog-count');
     if (el) el.textContent = getAllItemsFlat().length.toLocaleString('he-IL');
+  </script>
+
+  <!-- ══════════════════════════════════════════════════════════════════
+       האימות של עמוד הבית — `onAuthStateChanged` ותו לא
+       ══════════════════════════════════════════════════════════════════
+       ⚠️ **למה לא `import { auth } from './app/firebase.js'`.** הקובץ
+       ההוא הוא נקודת האתחול של דפי `app/`, והוא מאתחל בשורה אחת גם
+       Firestore וגם Storage. ייבוא שלו לכאן היה גורר לעמוד השיווקי שתי
+       חבילות SDK נוספות שאין בהן כאן שום שימוש — ו-Firestore היא
+       הכבדה מכולן. מה שדרוש כדי לדעת רק אם יש משתמש הוא `app` ו-`auth`.
+
+       ⚠️ **מחיר הכפילות, במפורש.** ה-`config` כאן מועתק מ-
+       `app/firebase.js`, וזה עותק שני של קבוע — בדיוק הדבר שה-CLAUDE.md
+       מזהיר מפניו. שני דברים מצמצמים אותו: ארבעה שדות ולא שישה
+       (`storageBucket`/`messagingSenderId` שייכים לשירותים שאינם
+       נטענים כאן), ו**כשל שקט ובטוח** — אם הערכים יתיישנו, ה-`catch`
+       משאיר את הכיתוב הסטטי כפי שהוא ושום דבר בדף לא נשבר. מקור האמת
+       נשאר `app/firebase.js`.
+
+       ⚠️ **`getApps()` ולא `initializeApp` עיוור.** אם מישהו יוסיף אי
+       פעם לעמוד הזה ייבוא כלשהו מ-`app/`, אתחול שני של אותו שם יזרוק
+       `duplicate-app`. ו**אסור** לתת ל-instance שם משלו כדי לעקוף:
+       מפתח ההתמדה של Firebase Auth כולל את שם ה-app, וכל שם שאינו
+       ברירת המחדל פשוט לא יראה את ההתחברות שנוצרה בדפי `app/`.
+
+       ⚠️ **`user.displayName` ולא מסמך `users/{uid}`.** השם הפרטי בסרגל
+       שווה בדיוק קריאת רשת אחת — אפס. `registerCustomer` כותב את השם
+       ל-`displayName` בהרשמה, ו-OAuth מביא אותו מהספק. אין שם? הכיתוב
+       הוא «אזור אישי» בלי שם, וזה הכול.
+       ⚠️ נגזרת: חשבון יתום (משתמש ב-Auth בלי מסמך ב-Firestore, ראו
+       `login()` ב-auth.js) ייראה כאן כמחובר, ו-`requireAuth()` ב-
+       `account.html` יחזיר אותו למסך ההתחברות. זו התנהגות נכונה — שם
+       בדיוק הטיפול בחשבון יתום יושב.
+       ══════════════════════════════════════════════════════════════════ -->
+  <script type="module">
+    const KEY = 'rm-nav-auth';
+    const CONFIG = {
+      projectId: 'hovalot-6cf65',
+      appId: '1:896710732186:web:e3e59d0f8326fda1bc7223',
+      apiKey: 'AIzaSyB076tM6CJHfCXUNyaVoRKK5tW6ZL580To',
+      authDomain: 'hovalot-6cf65.firebaseapp.com',
+    };
+
+    let hint = null;
+    try { hint = localStorage.getItem(KEY); } catch { /* גלישה פרטית — אין רמז, אין נזק */ }
+
+    async function resolveAuth() {
+      const [appMod, authMod] = await Promise.all([
+        import('https://www.gstatic.com/firebasejs/12.16.0/firebase-app.js'),
+        import('https://www.gstatic.com/firebasejs/12.16.0/firebase-auth.js'),
+      ]);
+      const app = appMod.getApps().length ? appMod.getApp() : appMod.initializeApp(CONFIG);
+      authMod.onAuthStateChanged(authMod.getAuth(app), (user) => {
+        try {
+          localStorage.setItem(KEY, user ? 'in|' + (user.displayName || '') : 'out');
+        } catch { /* כנ"ל — הרמז הוא אופטימיזציה, לא תלות */ }
+        window.rmApplyNavAuth?.(!!user, user && user.displayName);
+      });
+    }
+
+    /* ⚠️ **מתי מתחילים — ולמה זה לא אותו דבר בשני המקרים.**
+       רמז «מחובר» הוא הכיתוב היחיד שיכול להיות **שגוי** על המסך: מי
+       שהתנתק ב-`account.html` נוחת כאן עם רמז שהתיישן. לכן שם מתחילים
+       מיד, כדי שהתיקון יקרה בתוך מאות מילישניות ולא יישאר לעיני הלקוח.
+       בכל מקרה אחר הכיתוב שעל המסך כבר נכון, ואין שום סיבה שבדיקה
+       שרק תאשר אותו תתחרה על הרוחב עם תמונות עמוד הבית — היא נדחית
+       לסוף הטעינה ולזמן סרק. */
+    const run = () => resolveAuth().catch(() => { /* אופליין/חסום — הכיתוב הסטטי נשאר */ });
+    if (hint && hint.startsWith('in|')) run();
+    else {
+      const idle = window.requestIdleCallback || ((fn) => setTimeout(fn, 900));
+      addEventListener('load', () => idle(run, { timeout: 3000 }), { once: true });
+    }
   </script>
 
   <svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false"><defs>
