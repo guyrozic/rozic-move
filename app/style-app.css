@@ -1093,3 +1093,134 @@
   padding: 6px 10px; font-size: 0.78rem; font-weight: 700;
 }
 .chat-header-actions .btn-text:hover { background: rgba(255,255,255,0.26); color: var(--white); }
+
+/* ===== 18.9 — באנר ניתוק (ראו app/offline-banner.js) =====
+   רצועה ברוחב מלא **בזרימה** ולא `fixed`: היא דוחפת את התוכן במקום לכסות
+   אותו, בדיוק מהסיבה שתועדה ב-`pilot-banner.js` (הגרסה הצפה שם כיסתה את
+   הכותרת שהמבקר בא לקרוא).
+
+   ⚠️ **הצבע אינו `#E63946` שבאפליקציה.** גם באפליקציה הוא כבר לא זה —
+   `colors.alert` הועמק ל-`#CE2E3B` בביקורת הנגישות שם, מאותה סיבה בדיוק
+   שבגללה `check-a11y.mjs` אוכף כאן שכל `color:` יבוא מטוקן שנמדד.
+   הטוקן המקביל באתר הוא `--danger` (#C0392B, style.css), שכבר משמש לטקסט
+   שגיאה ולכפתורי "מחק" — כלומר האדום של המערכת הזו.
+   ⚠️ נמדד: `--white` על `--danger` = **5.44:1**, עובר AA.
+
+   ⚠️ ריפוד אופקי סימטרי של 56px ולא 16px — `.build-stamp` הוא
+   `position: fixed` בפינה הימנית-עליונה עם `z-index: 100000`, והוא היה
+   יושב על הקצה הימני של הרצועה. הריפוד מרחיק את הטקסט משתי הפינות כדי
+   שהמרכוז יישאר מרוכז. */
+.offline-banner {
+  background: var(--danger);
+  color: var(--white);
+  font-size: 0.85rem;
+  font-weight: 700;
+  line-height: 1.5;
+  text-align: center;
+  padding: 11px 56px;
+  /* אזור חי מוזרק ריק (ראו offline-banner.js) — בלי גובה מינימלי הרצועה
+     הייתה מהבהבת מאפס לגובה מלא בפריים שאחרי. */
+  min-height: 42px;
+}
+
+/* ===== 18.9 — חיווי הודעה שלא נקראה בתמיכה (ראו app/support-unread.js) =====
+   שני משטחים, כמו באפליקציה: רצועה עליונה (SupportReplyBanner) וכפתור צף
+   עם badge (SupportFAB). */
+
+/* ⚠️ `--green` מלא עם טקסט לבן, ולא `colors.greenBright` (#00A651) שבו
+   משתמשת האפליקציה: #00A651 נותן 3.19:1 בלבד מול לבן ו-style.css מציין
+   במפורש שהוא **אינו צבע טקסט**. `--white` על `--green` נמדד 7.98:1
+   (אותה מדידה כמו `.skip-link`). */
+.support-unread-strip {
+  background: var(--green);
+  min-height: 42px;
+}
+.support-unread-strip-link {
+  display: block;
+  padding: 11px 56px;
+  color: var(--white);
+  font-size: 0.85rem;
+  font-weight: 700;
+  line-height: 1.5;
+  text-align: center;
+  text-decoration: none;
+}
+.support-unread-strip-link:hover { background: var(--green-dark); color: var(--white); }
+.support-unread-strip-link:focus-visible { outline: 3px solid var(--white); outline-offset: -5px; }
+
+/* ⚠️ `left` פיזי ולא `inset-inline-start`: הדף RTL, ושם `inline-start`
+   הוא ימין. באפליקציה הכפתור יושב ב-`left: 16` פיזי (SupportFAB.tsx),
+   וזה אותו צד של המסך. אותה מלכודת שתועדה ב-`.build-stamp` ב-style.css. */
+.support-unread-fab {
+  position: fixed;
+  bottom: 24px;
+  left: 16px;
+  z-index: 50;
+  width: 56px;
+  height: 56px;
+  border-radius: 28px;
+  background: var(--white);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+  transition: transform 0.2s var(--ease), box-shadow 0.2s var(--ease);
+}
+.support-unread-fab:hover { transform: translateY(-2px); box-shadow: var(--shadow-3); }
+.support-unread-fab:focus-visible { outline: 3px solid var(--green); outline-offset: 3px; }
+.support-unread-fab-icon { font-size: 1.5rem; line-height: 1; }
+.support-unread-fab-badge {
+  position: absolute;
+  top: -4px;
+  /* הכפתור בפינה השמאלית, ולכן ה-badge בפינה הימנית-עליונה שלו —
+     הצד שפונה אל התוכן, כמו `right: -4` באפליקציה. */
+  right: -4px;
+  min-width: 22px;
+  height: 22px;
+  padding: 0 5px;
+  border-radius: 11px;
+  /* אותו `--danger` של באנר הניתוק: 5.44:1 מול `--white`, עובר AA. */
+  background: var(--danger);
+  border: 2px solid var(--white);
+  color: var(--white);
+  font-size: 0.68rem;
+  font-weight: 800;
+  line-height: 1;
+  align-items: center;
+  justify-content: center;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .support-unread-fab { transition: none; }
+  .support-unread-fab:hover { transform: none; }
+}
+
+/* ===== 18.9 — פיצוי שנצבר (account.html) =====
+   מראה את בלוק `user.userType !== 'driver' && (walletBalance ?? 0) > 0`
+   ב-ProfileScreen.tsx. הערכים ממופים מ-`styles.walletCard`/`walletBalance`
+   שם: רקע מנטה, מספר גדול ומודגש בירוק המותג, תווית משנית מתחתיו.
+   ⚠️ נמדד: `--green` על `--green-light` = 7.01:1, `--text-muted` על
+   `--green-light` = 5.06:1 (רשום ב-style.css). שניהם עוברים AA. */
+.wallet-amount-box {
+  background: var(--green-light);
+  /* ⚠️ ערך גולמי בכוונה ולא טוקן חדש: זהו `borderColor` של `walletCard`
+     באפליקציה, והוא צבע **מסגרת**. טוקן ב-`:root` היה נכנס לפלטה
+     ש-`check-a11y.mjs` מתיר ממנה צבעי **טקסט**, ו-#A8DBBF כטקסט הוא
+     1.6:1 — כלומר הוספתו לשם הייתה פותחת דלת לכשל ניגודיות עתידי. */
+  border: 1px solid #A8DBBF;
+  border-radius: var(--radius);
+  padding: 20px 16px;
+  text-align: center;
+  margin-bottom: 14px;
+}
+.wallet-amount {
+  font-size: 2.2rem;
+  font-weight: 800;
+  letter-spacing: -1px;
+  color: var(--green);
+  line-height: 1.1;
+}
+.wallet-amount-label { font-size: 0.95rem; color: var(--text-muted); margin-top: 4px; }
+.wallet-hint { margin-bottom: 0; }

@@ -28,7 +28,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="../style.css?v=93d67ba9">
-  <link rel="stylesheet" href="style-app.css?v=fdbb8c13">
+  <link rel="stylesheet" href="style-app.css?v=f44707e8">
   <style>
     /* 17.9 — עמוד ייעודי, לא style-app.css המשותף (ראו saved-addresses.html
        לאותה מוסכמה). */
@@ -38,7 +38,7 @@
   </style>
 </head>
 <body class="app-body">
-<div data-build-stamp class="build-stamp" aria-hidden="true">עודכן 17.09 · 23:09</div>
+<div data-build-stamp class="build-stamp" aria-hidden="true">עודכן 18.09 · 10:14</div>
   <!-- ⚠️ 15.9 — "דלג לתוכן המרכזי" (WCAG 2.4.1, רמה A). זהו האלמנט הממוקד
        הראשון בדף: מוסתר מהעין, מופיע בפינה ברגע שמגיעים אליו ב-Tab, ומעביר
        את המיקוד אל <main id="main-content" tabindex="-1">. בלי ה-tabindex
@@ -46,6 +46,8 @@
        הבא חוזר לתחילת הניווט — כלומר הקישור לא עושה כלום. -->
   <a class="skip-link" href="#main-content">דלג לתוכן המרכזי</a>
   <script type="module" src="pilot-banner.js?v=14a0e537"></script>
+  <script type="module" src="offline-banner.js?v=96b835df"></script>
+  <script type="module" src="support-unread.js?v=3e4792c2"></script>
   <main id="main-content" tabindex="-1">
 
   <div class="step-hero">
@@ -151,6 +153,27 @@
         </div>
       </div>
 
+      <!-- 18.9 — פיצוי שנצבר. מראה את הבלוק
+           `user.userType !== 'driver' && (user.walletBalance ?? 0) > 0`
+           ב-ProfileScreen.tsx. עד היום הלקוחה שפוצתה על ביטול/הברזה של
+           מוביל לא ראתה את הכסף שלה בשום מקום באתר.
+
+           ⚠️ **מוצג רק כשיש יתרה**, כמו באפליקציה ומאותו נימוק שכתוב שם:
+           לקוחה שמעולם לא פוצתה לא צריכה לראות ארנק ריק. כרטיס קבוע שמציג
+           ₪0 הוא סחיפה מול התאום, לא "אותו דבר בלי התנאי".
+
+           ⚠️ **תצוגה בלבד — אין כאן מסלול משיכה.** באפליקציה יש כפתור
+           "בקש העברה" (`requestDepositWithdrawal`); כאן הבקשה עוברת דרך
+           צ'אט התמיכה, שממילא מגיע לאותו צוות שמבצע את ההעברה ידנית. -->
+      <div class="app-card" id="wallet" style="display:none;">
+        <h2>פיצוי שנצבר</h2>
+        <div class="wallet-amount-box">
+          <div class="wallet-amount" id="wallet-amount">₪0</div>
+          <div class="wallet-amount-label">זיכוי לטובתך</div>
+        </div>
+        <p class="app-card-desc wallet-hint">הצטבר מהובלות שמוביל ביטל או לא הגיע אליהן. אפשר להשאיר את הסכום כאן להזמנה הבאה, או לבקש העברה בצ'אט התמיכה למטה.</p>
+      </div>
+
       <!-- 16.9 (פאזה 3) — הטופס הבודד הוחלף בצ'אט AI חי (support-chat.html):
            רוני עונה מיד, ויודע להעביר לנציג אנושי בעצמו כשצריך. יצירת קשר
            ישיר (וואטסאפ/מייל/טלפון) נשארת זמינה בתוך הצ'אט עצמו לכל מי
@@ -194,7 +217,7 @@
     import { requireAuth, resendVerificationEmail, refreshEmailVerified, sendPhoneVerificationCode, confirmPhoneVerificationCode, logout, generateReferralCode } from './auth.js';
     import { subscribeToUserOrders, customerTotalOf, STATUS_LABELS, OPEN_CUSTOMER_STATUSES, HISTORY_STATUSES } from './orders.js';
     import { clearAllOrderDrafts, loadOrderDraft, clearOrderDraft } from './guest-checkout.js';
-    import { doc, updateDoc } from 'https://www.gstatic.com/firebasejs/12.16.0/firebase-firestore.js';
+    import { doc, updateDoc, onSnapshot } from 'https://www.gstatic.com/firebasejs/12.16.0/firebase-firestore.js';
     import { db } from './firebase.js';
     import { toggleFavoriteDriver } from './account.js';
     import { getUserProfile } from './users.js';
@@ -221,6 +244,7 @@
     render(state.profile);
     renderReferralCode(state.profile, state.authUser.uid);
     renderFavoriteDrivers(state.profile);
+    subscribeWallet(state.authUser.uid);
 
     function render(profile) {
       document.getElementById('profile-name').textContent = profile.name || 'ללא שם';
@@ -283,6 +307,67 @@
         }
         setTimeout(() => { copyBtn.textContent = 'העתק קוד'; }, 2000);
       });
+    }
+
+    /**
+     * פורמט סכום כסף — זהה ל-`formatPrice` ב-`Hovalot/src/utils/money.ts`
+     * (עיגול לשקל שלם + פסיק כמפריד אלפים).
+     *
+     * ## ⚠️ למה **לא** אינטרפולציה גולמית כמו ב-ProfileScreen.tsx:620
+     * באפליקציה **אותו מספר בדיוק** מוצג בשתי צורות: הכרטיס מדפיס
+     * `₪{user.walletBalance ?? 0}` גולמי, ודיאלוג המשיכה שיושב שורות
+     * ספורות מתחתיו (`handleCustomerWithdraw`) מדפיס `₪{formatPrice(balance)}`.
+     * כלומר אין כאן "נוסח התאום" אחד להעתיק — יש שניים, וצריך לבחור.
+     *
+     * `money.ts` עצמו מכריע את הבחירה במפורש: *"בכל סכום שיכול להגיע
+     * ל-1,000 ומעלה — מחיר הזמנה, רווח מוביל, **יתרות**"*. יתרה נקובה שם
+     * בשמה, כלומר האינטרפולציה הגולמית בשורה 620 היא החריגה מהכלל של
+     * האפליקציה עצמה, ולא הכלל.
+     *
+     * ⚠️ **ובפועל ההבדל הוא הגנה ולא כיול.** כל מסלול שמזכה `walletBalance`
+     * של לקוחה הוא מספר שלם — `FINE_ADVANCE=100`, `FINE_LATE=150`
+     * (driverCancelOrder.ts), `NO_SHOW_FINE=150` (resolveNoShow.ts),
+     * `REFERRAL_REWARD_NIS=50`, והקנס עצמו הוא `Math.min(fine, balance)`
+     * על יתרה שלמה. כלומר `₪137.5` אינו מצב שקיים היום — והעיגול כאן הוא
+     * מה שמבטיח שאם ייווצר, האתר לא יציג ללקוחה שבר עשרוני של שקל.
+     */
+    const formatPrice = (amount) => {
+      const n = Number(amount ?? 0);
+      if (!Number.isFinite(n)) return '0';
+      const rounded = Math.round(n);
+      return (rounded < 0 ? '-' : '') + Math.abs(rounded).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+    };
+
+    /**
+     * פיצוי שנצבר — `walletBalance`.
+     *
+     * ## ⚠️ השדה **אינו** יושב על `users/{uid}`
+     * הוא ב-`users/{uid}/private/financial`, יחד עם `earningsBalance`,
+     * `cancellationStrikes` ו-`suspendedUntil`. הם הועברו לשם בביקורת
+     * האבטחה כי על המסמך הראשי יש `allow read: if isAuth()` — כלומר כל
+     * משתמש מחובר יכול היה לקרוא את היתרה של כל אחד אחר. `auth.js`
+     * (registerCustomer) כבר מתעד את זה: `firestore.rules` דוחה מסמך
+     * משתמש חדש שיש בו `walletBalance` בכלל.
+     *
+     * ⚠️ **קריאה בלבד, וזה נאכף בחוקים ולא רק כאן.** `private/{docId}`
+     * מתיר לבעלים לכתוב כל מסמך פרטי **חוץ מ-`financial`** — רק אדמין או
+     * Cloud Function מזכים יתרה. כלומר אין שום סיכון שהדף הזה יכתוב סכום.
+     *
+     * ⚠️ `onSnapshot` ולא `getDoc`: היתרה משתנה מהשרת (ביטול של מוביל
+     * מזכה אותה דרך `applyDriverPenalty`) בזמן שהדף פתוח, בדיוק כמו
+     * המאזין `private/financial` ב-AuthContext.tsx.
+     *
+     * ⚠️ כשל במאזין מסתיר את הכרטיס ואינו מציג ₪0. "לא הצלחנו לטעון" אינו
+     * "אין לך פיצוי", והשנייה היא הודעה שגויה על כסף.
+     */
+    function subscribeWallet(uid) {
+      const card = document.getElementById('wallet');
+      onSnapshot(doc(db, 'users', uid, 'private', 'financial'), (snap) => {
+        const balance = Number(snap.exists() ? (snap.data().walletBalance ?? 0) : 0);
+        if (!Number.isFinite(balance) || balance <= 0) { card.style.display = 'none'; return; }
+        document.getElementById('wallet-amount').textContent = `₪${formatPrice(balance)}`;
+        card.style.display = 'block';
+      }, () => { card.style.display = 'none'; });
     }
 
     /**
