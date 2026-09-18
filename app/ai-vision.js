@@ -13,6 +13,39 @@ import { auth } from './firebase.js';
 
 const PROXY_URL = 'https://us-central1-hovalot-6cf65.cloudfunctions.net/geminiProxy';
 
+/* ═══════════ משדר אירועים לתיעוד הצדדי (ai-chat-log.js) ══════════════
+ *
+ * האפליקציה מתעדת כל סשן של בורר הפריטים (`src/services/aiChatLogger.ts`)
+ * והאתר לא תיעד כלום — ראו הנימוק המלא בראש `ai-chat-log.js`. הקובץ הזה
+ * **משדר בלבד**: הוא אינו מכיר את Firestore, אינו יודע מה נעשה באירוע,
+ * ואינו משתנה אם התיעוד יוסר. כך גם הדפים שאין להם בורר פריטים (תמיכה,
+ * מרקטפלייס, מודעה) אינם גוררים את המתעד רק כי הם משתמשים ב-AI.
+ *
+ * ⚠️ **fire-and-forget מוחלט, וזו נקודת האכיפה.** הקריאה סינכרונית, הערך
+ * המוחזר נזרק במפורש, וכל חריגה של מאזין נבלעת כאן. מאזין שבור, איטי או
+ * שמחזיר הבטחה דחויה **אינו יכול** לעכב או להפיל קריאת AI — ולכן אין צורך
+ * לסמוך על כך שהמתעד מתנהג יפה.
+ *
+ * ⚠️ אין כאן שום שינוי בלוגיקת הצ'אט ובפרומפטים. השידור יושב **מסביב**
+ * לקריאות הקיימות, ותוצאת כל פונקציה זהה בדיוק למה שהייתה לפניו.
+ */
+const itemPickerObservers = [];
+
+/** רושם מאזין לאירועי בורר הפריטים. ראו `ai-chat-log.js`. */
+export function observeItemPickerAI(fn) {
+  itemPickerObservers.push(fn);
+}
+
+function emitItemPickerEvent(event) {
+  for (const fn of itemPickerObservers) {
+    try {
+      fn(event);
+    } catch (err) {
+      console.warn('[ai-vision] מאזין תיעוד נכשל (הצ\'אט ממשיך כרגיל)', err);
+    }
+  }
+}
+
 /**
  * ⚠️ **השער אינו כאן — הוא בשרת.** `geminiProxy` פותח ב-
  * `verifyIdToken` ומחזיר 401 לכל בקשה בלי טוקן Firebase, ומפתח
@@ -208,11 +241,25 @@ export async function analyzeImagesWithCatalog(catalog, label, images) {
   for (const img of images) {
     parts.push({ inline_data: { mime_type: img.mimeType, data: img.base64 } });
   }
-  const parsed = await callGemini(parts);
-  const result = parseItemsAndQuestions(parsed, validKeys);
-  if (result.items.length === 0 && result.questions.length === 0) {
-    console.log('[ai-vision] empty result', { label, rawParsed: parsed });
+  let result;
+  try {
+    const parsed = await callGemini(parts);
+    result = parseItemsAndQuestions(parsed, validKeys);
+    if (result.items.length === 0 && result.questions.length === 0) {
+      console.log('[ai-vision] empty result', { label, rawParsed: parsed });
+    }
+  } catch (err) {
+    // אותה שגיאה בדיוק ממשיכה החוצה — התיעוד נוסף, לא מחליף.
+    emitItemPickerEvent({ kind: 'error', contextLabel: label, errorMessage: err?.message ?? String(err) });
+    throw err;
   }
+  emitItemPickerEvent({
+    kind: 'photo_scan',
+    contextLabel: label,
+    photoCount: images.length,
+    aiItems: result.items,
+    aiQuestions: result.questions,
+  });
   return result;
 }
 
@@ -356,13 +403,33 @@ export async function chatAddItemsWithCatalog(catalog, roomLabel, currentQuantit
     return { reply, items, freeItems, questions };
   }
 
-  let result = await attempt();
-  const hasReply = result.reply.trim().length > 0;
-  if (result.items.length === 0 && result.freeItems.length === 0 && result.questions.length === 0 && !hasReply) {
-    result = await attempt();
+  let final;
+  try {
+    let result = await attempt();
+    const hasReply = result.reply.trim().length > 0;
+    if (result.items.length === 0 && result.freeItems.length === 0 && result.questions.length === 0 && !hasReply) {
+      result = await attempt();
+    }
+    const sanitized = sanitizeFreeItemQuantities(result.freeItems, result.questions);
+    final = { ...result, freeItems: sanitized.freeItems, questions: sanitized.questions };
+  } catch (err) {
+    // אותה שגיאה בדיוק ממשיכה החוצה — התיעוד נוסף, לא מחליף.
+    emitItemPickerEvent({ kind: 'error', contextLabel: roomLabel, userText: message, errorMessage: err?.message ?? String(err) });
+    throw err;
   }
-  const sanitized = sanitizeFreeItemQuantities(result.freeItems, result.questions);
-  return { ...result, freeItems: sanitized.freeItems, questions: sanitized.questions };
+  // ⚠️ **אחרי** sanitizeFreeItemQuantities, בדיוק כמו `onChatExchange`
+  // באפליקציה: מה שמתועד הוא מה שהלקוח באמת קיבל, לא מה שהמודל החזיר
+  // לפני רשת הביטחון על כמות דמיונית.
+  emitItemPickerEvent({
+    kind: 'user_message',
+    contextLabel: roomLabel,
+    userText: message,
+    aiReplyText: final.reply,
+    aiItems: final.items,
+    aiFreeItems: final.freeItems,
+    aiQuestions: final.questions,
+  });
+  return final;
 }
 
 // Verbatim from aiVisionCore.ts's analyzeListingPhoto prompt — do not paraphrase.
