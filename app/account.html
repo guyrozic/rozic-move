@@ -505,6 +505,12 @@
        * ומחיקה שממתינה להם היא מחיקה שעלולה לא לקרות.
        */
       clearAllOrderDrafts();
+      // ⚠️ הרמז שהניווט בעמוד הבית קורא סינכרונית לפני הפריים הראשון
+      // (`index.html`, `rm-nav-auth`). בלי המחיקה כאן, מי שמתנתק נוחת
+      // בעמוד הבית ורואה "אזור אישי" למאות מילישניות עד ש-Firebase
+      // מתקן — כלומר בדיוק ההבהוב שהרמז נועד למנוע, רק הפוך.
+      // לפני `logout()` מאותה סיבה כמו `clearAllOrderDrafts`.
+      try { localStorage.removeItem('rm-nav-auth'); } catch {}
       await logout();
       location.href = '../index.html';
     });
