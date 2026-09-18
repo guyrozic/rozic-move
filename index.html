@@ -911,7 +911,7 @@
       display: flex;
       align-items: center;
       justify-content: space-between;
-      gap: clamp(18px, 2.6vw, 44px);
+      gap: clamp(16px, 2vw, 28px);
       flex-wrap: wrap;
     }
 
@@ -923,7 +923,11 @@
        ⚠️ `flex-wrap` על `.fq-inner` הוא מה שמאפשר את זה בלי לשבור
        מסכים בינוניים: כשאין מקום לשתי העמודות, הכפתורים יורדים לשורה
        משלהם והכותרת נשארת שלמה — במקום שהיא תישבר. */
-    .fq-text { flex: 1 1 430px; }
+    /* ⚠️ `auto` ולא מספר. בסיס קבוע (ניסיתי 430px) הוא מה ש**שבר**
+       את השורה: אלגוריתם ה-flex מחשב שבירה לפי ה-basis ולא לפי הדיו,
+       והכותרת בפועל צרה ממנו (363–405px לפי הרוחב). `auto` = רוחב
+       התוכן, כלומר בדיוק מה שהכותרת צריכה ולא יותר. */
+    .fq-text { flex: 1 1 auto; }
 
     /* `.section-label` מגיע מהאתר עצמו — אותה תווית של כל מקטע אחר.
        רק המרווח שמתחתיה מתהדק לקצב של רצועה. */
@@ -937,7 +941,7 @@
       /* ⚠️ מעל 760px הכותרת חייבת להישאר שלמה; מתחת לזה הרצועה כבר
          עמודה ברוחב מלא, ושם `nowrap` היה יכול לגלוש בטלפון צר. */
       white-space: nowrap;
-      font-size: clamp(1.8rem, 3vw, 2.6rem);
+      font-size: clamp(1.8rem, 2.6vw, 2rem);
       font-weight: 900;
       letter-spacing: -0.5px;
       line-height: 1.2;
@@ -996,7 +1000,7 @@
      שיחליף אותם; בלי הסימון הזה הם נעלמו גם בחמשת הדפים המשפטיים,
      בלי שום דרך להגיע אליהם (WCAG 1.4.4). -->
 <body class="has-nav-menu hp-home">
-<div data-build-stamp class="build-stamp" aria-hidden="true">עודכן 18.09 · 14:43</div>
+<div data-build-stamp class="build-stamp" aria-hidden="true">עודכן 18.09 · 14:56</div>
   <!-- ⚠️ 15.9 — "דלג לתוכן המרכזי" (WCAG 2.4.1, רמה A). זהו האלמנט הממוקד
        הראשון בדף: מוסתר מהעין, מופיע בפינה ברגע שמגיעים אליו ב-Tab, ומעביר
        את המיקוד אל <main id="main-content" tabindex="-1">. בלי ה-tabindex
@@ -2090,6 +2094,6 @@
   <symbol id="ic-cal" viewBox="0 0 24 24"><path d="M4 6h16v15H4zM4 11h16M8 3v4M16 3v4"/></symbol>
 </defs></svg>
 
-  <script type="module" src="support-fab.js?v=4dec6326"></script>
+  <script type="module" src="support-fab.js?v=4cc72bd0"></script>
 </body>
 </html>

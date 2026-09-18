@@ -38,20 +38,38 @@ const WA_TEXT = 'היי, הגעתי מהאתר של ROZIC MOVE ויש לי שא�
 if (!location.pathname.includes('/app/')) {
   const css = document.createElement('style');
   css.textContent = `
+    /* ⚠️ 18.9 — הוגדל לבקשת גיא: "הכפתור קטן מדי ולא שמים אליו לב —
+       צריך לשקול שינוי מיקום או הגדלה או גם וגם."
+       52→64px גובה, הכיתוב 0.95→1.1rem, והצל עמוק יותר כדי שיתנתק
+       מהרקע. **המיקום נשאר בפינה התחתונה-שמאלית** — באתר RTL זו
+       הפינה המקבילה לימין-תחתון בלטינית, כלומר המקום שבו גולשים
+       מצפים למצוא צ'אט תמיכה. שינוי מיקום היה פותר את הבלטות במחיר
+       של להפתיע את מי שכבר יודע איפה לחפש. */
     .sfab-btn {
-      position: fixed; bottom: 24px; left: 16px; z-index: 50;
-      display: inline-flex; align-items: center; gap: 8px;
-      height: 52px; padding: 0 18px; border-radius: 26px;
+      position: fixed; bottom: 26px; left: 20px; z-index: 50;
+      display: inline-flex; align-items: center; gap: 10px;
+      height: 64px; padding: 0 26px; border-radius: 32px;
       background: var(--green, #0E5C43); color: #fff;
       border: none; cursor: pointer;
-      font-family: inherit; font-size: .95rem; font-weight: 700;
-      box-shadow: 0 6px 20px rgba(0,0,0,.18);
+      font-family: inherit; font-size: 1.1rem; font-weight: 800;
+      letter-spacing: .2px;
+      box-shadow: 0 10px 30px rgba(0,0,0,.26), 0 2px 6px rgba(0,0,0,.14);
       transition: transform .2s ease, box-shadow .2s ease;
     }
-    .sfab-btn:hover { transform: translateY(-2px); box-shadow: 0 10px 26px rgba(0,0,0,.24); }
+    .sfab-btn:hover { transform: translateY(-3px); box-shadow: 0 16px 38px rgba(0,0,0,.32), 0 3px 8px rgba(0,0,0,.16); }
+
+    /* ⚠️ פעימה **אחת** אחרי שנייה וחצי, ולא לולאה. המטרה היא שהעין
+       תתפוס אותו פעם אחת; אנימציה מתמשכת בפינת המסך היא הסחה ולא
+       גילוי. ההעדפה prefers-reduced-motion מבטלת אותה לגמרי. */
+    @keyframes sfabNotice {
+      0%, 100% { transform: scale(1); }
+      35%      { transform: scale(1.07); }
+      70%      { transform: scale(0.98); }
+    }
+    .sfab-btn.sfab-notice { animation: sfabNotice .85s ease both; }
     .sfab-btn:focus-visible { outline: 3px solid var(--green-bright, #16A34A); outline-offset: 3px; }
     .sfab-panel {
-      position: fixed; bottom: 86px; left: 16px; z-index: 51;
+      position: fixed; bottom: 100px; left: 20px; z-index: 51;
       width: min(304px, calc(100vw - 32px));
       background: #fff; border: 1px solid var(--border, #E3E8E6);
       border-radius: 16px; box-shadow: 0 18px 44px rgba(0,0,0,.2);
@@ -86,9 +104,9 @@ if (!location.pathname.includes('/app/')) {
   btn.setAttribute('aria-expanded', 'false');
   btn.setAttribute('aria-controls', 'sfab-panel');
   btn.innerHTML =
-    '<svg width="19" height="19" viewBox="0 0 24 24" fill="none" aria-hidden="true">' +
+    '<svg width="23" height="23" viewBox="0 0 24 24" fill="none" aria-hidden="true">' +
     '<path d="M21 11.5a8.4 8.4 0 0 1-9 8.4L3 21l1.1-3.3A8.4 8.4 0 1 1 21 11.5z" ' +
-    'stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg>' +
+    'stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"/></svg>' +
     '<span>תמיכה</span>';
 
   const panel = document.createElement('div');
@@ -147,4 +165,18 @@ if (!location.pathname.includes('/app/')) {
 
   document.body.appendChild(btn);
   document.body.appendChild(panel);
+
+  /* ⚠️ נבדק מול ההעדפה **וגם** מקוצר-דרך: מי שכבר פתח את התמיכה פעם
+     אחת אינו צריך שיסבו את תשומת ליבו שוב. */
+  try {
+    const seen = localStorage.getItem('rm-sfab-seen');
+    const calm = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (!seen && !calm) {
+      setTimeout(() => {
+        btn.classList.add('sfab-notice');
+        btn.addEventListener('animationend', () => btn.classList.remove('sfab-notice'), { once: true });
+      }, 1500);
+    }
+  } catch {}
+  btn.addEventListener('click', () => { try { localStorage.setItem('rm-sfab-seen', '1'); } catch {} }, { once: true });
 }
