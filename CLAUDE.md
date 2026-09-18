@@ -44,7 +44,7 @@ v12.16.0 נטען מ-CDN. `app/` הוא זרימת ההזמנה המחוברת (
 
 ## שלוש בדיקות הקבלה — להריץ לפני קומיט
 ```
-node scripts/check-a11y.mjs                       # 12 בדיקות, דפי HTML
+node scripts/check-a11y.mjs                       # 13 בדיקות, דפי HTML
 node scripts/make-accessible-formats.mjs --check  # לא מפיק, לא דורש רשת
 node scripts/check-app-web-const-sync.mjs         # קבועים מול Hovalot
 ```
