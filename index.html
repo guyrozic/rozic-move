@@ -904,7 +904,7 @@
       background: var(--white);
       border-block-start: 1px solid var(--border);
       /* 90px היו הריפוד של `.download-section`. הרצועה חיה על כשליש. */
-      padding-block: clamp(30px, 3.4vw, 42px);
+      padding-block: clamp(40px, 4.4vw, 58px);
     }
 
     .fq-inner {
@@ -919,21 +919,19 @@
 
     /* `.section-label` מגיע מהאתר עצמו — אותה תווית של כל מקטע אחר.
        רק המרווח שמתחתיה מתהדק לקצב של רצועה. */
-    .fq-text .section-label { margin-bottom: 4px; }
+    .fq-text .section-label { font-size: 0.86rem; letter-spacing: 1.1px; margin-bottom: 7px; }
 
+    /* ⚠️ 18.9 — הוגדל לבקשת גיא: "קצת תגדיל את האזור של זה".
+       1.4→1.8rem בתחתית ו-1.9→2.6rem למעלה, כלומר בערך שליש יותר, בלי
+       להתקרב לכותרת ההירו (clamp(2.4rem, 5vw, 3.4rem)) — התחתית עדיין
+       כפופה לה ואינה מתחרה בה. */
     .fq-title {
-      font-size: clamp(1.4rem, 2.1vw, 1.9rem);
+      font-size: clamp(1.8rem, 3vw, 2.6rem);
       font-weight: 900;
       letter-spacing: -0.5px;
-      line-height: 1.25;
+      line-height: 1.2;
       color: var(--text);
       margin: 0;
-    }
-
-    .fq-desc {
-      font-size: 0.92rem;
-      color: var(--text-muted);
-      margin: 6px 0 0;
     }
 
     .fq-btns {
@@ -985,7 +983,7 @@
      שיחליף אותם; בלי הסימון הזה הם נעלמו גם בחמשת הדפים המשפטיים,
      בלי שום דרך להגיע אליהם (WCAG 1.4.4). -->
 <body class="has-nav-menu hp-home">
-<div data-build-stamp class="build-stamp" aria-hidden="true">עודכן 18.09 · 14:31</div>
+<div data-build-stamp class="build-stamp" aria-hidden="true">עודכן 18.09 · 14:39</div>
   <!-- ⚠️ 15.9 — "דלג לתוכן המרכזי" (WCAG 2.4.1, רמה A). זהו האלמנט הממוקד
        הראשון בדף: מוסתר מהעין, מופיע בפינה ברגע שמגיעים אליו ב-Tab, ומעביר
        את המיקוד אל <main id="main-content" tabindex="-1">. בלי ה-tabindex
@@ -1712,7 +1710,6 @@
       <div class="fq-text">
         <p class="section-label">מוכנים להתחיל?</p>
         <h2 class="fq-title">הורד את ROZIC MOVE</h2>
-        <p class="fq-desc">חינם להורדה. זמין ב-iOS וב-Android.</p>
       </div>
       <div class="fq-btns">
         <a tabindex="0" href="https://apps.apple.com/app/id6783814838" target="_blank" class="btn-store btn-apple large">
