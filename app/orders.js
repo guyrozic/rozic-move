@@ -7,6 +7,10 @@ import {
   query, serverTimestamp, setDoc, updateDoc, where,
 } from 'https://www.gstatic.com/firebasejs/12.16.0/firebase-firestore.js';
 import { db, auth } from './firebase.js';
+// מדרג הביטולים **אינו** מועתק לכאן ביד — הוא נגזר מהקובץ המקומפל מ-
+// `~/Hovalot/src/data/pricing.ts`, שעליו `check-web-pricing-sync.ts` אוכף
+// זהות. ראו `getCancellationPolicy` למטה.
+import { CANCELLATION_POLICY, getCancellationFee } from './data/pricing.js';
 
 /**
  * ⚠️ 17.9 — **חמש מתוך תשע התוויות כאן לא היו אותן תוויות שהלקוח רואה
@@ -299,6 +303,192 @@ export function formatLocationAge(loc, now = Date.now()) {
   return hours === 1 ? 'לפני שעה' : `לפני ${hours} שעות`;
 }
 
+/**
+ * פורמט סכום — פורט מילה במילה מ-`formatPrice()` ב-`src/utils/money.ts`.
+ *
+ * ⚠️ הפונקציה קיימת באתר כבר פעמיים, מקומית בתוך `apartment.html`
+ * וב-`small-move.html`, ושתיהן העתק של אותו ביטוי. כאן היא מיוצאת כדי
+ * שמסך ההזמנה יציג דמי ביטול באותו פורמט **בדיוק** שבו האפליקציה מציגה
+ * אותם — סכום כסף שמוצג בשני פורמטים באותו מוצר נראה כמו שני סכומים.
+ */
+export function formatPrice(amount) {
+  const n = amount ?? 0;
+  if (!Number.isFinite(n)) return '0';
+  const rounded = Math.round(n);
+  const sign = rounded < 0 ? '-' : '';
+  return sign + Math.abs(rounded).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+}
+
+/**
+ * שיעור החיוב בביטול אחרי שהמוביל כבר יצא לדרך — מראה
+ * `EN_ROUTE_CANCELLATION_RATE` ב-`src/services/cancellation.ts`.
+ *
+ * ⚠️ **הערך הזה כתוב גם בתקנון (§8), גם בפרומפט של סוכן התמיכה, וגם
+ * בשני מסכי הסיכום באפליקציה.** בניגוד למדרג הזמן, שיושב ב-
+ * `data/pricing.js` המקומפל ומסונכרן אוטומטית, הקבוע הזה חי ב-
+ * `cancellation.ts` — קובץ שאינו מקומפל לאתר — ולכן זהו **עותק שני
+ * שנכתב ביד ואיש אינו אוכף עליו התאמה**. `check-app-web-const-sync.mjs`
+ * אינו מכיר אותו היום. שינוי שלו באפליקציה חייב להיעשות גם כאן.
+ */
+const EN_ROUTE_CANCELLATION_RATE = 0.75;
+
+/**
+ * כמה שעות נותרו עד מועד ההובלה — פורט אחד לאחד מ-`hoursUntilPickup()`
+ * ב-`cancellation.ts`, כולל הנפילה ל-`null` כשאין מספיק מידע.
+ *
+ * `scheduledDate` נשמר כטקסט "D/M/YYYY" ו-`timeSlot` כטווח "08:00-11:00".
+ * מחשבים מול *תחילת* חלון הזמן. ערך שלילי = המועד כבר עבר.
+ *
+ * ⚠️ `new Date(y, m-1, d, h)` בדפדפן משתמש באזור הזמן של **המכשיר**,
+ * בדיוק כמו ב-React Native — כלומר הפורט נאמן למקור גם בסטייה הזאת.
+ * זו בדיוק הסיבה ש-`customerCancelOrder` מחשבת בשעון ישראל ושהיא זו
+ * שקובעת את החיוב בפועל; מה שמחושב כאן הוא **תצוגה בלבד**, ו-`shownFee`
+ * הוא מה שמאפשר לשרת לרשום ללוג פער בין השניים.
+ */
+function hoursUntilPickup(order) {
+  if (!order.scheduledDate) return null;
+  const parts = String(order.scheduledDate).split('/').map(Number);
+  if (parts.length !== 3 || parts.some(Number.isNaN)) return null;
+  const [day, month, year] = parts;
+
+  // תחילת חלון הזמן; בלי timeSlot נופלים לתחילת היום.
+  const startHour = Number(order.timeSlot?.split('-')[0]?.split(':')[0]);
+  const pickup = new Date(year, month - 1, day, Number.isNaN(startHour) ? 0 : startHour, 0, 0, 0);
+  if (Number.isNaN(pickup.getTime())) return null;
+
+  return (pickup.getTime() - Date.now()) / (1000 * 60 * 60);
+}
+
+/**
+ * מדיניות הביטול כפי שהיא מוצגת ללקוח **לפני** האישור — פורט אחד לאחד
+ * מ-`getCancellationPolicy()` ב-`src/services/cancellation.ts`.
+ *
+ * ## ⚠️ למה זה פורט עכשיו, אחרי שבמפורש הוחלט לא לפורט
+ * ההערה שליד כפתור הביטול ב-`order-status.html` אמרה שחישוב צד-לקוח
+ * כאן "יהיה חישוב שני שיכול להיפרד מהשרת", ולכן האזהרה נוסחה כמשפט
+ * גנרי אחד. **הנימוק נכון, והמסקנה שנגזרה ממנו הייתה שגויה** — כי
+ * המשפט הגנרי גובה מחיר בשני הכיוונים:
+ *
+ * 1. **שלושה מצבים שבהם הביטול חינם** (טרם שולם · טרם שובץ מוביל ·
+ *    המוביל לא סימן שיצא והמועד עבר) הוצגו ללקוח כ"ייתכן חיוב דמי
+ *    ביטול". התקנון §8 מבטיח לו שאינו מחויב, והאתר הרתיע אותו מלממש
+ *    את מה שמובטח לו.
+ * 2. **מי שייגבו ממנו 75%** לחץ "אישור" בלי לראות מספר.
+ *
+ * ## מה מגן מפני הפיצול שההערה חששה ממנו
+ * - **הפורט מלא ומדויק**, ולא "רק המקרים הקלים". ערך שונה כאן ושם גרוע
+ *   מהמצב הקודם, ולכן אין כאן גרסה מקורבת.
+ * - **מדרג הזמן נגזר מ-`data/pricing.js`**, שמקומפל מ-`src/data/pricing.ts`
+ *   ונבדק ע"י `check-web-pricing-sync.ts` — לא הועתק לכאן ביד.
+ * - **החישוב אינו קובע דבר.** `customerCancelOrder` היא שגובה, וכל מה
+ *   שנעשה כאן הוא להציג ולשלוח את המספר הלאה כ-`shownFee`.
+ *
+ * @param {object} order מסמך ההזמנה
+ * @param {'customer'|'driver'} cancellerRole האתר הוא צד הלקוח בלבד;
+ *   ענף המוביל פורט כדי שהפונקציה תישאר זהה למקור וניתנת להשוואה מולו.
+ * @returns {{allowed:boolean, fee:number, feePercent:number, warningMessage:string, confirmLabel:string}}
+ */
+export function getCancellationPolicy(order, cancellerRole = 'customer') {
+  if (cancellerRole === 'driver') {
+    return {
+      allowed: true,
+      fee: 0,
+      feePercent: 0,
+      warningMessage: 'אם תבטל אחרי שלקחת את ההזמנה יירד קנס מהפיקדון ויועבר ללקוח כפיצוי: ₪100 אם נותרו יותר מ-24 שעות עד תחילת חלון הזמן, ו-₪150 אם נותרו פחות.\nכל ביטול נספר: ביטול ראשון ושני = השעיית חשבון לחודש (אפשר לערער מול הצוות). ביטול שלישי = השעיה לצמיתות.',
+      confirmLabel: 'כן, בטל את ההזמנה',
+    };
+  }
+
+  // ── מדיניות ביטול של הלקוח ──
+  if (order.status === 'pending_pricing' || order.status === 'pending_payment') {
+    return {
+      allowed: true,
+      fee: 0,
+      feePercent: 0,
+      warningMessage: 'ההזמנה עדיין לא שולמה — ביטול ללא עלות.',
+      confirmLabel: 'כן, בטל את ההזמנה',
+    };
+  }
+
+  // `pending` = טרם שובץ מוביל. אין מוביל, אין חלון זמן שאבד, ואין את מי
+  // לפצות — המדרג כאן היה גובה 75% על כך ש**אנחנו** לא מצאנו מוביל.
+  if (order.status === 'pending') {
+    return {
+      allowed: true,
+      fee: 0,
+      feePercent: 0,
+      warningMessage: 'עדיין לא שובץ מוביל להזמנה — ביטול ללא עלות.',
+      confirmLabel: 'כן, בטל את ההזמנה',
+    };
+  }
+
+  if (order.status === 'assigned') {
+    const hoursUntil = hoursUntilPickup(order);
+    // בלי תאריך/שעה אין מדרג להחיל — נופלים לביטול ללא עלות במקום לנחש
+    // לרעת הלקוח.
+    if (hoursUntil === null) {
+      return {
+        allowed: true,
+        fee: 0,
+        feePercent: 0,
+        warningMessage: 'ביטול ההזמנה — ללא עלות.',
+        confirmLabel: 'כן, בטל את ההזמנה',
+      };
+    }
+
+    // המועד עבר והמוביל מעולם לא סימן שיצא. `assigned` (ולא `en_route`)
+    // הוא בדיוק העובדה הזו במסד: המוביל לא התחיל. מדרג "אי-הופעה" כאן
+    // היה מחייב לקוחה שהמוביל הבריז לה ב-75%.
+    if (hoursUntil < 0) {
+      return {
+        allowed: true,
+        fee: 0,
+        feePercent: 0,
+        warningMessage: 'המוביל לא סימן שיצא לדרך והמועד כבר עבר — ביטול ללא עלות.',
+        confirmLabel: 'כן, בטל את ההזמנה',
+      };
+    }
+
+    const fee = getCancellationFee(order.price, hoursUntil);
+    const tier = CANCELLATION_POLICY.find(
+      t => hoursUntil >= t.hoursBeforeMin && hoursUntil < t.hoursBeforeMax
+    );
+    const feePercent = Math.round((tier?.feePct ?? 0.5) * 100);
+
+    if (fee <= 0) {
+      return {
+        allowed: true,
+        fee: 0,
+        feePercent: 0,
+        warningMessage: `${tier?.description ?? 'ביטול ללא עלות'}.`,
+        confirmLabel: 'כן, בטל את ההזמנה',
+      };
+    }
+    return {
+      allowed: true,
+      fee,
+      feePercent,
+      warningMessage: `${tier?.description ?? ''}.\nדמי ביטול: ₪${formatPrice(fee)} (${feePercent}% מהמחיר).`,
+      confirmLabel: `כן, בטל ושלם ₪${formatPrice(fee)}`,
+    };
+  }
+
+  if (order.status === 'en_route') {
+    const fee = Math.round((order.price ?? 0) * EN_ROUTE_CANCELLATION_RATE);
+    return {
+      allowed: true,
+      fee,
+      feePercent: Math.round(EN_ROUTE_CANCELLATION_RATE * 100),
+      // ⚠️ האחוז **נגזר** ולא כתוב כמחרוזת — אחרת שינוי עתידי של הקבוע
+      // היה משנה את החיוב ומותיר את האזהרה ללקוח משקרת.
+      warningMessage: `המוביל כבר בדרך אליך.\nביטול בשלב הזה מחויב ב-${Math.round(EN_ROUTE_CANCELLATION_RATE * 100)}% מסכום ההזמנה (₪${formatPrice(fee)} מתוך ₪${formatPrice(order.price ?? 0)}).`,
+      confirmLabel: 'כן, בטל את ההזמנה',
+    };
+  }
+
+  return { allowed: false, fee: 0, feePercent: 0, warningMessage: '', confirmLabel: '' };
+}
+
 const CUSTOMER_CANCEL_URL = 'https://us-central1-hovalot-6cf65.cloudfunctions.net/customerCancelOrder';
 
 /**
@@ -329,19 +519,33 @@ const CUSTOMER_CANCEL_URL = 'https://us-central1-hovalot-6cf65.cloudfunctions.ne
  * preflight מ-`Origin: https://rozicmove.com` מחזיר 204 עם
  * `access-control-allow-origin`.
  *
- * `shownFee` נשלח כדי שהשרת ירשום ללוג פער בין מה שהוצג לבין מה שנגבה —
- * הסימן היחיד ששני החישובים נפרדו. האתר אינו מציג מדרג לפני האישור
- * (ראו `order-status.html`), ולכן הוא שולח `0` ומסמן בכך "לא הוצג דבר".
+ * ## ⚠️ `shownFee` — רשת הביטחון, שהייתה מנותקת
+ * השרת משווה בין מה שהוצג ללקוח לבין מה שנגבה ממנו בפועל, ורושם ללוג
+ * כל פער. זהו **הסימן היחיד** ששני החישובים נפרדו (שעון קיץ, מכשיר
+ * בחו"ל, מדרג שהשתנה בצד אחד).
  *
+ * עד היום האתר שלח `0` **תמיד**, ובצדק: הוא לא הציג מדרג, ו-`0` אמר
+ * "לא הוצג דבר". אלא שמנגנון ההשוואה אינו יודע להבחין בין "לא הוצג
+ * דבר" לבין "הוצג ₪0" — ולכן הוא היה **מושבת בפועל על כל ביטול
+ * מהאתר**, כולל אלה שנגבו בהם ₪1,500.
+ *
+ * עכשיו `order-status.html` מציג את המדרג (`getCancellationPolicy`
+ * למעלה) ומעביר לכאן את **אותו** מספר שהלקוח ראה על המסך, בדיוק כמו
+ * `handleCancel` באפליקציה שמעביר `policy.fee`. הפרמטר חובה ואין לו
+ * ברירת מחדל: קורא שישכח אותו יקבל `undefined` ויתגלה מיד, במקום
+ * להחזיר בשקט את אותה השתקה.
+ *
+ * @param {string} orderId
+ * @param {number} shownFee דמי הביטול **שהוצגו ללקוח** לפני האישור.
  * @returns {Promise<{fee:number, refundDue:number}>} מה נגבה בפועל ומה חייבים להחזיר.
  */
-export async function cancelOrder(orderId) {
+export async function cancelOrder(orderId, shownFee) {
   if (!auth.currentUser) throw new Error('NOT_LOGGED_IN');
   const token = await auth.currentUser.getIdToken();
   const res = await fetch(CUSTOMER_CANCEL_URL, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-    body: JSON.stringify({ orderId, shownFee: 0 }),
+    body: JSON.stringify({ orderId, shownFee }),
   });
   const data = await res.json().catch(() => null);
   if (!res.ok) throw new Error(data?.error ?? 'לא הצלחנו לבטל את ההזמנה');
