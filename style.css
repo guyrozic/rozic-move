@@ -254,6 +254,51 @@ img, svg { display: block; }
   box-shadow: var(--shadow-green);
 }
 
+/* ── הכניסה לאזור האישי ──────────────────────────────────────────────
+   ⚠️ 18.9 — פריט שני בקצה הסרגל, **לצד** «הורד עכשיו» ולא במקומו.
+   ה-CTA הראשי נשאר ההורדה, וזה משני לו — ולכן אותה משפחת צבע, אותו
+   רדיוס ואותו גובה, אבל מילוי רך (`--green-light`) מול הירוק המלא.
+   כך הוא נקרא כחלק מהסרגל ולא כפריט שהודבק אליו.
+   ⚠️ **`min-width` הוא לא קישוט.** הכיתוב מתחלף בין «התחברות / הרשמה»
+   ל«אזור אישי · ‹שם›», ובלי רוחב מינימלי כל הסרגל היה זז ברגע שמצב
+   ההתחברות מתברר. הרוחב הוא חצי מההגנה מפני ההבהוב — החצי השני הוא
+   ההכרעה הסינכרונית ב-index.html.
+   ⚠️ **210px נמדד, לא נבחר.** זהו רוחב «התחברות / הרשמה» בפועל
+   (209px עם Heebo טעון) — מצב ברירת המחדל. «אזור אישי · ‹שם›» נופל
+   בין 181px לשם קצר ל-218px לשם בן שש אותיות, כלומר רוב השמות
+   נכנסים לאותה תיבה בדיוק ושם ארוך מרחיב אותה ב-22px לכל היותר.
+   ⚠️ למה לא `max-width` שיחתוך בשלוש נקודות: הרוחב שנמדד כאן הוא
+   הרוחב **עם** הגופן טעון, ולפניו הדפדפן מרנדר בגופן חלופי רחב
+   יותר — תקרה קשיחה הייתה חותכת את «התחברות / הרשמה» עצמו לשבריר
+   שנייה בכל טעינה. הקיצוץ נעשה ב-JS על השם בלבד, שם הוא בטוח.
+   ⚠️ הגובה מיושר ל-`.nav-cta` ביד ונמדד: 8px ריפוד + 1.5px מסגרת +
+   30px שורת טקסט = 49px, בדיוק כמו 9px ריפוד + 31px שם. */
+.nav-auth {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  min-width: 210px;
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--green-dark);
+  background: var(--green-light);
+  border: 1.5px solid transparent;
+  text-decoration: none;
+  padding: 8px 16px;
+  border-radius: 10px;
+  white-space: nowrap;
+  flex-shrink: 0;
+  transition: background var(--transition), border-color var(--transition), color var(--transition);
+}
+
+.nav-auth:hover {
+  background: var(--white);
+  border-color: var(--green);
+}
+
+.nav-auth-ic { width: 16px; height: 16px; flex: 0 0 auto; }
+
 .nav-toggle {
   display: none;
   flex-direction: column;
@@ -328,6 +373,20 @@ img, svg { display: block; }
 }
 
 .mobile-menu a:hover { background: var(--green-light); color: var(--green-dark); }
+
+/* ⚠️ 18.9 — הכניסה לאזור האישי בתפריט המובייל. שורה ככל השורות במידות
+   ובריפוד, אבל במילוי הרך של `.nav-auth` — כך ההפרדה מהניווט הפנימי
+   נשמרת גם כאן, וההיררכיה מול ה-CTA הירוק שמתחת נשארת זהה לדסקטופ. */
+.mobile-menu .menu-auth {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 10px;
+  background: var(--green-light);
+  color: var(--green-dark);
+  font-weight: 700;
+}
+.mobile-menu .menu-auth:hover { background: var(--green-wash); color: var(--green-dark); }
 
 .mobile-menu .mobile-cta {
   margin-top: 10px;
@@ -1439,6 +1498,50 @@ a.back {
   .step-connector::after { content: '↓'; left: auto; top: 2px; }
 }
 
+/* ⚠️ 18.9 — טווח הצפיפות: מעל ההמבורגר (681px) ומתחת לרוחב שבו הסרגל
+   באמת נושם. **הגבול נמדד ולא הוערך:** עם הפריט במלואו (210px)
+   ארבעת קישורי הניווט נשברו לשתיים-שלוש שורות בכל רוחב עד 1040px,
+   ומ-1060px ומעלה חזרו לשורה אחת. 1080 הוא הערך עם שוליים.
+   **הפריט החדש הוא זה שמתכווץ, לא הוותיקים:** הכיתוב יורד מהעין
+   ונשאר בעץ הנגישות (`clip`, לא `display:none`), כך שקורא מסך ממשיך
+   להכריז «התחברות / הרשמה» או «אזור אישי» במלואו, ונשאר אייקון דמות —
+   המוסכמה המוכרת לכניסה לחשבון. יעד המגע נשאר 35×49, מעל המינימום
+   של WCAG 2.5.8 (24×24). שאר הפריטים בסרגל לא הוקטנו ולא זזו.
+   ⚠️ **מה שכבר היה שבור כאן ולא נגעתי בו:** ב-760px ארבעת הקישורים
+   נשברים לשתי שורות וב-700px לשלוש — **גם בלי השינוי הזה**. נמדד
+   על `website-build` באותם רוחבים בדיוק: 66px ו-98px גובה לרשימה,
+   זהה לחלוטין למה שיוצא אחרי השינוי. זה ממצא קיים בסרגל ולא רגרסיה
+   שלי, ותיקון שלו הוא עיצוב מחדש של הניווט. */
+@media (max-width: 1080px) and (min-width: 681px) {
+  /* 15px ולא 8px: בלי הכיתוב גובה התיבה נגזר מהאייקון (16px) במקום
+     משורת הטקסט (30px), והריפוד הוא מה שמחזיר את הפריט לאותם 49px
+     שבהם יושב «הורד עכשיו» לצידו. */
+  .nav-auth { min-width: 0; gap: 0; padding: 15px 8px; }
+  .nav-auth [data-auth-label] {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+    border: 0;
+  }
+}
+
+/* ⚠️ 18.9 — הקצה הצר של אותו טווח. גם אחרי שהפריט התכווץ לאייקון,
+   בין 681 ל-880 הוא עדיין הספיק לשבור את ארבעת הקישורים לשורה נוספת
+   (נמדד: 33→67 ב-820px, 66→99 ב-760px). ה-`gap` הוא הרפד היחיד שהיה
+   בשורה והוא מה שמשלם על הפריט: 32px→14px מחזיר את הקישורים בדיוק
+   לגובה שהיה להם לפני השינוי, בכל רוחב בטווח.
+   ⚠️ הצמצום נראה רק כשצפוף ממילא — `.nav-links` נושא `margin-right:auto`,
+   כך שכל עוד יש עודף רוחב המרווח בין הלוגו לקישורים נקבע על ידיו
+   ולא על ידי ה-`gap`. */
+@media (max-width: 880px) and (min-width: 681px) {
+  .has-nav-menu .nav-inner { gap: 14px; }
+}
+
 @media (max-width: 900px) {
   .hero-content {
     flex-direction: column;
@@ -1488,7 +1591,11 @@ a.back {
      640px הוא בדיוק הרוחב שאליו מגיעים כשמגדילים טקסט ל-200% על מסך
      1280, כלומר זה אובדן תוכן בהגדלה ולא רק במסך צר.
      `:has(.nav-toggle)` מצמצם את ההסתרה לדף שבאמת יש בו מה שיחליף. */
+  /* ⚠️ 18.9 — `.nav-auth` מצטרף לשני האחרים ומאותה סיבה: מתחת ל-680px
+     ההמבורגר מחליף את הסרגל, ויש שם תאום מלא של הפריט (`.menu-auth`).
+     בלי השורה הזאת הכניסה לאזור האישי הייתה מופיעה פעמיים בטלפון. */
   .has-nav-menu .nav-links,
+  .has-nav-menu .nav-auth,
   .has-nav-menu .nav-cta { display: none; }
   .nav-toggle { display: flex; }
   /* בדפים בלי המבורגר הקישורים נשארים — ובצפיפות הרגילה הם גולשים
@@ -2317,6 +2424,23 @@ body.hp-home .nav:not(.scrolled) .nav-cta {
 body.hp-home .nav:not(.scrolled) .nav-cta:hover {
   background: var(--green-wash);
   box-shadow: none;
+}
+/* ⚠️ 18.9 — אותה בעיה בדיוק של ה-CTA, בכיוון ההפוך: המילוי הרך של
+   `.nav-auth` הוא בהיר-על-בהיר, ועל ההירו הכהה הוא נמס לתוך הרקע
+   ואיתו כל הצורה של הפריט.
+   ⚠️ ולמה **לא** --green-on-dark כמו ה-CTA: שני כפתורים ירוקים-על-כהה
+   צמודים זה לזה היו מבטלים את ההיררכיה שהמילוי הרך נועד ליצור. זכוכית
+   לבנה שקופה שומרת על הפריט קריא ועל ההורדה כפעולה הראשית.
+   הטקסט הוא --white על הגרדיאנט הכהה — אותו צבע בדיוק שקישורי הניווט
+   כאן כבר משתמשים בו. */
+body.hp-home .nav:not(.scrolled) .nav-auth {
+  background: rgba(255, 255, 255, 0.13);
+  border-color: rgba(255, 255, 255, 0.3);
+  color: var(--white);
+}
+body.hp-home .nav:not(.scrolled) .nav-auth:hover {
+  background: rgba(255, 255, 255, 0.22);
+  border-color: rgba(255, 255, 255, 0.45);
 }
 /* ⚠️ אותו לקח שנרשם ב-15.9 על הפוטר, במשטח כהה חדש: טבעת המיקוד
    `--green` נעלמת על הגרדיאנט (1.5:1 בערך). על ההירו הכהה היא עוברת
