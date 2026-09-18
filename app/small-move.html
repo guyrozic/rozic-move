@@ -87,10 +87,31 @@
     a:focus-visible, button:focus-visible, summary:focus-visible,
     input:focus-visible, select:focus-visible, textarea:focus-visible,
     [tabindex]:focus-visible { outline: 3px solid #0E5C43; outline-offset: 2px; }
+
+    /* ⚠️ 18.9 — שדה הקופון מוצמד לכפתור "החל", כמו ב-`couponRow`
+       באפליקציה (TextInput + כפתור באותה שורה). `.inline-form-row`
+       ב-style-app.css הוא `align-items:flex-start`, שמיישר את הכפתור
+       לגובה ה**תווית** ולא לגובה השדה — אותה מלכודת שכבר נמדדה
+       ותועדה ב-`saved-addresses.html`, ואותו תיקון. מוגבל ל-min-width
+       כדי לא להתנגש עם פריסת העמודה של הנייד (max-width:480). */
+    @media (min-width: 481px) {
+      #coupon-entry { align-items: flex-end; }
+    }
+    /* ⚠️ `.inline-form-row` ו-`#coupon-applied` שניהם `display:flex` —
+       כלל author שגובר על `[hidden]{display:none}` של הדפדפן, כלומר
+       `el.hidden = true` **אינו מסתיר אותם**. זו בדיוק התקלה שנמצאה
+       בכפתור Apple ב-`login.html` ותועדה שם, והיא נראית רק בצילום מסך:
+       בדיקה תכנותית קוראת את התכונה `hidden` ומדווחת שהכול תקין. */
+    #coupon-entry[hidden] { display: none; }
+    /* השורה של הקופון שהוחל: הטקסט תופס את הרוחב, ו"הסר" נצמד לקצה. */
+    #coupon-applied { display: flex; align-items: center; gap: 12px; }
+    #coupon-applied[hidden] { display: none; }
+    #coupon-applied-text { flex: 1; }
+    #coupon-remove { flex-shrink: 0; padding: 0; font-size: 0.85rem; }
   </style>
 </head>
 <body class="app-body">
-<div data-build-stamp class="build-stamp" aria-hidden="true">עודכן 18.09 · 10:19</div>
+<div data-build-stamp class="build-stamp" aria-hidden="true">עודכן 18.09 · 10:24</div>
   <!-- ⚠️ 15.9 — "דלג לתוכן המרכזי" (WCAG 2.4.1, רמה A). זהו האלמנט הממוקד
        הראשון בדף: מוסתר מהעין, מופיע בפינה ברגע שמגיעים אליו ב-Tab, ומעביר
        את המיקוד אל <main id="main-content" tabindex="-1">. בלי ה-tabindex
@@ -98,6 +119,7 @@
        הבא חוזר לתחילת הניווט — כלומר הקישור לא עושה כלום. -->
   <a class="skip-link" href="#main-content">דלג לתוכן המרכזי</a>
   <script type="module" src="pilot-banner.js?v=14a0e537"></script>
+  <script type="module" src="offline-banner.js?v=96b835df"></script>
 
   <main id="main-content" tabindex="-1">
 
@@ -364,6 +386,35 @@
             </div>
           </div>
 
+          <!-- ⚠️ 18.9 — **קוד הנחה, ובדיוק במקום שבו הוא יושב באפליקציה.**
+               ב-`SmallMoveSummaryScreen.tsx` סקציית "קוד הנחה" היא הבלוק
+               שאחרי ביטוח ואריזה ולפני "חישוב מחיר" (שורות 550-583), וזה
+               לא שרירותי: הקופון מחושב על `preCouponTotal` — כלומר על
+               הסכום **אחרי** כל התוספות — ולכן הוא חייב לעמוד אחרי
+               המתגים שקובעים אותן ולפני הפירוט שמציג את התוצאה. שדה
+               שהיה יושב בשלב 3, למשל, היה מוצג לפני שהסכום שהוא נבדק
+               מולו בכלל קיים.
+
+               ⚠️ ההנחה **אינה** מחושבת כאן מקוד שהלקוח הקליד: `החל`
+               שולח את הקוד ל-`couponSecure` בשרת, ורק תשובה חיובית
+               משם — עם `type` ו-`value` — מפעילה חישוב. ראו
+               `validateCouponSecure` ב-guest-checkout.js. -->
+          <div class="app-card">
+            <h2>קוד הנחה</h2>
+            <div class="alert alert-success" id="coupon-applied" role="status" hidden>
+              <span id="coupon-applied-text"></span>
+              <button tabindex="0" type="button" class="btn-text" id="coupon-remove">הסר קופון</button>
+            </div>
+            <div class="inline-form-row" id="coupon-entry">
+              <div class="form-group">
+                <label for="coupon-code">קוד קופון</label>
+                <input id="coupon-code" type="text" autocomplete="off" maxlength="40" placeholder="הכנס קוד קופון">
+              </div>
+              <button tabindex="0" type="button" class="btn btn-primary" id="coupon-apply" disabled>החל</button>
+            </div>
+            <div id="coupon-error" role="alert"></div>
+          </div>
+
           <div class="app-card">
             <h2>חישוב מחיר</h2>
             <div class="price-lines" id="price-lines"></div>
@@ -431,7 +482,8 @@
   <script type="module">
     import { getAuthOptional, isDriverAccount, showDriverBlockAndHalt,
              loadOrderDraft, clearOrderDraft, saveOrderDraft, goRegister,
-             applyDraftToForm, draftWasDiscarded,
+             applyDraftToForm, draftWasDiscarded, attachDraftAutosave,
+             validateCouponSecure, redeemCouponSecure, getDiscountAmount,
              showDraftDiscardedNotice } from './guest-checkout.js';
     import { createOrder } from './orders.js';
     import { orderTermsConsent } from './legal.js';
@@ -477,7 +529,31 @@
       timeSlot: '',
       hasInsurance: false,
       notes: '',
+      // ⚠️ **הקוד בלבד, לא ההנחה.** מקביל ל-`couponCode` ב-`draftPayload`
+      // של `SmallMoveSummaryScreen` — הקופון המאומת (`appliedCoupon`
+      // למטה) חי בזיכרון הדף בלבד ואינו נשמר, כי הוא עלול לפוג בין
+      // השמירה לחזרה (ההערה המפורשת שם, שורה 101).
+      couponCode: '',
     };
+
+    /**
+     * הקופון שהשרת אישר — `null` עד שיש תשובה חיובית מ-`couponSecure`.
+     *
+     * ⚠️ **מחוץ ל-`state` בכוונה.** `state` הוא מה שנשמר לטיוטה, וקופון
+     * מאומת הוא בדיוק הדבר שאסור שיישמר: הוא נבדק מול סכום, מול תוקף
+     * ומול "כבר השתמשת" **ברגע מסוים**, וכל השלושה יכולים להשתנות עד
+     * שהלקוח יחזור. אותה הפרדה בדיוק כמו באפליקציה.
+     */
+    let appliedCoupon = null;
+
+    /**
+     * `true` מרגע שיצירת ההזמנה יצאה לדרך — התאום של `submitting` ב-
+     * `enabled` של `useDraftAutosave` באפליקציה (כלל 3 ב-CLAUDE.md).
+     * חוזר ל-`false` רק אם ההזמנה **לא** נוצרה.
+     */
+    let submitting = false;
+    /** נקבע בסוף הסקריפט, אחרי שהטופס קיים. ראו `attachDraftAutosave`. */
+    let draftAutosave = { cancel() {}, flush() {} };
 
     // ⚠️ הטיוטה נטענת כאן, אבל ה**טופס** ממולא רק בסוף הסקריפט — השדות
     // עוד לא קיימים בשלב הזה. שני החצאים חייבים לרוץ, ראו guest-checkout.js.
@@ -576,8 +652,28 @@
       // commissionAmount נשאר בגוף ההזמנה כאפס, בדיוק כמו באפליקציה,
       // כדי ששתי הזרימות יכתבו מסמך זהה.
       const commissionAmount = 0;
-      const totalPrice = preCouponTotal;
-      return { selected, itemsTotal, travelCost, floorSurcharge, surge, surgeAmount, packingCalc, insuranceAmount, packingAmount, craneCost, commissionAmount, totalPrice };
+      /**
+       * ⚠️ 18.9 — **הקופון נבדק מחדש מול הסכום הנוכחי, לא רק ברגע
+       * ה"החל".**
+       *
+       * `minOrderAmount` נאכף בשרת על הסכום שנשלח אליו — כלומר על הסכום
+       * **שהיה** כשהלקוח לחץ. אחרי זה הוא יכול לחזור לשלב 1, להוריד
+       * חצי מהפריטים, ולחזור לשלב 4: הקופון עדיין מוחל, ו"תקף מהזמנה
+       * של ₪500" מוחל על הזמנה של ₪300. אין שום בדיקה נוספת בדרך, כי
+       * הפדייה בשרת בודקת `maxUses`/`usedBy` בלבד — **לא** את הסכום.
+       *
+       * הבדיקה כאן אינה חישוב הנחה חדש ואינה מרככת כלום: היא רק מפסיקה
+       * להחיל הנחה שהשרת כבר אמר שאינה חלה מתחת לסכום הזה.
+       */
+      const couponBelowMin = !!appliedCoupon && preCouponTotal < (appliedCoupon.minOrderAmount || 0);
+      const couponInEffect = appliedCoupon && !couponBelowMin ? appliedCoupon : null;
+      // ⚠️ `Math.max(0, …)`: `applyCoupon` רוצף ב-₪50, ולכן על הזמנה
+      // נמוכה מזה ההפרש שלילי — כלומר "הנחה" שמעלה את המחיר. אינו
+      // ניתן להגעה היום (SMALL_MOVE_BASE_PRICE לבדו גבוה יותר), וזו
+      // בדיוק הסיבה לחסום אותו עכשיו ולא אחרי ששינוי מחירון יפתח אותו.
+      const couponDiscount = couponInEffect ? Math.max(0, getDiscountAmount(preCouponTotal, couponInEffect)) : 0;
+      const totalPrice = preCouponTotal - couponDiscount;
+      return { selected, itemsTotal, travelCost, floorSurcharge, surge, surgeAmount, packingCalc, insuranceAmount, packingAmount, craneCost, commissionAmount, preCouponTotal, couponDiscount, couponBelowMin, totalPrice };
     }
 
     function renderSidePrice() {
@@ -589,6 +685,9 @@
       if (state.hasInsurance) lines.push(['ביטוח תכולה', `₪${formatPrice(p.insuranceAmount)}`]);
       if (state.hasPacking) lines.push(['אריזה', `₪${formatPrice(p.packingAmount)}`]);
       if (state.needsCrane) lines.push(['מנוף', `₪${formatPrice(p.craneCost)}`]);
+      // ⚠️ הקופון אחרון — הוא מחושב על הסכום אחרי כל השאר, וכרטיס צדדי
+      // שמציג אותו במקום אחר מהפירוט המלא קורא את אותה הזמנה בשני סדרים.
+      if (p.couponDiscount > 0) lines.push(['קוד הנחה', `−₪${formatPrice(p.couponDiscount)}`]);
       document.getElementById('side-price-lines').innerHTML = lines.map(([l, v]) => `<div class="price-line"><span>${l}</span><span>${v}</span></div>`).join('');
       document.getElementById('side-price-total').textContent = `₪${formatPrice(p.totalPrice)}`;
       document.getElementById('bottom-price').textContent = step === 1 ? `₪${formatPrice(p.itemsTotal)}` : `₪${formatPrice(p.totalPrice)}`;
@@ -1573,17 +1672,143 @@
       if (state.hasInsurance) lines.push(['ביטוח תכולה', `+₪${formatPrice(p.insuranceAmount)}`]);
       if (state.hasPacking) lines.push(['שירות אריזה', `+₪${formatPrice(p.packingAmount)}`]);
       if (state.needsCrane) lines.push(['מנוף הרמה', `+₪${formatPrice(p.craneCost)}`]);
+      /**
+       * ⚠️ 18.9 — שורת פירוט, ולא רק "חסכת ₪X" ליד הסה"כ כמו באפליקציה.
+       * הכרטיס הזה נושא כותרת "חישוב מחיר" והוא פירוט מלא שהלקוח אמור
+       * לסכום בעיניו; הנחה שמופיעה רק בשורת הסה"כ הופכת אותו לחישוב
+       * שלא מסתדר. באפליקציה ה"חסכת" יושב **בתוך** בלוק הסה"כ ולכן שם
+       * הוא כן נקרא יחד עם המספר.
+       */
+      if (p.couponDiscount > 0) lines.push([`קוד הנחה (${escHtml(appliedCoupon.code)})`, `−₪${formatPrice(p.couponDiscount)}`, 'discount']);
 
-      document.getElementById('price-lines').innerHTML = lines.map(([label, val]) =>
-        `<div class="price-line"><span>${label}</span><span>${val}</span></div>`
+      document.getElementById('price-lines').innerHTML = lines.map(([label, val, cls]) =>
+        `<div class="price-line ${cls || ''}"><span>${label}</span><span>${val}</span></div>`
       ).join('');
       document.getElementById('price-total-value').textContent = `₪${formatPrice(p.totalPrice)}`;
       if (state.freeItems.length > 0) {
         const names = state.freeItems.map(f => `${f.label} ×${f.qty}`).join(', ');
         document.getElementById('price-lines').innerHTML += `<div class="alert alert-info" style="margin-top:10px;">פריטים נוספים ללא תמחור אוטומטי: ${names}. הצוות שלנו יצור קשר עם הצעת מחיר.</div>`;
       }
+      // ⚠️ נקרא מכאן ולא מכל מקום שמשנה מחיר: `renderSummary` הוא הנתיב
+      // היחיד שמרנדר את שלב 4 (כניסה לשלב, ביטוח, אריזה), ולכן הוא גם
+      // הנתיב היחיד שבו ההשהיה מתחת למינימום יכולה להתגלות ללקוח.
+      renderCoupon();
       renderSidePrice();
     }
+
+    // ---------- קוד הנחה ----------
+    const couponInput   = document.getElementById('coupon-code');
+    const couponApplyBtn = document.getElementById('coupon-apply');
+    const couponErrBox  = document.getElementById('coupon-error');
+    const couponEntry   = document.getElementById('coupon-entry');
+    const couponAppliedBox = document.getElementById('coupon-applied');
+    let checkingCoupon = false;
+
+    /**
+     * מסנכרנת את שלושת המצבים של הסקציה: ריק · נבדק · הוחל.
+     *
+     * ⚠️ אין כאן חישוב — `couponDiscount` מגיע מ-`computePrice`, שהוא
+     * מקור האמת היחיד למחיר בדף הזה. תצוגה שמחשבת הנחה בעצמה היא
+     * בדיוק איך נוצר מסך שמראה מספר אחד ושולח אחר.
+     */
+    function renderCoupon() {
+      const p = computePrice();
+      const showApplied = !!appliedCoupon && !p.couponBelowMin;
+      couponAppliedBox.hidden = !showApplied;
+      couponEntry.hidden = showApplied;
+      couponApplyBtn.disabled = checkingCoupon || !couponInput.value.trim();
+
+      if (showApplied) {
+        document.getElementById('coupon-applied-text').textContent =
+          `${appliedCoupon.code} — הנחה של ₪${formatPrice(p.couponDiscount)}`;
+        couponErrBox.innerHTML = '';
+        return;
+      }
+      /**
+       * ⚠️ הקופון **לא מוסר** כשההזמנה יורדת מתחת למינימום — רק מושהה.
+       * הלקוח שהוריד פריט בטעות ומחזיר אותו מקבל את ההנחה בחזרה מעצמה,
+       * במקום להקליד שוב קוד שהוא כבר לא זוכר. הנוסח הוא זה של השרת
+       * (`minOrderAmount` ב-`couponSecure.ts`), עם המשפט שמסביר למה
+       * המחיר עלה — אחרת זה מספר שקופץ בלי סיבה נראית.
+       */
+      if (appliedCoupon && p.couponBelowMin) {
+        couponErrBox.innerHTML = '<div class="alert alert-error">'
+          + `הקוד תקף מהזמנה של ₪${formatPrice(appliedCoupon.minOrderAmount)}, וההזמנה ירדה מתחת לסכום הזה — `
+          + 'ההנחה תחזור אם ההזמנה תגדל.</div>';
+      }
+    }
+
+    couponInput.addEventListener('input', () => {
+      // `autoCapitalize="characters"` באפליקציה; בדפדפן אין מקבילה על
+      // שדה טקסט, ולכן העלאת רישיות ידנית — עם שמירת מיקום הסמן, אחרת
+      // הוא קופץ לסוף בכל תו שמוקלד באמצע מחרוזת.
+      const pos = couponInput.selectionStart;
+      const upper = couponInput.value.toUpperCase();
+      if (upper !== couponInput.value) {
+        couponInput.value = upper;
+        couponInput.setSelectionRange(pos, pos);
+      }
+      state.couponCode = couponInput.value;
+      couponErrBox.innerHTML = '';
+      couponApplyBtn.disabled = checkingCoupon || !couponInput.value.trim();
+    });
+
+    document.getElementById('coupon-remove').addEventListener('click', () => {
+      appliedCoupon = null;
+      state.couponCode = '';
+      couponInput.value = '';
+      couponErrBox.innerHTML = '';
+      renderSummary();
+      couponInput.focus();
+    });
+
+    couponApplyBtn.addEventListener('click', async () => {
+      const code = couponInput.value.trim();
+      if (!code || checkingCoupon) return;
+      couponErrBox.innerHTML = '';
+
+      /**
+       * ⚠️ אורח. באפליקציה המצב הזה אינו קיים — שם המשתמש תמיד מחובר
+       * במסך הסיכום, ולכן `validateCoupon` פשוט מחזירה
+       * "יש להתחבר כדי להשתמש בקופון" ואיש לא רואה את זה. באתר שלב 4
+       * פתוח לאורח בכוונה (ראו guest-checkout.js), כלומר זה מצב שכיח.
+       *
+       * אותו נוסח בדיוק, **עם מוצא**: הודעה בלי כפתור כאן הייתה משאירה
+       * את הלקוח מול קוד הנחה שהוא לא יכול לממש ובלי לדעת מה לעשות.
+       * `goRegister` שומרת את הטיוטה (כולל `couponCode`) לפני ההפניה,
+       * כך שהוא חוזר לאותו מקום עם הקוד בשדה.
+       */
+      if (!authState) {
+        couponErrBox.innerHTML = '<div class="alert alert-error">'
+          + '<span>יש להתחבר כדי להשתמש בקופון.</span> '
+          + '<button tabindex="0" type="button" class="btn-text" id="coupon-login-btn">להרשמה מהירה</button></div>';
+        document.getElementById('coupon-login-btn').addEventListener('click', () => {
+          state.couponCode = couponInput.value;
+          goRegister('smallMove', state, 'coupon');
+        });
+        return;
+      }
+
+      checkingCoupon = true;
+      couponApplyBtn.disabled = true;
+      couponApplyBtn.textContent = '...';
+      // ⚠️ `preCouponTotal` ולא `totalPrice`: הסכום שנשלח לבדיקה הוא
+      // הסכום **לפני** הקופון. `totalPrice` כבר מנוכה, ושליחתו הייתה
+      // מפילה את `minOrderAmount` בשרת על הזמנה שעומדת בו.
+      const result = await validateCouponSecure(code, computePrice().preCouponTotal);
+      checkingCoupon = false;
+      couponApplyBtn.textContent = 'החל';
+
+      if (result.valid && result.coupon) {
+        appliedCoupon = result.coupon;
+        state.couponCode = result.coupon.code;
+        couponInput.value = result.coupon.code;
+      } else {
+        appliedCoupon = null;
+        couponErrBox.innerHTML = `<div class="alert alert-error">${escHtml(result.error || 'קוד קופון לא תקין')}</div>`;
+      }
+      renderSummary();
+    });
 
     // ---------- הסכמה לתנאי השימוש ----------
     // הגנה כפולה: הכפתור מושבת עד שמסמנים, *וגם* השליחה עצמה בודקת — כי אפשר
@@ -1688,10 +1913,22 @@
       const stuckTimer = setTimeout(() => {
         if (!btn.disabled) return;
         clearInterval(phraseTimer);
+        // ⚠️ השמירה האוטומטית **חוזרת** כאן, במתכוון: ההזמנה לא אושרה,
+        // הלקוח נשאר על הטופס, וכל מה שיערוך עכשיו לקראת ניסיון חוזר
+        // חייב להמשיך להישמר. זה בדיוק ההפך מנתיב ההצלחה למטה.
+        submitting = false;
         btn.disabled = false; btn.textContent = 'מעבר לתשלום';
         errBox.innerHTML = '<div class="alert alert-error">לא קיבלנו אישור מהשרת. '
           + 'בדוק את החיבור ונסה שוב — ההזמנה לא נוצרה פעמיים גם אם תלחץ שוב.</div>';
       }, 20000);
+      /**
+       * ⚠️ **מכאן ואילך אין שמירת טיוטה** — זה הבאג הכספי מ-21.8 בגרסת
+       * האתר שלו. הלחיצה על הכפתור היא בעצמה אירוע `click`, כלומר היא
+       * מתזמנת שמירה; בלי הדגל הזה הטיוטה הייתה נכתבת **בחזרה** אחרי
+       * `clearOrderDraft`, והלקוח היה חוזר לאתר ומתבקש לשחזר הזמנה
+       * שכבר נוצרה וממתינה לתשלום. ראו `attachDraftAutosave`.
+       */
+      submitting = true;
       const p = computePrice();
       try {
         const orderId = await createOrder({
@@ -1723,12 +1960,37 @@
           ...orderTermsConsent(),
         });
         clearTimeout(stuckTimer);
+        /**
+         * ⚠️ הפדייה **אחרי** שההזמנה נוצרה, ולפני הניווט. הנימוק המלא
+         * (ולמה זה נקודה אחרת מזו שבאפליקציה) ב-`redeemCouponSecure`.
+         *
+         * ⚠️ הכשל **אינו מפיל את ההזמנה** — הלקוח כבר קיבל את ההנחה,
+         * וההזמנה חשובה יותר מהספירה. הוא גם אינו שקט: `couponSecure`
+         * כותב `adminAlerts`, מעלה מונה על הקופון, ושולח push לאדמין
+         * בכשל הראשון של אותו צמד (קופון, משתמש). השורה כאן היא העקבה
+         * בצד הלקוח, למקרה שהבקשה כלל לא הגיעה לשרת.
+         *
+         * `phraseTimer` עדיין רץ בכוונה — הכפתור ממשיך להתחלף בזמן
+         * הקריאה הזו, במקום להיראות תקוע.
+         */
+        if (appliedCoupon && p.couponDiscount > 0) {
+          try {
+            await redeemCouponSecure(appliedCoupon.code);
+          } catch (e) {
+            console.warn('[coupon] פדיית הקופון נכשלה', appliedCoupon.code, e && e.message);
+          }
+        }
         clearInterval(phraseTimer);
+        // ⚠️ מבטל שמירה שממתינה בתור **לפני** המחיקה. בלי זה הטיימר
+        // שנותר מהלחיצה היה נורה וכותב את הטיוטה בחזרה.
+        draftAutosave.cancel();
         clearOrderDraft('smallMove');
         location.href = `order-status.html?id=${orderId}`;
       } catch (err) {
         clearTimeout(stuckTimer);
         clearInterval(phraseTimer);
+        // ההזמנה לא נוצרה — הלקוח נשאר על הטופס, והשמירה חוזרת.
+        submitting = false;
         // ⚠️ 17.9 — נוסח האפליקציה (`userFacingError` fallback), לא
         // "יצירת ההזמנה נכשלה". "נכשלה" מדווח ללקוח על תקלה במערכת
         // שלנו ומשאיר אותו בלי מה לעשות; "לא הצלחנו לשמור" מדבר עלינו
@@ -1853,6 +2115,14 @@
       renderTimeSlots();
     }
     else if (draftDiscarded) showDraftDiscardedNotice();
+    /**
+     * ⚠️ 18.9 — **אחרי** השחזור, לא לפניו. `applyDraftToForm` ממלא שדות
+     * ושולח `input`/`change` ידנית (השורות שמעל), וכל אחד מהם היה
+     * מתזמן שמירה — כלומר הטיוטה הייתה נכתבת מחדש מתוך `state` שעדיין
+     * באמצע השחזור. וב"אין טיוטה" זה גרוע יותר: טופס ריק היה נשמר
+     * כטיוטה ודורס את מה שהיה.
+     */
+    draftAutosave = attachDraftAutosave('smallMove', () => state, () => submitting);
     goToStep(1);
   </script>
 </body>

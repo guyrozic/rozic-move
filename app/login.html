@@ -144,7 +144,7 @@
   </style>
 </head>
 <body class="app-body">
-<div data-build-stamp class="build-stamp" aria-hidden="true">עודכן 18.09 · 10:19</div>
+<div data-build-stamp class="build-stamp" aria-hidden="true">עודכן 18.09 · 10:24</div>
   <!-- ⚠️ 15.9 — "דלג לתוכן המרכזי" (WCAG 2.4.1, רמה A). זהו האלמנט הממוקד
        הראשון בדף: מוסתר מהעין, מופיע בפינה ברגע שמגיעים אליו ב-Tab, ומעביר
        את המיקוד אל <main id="main-content" tabindex="-1">. בלי ה-tabindex
@@ -152,6 +152,7 @@
        הבא חוזר לתחילת הניווט — כלומר הקישור לא עושה כלום. -->
   <a class="skip-link" href="#main-content">דלג לתוכן המרכזי</a>
   <script type="module" src="pilot-banner.js?v=14a0e537"></script>
+  <script type="module" src="offline-banner.js?v=96b835df"></script>
   <main id="main-content" tabindex="-1">
 
   <div class="auth-shell">
@@ -283,6 +284,21 @@
           <label for="reg-password-confirm">אימות סיסמה</label>
           <input id="reg-password-confirm" type="password" required autocomplete="new-password" placeholder="הקלד שוב את הסיסמה">
         </div>
+        <!-- ⚠️ 18.9 — קוד הפניה. **מוסתר עד ש-`REFERRAL_PROGRAM_ENABLED`
+             נדלק** (ראו את ההערה הארוכה ליד הקבוע בסקריפט למטה) — לא
+             מחיקה, כדי שההדלקה תהיה שורה אחת ולא בנייה מחדש.
+             אופציונלי לחלוטין: בלי `required`, והתווית אומרת את זה
+             במילים ולא רק בהיעדר כוכבית. -->
+        <div class="form-group" id="reg-referral-group" hidden>
+          <label for="reg-referral">קוד הפניה מחבר (לא חובה)</label>
+          <input id="reg-referral" type="text" autocomplete="off" maxlength="40"
+                 placeholder="ROZIC-ABC123" aria-describedby="reg-referral-hint reg-referral-note">
+          <div class="form-hint" id="reg-referral-hint">הגעת דרך קישור של חבר? הקוד כבר מולא. אפשר גם להשאיר ריק.</div>
+          <!-- role=status ולא role=alert: זו הערה על שדה לא-חובה, ולא כשל
+               שמונע מהטופס להישלח. `alert` היה קוטע את קורא המסך באמצע
+               הקלדה בכל תו. -->
+          <div class="form-hint" id="reg-referral-note" role="status"></div>
+        </div>
         <div class="form-group">
           <label class="terms-label">
             <input tabindex="0" type="checkbox" id="reg-terms" required>
@@ -323,6 +339,11 @@
     import { login, registerCustomer, subscribeToAuth,
              signInWithProvider, setProfilePhone, normalizePhone,
              isValidFullName, FULL_NAME_ERROR, sendPasswordReset, getPasswordResetCooldown } from './auth.js';
+    // ⚠️ ייבוא סטטי ולא `await import(…)` בתוך נתיב ההרשמה: הקובץ כבר
+    // נטען ממילא (auth.js מייבא אותו), וייבוא דינמי בנקודה שבה החשבון
+    // כבר נוצר מוסיף נקודת כשל שלמה — רשת שנופלת שם נראית כמו כשל
+    // הרשמה, והיא אינה.
+    import { auth } from './firebase.js';
 
     // זהה למספר התמיכה שכבר קשיח בכל שאר האתר (support-chat.html, index.html
     // וכו') — ראו SUPPORT_WHATSAPP_URL באפליקציה (constants/support.ts). האתר
@@ -429,6 +450,11 @@
      */
     const REASON_NOTES = {
       'ai-quota': 'נגמרו הסריקות החינמיות ללא חשבון. ההתחברות חינם ולוקחת שנייה, ומשם ממשיכים לסרוק — ומה שכבר הוספת מחכה לך בחזרה.',
+      // ⚠️ 18.9 — קופון הוא הטבה אישית: השרת גוזר את המשתמש מהטוקן
+      // ובודק "כבר השתמשת" מולו, ולכן אין לו מה לבדוק לאורח. בלי
+      // השורה הזאת הלקוח לוחץ "החל", נזרק למסך התחברות ניטרלי, ולא
+      // מבין מה הקשר — בדיוק הכשל השקט שגיא תיאר במכסת הסריקות.
+      'coupon': 'קוד הנחה משויך לחשבון, ולכן צריך להתחבר כדי לממש אותו. ההרשמה לוקחת שנייה, וההזמנה שהתחלת — כולל הקוד שהקלדת — מחכה לך בחזרה.',
     };
     const reasonNote = REASON_NOTES[new URLSearchParams(location.search).get('reason')];
     if (reasonNote) {
@@ -438,6 +464,165 @@
     }
 
     const TERMS_REQUIRED_MSG = 'יש לאשר את תנאי השימוש כדי להמשיך';
+
+    /* ================================================================ *
+     * קוד הפניה בהרשמה
+     * ================================================================ */
+
+    /**
+     * ⚠️ **תאום ל-`REFERRAL_PROGRAM_ENABLED` ב-
+     * `~/Hovalot/src/constants/pilotMode.ts`, ושם הוא `false`.**
+     *
+     * ## למה השדה נבנה ונשאר כבוי — ולא נבנה "כי ביקשו"
+     * ב-16.9 (תזכיר #43 פריט 5) גיא כיבה את התוכנית אחרי שהסבב הכספי
+     * מצא שהיא **יוצרת התחייבות ולא מוסרת אותה**: `referralReward` יוצר
+     * קופון `FRIEND50-XXXXX` בשווי ₪50, כותב אותו למסמך ההפניה — ואין
+     * push, אין התראה, ואין מסך שקורא את האוסף (`allow read: if
+     * isAdmin()`). כלומר כל הפניה מוצלחת רושמת ₪50 כחוב, והכסף לא
+     * מגיע לאיש.
+     *
+     * ⚠️ **ומה שמפעיל את זה הוא בדיוק מסמך ה-`referrals`** שהשדה הזה
+     * יוצר. `referralReward` הוא `onDocumentUpdated('orders/{orderId}')`
+     * מיוצא ב-`index.ts` ו**אינו מגודר בשום דגל** — הוא יורה על כל
+     * מסמך הפניה קיים ברגע שההזמנה הראשונה של המופנה מושלמת. שדה פעיל
+     * כאן היה מחזיר את ההתחייבות דרך האתר, בדיוק אחרי שהיא נסגרה
+     * באפליקציה, ו**כל קומיט כאן הוא ייצור**.
+     *
+     * ## מה נדרש להדלקה
+     * שני הקצוות החסרים שגיא מנה: התראה למפנה עם הקוד, והצמדת הקופון
+     * ל-uid שלו (היום `usedBy: []`, כלומר כל מי שיקבל את הקוד יממש).
+     * כשזה ייסגר — `true` **בשני הקבצים באותו קומיט**, בדיוק כמו
+     * `PILOT_MODE`.
+     */
+    const REFERRAL_PROGRAM_ENABLED = false;
+
+    const REGISTER_REFERRAL_URL = 'https://us-central1-hovalot-6cf65.cloudfunctions.net/registerReferralSecure';
+
+    /**
+     * ⚠️ אותה תחילית שהשרת בודק (`registerReferralSecure`) ושמייצרת
+     * `generateReferralCode` ב-`auth.js`. קוד שאינו בפורמט **אינו
+     * שגיאה** אלא "לא נרשמה הפניה" — כך בשרת, וכך גם כאן.
+     */
+    const REFERRAL_CODE_PREFIX = 'ROZIC-';
+
+    /**
+     * ⚠️ **שם הפרמטר בכתובת — הכרעה שנרשמה כאן כי לא הייתה קיימת.**
+     *
+     * חיפוש באפליקציה מעלה ש**אין deep link כזה**: אין `linking` config
+     * ואין `prefixes` בשום מקום, ו-`RegisterScreen` קורא
+     * `route.params?.referralCode` — כלומר ניווט פנימי בלבד. ההערה ב-
+     * `pilotMode.ts` אף מציינת שהנתיב הזה הוא מה שהדגל סוגר.
+     *
+     * לכן נבחר `?ref=` — קצר, מקובל, וסביל לשיתוף בוואטסאפ. `referralCode`
+     * מתקבל גם הוא, כשם הפרמטר הפנימי באפליקציה, כדי ששני הצדדים לא
+     * יתפצלו אם הצד השני יסונכרן לשם הארוך.
+     *
+     * ⚠️ הערך **אינו** נכתב למסך: הוא נכנס ל-`input.value` (השמה
+     * לתכונה, לא HTML) ומנורמל וחתוך קודם. ראו את ההערה על `reason`
+     * למעלה — כתיבת ערך מהכתובת אל הדף היא הזרקת תוכן לדף ההתחברות שלנו.
+     */
+    const REFERRAL_URL_PARAMS = ['ref', 'referralCode'];
+
+    /**
+     * ⚠️ אותו ניקוי כמו בקודי הקופון (`normalizeCouponCode`). קוד
+     * שהודבק מוואטסאפ או ממסמך נושא לעיתים תווי כיווניות/רוחב-אפס —
+     * `trim()` אינו מסיר אותם, והשוואת התחילית בשרת נכשלת על קוד
+     * שנראה תקין לחלוטין על המסך.
+     */
+    function normalizeReferralCode(raw) {
+      return String(raw ?? '')
+        .replace(/[​-‏‪-‮⁠-⁯﻿]/g, '')
+        .trim()
+        .toUpperCase()
+        .slice(0, 40);   // `maxlength` חוסם הקלדה, לא השמה תכנותית
+    }
+
+    function referralCodeFromUrl() {
+      const q = new URLSearchParams(location.search);
+      for (const key of REFERRAL_URL_PARAMS) {
+        const code = normalizeReferralCode(q.get(key));
+        if (code) return code;
+      }
+      return '';
+    }
+
+    /**
+     * רושמת את ההפניה — **אחרי** שהחשבון נוצר, ולעולם לא זורקת.
+     *
+     * ⚠️ **נקראת ב-`await` ולא כ-fire-and-forget, בניגוד לאפליקציה.**
+     * שם `registerReferral(...).catch(...)` יוצא בלי המתנה, כי המסך
+     * נשאר חי. כאן השורה הבאה היא `location.href` — ניווט **מבטל
+     * בקשות באוויר**, כלומר fire-and-forget כאן פירושו הפניה שלפעמים
+     * נרשמת ולפעמים לא, בלי שום סימן לאיזה מהם קרה.
+     *
+     * ⚠️ ותקרת זמן, מאותה סיבה: שרת איטי אינו יכול להחזיק את הלקוח
+     * מול כפתור "נרשם..." אחרי שהחשבון שלו כבר קיים.
+     *
+     * ⚠️ **הכשל אינו מוצג ללקוח.** הוא כבר נרשם בהצלחה, ודיאלוג
+     * "לא הצלחנו לרשום את ההפניה" ברגע הזה הוא בדיוק הסוג של הודעת
+     * כשל שגיא דחה (18.8): היא לא נותנת לו מה לעשות. העקבה נשארת
+     * בקונסול, והקוד השגוי כבר סומן לו בשדה עצמו לפני השליחה.
+     */
+    async function registerReferralWeb(referralCode) {
+      const user = auth.currentUser;
+      if (!user) return;
+      const ctrl = new AbortController();
+      const timer = setTimeout(() => ctrl.abort(), 6000);
+      try {
+        const res = await fetch(REGISTER_REFERRAL_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${await user.getIdToken()}` },
+          body: JSON.stringify({ referralCode }),
+          signal: ctrl.signal,
+        });
+        const data = await res.json().catch(() => null);
+        // השרת מחזיר 200 גם כשלא נרשמה הפניה (`not_found`/`self`/
+        // `already_referred`) — בכוונה, כדי שהרשמה לא תיכשל בגלל קוד.
+        // בדיקת `res.ok` לבדה הייתה קוראת לזה הצלחה תמיד.
+        if (!res.ok || !data?.registered) {
+          console.warn('[referral] לא נרשמה הפניה', referralCode, data?.reason ?? `http_${res.status}`);
+        }
+      } catch (err) {
+        console.warn('[referral] קריאת registerReferralSecure נכשלה', err && err.name, err && err.message);
+      } finally {
+        clearTimeout(timer);
+      }
+    }
+
+    const referralGroup = document.getElementById('reg-referral-group');
+    const referralInput = document.getElementById('reg-referral');
+    const referralNote  = document.getElementById('reg-referral-note');
+
+    if (REFERRAL_PROGRAM_ENABLED) {
+      referralGroup.hidden = false;
+      const urlCode = referralCodeFromUrl();
+      if (urlCode) {
+        referralInput.value = urlCode;
+        // ⚠️ קישור הפניה מכוון להרשמה, לא להתחברות. בלי המעבר הזה
+        // הקוד ממולא בטופס **שאינו מוצג**, והמוזמן נוחת על מסך
+        // התחברות ומניח שהקישור לא עבד.
+        document.querySelector('.auth-tab[data-tab="register"]').click();
+      }
+    }
+
+    /**
+     * ⚠️ **מודיע, לא חוסם.** קוד בפורמט שגוי אינו מכשיל את ההרשמה —
+     * הוא פשוט לא נשלח (בדיוק כמו בשרת, ששם `!startsWith` מחזיר
+     * `registered:false` ולא שגיאה). זה הרגע היחיד שבו יש טעם להודיע:
+     * אחרי ההרשמה הלקוח כבר בדף אחר, ואין לו מה לעשות עם ההודעה.
+     */
+    referralInput.addEventListener('input', () => {
+      const pos = referralInput.selectionStart;
+      const upper = referralInput.value.toUpperCase();
+      if (upper !== referralInput.value) {
+        referralInput.value = upper;
+        referralInput.setSelectionRange(pos, pos);
+      }
+      const code = normalizeReferralCode(referralInput.value);
+      referralNote.textContent = (!code || code.startsWith(REFERRAL_CODE_PREFIX))
+        ? ''
+        : `קוד הפניה נראה כך: ${REFERRAL_CODE_PREFIX}ABC123. נמשיך בלי הקוד אם הוא לא בפורמט הזה.`;
+    });
 
     function friendlyError(err) {
       const code = err && err.code;
@@ -590,6 +775,18 @@
           password: document.getElementById('reg-password').value,
           termsAccepted: termsBox.checked,
         });
+        /**
+         * ⚠️ **אחרי** יצירת החשבון ולא לפניה: השרת גוזר את `newUserId`
+         * מהטוקן (זה מה שמונע רישום הפניה על שם משתמש אחר), ולכן לפני
+         * ההרשמה אין בכלל למי לרשום.
+         *
+         * ⚠️ ו**מחוץ** ל-`catch` של ההרשמה במכוון — `registerReferralWeb`
+         * בולעת הכול בעצמה, כך שאין מסלול שבו קוד הפניה שגוי מפיל
+         * הרשמה שכבר הצליחה. זו הדרישה המפורשת, והיא נאכפת בצורת
+         * הפונקציה ולא בזכירה של הקורא.
+         */
+        const referralCode = REFERRAL_PROGRAM_ENABLED ? normalizeReferralCode(referralInput.value) : '';
+        if (referralCode.startsWith(REFERRAL_CODE_PREFIX)) await registerReferralWeb(referralCode);
         location.href = nextUrl();
       } catch (err) {
         showError(friendlyError(err), err && err.code);
