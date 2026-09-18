@@ -37,6 +37,7 @@
  */
 
 import { subscribeToAuth } from './auth.js';
+import { auth } from './firebase.js';
 import { parseDateApp } from './geo.js';
 
 /** כמה זמן טיוטת אורח נשארת רלוונטית. מעבר לזה — מחירים ותאריכים מתיישנים. */
@@ -82,14 +83,84 @@ export function isDriverAccount(state) {
   return state?.profile?.userType === 'driver';
 }
 
-/** שומרת את מצב ההזמנה לפני שליחה להרשמה. ראו ההערה למעלה — זה לא אופציונלי. */
+/**
+ * ⚠️ 18.9 — **בעל הטיוטה.**
+ *
+ * ## למה זה נוסף עכשיו ולא קודם
+ * `rozic:draft:apartment` הוא מפתח **גלובלי לדפדפן** (ראו
+ * `clearAllOrderDrafts` — שם זה כבר מתועד כדליפה שאומתה בהרצה: כתובת
+ * הבית, כתובת היעד, והטקסט החופשי של משתמש א׳ הופיעו בטופס של ב׳).
+ * עד היום הטיוטה נכתבה **רק** בקיר ההרשמה, כלומר כמעט תמיד ע"י אורח.
+ * עם השמירה האוטומטית היא נכתבת בכל אינטראקציה, גם של משתמש מחובר —
+ * כלומר **נתיב הדליפה מתרחב בדיוק בגלל התיקון**, וזה לא מקובל.
+ *
+ * ## הכלל, ולמה הוא לא שובר את הפיצ'ר
+ * טיוטה של **אורח** (`uid: null`) פתוחה לכל אחד — זה כל הרעיון: בונים
+ * בלי חשבון, נשלחים להירשם, וחוזרים לאותה הזמנה תחת החשבון החדש.
+ * טיוטה שנשמרה תחת משתמש מזוהה שייכת לו בלבד.
+ *
+ * ⚠️ טיוטה ישנה בלי השדה (`undefined`) נחשבת אורח — כלומר בדיוק
+ * ההתנהגות שהייתה לפני השינוי, בלי לזרוק טיוטות קיימות של אף אחד.
+ */
+function currentUid() {
+  return auth.currentUser?.uid ?? null;
+}
+
+/**
+ * מנקה `undefined` מכל עומק לפני כתיבה.
+ *
+ * ## ⚠️ למה זה כאן, למרות שאין Firestore בנתיב הזה
+ * הכלל באפליקציה (`~/Hovalot/CLAUDE.md`, "שמירת טיוטות" סעיף 7) נוסח מול
+ * RNFB, שזורק `Unsupported field value: undefined` ו**מפיל את הכתיבה
+ * כולה**. בדפדפן הכשל שקט יותר ולכן מסוכן באותה מידה: `JSON.stringify`
+ * **משמיט** מפתח שערכו `undefined` בלי מילה. כלומר
+ * `{ timeSlot: undefined }` נכתב כטיוטה שבה `timeSlot` פשוט אינו קיים —
+ * וב-`shapeOk` זה עובר (`if (!(key in state)) continue`), וב-
+ * `Object.assign` הוא לא דורס את ברירת המחדל. התוצאה היא שדה שנעלם
+ * מהטיוטה בלי שאיש יראה שגיאה, כלומר בדיוק אותו תסמין שהכלל בא למנוע.
+ *
+ * הניקוי המפורש הופך את זה למפורש: מה שנשמר הוא מה שנקרא בחזרה, ו-
+ * `null` (ערך אמיתי, למשל `fromLat` לפני גאוקוד) עובר כמו שהוא.
+ *
+ * ⚠️ עומק ולא רק שכבה ראשונה: `freeItems` הוא `[{label, qty, description}]`
+ * ו-`description` אופציונלי — כלומר `undefined` בתוך מערך הוא המקרה
+ * השכיח כאן, לא התיאורטי. `JSON.stringify` היה הופך אותו לאיבר
+ * `{label,qty}` ולא ל-`null`, וזה דווקא בסדר; הניקוי משאיר את אותה
+ * תוצאה בלי להסתמך על התנהגות של הסריאלייזר.
+ */
+export function stripUndefined(value) {
+  if (Array.isArray(value)) return value.map(stripUndefined);
+  if (value && typeof value === 'object') {
+    const out = {};
+    for (const [k, v] of Object.entries(value)) {
+      if (v === undefined) continue;
+      out[k] = stripUndefined(v);
+    }
+    return out;
+  }
+  return value;
+}
+
+/**
+ * שומרת את מצב ההזמנה. ראו ההערה למעלה — זה לא אופציונלי.
+ *
+ * ⚠️ 18.9 — **הכשל לא נבלע יותר בשקט.** ה-`catch` כאן החזיר `false` ותו
+ * לא, וזה בדיוק ה-`catch` הריק שהכלל באפליקציה נכתב בגללו (סעיף 8):
+ * כתיבה שנכשלת בכל פעם נראית בדיוק כמו כתיבה שמצליחה. עכשיו הקורא
+ * מקבל `false` **וגם** נשארת שורה בקונסול — זו העקבה היחידה שיש לנו
+ * בדפדפן של לקוח, והיא מבדילה בין "לא שמרנו" ל"שמרנו ולא שוחזר".
+ */
 export function saveOrderDraft(serviceType, state) {
   try {
-    localStorage.setItem(draftKey(serviceType), JSON.stringify({ savedAt: Date.now(), state }));
+    localStorage.setItem(
+      draftKey(serviceType),
+      JSON.stringify({ savedAt: Date.now(), uid: currentUid(), state: stripUndefined(state) }),
+    );
     return true;
-  } catch {
+  } catch (err) {
     // מכסה מצב פרטי, אחסון מלא, ודפדפן שחוסם אחסון. כישלון שמירה לא
     // מפיל את ההרשמה — הוא רק אומר שהלקוח ימלא שוב, וזה עדיף על מסך שבור.
+    console.warn('[draft] שמירת טיוטה נכשלה', serviceType, err && err.name, err && err.message);
     return false;
   }
 }
@@ -107,12 +178,36 @@ export function saveOrderDraft(serviceType, state) {
  * לכן: טיוטה שלא עומדת בצורה הצפויה **נזרקת** ולא מתוקנת חלקית.
  * טיוטה חצי-תקינה שמשוחזרת היא בדיוק הסוג של באג שנראה אקראי.
  */
+/**
+ * ⚠️ 18.9 — **שלושה שדות שעברו כאן בלי אימות, ואחד מהם משנה מחיר.**
+ *
+ * הרשימה הזאת נקראת כאילו היא כל `state`, והיא לא הייתה: שדה שאינו כאן
+ * מדלג על הבדיקה לגמרי (`if (!(key in state)) continue`) ונמזג ל-`state`
+ * ב-`Object.assign` כמו שהוא. כלומר בדיוק הפער שההערה למעלה מזהירה
+ * ממנו — "טיוטה במבנה שגוי מפילה את הסקריפט" — נשאר פתוח לשדות שלא
+ * נרשמו כאן.
+ *
+ * - **`boxesAlreadyPacked`** — תשובת הלקוח ל"הארגזים כבר ארוזים?".
+ *   `computePrice` גוזר ממנו `countCustomerBoxes`, שקובע אם ארגזי
+ *   הקרטון נכנסים למחיר שירות האריזה. ערך שאינו בוליאני (`"no"`,
+ *   למשל) הוא truthy, כלומר **הארגזים יורדים מהחישוב והלקוח משלם
+ *   פחות** — שדה מחיר שעבר בלי אימות.
+ * - **`craneFloor`** — נקרא חזרה ב-`applyDraftToForm` ומוזן ל-
+ *   `craneCostFor()`. גם הוא נתיב מחיר.
+ * - **`couponCode`** — נשמר כטקסט בלבד (ראו `applyDraftToForm`).
+ *
+ * ⚠️ **מה שבמכוון *אינו* כאן:** `fromLat`/`fromLng`/`toLat`/`toLng`.
+ * הם `null` לגיטימי עד שהגאוקוד חוזר, ו-`shapeOk` פוסל `null` בכל שדה
+ * רשום (בצדק — ראו ההערה עליו) — כלומר רישום שלהם כאן היה **זורק כל
+ * טיוטה** שנשמרה לפני שהכתובת אומתה. זו לא השמטה.
+ */
 const DRAFT_SHAPE = {
   items: 'object', freeItems: 'array', craneItems: 'array',
   fromAddress: 'string', toAddress: 'string', fromFloor: 'string', toFloor: 'string',
   notes: 'string', date: 'string', timeSlot: 'string',
   hasPacking: 'boolean', hasInsurance: 'boolean', needsCrane: 'boolean',
   fromElevator: 'boolean', toElevator: 'boolean', distance: 'number',
+  boxesAlreadyPacked: 'boolean', craneFloor: 'string', couponCode: 'string',
 };
 
 /**
@@ -176,7 +271,21 @@ export function loadOrderDraft(serviceType) {
   try {
     const raw = localStorage.getItem(draftKey(serviceType));
     if (!raw) return null;
-    const { savedAt, state } = JSON.parse(raw);
+    const { savedAt, uid, state } = JSON.parse(raw);
+    /**
+     * ⚠️ טיוטה של משתמש אחר על אותו מכשיר — נמחקת ו**אינה מוצגת**. ראו
+     * `currentUid`. `uid` חסר או `null` = טיוטת אורח, פתוחה לכל אחד.
+     *
+     * ⚠️ ובלי `lastDraftDiscarded`: ההודעה אומרת *"לא הצלחנו לשחזר את
+     * ההזמנה שהתחלת"*, ומי שרואה אותה כאן **לא התחיל שום הזמנה** — היא
+     * של מי שהשתמש במכשיר לפניו. הודעה כזאת היא בדיוק ההפך מהתכלית
+     * שלה: היא מרמזת לו שאיבדנו עבודה שלו, וגם מסגירה שהייתה כאן
+     * הזמנה של מישהו אחר.
+     */
+    if (uid != null && uid !== currentUid()) {
+      localStorage.removeItem(draftKey(serviceType));
+      return null;
+    }
     if (!savedAt || Date.now() - savedAt > DRAFT_TTL_MS || !shapeOk(state)) {
       localStorage.removeItem(draftKey(serviceType));
       lastDraftDiscarded = true;
@@ -211,6 +320,247 @@ export function showDraftDiscardedNotice() {
 /** ⚠️ לקרוא אחרי יצירת הזמנה מוצלחת — אחרת הטיוטה תצוף שוב בהזמנה הבאה. */
 export function clearOrderDraft(serviceType) {
   try { localStorage.removeItem(draftKey(serviceType)); } catch { /* ראו למעלה */ }
+}
+
+/**
+ * שמירה אוטומטית של הטיוטה בכל שינוי — התאום של `useDraftAutosave`
+ * באפליקציה.
+ *
+ * ## ⚠️ למה זה קיים (18.9) — רענון בשלב 4 מחק הזמנה שלמה
+ * `saveOrderDraft` נקראה עד היום **רק** מ-`goRegister` ומשני שערי
+ * הטלפון/השם. כלומר לקוח מחובר בנה הזמנה שלמה — פריטים, כתובות, קומות,
+ * תאריך, הערות — ומעולם לא נשמרה לו טיוטה, כי הוא לא עבר באף אחד
+ * מהנתיבים האלה. רענון אחד, לחיצה על "חזרה" בדפדפן, או טאב שהדפדפן
+ * שחרר מהזיכרון — והכול נמחק וחוזר לשלב 1 ריק.
+ * ההערה ב-`apartment.html` ליד `stuckTimer` כבר תיעדה את זה כעובדה
+ * מדודה ("לקוח בשלב 4 עם הזמנה של ₪150 → רענון → שלב 1 ריק"), ולא
+ * נסגר. באפליקציה זה כלל מחייב: **כל** מסך באשף שומר אוטומטית.
+ *
+ * ## מה נשמר, ומתי
+ * `debounce` ולא שמירה על כל הקלדה: הקלדת כתובת היא ~30 אירועי `input`,
+ * ו-`localStorage.setItem` הוא כתיבה סינכרונית שחוסמת את ה-thread.
+ * ההאזנה היא על `input`/`change`/`click` ברמת המסמך, כי `state` מתעדכן
+ * גם מרכיבים שאינם שדות טופס כלל — צ'יפים של חלון זמן, כפתורי כמות
+ * לפריט, צ'יפים של פריטי מנוף. מאזין אחד שמכסה את כולם עדיף על רשימת
+ * מזהים שתתיישן בשקט בשינוי הבא.
+ *
+ * ## ⚠️ למה `shouldSkip` נבדק ברגע הכתיבה ולא ברגע התזמון
+ * זה **הבאג הכספי מ-21.8**, בגרסת הדפדפן שלו. באפליקציה autosave כתב
+ * `price:0`/`status:'draft'` על הזמנה שכבר בתשלום; כאן הנתיב הוא אחר
+ * ומסוכן באותה מידה: הלחיצה על "מעבר לתשלום" היא בעצמה `click`, כלומר
+ * היא **מתזמנת שמירה**. `createOrder` מצליח, `clearOrderDraft` מוחק את
+ * הטיוטה, הדף מתחיל לנווט — והטיימר שנותר מהלחיצה נורה וכותב את
+ * הטיוטה **בחזרה**. הלקוח היה חוזר לאתר ומקבל הצעה לשחזר הזמנה שהוא
+ * כבר יצר ועומד לשלם עליה.
+ *
+ * הבדיקה ברגע הכתיבה סוגרת את זה בלי להסתמך על תזמון: ברגע שהדגל
+ * עולה, כל שמירה שממתינה בתור מתה איתו.
+ *
+ * @param {string} serviceType
+ * @param {() => object} getState מחזירה את ה-`state` החי
+ * @param {() => boolean} shouldSkip `true` = אל תכתוב (שליחה/תשלום בעיצומם)
+ */
+export function attachDraftAutosave(serviceType, getState, shouldSkip) {
+  const DEBOUNCE_MS = 700;
+  let timer = null;
+
+  const writeNow = () => {
+    timer = null;
+    if (shouldSkip && shouldSkip()) return;
+    saveOrderDraft(serviceType, getState());
+  };
+
+  const schedule = () => {
+    if (shouldSkip && shouldSkip()) return;
+    if (timer) clearTimeout(timer);
+    timer = setTimeout(writeNow, DEBOUNCE_MS);
+  };
+
+  ['input', 'change', 'click'].forEach(evt => {
+    // `capture` — כדי שגם מאזין שקורא `stopPropagation` (הצ'יפים עושים
+    // זאת) לא יבליע את השמירה.
+    document.addEventListener(evt, schedule, { capture: true, passive: true });
+  });
+
+  /**
+   * ⚠️ `pagehide` ולא `beforeunload`: האחרון מבטל את ה-bfcache בחלק
+   * מהדפדפנים, והוא גם אינו נורה באופן אמין בסגירת טאב בנייד. בלי
+   * ההשטחה הזאת, שינוי שנעשה פחות מ-700 מ"ש לפני רענון פשוט אובד —
+   * וזה בדיוק החלון שבו לקוח לוחץ משהו ומיד מרענן כי "זה נתקע".
+   */
+  window.addEventListener('pagehide', () => {
+    if (timer) { clearTimeout(timer); timer = null; }
+    writeNow();
+  });
+
+  return {
+    /** מבטלת שמירה שממתינה בתור. לקרוא לפני `clearOrderDraft`. */
+    cancel() { if (timer) { clearTimeout(timer); timer = null; } },
+    /** כתיבה מיידית (עדיין כפופה ל-`shouldSkip`). */
+    flush() { if (timer) { clearTimeout(timer); } writeNow(); },
+  };
+}
+
+/* ==================================================================== *
+ * קופונים — **בדיקה ומימוש בשרת בלבד** (`functions/src/couponSecure.ts`)
+ * ==================================================================== */
+
+const COUPON_URL = 'https://us-central1-hovalot-6cf65.cloudfunctions.net/couponSecure';
+
+/**
+ * ⚠️ **זהה מילה במילה ל-`normalizeCouponCode`** ב-
+ * `~/Hovalot/src/services/coupons.ts` ול-`normalize()` בשרת.
+ *
+ * `trim()` אינו מסיר תווים חסרי רוחב. קוד שהודבק ממסמך או מוואטסאפ
+ * נושא לעיתים `U+200B` באמצע, והחיפוש מול מה שנשמר **לעולם לא יתאים** —
+ * קופון שנראה תקין במסך האדמין ומחזיר "קוד לא תקין" לכל מי שמנסה, בלי
+ * שום רמז למה. (הסבב הארוך של 12.9, בדיקה 159.)
+ */
+export function normalizeCouponCode(code) {
+  return String(code ?? '')
+    .replace(/[​-‏‪-‮⁠-⁯﻿]/g, '')
+    .trim()
+    .toUpperCase();
+}
+
+/**
+ * הסכום הנמוך ביותר שהזמנה יכולה לרדת אליו אחרי קופון.
+ *
+ * ⚠️ **תאום ל-`MIN_ORDER_PRICE_AFTER_COUPON`** ב-
+ * `~/Hovalot/src/services/coupons.ts`, ושם מתועד מלוא הנימוק: ב-₪3
+ * העיגול של `3/1.18` שובר את מתמטיקת המע"מ, העמלה מתאפסת, והמוביל
+ * מקבל ₪4 על הזמנה של ₪3. קופון של 98% על הזמנה מינימלית מגיע לשם
+ * בדיוק, ואין חסם על האחוז במסך הקופונים.
+ *
+ * ⚠️ **שינוי כאן בלי שינוי שם — פיצול שקט בין שני המשטחים.** אותה
+ * הזמנה, אותו קופון, שני מחירים.
+ */
+export const MIN_ORDER_PRICE_AFTER_COUPON = 50;
+
+/** זהה ל-`applyCoupon` באפליקציה, כולל העיגול והרצפה. */
+export function applyCoupon(originalPrice, coupon) {
+  const discounted = coupon.type === 'percent'
+    ? Math.round(originalPrice * (1 - coupon.value / 100))
+    : originalPrice - coupon.value;
+  return Math.max(MIN_ORDER_PRICE_AFTER_COUPON, discounted);
+}
+
+/** זהה ל-`getDiscountAmount` באפליקציה. */
+export function getDiscountAmount(originalPrice, coupon) {
+  return originalPrice - applyCoupon(originalPrice, coupon);
+}
+
+/**
+ * בדיקת קופון — **רצה בשרת.**
+ *
+ * ⚠️ **הלקוח אינו מחליט דבר.** תוקף, `maxUses`, "כבר השתמשת" וסכום
+ * ההזמנה המינימלי נבדקים כולם ב-`couponSecure`, מול המסמך ב-Firestore
+ * ומול ה-uid שנגזר מהטוקן — לא מנתונים שנשלחו מכאן. החוקים על
+ * `match /coupons` הם `allow read: if isAdmin()`, כלומר לדפדפן אין
+ * בכלל גישה לאוסף: אי אפשר לקרוא קוד, אי אפשר להמציא קופון, ואי אפשר
+ * לעקוף את הבדיקה בהסרת קוד מה-DevTools — בלי תשובה חיובית מהשרת אין
+ * מה להחיל.
+ *
+ * מה שכן נעשה כאן הוא **החשבון בלבד** (`applyCoupon`), מתוך `type`
+ * ו-`value` שהשרת החזיר. ⚠️ זה **בדיוק** המסלול של האפליקציה, שורה
+ * מול שורה: גם שם `validateCoupon` מחזירה את הקופון ו-`SummaryScreen`
+ * מחשב `getDiscountAmount` ושולח `price` מוזל ל-`createOrder`. אימות
+ * המחיר בשרת אינו קיים באף אחד מהמשטחים (הכרעה מודעת שנדחתה בסבב
+ * 21.8; `flagSuspiciousOrderPrice` הוא הרשת שכן קיימת). מימוש אחר כאן
+ * לא היה מקשיח כלום — הוא היה יוצר שני מחירים שונים לאותה הזמנה.
+ *
+ * @returns {Promise<{valid: boolean, coupon?: object, error?: string}>}
+ */
+export async function validateCouponSecure(code, orderAmount) {
+  const token = await auth.currentUser?.getIdToken().catch(() => null);
+  // אותו נוסח בדיוק כמו באפליקציה. באתר הוא **כן** ניתן להגעה, כי שלב 4
+  // פתוח לאורח — ההרשמה נדרשת רק בתשלום. ראו הכפתור שמוצג לצידו.
+  if (!token) return { valid: false, error: 'יש להתחבר כדי להשתמש בקופון' };
+
+  let res;
+  try {
+    res = await fetch(COUPON_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+      body: JSON.stringify({ action: 'validate', code: normalizeCouponCode(code), orderAmount }),
+    });
+  } catch {
+    return { valid: false, error: 'אין חיבור לרשת. נסו שוב.' };
+  }
+
+  const data = await res.json().catch(() => null);
+  if (!res.ok || !data) return { valid: false, error: 'לא הצלחנו לבדוק את הקוד. נסו שוב.' };
+  if (!data.valid) return { valid: false, error: data.error ?? 'קוד קופון לא תקין' };
+  return { valid: true, coupon: data.coupon };
+}
+
+/**
+ * פדיית הקופון — **טרנזקציה בשרת.**
+ *
+ * ## ⚠️ המסלול כאן שונה מהאפליקציה, וזה ההבדל שחייב להיקרא
+ * באפליקציה `markCouponUsed` נקראת **אחרי** `payForOrder` — כלומר אחרי
+ * שהסליקה אישרה. באתר אין נקודה כזו בזרימה הזאת: "מעבר לתשלום" **יוצר
+ * את ההזמנה** ומנווט ל-`order-status.html`, והתשלום עצמו קורה שם
+ * (`payments.js`), בדף אחר, לפעמים דקות או ימים אחר כך.
+ *
+ * שלוש האפשרויות, ולמה נבחרה זו:
+ * 1. **לא לפדות כאן בכלל** — ואז `usedCount`/`usedBy` לא זזים לעולם,
+ *    ו-`validate` עוברת שוב ושוב. קופון חד-פעמי הופך לבלתי מוגבל, לכל
+ *    לקוח. זה **אובדן כסף ודאי**, לא סיכון.
+ * 2. **לפדות מדף התשלום** — הנכון תיאורטית, אבל `payments.js` ו-
+ *    `order-status.html` אינם בהיקף הזה, והקופון אינו נשמר על מסמך
+ *    ההזמנה בכלל (לא באפליקציה ולא כאן) — כלומר לדף ההוא אין מאיפה
+ *    לדעת שהיה קופון.
+ * 3. **לפדות ביצירת ההזמנה** — מה שנבחר.
+ *
+ * **למה זה בטוח:** הפדייה היא `runTransaction` בשרת עם `increment` ו-
+ * `arrayUnion`, ו-`maxUses` נבדק **בתוך** הנעילה — כלומר גם שתי לשוניות
+ * שנשלחות יחד אינן יכולות לפדות פעמיים. השרת גוזר את ה-uid מהטוקן, ולכן
+ * אי אפשר לפדות בשם אחר. וכשל פדייה אינו שקט: `couponSecure` כותב
+ * `adminAlerts`, מעלה מונה על הקופון עצמו, ושולח push לאדמין בכשל הראשון.
+ *
+ * ⚠️ **ומה הוויתור, במפורש:** לקוח שיוצר הזמנה עם קופון ואז **לא משלם**
+ * שורף אותו — באפליקציה הקופון היה שורד. זו הרעה ללקוח בודד מול הדלף
+ * של אפשרות 1, וניתנת לתיקון ידני במסך הקופונים.
+ *
+ * ⚠️ הכשל **אינו מפיל את ההזמנה**, כמו באפליקציה: הלקוח כבר קיבל את
+ * ההנחה, וההזמנה חשובה יותר מהספירה. הקורא עוטף ומדווח.
+ */
+export async function redeemCouponSecure(code) {
+  const token = await auth.currentUser?.getIdToken();
+  if (!token) throw new Error('coupon-redeem-failed: no_token');
+
+  /**
+   * ⚠️ תקרת זמן, כי הקריאה הזו יושבת **בין ההזמנה שנוצרה לבין הניווט**
+   * לדף המעקב. בלעדיה, רשת תקועה (`fetch` אינו זורק על חיבור שנתקע —
+   * אותה מלכודת שתועדה ליד `stuckTimer`) הייתה משאירה את הלקוח מול
+   * כפתור "כמעט מוכן, רגע..." על הזמנה שכבר קיימת ומוכנה לתשלום.
+   * פסק זמן נופל ל-`catch` של הקורא, שמדווח וממשיך לנווט.
+   */
+  const ctrl = new AbortController();
+  const abortTimer = setTimeout(() => ctrl.abort(), 6000);
+  let res;
+  try {
+    res = await fetch(COUPON_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+      body: JSON.stringify({ action: 'redeem', code: normalizeCouponCode(code) }),
+      signal: ctrl.signal,
+    });
+  } finally {
+    clearTimeout(abortTimer);
+  }
+
+  /**
+   * ⚠️ 13.9, והלקח חוזר כאן מילה במילה: השרת מחזיר **200 על כל כשל
+   * פדייה** (`exhausted`/`already`/`gone`) — בכוונה, כדי שכישלון פדייה
+   * לא יפיל הזמנה ששולמה. קוד שבודק רק `res.ok` רואה הצלחה תמיד, וכל
+   * דיווח שנתלה עליו הופך לבלתי-ניתן-להגעה.
+   */
+  const data = await res.json().catch(() => null);
+  if (!res.ok || !data?.ok) {
+    throw new Error(`coupon-redeem-failed: ${data?.reason ?? `http_${res.status}`}`);
+  }
 }
 
 /**
@@ -400,6 +750,18 @@ export function applyDraftToForm(state) {
   set('notes', String(state.notes || '').slice(0, NOTES_MAX_LENGTH));
   check('has-insurance', state.hasInsurance);
   check('has-packing', state.hasPacking);
+
+  /**
+   * ⚠️ **הקוד בלבד חוזר — לא ההנחה.** מקביל מדויק להערה ב-
+   * `SmallMoveSummaryScreen.tsx:101`: *"הקופון נשמר כטקסט בלבד ולא
+   * כהנחה מאומתת — קופון עשוי לפוג בין השמירה לחזרה"*.
+   *
+   * טיוטה חיה 24 שעות. קופון יכול לפוג בזמן הזה, להימצא מוצה, או
+   * להיפדות בינתיים ע"י אותו משתמש בהזמנה אחרת — ושחזור ההנחה מהטיוטה
+   * היה מציג מחיר מוזל שאף בדיקה לא תומכת בו, עד שהלקוח מגיע לתשלום.
+   * הקוד חוזר לשדה, והלקוח לוחץ "החל" — כלומר השרת מכריע מחדש.
+   */
+  set('coupon-code', state.couponCode || '');
 
   /**
    * ⚠️ 15.9 — **חלון הזמן חזר מהטיוטה "בלתי נראה", ולחיצה אחת מחקה אותו.**
