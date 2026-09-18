@@ -18,15 +18,15 @@
         "blocks": 131,
         "sourceSha256": "97a9296c1fd8dd45af955da242c457142a1f7cc033ae01cbaf1e128b973235e6",
         "termsVersion": "2026-09-3",
-        "generatedAt": "2026-09-16T20:33:54.115Z"
+        "generatedAt": "2026-09-18T07:01:19.845Z"
       },
       "audio": {
         "path": "accessible/terms.mp3",
-        "bytes": 8039654,
-        "seconds": 2009.91,
+        "bytes": 8039863,
+        "seconds": 2009.97,
         "sourceSha256": "97a9296c1fd8dd45af955da242c457142a1f7cc033ae01cbaf1e128b973235e6",
         "termsVersion": "2026-09-3",
-        "generatedAt": "2026-09-16T20:33:54.115Z"
+        "generatedAt": "2026-09-18T07:01:19.845Z"
       }
     },
     "privacy": {
@@ -35,19 +35,19 @@
       "versionSource": "app/legal.js",
       "text": {
         "path": "accessible/privacy.txt",
-        "bytes": 15933,
+        "bytes": 16495,
         "blocks": 57,
-        "sourceSha256": "18e575f7cdfff37e3febe963eb6316f99bcbbddcf58bef1af3c6a6dcd4fadea5",
+        "sourceSha256": "18c51c484c8f140479676d6059209f0b7d28ed802b70ebaadd5aabb27d5e9515",
         "termsVersion": "2026-09-3",
-        "generatedAt": "2026-09-16T20:33:54.115Z"
+        "generatedAt": "2026-09-18T07:01:19.845Z"
       },
       "audio": {
         "path": "accessible/privacy.mp3",
-        "bytes": 3276696,
-        "seconds": 819.17,
-        "sourceSha256": "18e575f7cdfff37e3febe963eb6316f99bcbbddcf58bef1af3c6a6dcd4fadea5",
+        "bytes": 3386201,
+        "seconds": 846.55,
+        "sourceSha256": "18c51c484c8f140479676d6059209f0b7d28ed802b70ebaadd5aabb27d5e9515",
         "termsVersion": "2026-09-3",
-        "generatedAt": "2026-09-16T20:33:54.115Z"
+        "generatedAt": "2026-09-18T07:01:19.845Z"
       }
     }
   }
