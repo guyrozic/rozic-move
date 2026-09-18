@@ -53,6 +53,15 @@ node scripts/check-app-web-const-sync.mjs         # קבועים מול Hovalot
 שהייתה בריפו ולו בדיקה אחת שתאכוף את זה. ההצהרה היא התחייבות משפטית —
 בדיקה נופלת כאן היא חשיפה, לא אי-נוחות.
 
+⚠️ **סדר ההרצה חשוב, וטעות בו עולה חצי שעה.** `stamp-assets` מזריק
+`?v=<hash>` לכל הפניית נכס, ו**הוספת הפניה חדשה** (קובץ JS שלא היה)
+מייתמת את הקבצים הנגישים — זו התנהגות מכוונת ומתועדת בסקריפט. לכן:
+```
+node scripts/stamp-assets.mjs            # קודם
+node scripts/make-accessible-formats.mjs # ואז — 33 דקות הקראה
+```
+ב-18.9 הרצתי הפוך ושילמתי פעמיים.
+
 **השנייה** שומרת על `accessible/` — קובצי הקול והטקסט הנגישים מופקים ע"י
 `scripts/make-accessible-formats.mjs` (קול `Carmit` של macOS `say`),
 ו-`accessible/manifest.json` מחזיק `sourceSha256` של מסמכי המקור. **כל
