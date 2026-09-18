@@ -915,17 +915,28 @@
       flex-wrap: wrap;
     }
 
-    .fq-text { flex: 1 1 260px; }
+    /* ⚠️ 18.9 — הבסיס עלה מ-260 ל-430px לבקשת גיא: "המלל 'הורד את
+       ROZIC MOVE' יהיה בשורה אחת — תרחיב את השטח שזה נכנס בתוכו".
+       בבסיס 260 עמודת הטקסט התכווצה מול שלושת הכפתורים (~590px)
+       והכותרת נשברה לשתי שורות. 430 הוא רוחב הכותרת במידה המקסימלית
+       שלה (2.6rem × 18 תווים), ולכן היא נכנסת שלמה.
+       ⚠️ `flex-wrap` על `.fq-inner` הוא מה שמאפשר את זה בלי לשבור
+       מסכים בינוניים: כשאין מקום לשתי העמודות, הכפתורים יורדים לשורה
+       משלהם והכותרת נשארת שלמה — במקום שהיא תישבר. */
+    .fq-text { flex: 1 1 430px; }
 
     /* `.section-label` מגיע מהאתר עצמו — אותה תווית של כל מקטע אחר.
        רק המרווח שמתחתיה מתהדק לקצב של רצועה. */
-    .fq-text .section-label { font-size: 0.86rem; letter-spacing: 1.1px; margin-bottom: 7px; }
+    .fq-text .section-label { font-size: 1.02rem; letter-spacing: 1.4px; margin-bottom: 9px; }
 
     /* ⚠️ 18.9 — הוגדל לבקשת גיא: "קצת תגדיל את האזור של זה".
        1.4→1.8rem בתחתית ו-1.9→2.6rem למעלה, כלומר בערך שליש יותר, בלי
        להתקרב לכותרת ההירו (clamp(2.4rem, 5vw, 3.4rem)) — התחתית עדיין
        כפופה לה ואינה מתחרה בה. */
     .fq-title {
+      /* ⚠️ מעל 760px הכותרת חייבת להישאר שלמה; מתחת לזה הרצועה כבר
+         עמודה ברוחב מלא, ושם `nowrap` היה יכול לגלוש בטלפון צר. */
+      white-space: nowrap;
       font-size: clamp(1.8rem, 3vw, 2.6rem);
       font-weight: 900;
       letter-spacing: -0.5px;
@@ -959,6 +970,8 @@
 
     @media (max-width: 760px) {
       .fq-inner { flex-direction: column; align-items: stretch; gap: 20px; }
+      /* בטלפון צר עדיף שהכותרת תישבר מאשר תגלוש מהמסך. */
+      .fq-title { white-space: normal; }
       /* שלושה כפתורים ברוחב מלא — ברצועה צרה עדיף עמוד אחד ברור על
          פני שלוש עמודות דחוסות. ה-CTA האחרון בעמוד נשאר הכי לחיץ. */
       .fq-btns { flex-direction: column; }
@@ -983,7 +996,7 @@
      שיחליף אותם; בלי הסימון הזה הם נעלמו גם בחמשת הדפים המשפטיים,
      בלי שום דרך להגיע אליהם (WCAG 1.4.4). -->
 <body class="has-nav-menu hp-home">
-<div data-build-stamp class="build-stamp" aria-hidden="true">עודכן 18.09 · 14:39</div>
+<div data-build-stamp class="build-stamp" aria-hidden="true">עודכן 18.09 · 14:43</div>
   <!-- ⚠️ 15.9 — "דלג לתוכן המרכזי" (WCAG 2.4.1, רמה A). זהו האלמנט הממוקד
        הראשון בדף: מוסתר מהעין, מופיע בפינה ברגע שמגיעים אליו ב-Tab, ומעביר
        את המיקוד אל <main id="main-content" tabindex="-1">. בלי ה-tabindex
