@@ -3,10 +3,12 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>ROZIC MOVE — הזמנת הובלה ומעבר דירה אונליין בישראל</title>
-  <meta name="description" content="פלטפורמה ישראלית להזמנת הובלות: מעבר דירה, מובילים בקטנה ושירות אריזה. בונים רשימת פריטים, מקבלים מחיר לפני אישור, ועוקבים אחרי המוביל בזמן אמת — באפליקציה או ישירות מהדפדפן.">
-  <link rel="canonical" href="https://rozicmove.com/">
-  <meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large">
+  <title>תצוגה מקדימה · המקטע התחתון — ה-AI שרואה את הבית | ROZIC MOVE</title>
+  <meta name="description" content="עמוד תצוגה מקדימה פנימי. עותק של דף הבית שבו מקטע אחד הוחלף, לצורך הכרעת עיצוב. לא לפרסום.">
+  <!-- ⚠️ עמוד תצוגה מקדימה: `noindex` ובלי `canonical` — הוא עותק של דף
+       הבית, ו-canonical שמצביע על `/` היה מזמין השוואת תוכן כפול. אינו
+       רשום ב-`sitemap.xml`, וירד מהריפו אחרי ההכרעה. -->
+  <meta name="robots" content="noindex, nofollow">
 
   <!-- Open Graph / social + AI crawlers -->
   <meta property="og:type" content="website">
@@ -569,6 +571,411 @@
   .mk-haul .tx i em { font-style:normal; color:var(--green-ink); font-weight:800; }
 
   </style>
+
+  <!-- ══════════════════════════════════════════════════════════════════
+       הסגנון של המקטע המוחלף בלבד. גיליון האתר (`style.css?v=57257b7b`)
+       נטען כרגיל למעלה ומספק את הטוקנים, הרשת, הטיפוגרפיה וההירו — כאן
+       יושב רק מה שחדש, בקידומת `ai-`. אין ערך צבע גולמי לטקסט: כל
+       `color` בא מטוקן שמוגדר ב-`style.css`.
+       ⚠️ אין כחול בשום גוון. הפלטה היא pine/ירוק + כתום המותג.
+       ══════════════════════════════════════════════════════════════════ -->
+  <style>
+  /* הרקע ממשיך בדיוק את המעבר שהיה קודם: `.features-section` פתחה בלבן
+     ו-`.how-section` נגמרה ב-#D8F2E6 מול הכהה של `.movers-section`.
+     מיזוג שני המקטעים לאחד שומר על אותה נקודת פתיחה ואותה נקודת סיום,
+     ולכן התפר אל המקטע שמתחת נשאר כפי שאושר. */
+  .ai-section {
+    padding: 94px 0 96px;
+    background: linear-gradient(180deg, var(--white) 0%, #EAF6F0 46%, #D8F2E6 100%);
+  }
+
+  /* ===== הפריסה — מסך גדול קודם ===== */
+  /* שני לוחות בלבד. הצד הרחב הוא השיחה, כי היא ההוכחה; הצד הצר הוא
+     התוצאה. `minmax(0,…)` ולא `fr` נקי — בלי זה תוויות הקטלוג הארוכות
+     מרחיבות את העמודה מעבר לרשת. */
+  .ai-split {
+    display: grid;
+    grid-template-columns: minmax(0, 1.42fr) minmax(0, 1fr);
+    gap: clamp(20px, 2.2vw, 34px);
+    align-items: start;
+  }
+
+  .ai-pane {
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 18px;
+    box-shadow: var(--shadow-md);
+    padding: clamp(18px, 1.7vw, 26px);
+    min-width: 0;
+  }
+
+  .ai-pane-h {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding-bottom: 13px;
+    margin-bottom: 16px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .ai-pane-h h3 {
+    font-size: 1.02rem;
+    font-weight: 800;
+    letter-spacing: -0.3px;
+    color: var(--text);
+  }
+
+  /* התג שמבהיר שזו הדגמה ולא ממשק חי — דרישה מפורשת, ולכן הוא לא
+     מוסתר בשום רוחב מסך. */
+  .ai-demo-tag,
+  .ai-count {
+    flex-shrink: 0;
+    font-size: 0.7rem;
+    font-weight: 800;
+    letter-spacing: 0.4px;
+    padding: 4px 11px;
+    border-radius: 999px;
+  }
+  .ai-demo-tag {
+    color: var(--amber-strong);
+    background: #FBEFD9;
+    border: 1px solid #EBD6AC;
+  }
+  .ai-count {
+    color: var(--green-ink);
+    background: var(--green-tint);
+    border: 1px solid #C3E6D2;
+  }
+
+  /* ===== השיחה ===== */
+  /* הבועות מחקות אחת-לאחת את `.ai-chat-msg` שבמוצר עצמו
+     (`app/style-app.css`): הלקוח ירוק ומיושר לקצה הסוף, ה-AI בהיר
+     ומיושר לקצה ההתחלה. */
+  .ai-thread {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .ai-msg {
+    max-width: 82%;
+    padding: 11px 15px;
+    border-radius: 15px;
+    font-size: 0.85rem;
+    line-height: 1.55;
+  }
+
+  .ai-msg.user {
+    align-self: flex-end;
+    background: var(--green);
+    color: var(--white);
+    font-weight: 600;
+    border-bottom-left-radius: 4px;
+  }
+
+  .ai-msg.bot {
+    align-self: flex-start;
+    max-width: 90%;
+    background: var(--bg);
+    color: var(--text);
+    border: 1px solid var(--border);
+    border-bottom-right-radius: 4px;
+  }
+
+  .ai-msg-t {
+    font-size: 0.83rem;
+    font-weight: 800;
+    color: var(--green-dark);
+  }
+  /* ⚠️ `--green-ink` ולא `--green-line`. הטוקן `--green-line` מסומן
+     ב-`style.css` כ«מסגרת בלבד» — הוא נותן 3.0:1 בלבד כטקסט, ו-`--green-ink`
+     הוא בדיוק הטוקן שנמדד לטקסט בתוך אותו רכיב. אותה החלפה בסימן ה-↩
+     שברשימה, מאותה סיבה. */
+  .ai-msg-t::before {
+    content: '✓';
+    margin-inline-end: 6px;
+    color: var(--green-ink);
+  }
+  .ai-msg-b {
+    margin-top: 5px;
+    font-size: 0.82rem;
+    color: var(--text-mid);
+  }
+
+  .ai-chips {
+    list-style: none;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 9px;
+  }
+  .ai-chips li {
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: var(--green-ink);
+    background: var(--green-tint);
+    border: 1px solid #C3E6D2;
+    border-radius: 9px;
+    padding: 4px 10px;
+  }
+  .ai-chips em {
+    font-style: normal;
+    font-weight: 900;
+    color: var(--orange-deep);
+  }
+
+  .ai-msg-n {
+    margin-top: 9px;
+    font-size: 0.73rem;
+    line-height: 1.5;
+    color: var(--text-muted);
+  }
+
+  .ai-pending {
+    display: inline-block;
+    margin-top: 10px;
+    font-size: 0.71rem;
+    font-weight: 800;
+    color: var(--amber-strong);
+    background: #FBEFD9;
+    border: 1px solid #EBD6AC;
+    border-radius: 999px;
+    padding: 3px 11px;
+  }
+
+  /* כרטיס שאלת ההבהרה — אותו רכיב `.question-card` של המוצר, כולל ✨. */
+  .ai-qcard {
+    align-self: flex-start;
+    width: 90%;
+    background: var(--white);
+    border: 1px solid rgba(14,92,67,0.3);
+    border-radius: 16px;
+    padding: 15px 16px;
+    box-shadow: var(--shadow-sm);
+  }
+  .ai-qtext {
+    font-size: 0.86rem;
+    font-weight: 800;
+    color: var(--text);
+    margin-bottom: 10px;
+  }
+  .ai-qtext::before {
+    content: '✨';
+    margin-inline-end: 7px;
+    font-size: 0.8rem;
+  }
+  /* ⚠️ פריטי רשימה ולא כפתורים — זו תצוגה סטטית. כפתור מזויף היה מוסיף
+     תחנת Tab שלא עושה דבר, וזה גרוע יותר מאשר לא להיות לחיץ כלל. */
+  .ai-qopts {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+  }
+  .ai-qopts li {
+    padding: 9px 13px;
+    border-radius: 11px;
+    border: 1.5px solid var(--border);
+    background: var(--bg);
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--text-mid);
+  }
+  .ai-qopts li.picked {
+    border-color: var(--green);
+    background: var(--green-light);
+    color: var(--green-dark);
+    font-weight: 800;
+  }
+  .ai-qopts li.picked::after {
+    content: '✓';
+    float: inline-end;
+    color: var(--green);
+  }
+
+  /* ⚠️ ה-visually-hidden של האתר הוא `.hp-sr` שב-`style.css`, ולא
+     `sr-only`. אין כאן מחלקה חדשה — האפשרות הנבחרת מסומנת אצלנו בצבע
+     ובסימן ✓, ושניהם אינם מגיעים למי שמאזין לדף, ולכן יש שם טקסט
+     שמסביר את הסימון. */
+
+  /* ===== הרשימה שנבנתה ===== */
+  .ai-rows {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+  .ai-rows li {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 10px 2px;
+    border-bottom: 1px dashed var(--border);
+    font-size: 0.83rem;
+    font-weight: 600;
+    color: var(--text);
+  }
+  .ai-rows li:last-child { border-bottom: 0; }
+  .ai-rows li b {
+    flex-shrink: 0;
+    min-width: 30px;
+    text-align: center;
+    font-size: 0.78rem;
+    font-weight: 800;
+    color: var(--green-ink);
+    background: var(--green-tint);
+    border-radius: 8px;
+    padding: 2px 8px;
+  }
+  /* השורה שנוספה בזכות שאלת ההבהרה — הקשר החזותי בין השאלה לתוצאה. */
+  .ai-rows li.added > span::before {
+    content: '↩';
+    margin-inline-end: 7px;
+    color: var(--green-ink);
+    font-weight: 900;
+  }
+  .ai-rows li.free > span {
+    color: var(--amber-strong);
+    font-weight: 800;
+  }
+
+  .ai-rows-f {
+    margin-top: 16px;
+    padding-top: 14px;
+    border-top: 1px solid var(--border);
+    font-size: 0.79rem;
+    line-height: 1.6;
+    color: var(--text-muted);
+  }
+
+  /* ===== רצועת «איך זה עובד» — העוגן #how-it-works ===== */
+  /* רצועה אחת ולא שלושה כרטיסים. ריבוי חלוניות היה הדבר שהעיק. */
+  .ai-chain {
+    margin-top: clamp(26px, 2.6vw, 40px);
+    padding: clamp(22px, 2.2vw, 32px) clamp(20px, 2.4vw, 38px);
+    background: var(--green-dark);
+    border-radius: 18px;
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    align-items: center;
+    gap: clamp(18px, 2.4vw, 40px);
+    scroll-margin-top: calc(var(--nav-h) + 20px);
+  }
+
+  .ai-chain-h {
+    font-size: 1.15rem;
+    font-weight: 900;
+    letter-spacing: -0.4px;
+    color: var(--white);
+    max-width: 7ch;
+    line-height: 1.25;
+  }
+
+  .ai-chain-steps {
+    list-style: none;
+    counter-reset: aistep;
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: clamp(14px, 1.8vw, 28px);
+  }
+  .ai-chain-steps li {
+    counter-increment: aistep;
+    position: relative;
+    padding-inline-start: 34px;
+  }
+  .ai-chain-steps li::before {
+    content: counter(aistep, decimal-leading-zero);
+    position: absolute;
+    inset-inline-start: 0;
+    top: 1px;
+    font-size: 0.78rem;
+    font-weight: 900;
+    color: var(--green-on-dark);
+  }
+  /* החץ שהופך שלוש נקודות לשרשרת אחת. דקורטיבי, ולכן יורד בנייד
+     יחד עם הפריסה האופקית. */
+  .ai-chain-steps li + li::after {
+    content: '';
+    position: absolute;
+    inset-inline-end: calc(100% + clamp(6px, 0.9vw, 14px));
+    top: 9px;
+    width: 8px;
+    height: 8px;
+    border-inline-start: 2px solid var(--green-glow);
+    border-block-start: 2px solid var(--green-glow);
+    transform: rotate(-45deg);
+    opacity: 0.6;
+  }
+  .ai-chain-steps b {
+    display: block;
+    font-size: 0.88rem;
+    font-weight: 800;
+    color: var(--white);
+    margin-bottom: 4px;
+  }
+  .ai-chain-steps span {
+    display: block;
+    font-size: 0.78rem;
+    line-height: 1.55;
+    color: var(--green-wash);
+  }
+
+  /* ⚠️ `--orange-deep` ולא `--orange`. הערת הטוקן ב-`style.css` מפורשת:
+     `#F56A00` עם טקסט לבן נותן 3.02:1, מתחת ל-AA, ו-`--orange` שמור
+     לנקודות ולאייקונים דקורטיביים. מילוי כתום מלא עם טקסט לבן חייב
+     להיות `--orange-deep` (4.87:1) — אותה החלטה בדיוק שנעשתה ב-15.9
+     בכפתור שבמקטע המובילים. ה-hover מרים בצל ובתזוזה, לא בהבהרה. */
+  .ai-cta {
+    justify-self: end;
+    flex-shrink: 0;
+    display: inline-block;
+    white-space: nowrap;
+    background: var(--orange-deep);
+    color: var(--white);
+    text-decoration: none;
+    font-weight: 800;
+    font-size: 0.92rem;
+    padding: 13px 30px;
+    border-radius: 12px;
+    transition: background var(--transition), transform var(--transition), box-shadow var(--transition);
+  }
+  .ai-cta:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 26px rgba(189,80,0,0.34);
+  }
+
+  /* ⚠️ בעמוד הזה ה-CTA מנוטרל (ראו הסקריפט בתחתית הדף). הוא נשאר
+     ניתן למיקוד ובעל שם נגיש, אבל אינו מוביל לשום מקום — גיא ביקש
+     לראות נראות בלי להיגרר קדימה. */
+  .ai-cta[aria-disabled="true"] { cursor: default; }
+  .ai-cta[aria-disabled="true"]:hover { transform: none; box-shadow: none; }
+
+  /* ⚠️ הטבעת המיקוד הכללית של האתר היא `--green`, והיא נעלמת על משטח
+     ירוק כהה — הרצועה הזאת היא בדיוק משטח כזה. אותה תבנית שכבר קיימת
+     ב-`style.css` לפוטר, למקטע המובילים ולמקטע ההורדה. */
+  .ai-chain :is(a, button, summary, [tabindex]):focus-visible {
+    outline-color: var(--green-on-dark);
+  }
+
+  /* ===== מסכים צרים ===== */
+  @media (max-width: 1040px) {
+    .ai-split { grid-template-columns: 1fr; }
+    .ai-msg { max-width: 88%; }
+    .ai-qcard { width: 100%; }
+    .ai-chain { grid-template-columns: 1fr; gap: 22px; }
+    .ai-chain-h { max-width: none; }
+    .ai-cta { justify-self: stretch; text-align: center; }
+  }
+
+  @media (max-width: 720px) {
+    .ai-section { padding: 68px 0 72px; }
+    .ai-chain-steps { grid-template-columns: 1fr; gap: 16px; }
+    .ai-chain-steps li + li::after { display: none; }
+    .ai-rows li { font-size: 0.8rem; }
+  }
+  </style>
 </head>
 <!-- ⚠️ 15.9 — `has-nav-menu` מסמנת שלדף יש תפריט המבורגר. רק כאן.
      ה-CSS מסתיר את קישורי הניווט מתחת ל-680px **רק** בדף שיש בו מה
@@ -1027,82 +1434,114 @@
     </div>
   </section>
 
-  <!-- Features -->
-  <section class="features-section" id="features">
+  <!-- ══════════════════════════════════════════════════════════════════
+       מקטע אחד שמחליף את `features-section` ואת `how-section` (74.x).
+       שני העוגנים של הניווט נשמרים: `#features` על המקטע עצמו,
+       `#how-it-works` על רצועת השרשרת שבתחתיתו — כדי שאף קישור בניווט,
+       בתפריט הנייד ובפוטר לא יהפוך לקישור מת.
+       ⚠️ בורר השירותים אינו חוזר לכאן (74.3א) — הוא כבר בהירו.
+       ⚠️ כל הטקסטים בהדגמה נלקחו מהקטלוג והקוד האמיתיים:
+         · תוויות הפריטים · `app/data/items.js`
+         · «ארון 3 דלתות» כשם נרדף ל«ארון בינוני» · items.js שורה 17
+         · שאלת המזרון אחרי כל מיטה · `app/ai-vision.js` כללים 5 ו-7
+         · «פריט מיוחד» ו«ממתין לתמחור» · `app/apartment.html` + `app/orders.js`
+         · גורמי המחיר · נוסח ה-FAQ באותו דף
+       ══════════════════════════════════════════════════════════════════ -->
+  <section class="ai-section" id="features">
     <div class="container">
-      <div class="section-header reveal">
-        <p class="section-label">השירותים שלנו</p>
-        <h2>כל מה שצריך כדי לזוז</h2>
-        <p class="section-desc">בחר את סוג השירות שמתאים לך, ואנחנו נשבץ לך את המוביל הנכון</p>
-      </div>
-      <div class="features-grid">
-        <div class="feature-card reveal">
-          <div class="feature-icon-wrap">
-            <svg width="36" height="36" viewBox="0 0 36 36" fill="none" aria-hidden="true">
-              <rect x="2" y="13" width="32" height="15" rx="3" stroke="currentColor" stroke-width="2.2"/>
-              <circle cx="9" cy="28" r="3" stroke="currentColor" stroke-width="2.2"/>
-              <circle cx="27" cy="28" r="3" stroke="currentColor" stroke-width="2.2"/>
-              <path d="M2 19h32" stroke="currentColor" stroke-width="2.2"/>
-              <path d="M22 13V9l8 4" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
-            </svg>
-          </div>
-          <!-- ⚠️ 15.9 — כאן ובפוטר נכתב "הובלה קטנה", בעוד שכל שאר האתר,
-               ה-JSON-LD שמעל, llms.txt והאפליקציה אומרים "מובילים בקטנה".
-               זה לא רק ניסוח: terms.html סעיף 7.1 תולה כלל כספי (15 דקות
-               אי-הופעה מול 30) בשם "מובילים בקטנה" — שם שהלקוח לא ראה. -->
-          <h3>מובילים בקטנה</h3>
-          <p>פריטים בודדים, ריהוט, מוצרי חשמל — מוביל עם טנדר מגיע אליך.</p>
-          <div class="feature-tag">טנדר · מגה</div>
-        </div>
-        <div class="feature-card reveal">
-          <div class="feature-icon-wrap">
-            <svg width="36" height="36" viewBox="0 0 36 36" fill="none" aria-hidden="true">
-              <path d="M6 30V15l12-10 12 10v15" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
-              <rect x="13" y="20" width="10" height="10" rx="1" stroke="currentColor" stroke-width="2.2"/>
-              <path d="M15 20v-3a3 3 0 016 0v3" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/>
-            </svg>
-          </div>
-          <h3>עוברים דירה</h3>
-          <p>הובלה מלאה לדירה החדשה — מוביל מאומת, שירות אריזה והרמה במנוף בתוספת.</p>
-          <div class="feature-tag">אריזה בתוספת</div>
-        </div>
-      </div>
-    </div>
-  </section>
 
-  <!-- How It Works -->
-  <section class="how-section" id="how-it-works">
-    <div class="container">
       <div class="section-header reveal">
-        <p class="section-label">פשוט ומהיר</p>
-        <h2>איך זה עובד?</h2>
-        <p class="section-desc">שלושה שלבים ואתה בדרך</p>
+        <p class="section-label">במקום טופס</p>
+        <h2>ה-AI שרואה את הבית שלך</h2>
+        <p class="section-desc">מצלמים את החדר, או פשוט כותבים מה עובר. המערכת מזהה את הפריטים, שואלת בדיוק את מה שחסר לה — ומרכיבה את הרשימה במקומכם.</p>
       </div>
-      <div class="steps-wrap">
-        <div class="step reveal">
-          <div class="step-num">01</div>
-          <div class="step-body">
-            <h3>תאר את ההובלה</h3>
-            <p>מאיפה, לאן, מה מובילים ומתי — ממלאים פרטים תוך דקה. המערכת מחשבת מחיר מיידי.</p>
+
+      <div class="ai-split reveal">
+
+        <!-- ───────── הצ'אט ───────── -->
+        <div class="ai-pane ai-thread-pane">
+          <div class="ai-pane-h">
+            <h3>מה שכותבים</h3>
+            <span class="ai-demo-tag">הדגמה</span>
+          </div>
+
+          <div class="ai-thread">
+
+            <p class="ai-msg user">עוברים דירה בסוף החודש. יש מיטה זוגית, ארון 3 דלתות, מקרר גדול ושישה כיסאות אוכל.</p>
+
+            <div class="ai-msg bot">
+              <p class="ai-msg-t">הוספתי לרשימה</p>
+              <ul class="ai-chips">
+                <li>מיטה זוגית (160×200 ס"מ)</li>
+                <li>ארון בינוני (100–180 ס"מ)</li>
+                <li>מקרר/מקפיא גדול (400–600 ליטר)</li>
+                <li>כיסא אוכל <em>×6</em></li>
+              </ul>
+              <p class="ai-msg-n">«ארון 3 דלתות» הותאם לארון בינוני שבקטלוג.</p>
+            </div>
+
+            <!-- שאלת ההבהרה — התנהגות אמיתית: אחרי כל מיטה נשאלת שאלת המזרון -->
+            <div class="ai-qcard">
+              <p class="ai-qtext">מיטה זוגית — להוביל גם את המזרון?</p>
+              <ul class="ai-qopts">
+                <li class="picked">מזרון זוגי (160×200 ס"מ)<span class="hp-sr"> — האפשרות שנבחרה בהדגמה</span></li>
+                <li>מזרון קינג (180×200 ס"מ)</li>
+                <li>לא צריך מזרון</li>
+              </ul>
+            </div>
+
+            <p class="ai-msg user">ויש ספרייה בנויה בהזמנה, שלושה מטר.</p>
+
+            <div class="ai-msg bot">
+              <p class="ai-msg-t">ספרייה בנויה · פריט מיוחד</p>
+              <p class="ai-msg-b">אין לזה מקבילה בקטלוג. תארו אותה בשורה אחת — גודל ומצב — והצוות יתמחר במדויק.</p>
+              <span class="ai-pending">ממתין לתמחור</span>
+            </div>
+
           </div>
         </div>
-        <div class="step-connector reveal"></div>
-        <div class="step reveal">
-          <div class="step-num">02</div>
-          <div class="step-body">
-            <h3>אשר ושלם</h3>
-            <p>המחיר מחושב אוטומטית מהפריטים ומהמרחק. אחרי התשלום מוביל זמין לוקח את ההזמנה.</p>
+
+        <!-- ───────── הרשימה שנבנתה ───────── -->
+        <div class="ai-pane ai-list-pane">
+          <div class="ai-pane-h">
+            <h3>מה שנבנה</h3>
+            <span class="ai-count">6 שורות · 11 פריטים</span>
           </div>
+
+          <ul class="ai-rows">
+            <li><span>מיטה זוגית (160×200 ס"מ)</span><b>1</b></li>
+            <li class="added"><span>מזרון זוגי (160×200 ס"מ)</span><b>1</b></li>
+            <li><span>ארון בינוני (100–180 ס"מ)</span><b>1</b></li>
+            <li><span>מקרר/מקפיא גדול (400–600 ליטר)</span><b>1</b></li>
+            <li><span>כיסא אוכל</span><b>6</b></li>
+            <li class="free"><span>ספרייה בנויה · פריט מיוחד</span><b>1</b></li>
+          </ul>
+
+          <p class="ai-rows-f">מכאן זה כבר חשבון: גודל הפריטים, המרחק, קומות ומעלית — ומחיר מלא לפני שמאשרים.</p>
         </div>
-        <div class="step-connector reveal"></div>
-        <div class="step reveal">
-          <div class="step-num">03</div>
-          <div class="step-body">
-            <h3>עקוב בזמן אמת</h3>
-            <p>לאחר אישור, עוקב אחרי המוביל על המפה, מתכתב איתו ישירות ומקבל עדכוני סטטוס.</p>
-          </div>
-        </div>
+
       </div>
+
+      <!-- ───────── העוגן #how-it-works ───────── -->
+      <div class="ai-chain reveal" id="how-it-works">
+        <h3 class="ai-chain-h">איך זה עובד?</h3>
+        <ol class="ai-chain-steps">
+          <li>
+            <b>מצלמים או מספרים</b>
+            <span>תמונה מהטלפון או משפט חופשי — שניהם נכנסים לאותה רשימה.</span>
+          </li>
+          <li>
+            <b>ה-AI משלים את החסר</b>
+            <span>שואל על גודל וכמות, ומעביר פריט שאינו בקטלוג לתמחור ידני.</span>
+          </li>
+          <li>
+            <b>מחיר לפני האישור</b>
+            <span>הרשימה הופכת למחיר מלא, ואחרי ההזמנה עוקבים אחרי המוביל.</span>
+          </li>
+        </ol>
+        <a class="ai-cta" href="app/apartment.html">מתחילים מהרשימה</a>
+      </div>
+
     </div>
   </section>
 
@@ -1598,6 +2037,68 @@
   <symbol id="ic-route" viewBox="0 0 24 24"><path d="M6.5 3a2.5 2.5 0 0 1 2.5 2.5C9 7.5 6.5 10 6.5 10S4 7.5 4 5.5A2.5 2.5 0 0 1 6.5 3zM17.5 14a2.5 2.5 0 0 1 2.5 2.5c0 2-2.5 4.5-2.5 4.5s-2.5-2.5-2.5-4.5a2.5 2.5 0 0 1 2.5-2.5zM9 6.5h4.5a3.5 3.5 0 0 1 0 7H10"/></symbol>
   <symbol id="ic-cal" viewBox="0 0 24 24"><path d="M4 6h16v15H4zM4 11h16M8 3v4M16 3v4"/></symbol>
 </defs></svg>
+
+  <!-- ══════════════════════════════════════════════════════════════════
+       נטרול הניווט קדימה — **רק בעמוד התצוגה המקדימה הזה**
+       ══════════════════════════════════════════════════════════════════
+       גיא (74.1): «רק הנראות ללא לחיצה על כפתורי המשך שתוביל אותי קדימה».
+       לכן כל קישור שמוביל אל `app/` (זרימת ההזמנה, ההתחברות, האזור
+       האישי) מנוטרל כאן. שלושה דברים חשובים בדרך שבה זה נעשה:
+
+       1. **הסקריפט ולא ה-HTML.** ההירו והניווט הוכרזו מוגמרים, ולכן
+          הסימון שלהם בקובץ הזה זהה בית-בית ל-`index.html`. השוואה
+          (`diff`) מול דף הבית מראה רק את המקטע שהוחלף — וזו הנקודה.
+
+       2. **`href` יורד, ובמקומו `role="link"` + `tabindex="0"`.** קישור
+          שרק מבטל את הקליק נשאר "קישור" לקורא מסך ומבטיח יעד שאין. כאן
+          הוא נשאר ניתן למיקוד, שומר על שמו הנגיש מהטקסט שבתוכו, ומכריז
+          `aria-disabled` — כלומר המשתמש שומע שהוא מושבת ולא מגלה זאת
+          בקליק שלא קרה בו כלום.
+
+       3. **הניווט הפנימי ממשיך לעבוד.** `#features`, `#how-it-works`,
+          `#faq` ושאר העוגנים, וגם הדפים המשפטיים — כולם חיים. מה שמנוטרל
+          הוא רק המעבר אל תוך המוצר.
+       ══════════════════════════════════════════════════════════════════ -->
+  <script>
+    (function () {
+      /* `getAttribute` ולא `a.href`: המאפיין המפוענח מחזיר URL מוחלט
+         שתלוי בנתיב שממנו הדף מוגש, וההשוואה עליו הייתה נשברת בין
+         פתיחה מקומית לבין `rozicmove.com/preview-lower-ai.html`. */
+      var links = document.querySelectorAll('a[href]');
+      for (var i = 0; i < links.length; i++) {
+        var a = links[i];
+        var raw = a.getAttribute('href') || '';
+        if (!/(^|\/)app\//.test(raw)) continue;
+        a.setAttribute('data-preview-href', raw);
+        a.removeAttribute('href');
+        a.setAttribute('role', 'link');
+        a.setAttribute('aria-disabled', 'true');
+        a.setAttribute('tabindex', '0');
+        a.style.cursor = 'default';
+      }
+
+      /* רשת ביטחון בשלב הלכידה: גם אם סקריפט אחר בדף יחזיר `href`
+         לאלמנט (למשל `rmApplyNavAuth`, שמעדכן את קישור ההתחברות אחרי
+         שה-DOM נטען), הקליק עדיין לא ייקח את גיא קדימה. */
+      document.addEventListener('click', function (e) {
+        var el = e.target && e.target.closest ? e.target.closest('a') : null;
+        if (!el) return;
+        var raw = el.getAttribute('href') || el.getAttribute('data-preview-href') || '';
+        if (!/(^|\/)app\//.test(raw)) return;
+        e.preventDefault();
+        e.stopPropagation();
+      }, true);
+
+      /* `Enter` על `role="link"` אינו מפעיל ניווט מעצמו, ולכן אין מה
+         לחסום שם — אבל יש מה להשלים: הודעה קצרה למי שכן ינסה. */
+      document.addEventListener('keydown', function (e) {
+        if (e.key !== 'Enter') return;
+        var el = e.target;
+        if (!el || !el.getAttribute || el.getAttribute('aria-disabled') !== 'true') return;
+        e.preventDefault();
+      }, true);
+    })();
+  </script>
 
 </body>
 </html>

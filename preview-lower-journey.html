@@ -3,10 +3,14 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>ROZIC MOVE — הזמנת הובלה ומעבר דירה אונליין בישראל</title>
-  <meta name="description" content="פלטפורמה ישראלית להזמנת הובלות: מעבר דירה, מובילים בקטנה ושירות אריזה. בונים רשימת פריטים, מקבלים מחיר לפני אישור, ועוקבים אחרי המוביל בזמן אמת — באפליקציה או ישירות מהדפדפן.">
-  <link rel="canonical" href="https://rozicmove.com/">
-  <meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large">
+  <title>תצוגת עיצוב — המסע השלם (החלק התחתון של עמוד הבית)</title>
+  <meta name="description" content="עמוד תצוגה פנימי. עותק של עמוד הבית שבו שני המקטעים «השירותים שלנו» ו«איך זה עובד» הוחלפו במקטע אחד — המסע מהרגע שחושבים על מעבר ועד שהמשאית נוסעת.">
+  <!-- ⚠️ עמוד תצוגה פנימי: `noindex`, ואינו ב-`sitemap.xml`.
+       הוא **כן** נגיש פומבית ב-rozicmove.com/preview-lower-journey.html,
+       ולכן הוא עובר את אותן בדיקות נגישות כמו כל דף אחר, וירד אחרי ההכרעה.
+       ⚠️ אין `canonical` בכוונה — canonical אל "/" היה מצהיר שהעמוד הזה
+       הוא עמוד הבית, בדיוק ההפך ממה ש-`noindex` אומר. -->
+  <meta name="robots" content="noindex">
 
   <!-- Open Graph / social + AI crawlers -->
   <meta property="og:type" content="website">
@@ -569,6 +573,333 @@
   .mk-haul .tx i em { font-style:normal; color:var(--green-ink); font-weight:800; }
 
   </style>
+
+  <!-- ══════════════════════════════════════════════════════════════════
+       המסע השלם — הסגנון של המקטע החדש בלבד (סבב 74)
+       ══════════════════════════════════════════════════════════════════
+       ⚠️ הכול נשען על הטוקנים של `style.css` שנטען מעל. אין כאן ולו ערך
+       צבע גולמי אחד, ואין גוון שלא קיים כבר בפלטה — כולל אפס כחול.
+
+       ⚠️ **כלל שני הירוקים הוא מה שמספר כאן את הסיפור**, ולא קישוט:
+       מה שעדיין *מתוכנן* נשאר מסגרת — קו מקווקו, נקודה חלולה, כרטיס
+       בגבול `--green-line`. מה שכבר *קורה* מתמלא — קו רציף, נקודה מלאה,
+       כרטיס ב-`--green` מלא. זה מה שמבדיל את המקטע מ"רשימת שלבים":
+       העין רואה את נקודת המעבר לפני שהיא קוראת מילה.
+       ══════════════════════════════════════════════════════════════════ -->
+  <style>
+  /* ── המקטע ─────────────────────────────────────────────────────────
+     מחליף שני מקטעים, ולכן הרקע שלו צריך לגשר את שניהם: הוא יוצא מלבן
+     (המשך ישיר להירו הכהה שמעליו) ונוחת ב---green-light, שהוא המדרגה
+     שממנה `.movers-section` הכהה ממשיכה בלי קפיצה. */
+  .jr {
+    /* גובה קבוע לכל צד של הפס. הוא חייב להיות מספר ולא `1fr`, כי מיקום
+       הקו מחושב ממנו בדיוק (`top: --jr-half + חצי נקודה`) — עם `1fr`
+       אין שום ערך לכתוב שם והקו היה מתיישב לפי אורך הטקסט הארוך ביותר. */
+    --jr-half: 124px;
+    --jr-dot: 22px;
+    padding: 94px 0 104px;
+    background: linear-gradient(180deg,
+      var(--white) 0%, var(--green-tint) 36%, var(--green-light) 100%);
+  }
+  .jr .section-header { margin-bottom: 46px; }
+
+  /* טקסט שקיים רק לקורא מסך. לא `display:none` — זה היה מסתיר אותו גם
+     ממנו. `clip-path` + 1px הוא הדפוס שלא נשבר בשום דפדפן. */
+  .jr-sr {
+    position: absolute; width: 1px; height: 1px;
+    margin: -1px; padding: 0; overflow: hidden;
+    clip-path: inset(50%); white-space: nowrap; border: 0;
+  }
+
+  /* ── הפס: אובייקט אחד, שמונה תחנות עליו ──────────────────────────── */
+  .jr-rail-wrap {
+    position: relative;
+    max-width: var(--container-wide);
+    margin: 0 auto;
+    padding: 0 24px;
+    /* העוגן `#how-it-works` נוחת כאן; הסרגל העליון גובה 68px. */
+    scroll-margin-top: 92px;
+  }
+
+  .jr-stops {
+    position: relative;
+    list-style: none;
+    margin: 0; padding: 0;
+    display: grid;
+    grid-template-columns: repeat(8, 1fr);
+  }
+
+  /* שני חצאי הקו. הם נפרדים כי הם אומרים שני דברים שונים: מקווקו =
+     מה שעוד לא קרה, רציף = מה שכבר רץ. הגבול ביניהם (50%) נופל בדיוק
+     באמצע שבין התחנה הרביעית (43.75%) לחמישית (56.25%). */
+  .jr-stops::before,
+  .jr-stops::after {
+    content: '';
+    position: absolute;
+    top: calc(var(--jr-half) + var(--jr-dot) / 2);
+    height: 3px;
+    border-radius: 2px;
+    transform: translateY(-50%);
+  }
+  .jr-stops::before {
+    inset-inline-start: 0; width: 50%;
+    background-image: repeating-linear-gradient(to left,
+      var(--green-line) 0 9px, transparent 9px 19px);
+  }
+  .jr-stops::after {
+    inset-inline-end: 0; width: 50%;
+    background: var(--green);
+  }
+
+  /* המשאית בקצה הקו — הדימוי היחיד במקטע, והוא בדיוק מה שהכותרת
+     מבטיחה. דקורטיבי לחלוטין ולכן `aria-hidden`. */
+  .jr-truck {
+    position: absolute;
+    inset-inline-end: 6px;
+    top: calc(var(--jr-half) + var(--jr-dot) / 2);
+    transform: translateY(-50%);
+    width: 44px; height: 30px;
+    stroke: var(--green); fill: none;
+    stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round;
+  }
+
+  .jr-stop {
+    /* ⚠️ ברירת מחדל מוצהרת, לא קישוט: `--jr-i` נקבע כ-`style=""` על כל
+       `<li>` בנפרד, ו-`check-a11y` נופל על `var()` שאף גיליון בדף אינו
+       מגדיר — בצדק, כי זו בדיוק התבנית שמפילה צבע טקסט בשקט. ההצהרה
+       כאן גם מבטיחה ש-`calc()` לא יישבר אם ה-`style` יימחק. */
+    --jr-i: 0;
+    position: relative;
+    display: grid;
+    grid-template-rows: var(--jr-half) var(--jr-dot) var(--jr-half);
+    justify-items: center;
+    padding: 0 8px;
+  }
+  /* מדרגה קטנה לכל תחנה, כדי שהחשיפה בגלילה תרוץ לאורך הקו במקום
+     להופיע בבת אחת. גובר על `.reveal:nth-child(2..5)` שב-style.css
+     בזכות סדר המקורות — אותה ספציפיות, וזה נטען אחרי. */
+  .jr-stops .jr-stop { transition-delay: calc(var(--jr-i) * 0.07s); }
+
+  .jr-dot {
+    grid-row: 2; align-self: center;
+    width: var(--jr-dot); height: var(--jr-dot);
+    border-radius: 50%;
+    background: var(--green-tint);
+    border: 3px solid var(--green-line);
+  }
+  .jr-stop.is-live .jr-dot {
+    background: var(--green);
+    border-color: var(--green);
+  }
+
+  /* התוויות מתחלפות מעל ומתחת לקו. זו הסיבה שאין כאן שמונה כרטיסים:
+     לתווית אין מסגרת, אין רקע ואין צל — האובייקט שהעין רואה הוא הקו. */
+  .jr-txt {
+    position: relative;
+    grid-row: 1; align-self: end;
+    text-align: center;
+    /* ⚠️ `min()` ולא `230px` בלבד. התוויות הראשונה והשמינית ממורכזות על
+       מרכז עמודה שנמצא חצי-עמודה מקצה הפס — כלומר תווית רחבה מהעמודה
+       שלה **גולשת החוצה מהדף** בקצה התחתון של טווח המסך הרחב (נמדד:
+       בעמודה של 152px תווית של 230px חורגת ב-39px לכל צד, והריפוד של
+       העטיפה הוא 24px בלבד). */
+    max-width: min(230px, 100%);
+    padding-bottom: 18px;
+  }
+  .jr-stop:nth-child(even) .jr-txt {
+    grid-row: 3; align-self: start;
+    padding-bottom: 0; padding-top: 18px;
+  }
+  /* קו קישור קצר בין התווית לנקודה שלה. בלעדיו, בתצוגה רחבה, קשה לדעת
+     איזו תווית שייכת לאיזו נקודה. */
+  .jr-txt::after {
+    content: '';
+    position: absolute; left: 50%; bottom: 0;
+    width: 2px; height: 15px;
+    transform: translateX(-50%);
+    background: var(--green-line);
+    opacity: .5;
+  }
+  .jr-stop:nth-child(even) .jr-txt::after { bottom: auto; top: 0; }
+  .jr-stop.is-live .jr-txt::after { background: var(--green); opacity: .45; }
+
+  .jr-txt b {
+    display: block;
+    font-size: .97rem; font-weight: 800;
+    line-height: 1.35; color: var(--text);
+  }
+  .jr-stop.is-live .jr-txt b { color: var(--green-dark); }
+  .jr-txt i {
+    display: block; font-style: normal;
+    font-size: .82rem; line-height: 1.5;
+    margin-top: 5px; color: var(--text-muted);
+  }
+
+  /* ── שתי ההבטחות הגדולות ─────────────────────────────────────────
+     שתיים, ורחבות — לא שש קטנות. כל אחת יושבת מתחת לחצי שלה בפס. */
+  .jr-pair {
+    max-width: var(--container-wide);
+    margin: 58px auto 0;
+    padding: 0 24px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 26px;
+  }
+  .jr-big {
+    border-radius: var(--radius);
+    padding: 30px 34px 34px;
+  }
+  .jr-big-plan {
+    background: var(--green-tint);
+    border: 2px solid var(--green-line);
+  }
+  .jr-big-live {
+    background: var(--green);
+    border: 2px solid var(--green);
+    box-shadow: var(--shadow-green);
+  }
+  .jr-kicker {
+    display: block;
+    font-size: .76rem; font-weight: 800;
+    letter-spacing: 1.4px; margin-bottom: 10px;
+  }
+  .jr-big h3 {
+    font-size: clamp(1.25rem, 1.9vw, 1.62rem);
+    font-weight: 900; letter-spacing: -.4px;
+    line-height: 1.3; margin: 0 0 10px;
+  }
+  /* ⚠️ `--container-wide` נבחר לזוג כדי שכל הבטחה תשב מתחת לחצי שלה
+     בפס — זה כל הרעיון. אבל במסך של 2040px זה נותן שורת טקסט של כמעט
+     1000px, וה-CLAUDE.md מסביר למה התוכן הקריא באתר נשאר צר: שורה
+     רחבה מכך קשה לעקוב אחריה. התקרה כאן מיישבת את השניים. */
+  .jr-big p { font-size: 1rem; line-height: 1.72; margin: 0; max-width: 62ch; }
+  .jr-big h3 { max-width: 24ch; }
+
+  .jr-big-plan .jr-kicker,
+  .jr-big-plan h3 { color: var(--green-ink); }
+  .jr-big-plan p  { color: var(--text-mid); }
+  /* ⚠️ --green-wash על --green נמדד 6.89:1 (ראו הטוקן ב-style.css). */
+  .jr-big-live .jr-kicker,
+  .jr-big-live h3 { color: var(--white); }
+  .jr-big-live p  { color: var(--green-wash); }
+
+  /* ── מה שרץ במקביל לכל המסע ──────────────────────────────────────
+     שורה אחת, לא שלושה כרטיסים — אלה דברים שנמצאים *לצד* הרצף ולא
+     תחנות בתוכו, והפריסה אמורה להגיד את זה. */
+  .jr-along-wrap {
+    max-width: var(--container);
+    margin: 46px auto 0;
+    padding: 0 24px;
+    text-align: center;
+  }
+  .jr-along-title {
+    font-size: .8rem; font-weight: 800;
+    letter-spacing: 1.4px; margin: 0 0 16px;
+    color: var(--text-muted);
+  }
+  .jr-along {
+    list-style: none; margin: 0; padding: 0;
+    display: flex; flex-wrap: wrap;
+    justify-content: center; align-items: center;
+    gap: 12px 30px;
+  }
+  .jr-along li {
+    display: flex; align-items: center; gap: 9px;
+    font-size: .95rem; font-weight: 700; color: var(--text);
+  }
+  .jr-along svg {
+    flex: 0 0 auto; width: 20px; height: 20px;
+    stroke: var(--green-ink); fill: none;
+    stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round;
+  }
+  .jr-along em {
+    font-style: normal; font-weight: 500;
+    font-size: .87rem; color: var(--text-muted);
+  }
+
+  /* ── הכפתור — נראה, ממוקד, ולא הולך לשום מקום ────────────────────
+     ⚠️ גיא (74.1): "רק הנראות ללא לחיצה על כפתורי המשך". לכן `<button>`
+     ולא `<a>`, `aria-disabled` ולא `disabled` (כפתור מושבת יוצא מסדר
+     ה-Tab לגמרי, ואז אי-אפשר לבדוק את מצב המיקוד שלו), ואין לו שום
+     מאזין. `cursor:default` כדי שהעכבר לא יבטיח משהו שלא יקרה. */
+  .jr-cta-wrap { text-align: center; margin-top: 44px; }
+  .jr-cta {
+    font-family: inherit;
+    font-size: 1rem; font-weight: 800;
+    color: var(--white);
+    background: var(--green);
+    border: 2px solid var(--green);
+    border-radius: 999px;
+    padding: 15px 38px;
+    cursor: default;
+    box-shadow: var(--shadow-green);
+  }
+  .jr-cta:focus-visible {
+    outline: 3px solid var(--green-dark);
+    outline-offset: 3px;
+  }
+
+  /* ── מסכים צרים יותר ─────────────────────────────────────────────
+     ⚠️ מסך גדול קודם (74.5א) — הכללים שמעל הם המצב המלא, וכאן רק מה
+     שמצטמצם. */
+  @media (max-width: 1400px) {
+    /* עמודה צרה יותר => תווית גבוהה יותר, ולכן חצי-הפס גדל איתה. */
+    .jr { --jr-half: 150px; }
+    /* למשאית אין עוד מקום בקצה בלי להיתקל בתווית האחרונה. */
+    .jr-truck { display: none; }
+  }
+
+  /* ⚠️ נקודת המעבר לאנכי היא 1180 ולא 980. שמונה עמודות על 1100px הן
+     עמודה של 130px, ושם התווית מתחילה להתפרק לחמש שורות של שתי מילים.
+     הרצף נשמר טוב יותר כפס אנכי מאשר כשמונה עמודות חנוקות. */
+  @media (max-width: 1180px) {
+    /* הפס מסתובב לאנכי. כל תחנה מציירת את הקטע שמתחתיה בעצמה, במקום
+       שני חצאים של 50% על ההורה — כי גובה התחנות אינו זהה, וחצי-גובה
+       היה נופל במקום אקראי ולא בין התחנה הרביעית לחמישית. */
+    .jr-stops { grid-template-columns: 1fr; }
+    .jr-stops::before, .jr-stops::after { display: none; }
+
+    .jr-stop {
+      grid-template-rows: auto;
+      grid-template-columns: var(--jr-dot) 1fr;
+      justify-items: start;
+      gap: 0 16px;
+      padding: 0 0 28px;
+    }
+    .jr-stop::before {
+      content: '';
+      position: absolute;
+      inset-inline-start: calc(var(--jr-dot) / 2 - 1.5px);
+      top: 4px; bottom: -4px; width: 3px;
+      background-image: repeating-linear-gradient(to bottom,
+        var(--green-line) 0 9px, transparent 9px 19px);
+    }
+    .jr-stop.is-live::before { background: var(--green); background-image: none; }
+    .jr-stop:last-child::before { display: none; }
+
+    .jr-dot { grid-row: 1; grid-column: 1; align-self: start; margin-top: 3px; }
+    .jr-txt,
+    .jr-stop:nth-child(even) .jr-txt {
+      grid-row: 1; grid-column: 2; align-self: start;
+      text-align: start; max-width: none; padding: 0;
+    }
+    .jr-txt::after { display: none; }
+
+    .jr-pair { grid-template-columns: 1fr; gap: 18px; margin-top: 46px; }
+    .jr-big { padding: 26px 24px 28px; }
+  }
+
+  @media (max-width: 560px) {
+    .jr { padding: 68px 0 76px; }
+    .jr-along { flex-direction: column; align-items: flex-start; text-align: start; }
+    .jr-along-wrap { text-align: start; }
+  }
+
+  /* מי שביקש פחות תנועה מקבל את המקטע בלי המדרגות ובלי ההחלקה. */
+  @media (prefers-reduced-motion: reduce) {
+    .jr-stops .jr-stop { transition-delay: 0s; }
+  }
+  </style>
 </head>
 <!-- ⚠️ 15.9 — `has-nav-menu` מסמנת שלדף יש תפריט המבורגר. רק כאן.
      ה-CSS מסתיר את קישורי הניווט מתחת ל-680px **רק** בדף שיש בו מה
@@ -1027,82 +1358,122 @@
     </div>
   </section>
 
-  <!-- Features -->
-  <section class="features-section" id="features">
+  <!-- ══════════════════════════════════════════════════════════════════
+       המסע השלם — מקטע אחד במקום שניים (סבב 74)
+       ══════════════════════════════════════════════════════════════════
+       מחליף את `features-section` («השירותים שלנו») ואת `how-section`
+       («איך זה עובד?») בבת אחת. שתי הסיבות:
+
+       1. **בורר השירותים ירד מכאן (74.3א)** — הוא כבר יושב בהירו שמעל,
+          ושתי נקודות כניסה לאותה בחירה באותו עמוד הן פעמיים אותו מסך.
+       2. **"שלושה שלבים" תיאר חתך, לא רצף.** הלקוח לא קונה שלב אחד —
+          הוא קונה את זה שמהרגע שהחליט לעבור ועד שהכול בבית החדש יש מי
+          שמלווה אותו ואין רגע שבו הוא לא יודע מה קורה.
+
+       ⚠️ **העוגנים `#features` ו-`#how-it-works` שניהם נשמרו** — הם
+       מופיעים בסרגל הניווט, בתפריט המובייל ובשלוש שורות בפוטר, ומקטע
+       אחד שבולע את שניהם היה מייצר ארבעה קישורים מתים.
+       `#features` על המקטע, `#how-it-works` על הפס עצמו — הרצף.
+
+       ⚠️ **אין כאן שמונה כרטיסים.** לתחנות אין מסגרת, רקע או צל: הן
+       תוויות על קו אחד. שני האובייקטים היחידים שהם "תיבה" במקטע הם
+       שתי ההבטחות הגדולות, והן רחבות בכוונה.
+       ══════════════════════════════════════════════════════════════════ -->
+  <section class="jr" id="features">
     <div class="container">
       <div class="section-header reveal">
-        <p class="section-label">השירותים שלנו</p>
-        <h2>כל מה שצריך כדי לזוז</h2>
-        <p class="section-desc">בחר את סוג השירות שמתאים לך, ואנחנו נשבץ לך את המוביל הנכון</p>
-      </div>
-      <div class="features-grid">
-        <div class="feature-card reveal">
-          <div class="feature-icon-wrap">
-            <svg width="36" height="36" viewBox="0 0 36 36" fill="none" aria-hidden="true">
-              <rect x="2" y="13" width="32" height="15" rx="3" stroke="currentColor" stroke-width="2.2"/>
-              <circle cx="9" cy="28" r="3" stroke="currentColor" stroke-width="2.2"/>
-              <circle cx="27" cy="28" r="3" stroke="currentColor" stroke-width="2.2"/>
-              <path d="M2 19h32" stroke="currentColor" stroke-width="2.2"/>
-              <path d="M22 13V9l8 4" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
-            </svg>
-          </div>
-          <!-- ⚠️ 15.9 — כאן ובפוטר נכתב "הובלה קטנה", בעוד שכל שאר האתר,
-               ה-JSON-LD שמעל, llms.txt והאפליקציה אומרים "מובילים בקטנה".
-               זה לא רק ניסוח: terms.html סעיף 7.1 תולה כלל כספי (15 דקות
-               אי-הופעה מול 30) בשם "מובילים בקטנה" — שם שהלקוח לא ראה. -->
-          <h3>מובילים בקטנה</h3>
-          <p>פריטים בודדים, ריהוט, מוצרי חשמל — מוביל עם טנדר מגיע אליך.</p>
-          <div class="feature-tag">טנדר · מגה</div>
-        </div>
-        <div class="feature-card reveal">
-          <div class="feature-icon-wrap">
-            <svg width="36" height="36" viewBox="0 0 36 36" fill="none" aria-hidden="true">
-              <path d="M6 30V15l12-10 12 10v15" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
-              <rect x="13" y="20" width="10" height="10" rx="1" stroke="currentColor" stroke-width="2.2"/>
-              <path d="M15 20v-3a3 3 0 016 0v3" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/>
-            </svg>
-          </div>
-          <h3>עוברים דירה</h3>
-          <p>הובלה מלאה לדירה החדשה — מוביל מאומת, שירות אריזה והרמה במנוף בתוספת.</p>
-          <div class="feature-tag">אריזה בתוספת</div>
-        </div>
+        <p class="section-label">המסע השלם</p>
+        <h2>מהרגע שחושבים על מעבר ועד שהמשאית נוסעת</h2>
+        <p class="section-desc">הובלה היא לא רגע אחד אלא רצף, והחלק שמלחיץ בה הוא לא ההרמה — אלא לא לדעת. כאן הרצף גלוי מקצה לקצה: יודעים מה המחיר לפני שמאשרים, ורואים איפה המוביל אחרי.</p>
       </div>
     </div>
-  </section>
 
-  <!-- How It Works -->
-  <section class="how-section" id="how-it-works">
-    <div class="container">
-      <div class="section-header reveal">
-        <p class="section-label">פשוט ומהיר</p>
-        <h2>איך זה עובד?</h2>
-        <p class="section-desc">שלושה שלבים ואתה בדרך</p>
-      </div>
-      <div class="steps-wrap">
-        <div class="step reveal">
-          <div class="step-num">01</div>
-          <div class="step-body">
-            <h3>תאר את ההובלה</h3>
-            <p>מאיפה, לאן, מה מובילים ומתי — ממלאים פרטים תוך דקה. המערכת מחשבת מחיר מיידי.</p>
-          </div>
-        </div>
-        <div class="step-connector reveal"></div>
-        <div class="step reveal">
-          <div class="step-num">02</div>
-          <div class="step-body">
-            <h3>אשר ושלם</h3>
-            <p>המחיר מחושב אוטומטית מהפריטים ומהמרחק. אחרי התשלום מוביל זמין לוקח את ההזמנה.</p>
-          </div>
-        </div>
-        <div class="step-connector reveal"></div>
-        <div class="step reveal">
-          <div class="step-num">03</div>
-          <div class="step-body">
-            <h3>עקוב בזמן אמת</h3>
-            <p>לאחר אישור, עוקב אחרי המוביל על המפה, מתכתב איתו ישירות ומקבל עדכוני סטטוס.</p>
-          </div>
-        </div>
-      </div>
+    <!-- הפס. `#how-it-works` יושב כאן ולא על המקטע, כי מי שלוחץ
+         «איך זה עובד» רוצה לנחות על הרצף עצמו ולא על הכותרת. -->
+    <div class="jr-rail-wrap" id="how-it-works">
+      <!-- ⚠️ `role="list"` למרות שזה `<ol>`: `list-style:none` מפיל את
+           סמנטיקת הרשימה ב-Safari/VoiceOver, ואז שמונה התחנות נקראות
+           כשמונה משפטים מנותקים במקום כרצף ממוספר. -->
+      <ol class="jr-stops" role="list">
+        <li class="jr-stop reveal" style="--jr-i:0">
+          <span class="jr-dot" aria-hidden="true"></span>
+          <span class="jr-txt"><b>מתארים את ההובלה</b><i>פריטים, כתובות, קומות ומועד</i></span>
+        </li>
+        <li class="jr-stop reveal" style="--jr-i:1">
+          <span class="jr-dot" aria-hidden="true"></span>
+          <span class="jr-txt"><b>המחיר המלא</b><i>מופיע מיד, לפני האישור</i></span>
+        </li>
+        <li class="jr-stop reveal" style="--jr-i:2">
+          <span class="jr-dot" aria-hidden="true"></span>
+          <span class="jr-txt"><b>תשלום</b><i>מאשרים את ההזמנה</i></span>
+        </li>
+        <li class="jr-stop reveal" style="--jr-i:3">
+          <span class="jr-dot" aria-hidden="true"></span>
+          <span class="jr-txt"><b>שיבוץ מוביל</b><i>מוביל עצמאי זמין לוקח את ההזמנה</i></span>
+        </li>
+        <li class="jr-stop is-live reveal" style="--jr-i:4">
+          <span class="jr-dot" aria-hidden="true"></span>
+          <span class="jr-txt"><b>מעקב חי על המפה</b><i>רואים את המוביל בזמן אמת</i></span>
+        </li>
+        <li class="jr-stop is-live reveal" style="--jr-i:5">
+          <span class="jr-dot" aria-hidden="true"></span>
+          <span class="jr-txt"><b>צ'אט ישיר</b><i>מתכתבים עם המוביל שלקח את ההזמנה</i></span>
+        </li>
+        <li class="jr-stop is-live reveal" style="--jr-i:6">
+          <span class="jr-dot" aria-hidden="true"></span>
+          <span class="jr-txt"><b>ההובלה</b><i>מהדלת הישנה אל החדשה</i></span>
+        </li>
+        <li class="jr-stop is-live reveal" style="--jr-i:7">
+          <span class="jr-dot" aria-hidden="true"></span>
+          <span class="jr-txt"><b>דירוג</b><i>סוגרים את המעגל</i></span>
+        </li>
+      </ol>
+      <svg class="jr-truck" viewBox="0 0 44 30" aria-hidden="true" focusable="false">
+        <path d="M2 6h22v16H2zM24 11h7l5 5v6H24"/>
+        <path d="M9 26a3 3 0 1 0 0-6 3 3 0 0 0 0 6M30 26a3 3 0 1 0 0-6 3 3 0 0 0 0 6"/>
+      </svg>
+    </div>
+
+    <!-- שתי ההבטחות — אחת לכל חצי של הפס שמעליהן. -->
+    <div class="jr-pair">
+      <article class="jr-big jr-big-plan reveal">
+        <span class="jr-kicker">החצי הראשון</span>
+        <h3>המחיר המלא ידוע לפני שמשלמים</h3>
+        <p>המחיר נגזר מרשימת הפריטים, מהכתובות, מהקומות ומהמרחק, ומוצג במלואו לפני אישור ההזמנה. מי שרוצה לשנות משהו — משנה ורואה מיד את ההפרש.</p>
+      </article>
+      <article class="jr-big jr-big-live reveal">
+        <span class="jr-kicker">החצי השני</span>
+        <h3>אחרי התשלום לא מחכים בעיוורון</h3>
+        <p>מרגע שהמוביל משובץ רואים אותו על המפה, מתכתבים איתו ישירות ומקבלים עדכוני סטטוס — עד שההובלה נסגרת בדירוג.</p>
+      </article>
+    </div>
+
+    <!-- לא תחנות ברצף אלא מה שרץ לצידו לכל אורכו, ולכן שורה ולא כרטיסים. -->
+    <div class="jr-along-wrap reveal">
+      <p class="jr-along-title">ובמקביל, לכל אורך המסע</p>
+      <ul class="jr-along" role="list">
+        <li>
+          <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="#ic-box"/></svg>
+          שירות אריזה <em>תוספת בתוך ההזמנה</em>
+        </li>
+        <li>
+          <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 3l7 3v6c0 4.2-2.9 7.6-7 9-4.1-1.4-7-4.8-7-9V6z"/></svg>
+          ביטוח תכולה <em>תוספת בתוך ההזמנה</em>
+        </li>
+        <li>
+          <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="#ic-chat"/></svg>
+          תמיכה <em>לפני, תוך כדי ואחרי</em>
+        </li>
+      </ul>
+    </div>
+
+    <div class="jr-cta-wrap reveal">
+      <!-- ⚠️ תצוגה בלבד (74.1). `<button>` ולא `<a>` כדי שלא יהיה לו
+           יעד בכלל, `aria-disabled` ולא `disabled` כדי שיישאר בסדר
+           ה-Tab וניתן יהיה לראות את מצב המיקוד, ואין לו שום מאזין. -->
+      <button type="button" class="jr-cta" aria-disabled="true">
+        מתחילים בתיאור ההובלה<span class="jr-sr"> — תצוגה בלבד, הכפתור אינו פעיל בעמוד הזה</span>
+      </button>
     </div>
   </section>
 
@@ -1598,6 +1969,69 @@
   <symbol id="ic-route" viewBox="0 0 24 24"><path d="M6.5 3a2.5 2.5 0 0 1 2.5 2.5C9 7.5 6.5 10 6.5 10S4 7.5 4 5.5A2.5 2.5 0 0 1 6.5 3zM17.5 14a2.5 2.5 0 0 1 2.5 2.5c0 2-2.5 4.5-2.5 4.5s-2.5-2.5-2.5-4.5a2.5 2.5 0 0 1 2.5-2.5zM9 6.5h4.5a3.5 3.5 0 0 1 0 7H10"/></symbol>
   <symbol id="ic-cal" viewBox="0 0 24 24"><path d="M4 6h16v15H4zM4 11h16M8 3v4M16 3v4"/></symbol>
 </defs></svg>
+
+  <!-- ══════════════════════════════════════════════════════════════════
+       תצוגה בלבד — נטרול כל מה שמוביל לזרימת ההזמנה
+       ══════════════════════════════════════════════════════════════════
+       גיא (74.1): *"רק הנראות ללא לחיצה על כפתורי המשך."*
+
+       ⚠️ **למה זה סקריפט ולא עריכה ב-HTML.** ההירו (`hp-stage`) הוכרז
+       מוגמר, וכל הקישורים אל `app/` יושבים בתוכו או בסרגל הניווט —
+       שניהם אזורים ש**אסור לגעת בהם**. שינוי של `href` אחד שם היה הופך
+       את העמוד הזה ללא-עותק-של-`index.html`, וזה בדיוק הכישלון של הסבב
+       הקודם. לכן המסמך נשאר זהה לאות, והנטרול חי כאן בלבד — שכבה אחת
+       שיורדת יחד עם העמוד.
+
+       ⚠️ הקישורים **נשארים ממוקדים ב-Tab** ושומרים על השם הנגיש שלהם;
+       נוספת להם רק הודעה לקורא מסך שהיעד מנוטרל, ו-`aria-disabled` שמצהיר
+       על המצב. זה ההפך מ-`pointer-events:none`, שהיה מסתיר אותם מהמקלדת
+       לגמרי ומונע בדיקה של מצב המיקוד.
+
+       ⚠️ בורר השירותים בהירו הוא `<button>` ולא קישור, ולכן הוא ממשיך
+       לעבוד — ההחלפה בין שלושת המסכים היא חלק מהנראות שצריך לבדוק.
+       ══════════════════════════════════════════════════════════════════ -->
+  <script>
+    (function () {
+      var NOTE = ' — תצוגה בלבד, הקישור מנוטרל בעמוד הזה';
+
+      /* `a[href]` ואז סינון לפי ה-URL המפוענח, ולא בורר CSS על תחילית:
+         `href` בעמוד הזה מופיע גם כ-"app/login.html?next=account.html"
+         וגם כ-"app/apartment.html#start-chat", ותחילית אחת לא תופסת את
+         שניהם בלי להיתפס גם על עוגנים פנימיים. */
+      var links = document.querySelectorAll('a[href]');
+
+      for (var i = 0; i < links.length; i++) {
+        var a = links[i];
+        var url;
+        try { url = new URL(a.getAttribute('href'), location.href); } catch (e) { continue; }
+        if (url.pathname.indexOf('/app/') === -1) continue;
+
+        a.setAttribute('aria-disabled', 'true');
+        a.setAttribute('data-preview-inert', '');
+        /* ⚠️ `textContent` על `<span>` חדש ולא הוספה ל-innerHTML: בסרגל
+           הניווט הכיתוב מוחלף דינמית ע"י `rmApplyNavAuth`, ודריסה של
+           ה-HTML כאן הייתה מוחקת את ה-`[data-auth-label]` שהוא מחפש. */
+        var note = document.createElement('span');
+        note.className = 'jr-sr';
+        note.textContent = NOTE;
+        a.appendChild(note);
+      }
+
+      /* מאזין יחיד בשלב ה-capture: הוא רץ לפני הגלילה החלקה ולפני כל
+         מאזין אחר בעמוד, כך שגם `closest` על אייקון בתוך הקישור נתפס. */
+      document.addEventListener('click', function (e) {
+        var a = e.target.closest && e.target.closest('a[data-preview-inert]');
+        if (a) { e.preventDefault(); e.stopPropagation(); }
+      }, true);
+
+      /* Enter על קישור ממוקד אינו עובר דרך `click` בכל הדפדפנים. */
+      document.addEventListener('keydown', function (e) {
+        if (e.key !== 'Enter') return;
+        var a = e.target.closest && e.target.closest('a[data-preview-inert]');
+        if (a) e.preventDefault();
+      }, true);
+    })();
+  </script>
 
 </body>
 </html>

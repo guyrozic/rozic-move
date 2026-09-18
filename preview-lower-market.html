@@ -3,10 +3,15 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>ROZIC MOVE — הזמנת הובלה ומעבר דירה אונליין בישראל</title>
-  <meta name="description" content="פלטפורמה ישראלית להזמנת הובלות: מעבר דירה, מובילים בקטנה ושירות אריזה. בונים רשימת פריטים, מקבלים מחיר לפני אישור, ועוקבים אחרי המוביל בזמן אמת — באפליקציה או ישירות מהדפדפן.">
-  <link rel="canonical" href="https://rozicmove.com/">
-  <meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large">
+  <title>ROZIC MOVE — שני הצדדים (תצוגה מקדימה)</title>
+  <meta name="description" content="תצוגה מקדימה של החלק התחתון בעמוד הבית — כיוון «שני הצדדים». אינה דף אתר.">
+  <!-- ⚠️ תצוגה מקדימה בלבד. אין `canonical`, יש `noindex`, והדף אינו
+       ב-`sitemap.xml`. הוא כן נגיש פומבית, ולכן עובר `check-a11y` ככל דף
+       אחר, ויורד מהריפו אחרי ההכרעה.
+       הדף הוא **עותק מלא של `index.html`** — אותו `style.css` עם אותה
+       חותמת `?v=`, אותו ניווט, אותו הירו, אותו פוטר. מוחלף בו מקטע אחד
+       בלבד: `features-section` + `how-section` => `market-section`. -->
+  <meta name="robots" content="noindex">
 
   <!-- Open Graph / social + AI crawlers -->
   <meta property="og:type" content="website">
@@ -31,6 +36,227 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css?v=57257b7b">
+
+  <!-- ══════════════════════════════════════════════════════════════════
+       הסגנון של «שני הצדדים» — פנימי בכוונה
+       ══════════════════════════════════════════════════════════════════
+       הסבב הקודם נפסל כי ארבעת הכיוונים היו עמודים עצמאיים שמדמים אתר:
+       אף אחד מהם לא טען את `style.css` ואף אחד לא כלל את ההירו. הדף הזה
+       טוען את **אותו גיליון עם אותה חותמת `?v=`** כמו `index.html`, ולכן
+       הניווט, ההירו, הפוטר וכל טיפוגרפיית המותג הם המקוריים — לא חיקוי.
+
+       הסגנון החדש יושב כאן ולא ב-`style.css` כדי ש**התצוגה המקדימה לא
+       תיגע באתר החי**: הכיוון טרם הוכרע, ועריכת הגיליון המשותף הייתה
+       מחייבת `stamp-assets` ומשנה את חותמת הגרסה לכל דפי האתר.
+       ⚠️ אחרי ההכרעה — להעביר מכאן ל-`style.css` ולהריץ `stamp-assets`.
+
+       ⚠️ **כל צבע כאן הוא `var(--…)` מהפלטה הקיימת.** אין ערך גולמי, ואין
+       כחול בשום גוון — גם לא `--navy` ו-`--info` שקיימים בפלטה לשימושים
+       אחרים. שני הערכים המספריים היחידים (`#E8F5EE`, `#D8F2E6`) הם **רקע
+       בלבד ולא צבע טקסט**, ואינם ערכים חדשים: הם מועתקים כמות שהם מסוף
+       הגרדיאנט של `.features-section` ומסוף זה של `.how-section`
+       ב-`style.css` — כלומר המקטע נכנס בדיוק לאותו מדרג רקע שהיה כאן
+       קודם, והמעבר אל `--navy` של `#for-movers` שמתחת נשאר כפי שהיה.
+
+       ⚠️ **מסך גדול קודם** (74.5א): שלושת החלקים נפרסים על שלוש עמודות
+       ברוחב מלא, והשבירה לעמודה אחת מתחילה רק ב-960px.
+
+       **פחות חלוניות**: יש כאן פאנל אחד בלבד — הטבלה. המסלול ורשימת
+       העלויות יושבים ישירות על רקע המקטע ומופרדים בקווי שיער, לא בכרטיסים.
+  -->
+  <style>
+    /* ===== «שני הצדדים» ===== */
+    .twoside {
+      padding: 96px 0 104px;
+      background: linear-gradient(180deg, var(--white) 0%, #E8F5EE 58%, #D8F2E6 100%);
+    }
+    .twoside .section-header { margin-bottom: 64px; }
+
+    /* כותרת-משנה משותפת לשלושת החלקים. קו השיער מתחתיה הוא מה שמחליף
+       את הכרטיסים כמפריד, ולכן הוא זהה בשלושתם. */
+    .twoside-kicker {
+      margin: 0 0 26px;
+      padding-bottom: 14px;
+      border-bottom: 1px solid var(--border);
+      font-size: 0.86rem;
+      font-weight: 800;
+      letter-spacing: 0.6px;
+      color: var(--green-ink);
+    }
+
+    /* ── ① המסלול ─────────────────────────────────────────────────── */
+    .twoside-rail { margin-bottom: 78px; }
+    .twoside-stops {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+    }
+    /* ⚠️ תכונות לוגיות ולא `right`/`left`: הדף `dir="rtl"`, ו-
+       `border-inline-end` נופל בדיוק בין תחנה לתחנה בשני הכיוונים. */
+    .twoside-stops > li { padding-inline-end: 38px; }
+    .twoside-stops > li + li { padding-inline-start: 38px; }
+    .twoside-stops > li:not(:last-child) { border-inline-end: 1px solid var(--border); }
+    .twoside-n {
+      display: block;
+      margin-bottom: 12px;
+      font-size: 0.82rem;
+      font-weight: 800;
+      letter-spacing: 2px;
+      color: var(--green-mid);
+    }
+    .twoside-stops b {
+      display: block;
+      margin-bottom: 10px;
+      font-size: 1.36rem;
+      font-weight: 800;
+      letter-spacing: -0.4px;
+      color: var(--text);
+    }
+    .twoside-d {
+      display: block;
+      font-size: 0.98rem;
+      line-height: 1.75;
+      color: var(--text-muted);
+    }
+    .twoside-note {
+      max-width: 68ch;
+      margin: 30px 0 0;
+      font-size: 1.02rem;
+      line-height: 1.75;
+      color: var(--text-mid);
+    }
+
+    /* ── ② הטבלה — הפאנל היחיד ────────────────────────────────────── */
+    .twoside-ledger {
+      margin-bottom: 78px;
+      padding: 32px 36px 36px;
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow-md);
+    }
+    .twoside-scroll { overflow-x: auto; }
+    .twoside-scroll:focus-visible {
+      outline: 2px solid var(--green);
+      outline-offset: 4px;
+    }
+    .twoside-table {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: start;
+    }
+    .twoside-table caption {
+      caption-side: top;
+      text-align: start;
+      max-width: 72ch;
+      padding: 0 0 24px;
+      font-size: 0.97rem;
+      line-height: 1.7;
+      color: var(--text-muted);
+    }
+    .twoside-table th,
+    .twoside-table td {
+      vertical-align: top;
+      padding: 22px 0;
+      border-top: 1px solid var(--border);
+    }
+    .twoside-table thead th {
+      padding: 0 0 14px;
+      border-top: 0;
+      border-bottom: 2px solid var(--green);
+      font-size: 0.84rem;
+      font-weight: 800;
+      letter-spacing: 0.6px;
+      color: var(--green-ink);
+    }
+    .twoside-topic { width: 15%; }
+    .twoside-table tbody th {
+      width: 15%;
+      padding-inline-end: 30px;
+      font-size: 1.06rem;
+      font-weight: 800;
+      color: var(--green-dark);
+    }
+    .twoside-table td {
+      width: 42.5%;
+      padding-inline-end: 30px;
+      font-size: 0.99rem;
+      line-height: 1.72;
+      color: var(--text-mid);
+    }
+    /* עמודת המוביל מסומנת ברקע רך לכל אורכה — זה מה שהופך את הטבלה
+       ל«שני צדדים» ולא לרשימה עם הערות. `--green-tint` הוא רקע בלבד. */
+    .twoside-other {
+      padding-inline: 26px !important;
+      background: var(--green-tint);
+    }
+
+    /* ── ③ מה שאתה לא משלם עליו ───────────────────────────────────── */
+    .twoside-cost-list {
+      margin: 0;
+      padding: 0;
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+    }
+    .twoside-cost-list > div { padding-inline-end: 38px; }
+    .twoside-cost-list > div + div { padding-inline-start: 38px; }
+    .twoside-cost-list > div:not(:last-child) { border-inline-end: 1px solid var(--border); }
+    /* הקו החוצה הוא כל ההסבר: אלה הדברים שאינם בחשבון. */
+    .twoside-cost-list dt {
+      margin-bottom: 12px;
+      font-size: 1.12rem;
+      font-weight: 800;
+      color: var(--text-muted);
+      text-decoration: line-through;
+      text-decoration-color: var(--green-line);
+      text-decoration-thickness: 2px;
+    }
+    .twoside-cost-list dd {
+      margin: 0;
+      font-size: 0.98rem;
+      line-height: 1.72;
+      color: var(--text-mid);
+    }
+    .twoside-honest {
+      max-width: 88ch;
+      margin: 38px 0 0;
+      padding: 22px 26px;
+      background: var(--green-light);
+      border-inline-start: 3px solid var(--green);
+      border-radius: var(--radius-sm);
+      font-size: 1.01rem;
+      line-height: 1.75;
+      color: var(--text-mid);
+    }
+    .twoside-honest b { color: var(--green-dark); }
+
+    /* ── שבירה ────────────────────────────────────────────────────── */
+    @media (max-width: 960px) {
+      .twoside { padding: 64px 0 72px; }
+      .twoside .section-header { margin-bottom: 44px; }
+      .twoside-rail,
+      .twoside-ledger { margin-bottom: 56px; }
+      .twoside-stops,
+      .twoside-cost-list { grid-template-columns: 1fr; }
+      .twoside-stops > li,
+      .twoside-cost-list > div {
+        padding-inline: 0;
+        padding-block: 24px;
+      }
+      .twoside-stops > li:not(:last-child),
+      .twoside-cost-list > div:not(:last-child) {
+        border-inline-end: 0;
+        border-bottom: 1px solid var(--border);
+      }
+      .twoside-stops > li:first-child,
+      .twoside-cost-list > div:first-child { padding-block-start: 0; }
+      .twoside-ledger { padding: 26px 20px 28px; }
+      /* הטבלה נשארת טבלה וגוללת לרוחב — ראו ההערה במקטע עצמו. */
+      .twoside-table { min-width: 620px; }
+    }
+  </style>
 
   <!--
     Structured data (JSON-LD). Kept deliberately free of prices, ratings and review
@@ -1027,81 +1253,132 @@
     </div>
   </section>
 
-  <!-- Features -->
-  <section class="features-section" id="features">
-    <div class="container">
-      <div class="section-header reveal">
-        <p class="section-label">השירותים שלנו</p>
-        <h2>כל מה שצריך כדי לזוז</h2>
-        <p class="section-desc">בחר את סוג השירות שמתאים לך, ואנחנו נשבץ לך את המוביל הנכון</p>
-      </div>
-      <div class="features-grid">
-        <div class="feature-card reveal">
-          <div class="feature-icon-wrap">
-            <svg width="36" height="36" viewBox="0 0 36 36" fill="none" aria-hidden="true">
-              <rect x="2" y="13" width="32" height="15" rx="3" stroke="currentColor" stroke-width="2.2"/>
-              <circle cx="9" cy="28" r="3" stroke="currentColor" stroke-width="2.2"/>
-              <circle cx="27" cy="28" r="3" stroke="currentColor" stroke-width="2.2"/>
-              <path d="M2 19h32" stroke="currentColor" stroke-width="2.2"/>
-              <path d="M22 13V9l8 4" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
-            </svg>
-          </div>
-          <!-- ⚠️ 15.9 — כאן ובפוטר נכתב "הובלה קטנה", בעוד שכל שאר האתר,
-               ה-JSON-LD שמעל, llms.txt והאפליקציה אומרים "מובילים בקטנה".
-               זה לא רק ניסוח: terms.html סעיף 7.1 תולה כלל כספי (15 דקות
-               אי-הופעה מול 30) בשם "מובילים בקטנה" — שם שהלקוח לא ראה. -->
-          <h3>מובילים בקטנה</h3>
-          <p>פריטים בודדים, ריהוט, מוצרי חשמל — מוביל עם טנדר מגיע אליך.</p>
-          <div class="feature-tag">טנדר · מגה</div>
-        </div>
-        <div class="feature-card reveal">
-          <div class="feature-icon-wrap">
-            <svg width="36" height="36" viewBox="0 0 36 36" fill="none" aria-hidden="true">
-              <path d="M6 30V15l12-10 12 10v15" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
-              <rect x="13" y="20" width="10" height="10" rx="1" stroke="currentColor" stroke-width="2.2"/>
-              <path d="M15 20v-3a3 3 0 016 0v3" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/>
-            </svg>
-          </div>
-          <h3>עוברים דירה</h3>
-          <p>הובלה מלאה לדירה החדשה — מוביל מאומת, שירות אריזה והרמה במנוף בתוספת.</p>
-          <div class="feature-tag">אריזה בתוספת</div>
-        </div>
-      </div>
-    </div>
-  </section>
+  <!-- ══════════════════════════════════════════════════════════════════
+       «שני הצדדים» — מחליף גם את `features-section` וגם את `how-section`
+       ══════════════════════════════════════════════════════════════════
+       שלוש הזוויות האחרות (מחיר · AI · מסע) מדברות על מה שהלקוח מקבל.
+       הזווית הזאת מדברת על **מה שמאחורי הקלעים**: ROZIC MOVE אינה חברת
+       הובלות עם משאיות אלא מחברת בין לקוחות למובילים עצמאיים, וכל מה
+       שהלקוח חווה נובע מהמבנה הזה.
 
-  <!-- How It Works -->
-  <section class="how-section" id="how-it-works">
+       ⚠️ שלוש החלטות מבניות שכדאי לדעת לפני שנוגעים כאן:
+
+       1. **`id="features"` ו-`id="how-it-works"` שניהם חיים כאן.** שני
+          המקטעים שהוחלפו נשאו אותם, והניווט (הסרגל **וגם** תפריט
+          המובייל) מפנה אל שניהם. מקטע אחד => העוגן השני יושב על
+          `.twoside-rail`, ולא על עטיפה ריקה, כדי שהגלילה תנחת על תוכן.
+
+       2. **בורר השירותים לא חוזר כאן** (הכרעת גיא 74.3א). `features-section`
+          הישן היה רשימת השירותים, והיא כבר יושבת בהירו כ-`#hp-svc`. שכפול
+          שלה כאן היה אומר ללקוח לבחור שירות פעמיים באותו עמוד.
+
+       3. **זה לא המקטע של המובילים.** מיד מתחת יושב `#for-movers`, והוא
+          **מגייס** מובילים. המקטע הזה מסביר ל**לקוח** למה המבנה הזה עובד
+          לטובתו. לכן אין כאן כרטיס מוביל, אין רשימת הטבות למוביל, ועמודת
+          «אצל המוביל» בטבלה קיימת רק כנימוק לעמודה שלידה.
+
+       ⚠️ **אין כאן מספרים שלא נמסרו לנו** — לא כמות מובילים, לא זמן שיבוץ
+       ולא אחוז חיסכון. הטענה היחידה שנוגעת בכסף היא שהעמלה כבר בתוך המחיר
+       המוצג, והיא מאומתת מול `app/data/pricing.js:350` ("העמלה שהפלטפורמה
+       מנכה **מתשלום הלקוח** לפני העברת חלק המוביל") — כלומר מנוכה, לא
+       מתווספת.
+  -->
+  <section class="twoside" id="features">
     <div class="container">
       <div class="section-header reveal">
-        <p class="section-label">פשוט ומהיר</p>
-        <h2>איך זה עובד?</h2>
-        <p class="section-desc">שלושה שלבים ואתה בדרך</p>
+        <p class="section-label">מאחורי הקלעים</p>
+        <h2>שני הצדדים של אותה הזמנה</h2>
+        <p class="section-desc">ל-ROZIC MOVE אין משאיות ואין נהגים שכירים. יש לוח אחד: ההזמנה שלך נכנסת אליו, ומוביל עצמאי לוקח אותה. כל השאר נגזר מזה.</p>
       </div>
-      <div class="steps-wrap">
-        <div class="step reveal">
-          <div class="step-num">01</div>
-          <div class="step-body">
-            <h3>תאר את ההובלה</h3>
-            <p>מאיפה, לאן, מה מובילים ומתי — ממלאים פרטים תוך דקה. המערכת מחשבת מחיר מיידי.</p>
-          </div>
+
+      <!-- ① המסלול — נושא את העוגן `#how-it-works` של הניווט -->
+      <div class="twoside-rail reveal" id="how-it-works">
+        <h3 class="twoside-kicker">איך זה עובד</h3>
+        <ol class="twoside-stops">
+          <li>
+            <span class="twoside-n">01</span>
+            <b>ההזמנה שלך</b>
+            <span class="twoside-d">רשימת הפריטים, הכתובות, הקומות והתאריך. המחיר מחושב מהם ומוצג לך לפני שאתה מאשר.</span>
+          </li>
+          <li>
+            <span class="twoside-n">02</span>
+            <b>הלוח</b>
+            <span class="twoside-d">ההזמנה נכנסת ללוח שמובילים עצמאיים רואים, על כל פרטיה — ולא כשורה בטבלה אצל מוקדן.</span>
+          </li>
+          <li>
+            <span class="twoside-n">03</span>
+            <b>המוביל שלוקח אותה</b>
+            <span class="twoside-d">הראשון שההובלה מתאימה לו לוקח אותה, ויודע מראש בדיוק מה עליו לבצע וכמה הוא מרוויח עליה.</span>
+          </li>
+        </ol>
+        <p class="twoside-note">זה כל המסלול. אין שיחת «נחזור אלייך», אין ביקור הערכה בבית לפני שנוקבים במחיר, ואין שרשרת של מתווכים שמעבירה את ההובלה ביניהם.</p>
+      </div>
+
+      <!-- ② הטבלה — לב הזווית: אותו מנגנון, שני צדדים
+           ⚠️ זו טבלה אמיתית ולא רשת של כרטיסים: הנתון כאן הוא באמת
+           דו-ממדי (מנגנון × צד), ו-`<th scope>` נותן לקורא מסך להכריז את
+           שתי הכותרות בכל תא. מתחת ל-860px היא **נשארת טבלה** ונכנסת
+           לאזור גלילה מסומן (`role="region"` + `aria-label` + `tabindex="0"`)
+           במקום להתפרק ל-`display:block` — פירוק כזה נראה טוב בצילום מסך
+           ומוחק את הקשר בין התא לכותרת שלו. -->
+      <div class="twoside-ledger reveal">
+        <h3 class="twoside-kicker">אותו מנגנון, משני הצדדים</h3>
+        <div class="twoside-scroll" role="region" aria-label="טבלת השוואה: אותו מנגנון אצל הלקוח ואצל המוביל" tabindex="0">
+          <table class="twoside-table">
+            <caption>כל שורה היא מנגנון אחד. מימין מה שהוא עושה לך, ומשמאל למה הוא מחזיק — כלומר מה גורם למוביל לרצות לקחת את ההובלה.</caption>
+            <thead>
+              <tr>
+                <th scope="col" class="twoside-topic">המנגנון</th>
+                <th scope="col">אצלך</th>
+                <th scope="col" class="twoside-other">אצל המוביל</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <th scope="row">המחיר</th>
+                <td>מחושב מרשימת הפריטים ומהמרחק, ומוצג לפני האישור. אותו חישוב בכל הזמנה.</td>
+                <td class="twoside-other">רואה מראש את ההובלה המלאה ואת מה שהוא מרוויח עליה — עוד לפני שלקח אותה.</td>
+              </tr>
+              <tr>
+                <th scope="row">השיבוץ</th>
+                <td>אתה לא מחפש מוביל ולא מתקשר לאיש. ההזמנה יושבת בלוח וממתינה שייקחו אותה.</td>
+                <td class="twoside-other">בוחר בעצמו אילו הובלות לקחת, לפי מה שמתאים לו באותו יום ובאותו אזור.</td>
+              </tr>
+              <tr>
+                <th scope="row">ההיכרות</th>
+                <td>מוביל שעבד אצלך טוב מסומן כמועדף, ואפשר לחזור אליו בהזמנה הבאה.</td>
+                <td class="twoside-other">לקוח חוזר שהגיע מעבודה טובה, ולא מרכישת ליד או מנסיעה להצעת מחיר.</td>
+              </tr>
+              <tr>
+                <th scope="row">האחריות</th>
+                <td>מדרג את המוביל בסיום, ואם מוביל לא הגיע — יש מנגנון שמטפל בזה.</td>
+                <td class="twoside-other">מדרג גם הוא אותך, והדירוג שלו הוא מה שמביא לו את ההובלה הבאה.</td>
+              </tr>
+            </tbody>
+          </table>
         </div>
-        <div class="step-connector reveal"></div>
-        <div class="step reveal">
-          <div class="step-num">02</div>
-          <div class="step-body">
-            <h3>אשר ושלם</h3>
-            <p>המחיר מחושב אוטומטית מהפריטים ומהמרחק. אחרי התשלום מוביל זמין לוקח את ההזמנה.</p>
+      </div>
+
+      <!-- ③ הצד הכספי — רק מה שמבני ואמיתי, בלי אחוזים ובלי השוואות -->
+      <div class="twoside-cost reveal">
+        <h3 class="twoside-kicker">ומה שאתה לא משלם עליו</h3>
+        <dl class="twoside-cost-list">
+          <div>
+            <dt>צי משאיות</dt>
+            <dd>אין לנו. המוביל מגיע ברכב שלו, ואתה לא מכסה את השעות שבהן רכב של חברה עומד פנוי בין הובלה להובלה.</dd>
           </div>
-        </div>
-        <div class="step-connector reveal"></div>
-        <div class="step reveal">
-          <div class="step-num">03</div>
-          <div class="step-body">
-            <h3>עקוב בזמן אמת</h3>
-            <p>לאחר אישור, עוקב אחרי המוביל על המפה, מתכתב איתו ישירות ומקבל עדכוני סטטוס.</p>
+          <div>
+            <dt>מוקד שמתמחר בטלפון</dt>
+            <dd>המחיר יוצא מהנתונים שמילאת — לא מהתרשמות של מי שענה לשיחה, ולא מהשאלה כמה נשמע שאתה מוכן לשלם.</dd>
           </div>
-        </div>
+          <div>
+            <dt>דמי ליד וביקור הערכה</dt>
+            <dd>המוביל לא קונה את ההזמנה שלך ולא נוסע אליך לפני ההובלה. שתי עלויות שכשהן קיימות, מישהו משלם עליהן בסוף.</dd>
+          </div>
+        </dl>
+        <p class="twoside-honest">
+          <b>ומה כן:</b> ROZIC MOVE גובה עמלה על ניהול ההזמנה. היא מנוכה מהתשלום לפני שחלקו של המוביל מועבר אליו — כלומר היא כבר בתוך המחיר שמוצג לך לפני האישור, ואינה נוספת עליו.
+        </p>
       </div>
     </div>
   </section>
@@ -1598,6 +1875,71 @@
   <symbol id="ic-route" viewBox="0 0 24 24"><path d="M6.5 3a2.5 2.5 0 0 1 2.5 2.5C9 7.5 6.5 10 6.5 10S4 7.5 4 5.5A2.5 2.5 0 0 1 6.5 3zM17.5 14a2.5 2.5 0 0 1 2.5 2.5c0 2-2.5 4.5-2.5 4.5s-2.5-2.5-2.5-4.5a2.5 2.5 0 0 1 2.5-2.5zM9 6.5h4.5a3.5 3.5 0 0 1 0 7H10"/></symbol>
   <symbol id="ic-cal" viewBox="0 0 24 24"><path d="M4 6h16v15H4zM4 11h16M8 3v4M16 3v4"/></symbol>
 </defs></svg>
+
+  <!-- ══════════════════════════════════════════════════════════════════
+       תצוגה בלבד — נטרול הניווט אל זרימת ההזמנה
+       ══════════════════════════════════════════════════════════════════
+       גיא (74.1): *"רק הנראות ללא לחיצה על כפתורי המשך."*
+
+       ⚠️ הנטרול נעשה **בלי לגעת בסימון של ההירו או של הניווט** — שניהם
+       הוכרזו מוגמרים, והם מועתקים מ-`index.html` תו בתו. הקוד כאן רץ
+       בזמן ריצה ומסמן את מה שמפנה אל `app/`.
+
+       ⚠️ ה-`href` **לא מוסר**, וזו החלטה ולא עצלנות:
+       - הסרתו הייתה מוציאה את הקישור מסדר ה-Tab (קישור בלי `href` אינו
+         ממוקד), כלומר «תצוגה בלבד» הייתה הופכת גם ל«בלי מקלדת».
+       - `rmApplyNavAuth` מחליף את ה-`href` של `[data-auth-link]` לפי מצב
+         ההתחברות, גם אחרי טעינת הדף. הסרה חד-פעמית הייתה נדרסת בשקט.
+       לכן: הקישור נשאר קישור, שומר על השם הנגיש ועל המיקוד, ומקבל
+       `aria-disabled="true"` כדי שקורא מסך יכריז שהוא אינו פעיל —
+       והלחיצה עצמה נחסמת בשלב ה-capture, לפני כל מאזין אחר בדף.
+  -->
+  <script>
+    (function () {
+      var APP = /(^|\/)app\//;
+
+      /**
+       * האם הקישור מוביל אל זרימת ההזמנה.
+       *
+       * ⚠️ קישור חיצוני נפסל **לפני** בדיקת `app/`, ולא בגללה: כתובת
+       * החנות היא `https://apps.apple.com/app/id6783814838`, ויש בה
+       * `/app/` — בלי השורה הזאת כפתור «הורד את ROZIC MOVE», שהוא אחד
+       * מהמקטעים שאין לגעת בהם, היה מנוטרל בטעות. מנוטרל כאן רק מה
+       * שמוביל אל תיקיית `app/` שלנו, כלומר אל זרימת ההזמנה.
+       */
+      function toApp(a) {
+        var raw = a.getAttribute('href') || '';
+        if (!raw || raw.charAt(0) === '#') return false;
+        if (raw.indexOf('//') === 0) return false;              // פרוטוקול-יחסי
+        if (/^[a-z][a-z0-9+.-]*:/i.test(raw)) return false;     // http:, https:, mailto:, tel:
+        return APP.test(raw);
+      }
+
+      function mark() {
+        var links = document.querySelectorAll('a[href]');
+        for (var i = 0; i < links.length; i++) {
+          if (toApp(links[i])) links[i].setAttribute('aria-disabled', 'true');
+          else links[i].removeAttribute('aria-disabled');
+        }
+      }
+
+      mark();
+      // `rmApplyNavAuth` עשוי להחליף `href` אחרי שהתשובה של Firebase
+      // מגיעה, ולכן הסימון מרוענן פעם נוספת אחרי שהדף נרגע.
+      window.addEventListener('load', mark);
+
+      function block(e) {
+        var a = e.target && e.target.closest ? e.target.closest('a[href]') : null;
+        if (!a || !toApp(a)) return;
+        e.preventDefault();
+        e.stopPropagation();
+      }
+      document.addEventListener('click', block, true);
+      document.addEventListener('keydown', function (e) {
+        if (e.key === 'Enter' || e.key === ' ' || e.key === 'Spacebar') block(e);
+      }, true);
+    })();
+  </script>
 
 </body>
 </html>

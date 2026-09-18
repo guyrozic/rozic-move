@@ -3,10 +3,18 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>ROZIC MOVE — הזמנת הובלה ומעבר דירה אונליין בישראל</title>
-  <meta name="description" content="פלטפורמה ישראלית להזמנת הובלות: מעבר דירה, מובילים בקטנה ושירות אריזה. בונים רשימת פריטים, מקבלים מחיר לפני אישור, ועוקבים אחרי המוביל בזמן אמת — באפליקציה או ישירות מהדפדפן.">
-  <link rel="canonical" href="https://rozicmove.com/">
-  <meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large">
+  <title>תצוגה מקדימה — המחיר הוודאי · ROZIC MOVE</title>
+  <meta name="description" content="תצוגה מקדימה פנימית: עמוד הבית עם מקטע אחד מוחלף — «המחיר הוודאי» במקום «כל מה שצריך כדי לזוז» ו«איך זה עובד?».">
+  <!-- ⚠️ עמוד תצוגה מקדימה, לא עמוד אמיתי.
+       · `noindex` — הוא נגיש פומבית ב-rozicmove.com/preview-lower-price.html
+         (בדיוק כמו preview-home/preview-heroes בשעתם), ובלי זה הוא היה
+         מתחרה בעמוד הבית על אותו תוכן בדיוק.
+       · **ה-`canonical` הוסר בכוונה.** canonical אל "/" יחד עם noindex
+         הוא צירוף מסוכן: הוא אומר למנוע "הדף הזה הוא עמוד הבית", ואז
+         ה-noindex עלול לחול על מה שהוא הצביע עליו. אין canonical = אין
+         הצבעה, וה-noindex חל על הדף הזה ותו לא.
+       · **ואינו ב-`sitemap.xml`.** -->
+  <meta name="robots" content="noindex">
 
   <!-- Open Graph / social + AI crawlers -->
   <meta property="og:type" content="website">
@@ -568,6 +576,121 @@
     color:var(--text-mid); line-height:1.45; margin-top:2px; }
   .mk-haul .tx i em { font-style:normal; color:var(--green-ink); font-weight:800; }
 
+  /* ══════════════════════════════════════════════════════════════════
+     «המחיר הוודאי» — המקטע היחיד שהוחלף בעמוד הזה
+     ══════════════════════════════════════════════════════════════════
+     הוא בא במקום **שני** מקטעים: `.features-section` («כל מה שצריך כדי
+     לזוז») ו-`.how-section` («איך זה עובד?»). לכן הוא נושא את שני
+     העוגנים שלהם — `#features` על המקטע ו-`#how-it-works` על טור
+     הזרימה שבתוכו — כדי שהסרגל והפוטר לא ייוותרו עם קישור מת.
+
+     ⚠️ **אין כאן ולו צבע אחד חדש.** הרקע הוא בדיוק שתי נקודות הקצה של
+     שני המקטעים שירדו (#E8F5EE מסיום `.features-section` ו-#D8F2E6
+     מסיום `.how-section`), כך שהמעבר אל ה-navy של מקטע המובילים נשאר
+     זהה. כל השאר טוקנים מ-`style.css`.
+
+     ⚠️ **שני הירוקים:** מה שנשאר מסגרת (עיגולי המספרים) מקבל
+     --green-tint/--green-line/--green-ink; מה ש**מתמלא** (רצועת
+     הנעילה) מקבל --green הכהה.
+     ══════════════════════════════════════════════════════════════════ */
+  .pl-section { padding:90px 0;
+    background:linear-gradient(180deg, var(--white) 0%, #E8F5EE 55%, #D8F2E6 100%); }
+
+  /* ⚠️ מסך גדול קודם (הכרעת 74.5א): הטור הרחב הוא ההסבר, הצר הוא
+     ההשוואה. שתי חלוניות בלבד במקטע כולו — טור הזרימה יושב על רקע
+     המקטע בלי קופסה, וזה מה שמונע את "ריבוי החלוניות". */
+  .pl-grid { display:grid; grid-template-columns:minmax(0,1.2fr) minmax(0,.8fr);
+    gap:34px; align-items:start; }
+  .pl-h { font-size:1.05rem; font-weight:800; color:var(--green-dark);
+    letter-spacing:-.2px; margin:0 0 20px; }
+
+  /* ── הזרימה: איך המחיר נקבע ─────────────────────────────────────── */
+  .pl-steps { list-style:none; margin:0; padding:0; position:relative; }
+  /* הפס האנכי מחבר את שלושת העיגולים לרצף אחד במקום שלושה כרטיסים.
+     `right` ולא `inset-inline-start` — כל הגיליון פיזי, ו-dir=rtl קבוע. */
+  .pl-steps::before { content:''; position:absolute; z-index:0;
+    top:22px; bottom:22px; right:21px; width:2px; border-radius:1px;
+    background:linear-gradient(180deg, var(--green-line), rgba(14,92,67,.14)); }
+  .pl-steps li { position:relative; display:grid;
+    grid-template-columns:44px minmax(0,1fr); gap:18px; padding-bottom:30px; }
+  .pl-steps li:last-child { padding-bottom:0; }
+  .pl-n { position:relative; z-index:1; width:44px; height:44px; border-radius:50%;
+    display:flex; align-items:center; justify-content:center;
+    font-size:1.05rem; font-weight:900; color:var(--green-ink);
+    background:var(--green-tint); border:2px solid var(--green-line); }
+  .pl-tx b { display:block; font-size:1.08rem; font-weight:800;
+    color:var(--text); letter-spacing:-.2px; margin-bottom:7px; }
+  .pl-tx p { margin:0; font-size:.93rem; line-height:1.75; color:var(--text-mid); }
+  .pl-tx em { font-style:normal; font-weight:800; color:var(--green-ink); }
+
+  /* ── ההשוואה: מול הדרך הרגילה ───────────────────────────────────── */
+  .pl-vs { background:var(--white); border:1.5px solid var(--border);
+    border-radius:var(--radius); padding:26px 24px; box-shadow:var(--shadow-sm); }
+  .pl-rows { list-style:none; margin:0; padding:0; }
+  .pl-rows li { padding:16px 0; border-top:1px solid var(--border); }
+  .pl-rows li:first-child { border-top:0; padding-top:0; }
+  .pl-rows li:last-child { padding-bottom:0; }
+  /* ⚠️ התווית («הדרך הרגילה» / «כאן») היא טקסט אמיתי בכל שורה ולא
+     כותרת-עמודה אחת למעלה: הכרטיס צר, השורות נערמות זו תחת זו, ועמודה
+     בת שתי מילים הייתה נקרעת. כך גם קורא מסך מקבל את ההקשר בכל שורה. */
+  .pl-side { display:block; font-size:.9rem; line-height:1.65; }
+  .pl-side i { font-style:normal; display:block; font-size:.7rem; font-weight:800;
+    letter-spacing:.4px; margin-bottom:3px; }
+  .pl-old { color:var(--text-muted); }
+  .pl-old i { color:var(--text-note); }
+  .pl-new { color:var(--text); margin-top:9px; font-weight:600; }
+  .pl-new i { color:var(--green-ink); }
+
+  /* ── רצועת הנעילה ───────────────────────────────────────────────── */
+  .pl-lock { margin-top:38px; display:flex; align-items:center;
+    justify-content:space-between; gap:26px; flex-wrap:wrap;
+    background:var(--green); border-radius:var(--radius);
+    padding:28px 32px; box-shadow:var(--shadow-green); }
+  /* ⚠️ `flex:1 1 380px` ולא `flex:1`: בלי בסיס אמיתי הטקסט מתכווץ עד
+     שהמשפט נשבר לשבע שורות לצד כפתור שרוחבו לא זז. 380px הוא הרוחב
+     שמתחתיו עדיף שהכפתור ירד לשורה משלו. */
+  .pl-lock-tx { flex:1 1 380px; min-width:0; }
+  .pl-lock h3 { font-size:1.28rem; font-weight:900; color:var(--white);
+    letter-spacing:-.3px; margin:0 0 9px; }
+  /* --green-wash על --green נמדד 6.89:1. */
+  .pl-lock p { margin:0; max-width:64ch; font-size:.95rem; line-height:1.7;
+    color:var(--green-wash); }
+
+  /* ⚠️ **כפתור אינרטי, בכוונה.** זה עמוד תצוגה בלבד (74.1) — אין בו
+     כפתור שמוביל קדימה. `<span>` ולא `<a href>`, ולכן אין לאן ללחוץ;
+     `role="button"` + `aria-disabled` נותנים לקורא מסך את האמת («כפתור,
+     מושבת») במקום טקסט מרחף, ו-`tabindex="0"` משאיר אותו במסלול ה-Tab
+     כדי שאפשר יהיה לראות עליו את טבעת המיקוד. */
+  .pl-cta { flex:0 0 auto; display:inline-flex; align-items:center;
+    justify-content:center; background:var(--white); color:var(--green-dark);
+    font-size:.98rem; font-weight:800; padding:15px 32px; border-radius:50px;
+    cursor:default; user-select:none; }
+  /* הטבעת הכללית היא --green — ירוק על ירוק, בלתי נראה כאן. אותה
+     תבנית בדיוק של הפוטר ומקטע המובילים. */
+  .pl-lock :is(a, button, summary, [tabindex]):focus-visible {
+    outline-color: var(--green-on-dark); }
+
+  @media (max-width:1040px){
+    .pl-grid { grid-template-columns:1fr; gap:30px; }
+    .pl-lock p { max-width:none; }
+  }
+  @media (max-width:640px){
+    .pl-section { padding:60px 0; }
+    .pl-grid { gap:26px; }
+    .pl-steps li { grid-template-columns:38px minmax(0,1fr); gap:14px;
+      padding-bottom:24px; }
+    .pl-steps::before { top:19px; bottom:19px; right:18px; }
+    .pl-n { width:38px; height:38px; font-size:.95rem; }
+    .pl-tx b { font-size:1rem; }
+    .pl-vs { padding:20px 18px; }
+    .pl-lock { padding:24px 20px; gap:20px; }
+    .pl-lock h3 { font-size:1.12rem; }
+    .pl-cta { width:100%; }
+  }
+  @media (prefers-reduced-motion: reduce){
+    .pl-steps li, .pl-vs, .pl-lock { transition:none; }
+  }
+
   </style>
 </head>
 <!-- ⚠️ 15.9 — `has-nav-menu` מסמנת שלדף יש תפריט המבורגר. רק כאן.
@@ -1027,81 +1150,86 @@
     </div>
   </section>
 
-  <!-- Features -->
-  <section class="features-section" id="features">
-    <div class="container">
-      <div class="section-header reveal">
-        <p class="section-label">השירותים שלנו</p>
-        <h2>כל מה שצריך כדי לזוז</h2>
-        <p class="section-desc">בחר את סוג השירות שמתאים לך, ואנחנו נשבץ לך את המוביל הנכון</p>
-      </div>
-      <div class="features-grid">
-        <div class="feature-card reveal">
-          <div class="feature-icon-wrap">
-            <svg width="36" height="36" viewBox="0 0 36 36" fill="none" aria-hidden="true">
-              <rect x="2" y="13" width="32" height="15" rx="3" stroke="currentColor" stroke-width="2.2"/>
-              <circle cx="9" cy="28" r="3" stroke="currentColor" stroke-width="2.2"/>
-              <circle cx="27" cy="28" r="3" stroke="currentColor" stroke-width="2.2"/>
-              <path d="M2 19h32" stroke="currentColor" stroke-width="2.2"/>
-              <path d="M22 13V9l8 4" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
-            </svg>
-          </div>
-          <!-- ⚠️ 15.9 — כאן ובפוטר נכתב "הובלה קטנה", בעוד שכל שאר האתר,
-               ה-JSON-LD שמעל, llms.txt והאפליקציה אומרים "מובילים בקטנה".
-               זה לא רק ניסוח: terms.html סעיף 7.1 תולה כלל כספי (15 דקות
-               אי-הופעה מול 30) בשם "מובילים בקטנה" — שם שהלקוח לא ראה. -->
-          <h3>מובילים בקטנה</h3>
-          <p>פריטים בודדים, ריהוט, מוצרי חשמל — מוביל עם טנדר מגיע אליך.</p>
-          <div class="feature-tag">טנדר · מגה</div>
-        </div>
-        <div class="feature-card reveal">
-          <div class="feature-icon-wrap">
-            <svg width="36" height="36" viewBox="0 0 36 36" fill="none" aria-hidden="true">
-              <path d="M6 30V15l12-10 12 10v15" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
-              <rect x="13" y="20" width="10" height="10" rx="1" stroke="currentColor" stroke-width="2.2"/>
-              <path d="M15 20v-3a3 3 0 016 0v3" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/>
-            </svg>
-          </div>
-          <h3>עוברים דירה</h3>
-          <p>הובלה מלאה לדירה החדשה — מוביל מאומת, שירות אריזה והרמה במנוף בתוספת.</p>
-          <div class="feature-tag">אריזה בתוספת</div>
-        </div>
-      </div>
-    </div>
-  </section>
+  <!-- ══════════════════════════════════════════════════════════════════
+       «המחיר הוודאי» — מקטע אחד במקום שניים
+       ══════════════════════════════════════════════════════════════════
+       ירדו מכאן: `.features-section` («כל מה שצריך כדי לזוז») ו-
+       `.how-section` («איך זה עובד?»).
 
-  <!-- How It Works -->
-  <section class="how-section" id="how-it-works">
+       ⚠️ **בורר השירותים לא חוזר** (הכרעת 74.3א). שלושת השירותים כבר
+       מוצגים בהירו שמעליי, והכפילות היא חלק ממה שהפריע.
+
+       ⚠️ **המקטע אינו חוזר על ההירו.** בהירו נאמר **ש**יש מחיר מלא לפני
+       האישור; כאן נאמר **איך** הוא נקבע, ולמה הוא לא זז אחר כך.
+
+       ⚠️ **שני העוגנים נשמרו** — `#features` על המקטע ו-`#how-it-works`
+       על טור הזרימה שבתוכו. הסרגל, תפריט המובייל והפוטר מקשרים לשניהם,
+       ולא נגעתי באף אחד מהשלושה; בלי החלוקה הזאת היה נשאר קישור מת.
+       ══════════════════════════════════════════════════════════════════ -->
+  <section class="pl-section" id="features">
     <div class="container">
       <div class="section-header reveal">
-        <p class="section-label">פשוט ומהיר</p>
-        <h2>איך זה עובד?</h2>
-        <p class="section-desc">שלושה שלבים ואתה בדרך</p>
+        <p class="section-label">המחיר</p>
+        <h2>למה אנחנו יכולים להתחייב על המחיר</h2>
+        <p class="section-desc">המחיר כאן יוצא מחישוב ולא מהערכה — ולכן אפשר לומר אותו מלא, מיד, ולעמוד מאחוריו.</p>
       </div>
-      <div class="steps-wrap">
-        <div class="step reveal">
-          <div class="step-num">01</div>
-          <div class="step-body">
-            <h3>תאר את ההובלה</h3>
-            <p>מאיפה, לאן, מה מובילים ומתי — ממלאים פרטים תוך דקה. המערכת מחשבת מחיר מיידי.</p>
-          </div>
+
+      <div class="pl-grid">
+        <div class="pl-flow reveal" id="how-it-works">
+          <h3 class="pl-h">איך המחיר נקבע</h3>
+          <ol class="pl-steps">
+            <li>
+              <span class="pl-n" aria-hidden="true">1</span>
+              <div class="pl-tx">
+                <b>הרשימה נבנית לפני שנאמר מספר</b>
+                <p>מצלמים את החדר, מספרים במילים מה עובר, או מסמנים מהקטלוג. מנוע ה-AI מזהה את התכולה והופך אותה לרשימת פריטים שאפשר לערוך — <em>קודם יודעים מה זזים, ורק אז מתמחרים</em>.</p>
+              </div>
+            </li>
+            <li>
+              <span class="pl-n" aria-hidden="true">2</span>
+              <div class="pl-tx">
+                <b>הרשימה והמרחק הופכים לחישוב</b>
+                <p>לכל פריט ברשימה יש נפח משלו, ולצידו נכנסים המרחק בין הכתובות, הקומה והמעלית בשני הצדדים, והתאריך. אלה כל הנעלמים — <em>אותו קלט ייתן תמיד את אותו מספר</em>.</p>
+              </div>
+            </li>
+            <li>
+              <span class="pl-n" aria-hidden="true">3</span>
+              <div class="pl-tx">
+                <b>הפירוט גלוי, שורה אחר שורה</b>
+                <p>לא סכום אחד סתום שצריך לסמוך עליו: רואים ממה הוא מורכב ומה כל תוספת מוסיפה — אריזה, הרמה במנוף — <em>ומה קורה למספר כשמוסיפים פריט או מורידים אחד</em>.</p>
+              </div>
+            </li>
+          </ol>
         </div>
-        <div class="step-connector reveal"></div>
-        <div class="step reveal">
-          <div class="step-num">02</div>
-          <div class="step-body">
-            <h3>אשר ושלם</h3>
-            <p>המחיר מחושב אוטומטית מהפריטים ומהמרחק. אחרי התשלום מוביל זמין לוקח את ההזמנה.</p>
-          </div>
+
+        <div class="pl-vs reveal">
+          <h3 class="pl-h">ולמה זה לא מובן מאליו</h3>
+          <ul class="pl-rows">
+            <li>
+              <span class="pl-side pl-old"><i>הדרך הרגילה</i>ממלאים טופס, וממתינים שכמה מובילים יחזרו אליך.</span>
+              <span class="pl-side pl-new"><i>כאן</i>הרשימה, המחיר וההזמנה נגמרים ברצף אחד.</span>
+            </li>
+            <li>
+              <span class="pl-side pl-old"><i>הדרך הרגילה</i>מקבלים טווח, והמספר האמיתי נסגר רק בסוף.</span>
+              <span class="pl-side pl-new"><i>כאן</i>מחיר מלא לפני האישור — לא טווח ולא «החל מ-».</span>
+            </li>
+            <li>
+              <span class="pl-side pl-old"><i>הדרך הרגילה</i>שיחת טלפון ואישור ידני של מישהו בצד השני.</span>
+              <span class="pl-side pl-new"><i>כאן</i>אין שיחה ואין אישור ידני — המחיר יוצא מהחישוב עצמו.</span>
+            </li>
+          </ul>
         </div>
-        <div class="step-connector reveal"></div>
-        <div class="step reveal">
-          <div class="step-num">03</div>
-          <div class="step-body">
-            <h3>עקוב בזמן אמת</h3>
-            <p>לאחר אישור, עוקב אחרי המוביל על המפה, מתכתב איתו ישירות ומקבל עדכוני סטטוס.</p>
-          </div>
+      </div>
+
+      <div class="pl-lock reveal">
+        <div class="pl-lock-tx">
+          <h3>ומרגע התשלום — המחיר נעול</h3>
+          <p>עד התשלום המחיר חי: מוסיפים פריט, והמספר מתעדכן מולך. בתשלום הוא ננעל — וזה הסכום שנשאר גם כשהמוביל כבר בדרך.</p>
         </div>
+        <!-- ⚠️ 74.1 — כפתור אינרטי. עמוד תצוגה בלבד: אין כאן `href` ואין
+             לאן ללחוץ. הנראות היא של כפתור ההמשך האמיתי, והשם הנגיש
+             וטבעת המיקוד נשארים כדי שגם הבדיקה במקלדת תהיה אמיתית. -->
+        <span class="pl-cta" role="button" aria-disabled="true" tabindex="0">המשך להזמנה</span>
       </div>
     </div>
   </section>
@@ -1598,6 +1726,36 @@
   <symbol id="ic-route" viewBox="0 0 24 24"><path d="M6.5 3a2.5 2.5 0 0 1 2.5 2.5C9 7.5 6.5 10 6.5 10S4 7.5 4 5.5A2.5 2.5 0 0 1 6.5 3zM17.5 14a2.5 2.5 0 0 1 2.5 2.5c0 2-2.5 4.5-2.5 4.5s-2.5-2.5-2.5-4.5a2.5 2.5 0 0 1 2.5-2.5zM9 6.5h4.5a3.5 3.5 0 0 1 0 7H10"/></symbol>
   <symbol id="ic-cal" viewBox="0 0 24 24"><path d="M4 6h16v15H4zM4 11h16M8 3v4M16 3v4"/></symbol>
 </defs></svg>
+
+  <!-- ══════════════════════════════════════════════════════════════════
+       74.1 — «רק הנראות, בלי לחיצה שתוביל אותי קדימה»
+       ══════════════════════════════════════════════════════════════════
+       הכפתור החדש שלי הוא `<span>` אינרטי מלכתחילה, אבל בהירו יש עוד
+       תשעה קישורים אל `app/` — ובמקטע שביקשת שלא אגע בו בכלל. שינוי
+       ה-`href` שלהם היה נגיעה במקטע מוגמר; הגדר הזה משיג את אותה תוצאה
+       בלי לשנות ולו תו אחד במבנה שלהם.
+
+       ⚠️ **מיירט, לא מנטרל.** הקישורים נשארים `<a href>` אמיתיים —
+       כלומר השם הנגיש, סדר ה-Tab, טבעת המיקוד ושורת המצב של הדפדפן
+       נשארים בדיוק כמו בעמוד האמיתי. רק הניווט עצמו נעצר.
+
+       ⚠️ חל על `app/` בלבד. עוגנים פנימיים (`#features`, `#how-it-works`,
+       `#download`) והניווט העליון ממשיכים לעבוד — הם אלה שמאפשרים לסייר
+       בעמוד. קישורי החנויות נפתחים ממילא בלשונית חדשה ואינם מוציאים
+       אותך מכאן.
+       ══════════════════════════════════════════════════════════════════ -->
+  <script>
+    document.addEventListener('click', function (e) {
+      var a = e.target.closest && e.target.closest('a[href]');
+      if (!a) return;
+      /* `a.href` הוא ה-URL המוחלט שהדפדפן גזר, ולכן נתיב יחסי
+         ("app/login.html") ומוחלט ("/app/…") נתפסים באותה בדיקה. */
+      if (a.href.indexOf(location.origin + '/app/') === 0 ||
+          /(^|\/)app\//.test(a.getAttribute('href') || '')) {
+        e.preventDefault();
+      }
+    }, true);
+  </script>
 
 </body>
 </html>
