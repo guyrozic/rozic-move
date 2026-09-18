@@ -3,10 +3,19 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>ROZIC MOVE — הזמנת הובלה ומעבר דירה אונליין בישראל</title>
-  <meta name="description" content="פלטפורמה ישראלית להזמנת הובלות: מעבר דירה, מובילים בקטנה ושירות אריזה. בונים רשימת פריטים, מקבלים מחיר לפני אישור, ועוקבים אחרי המוביל בזמן אמת — באפליקציה או ישירות מהדפדפן.">
-  <link rel="canonical" href="https://rozicmove.com/">
-  <meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large">
+  <title>תצוגת עיצוב — סיום שקט (החלק התחתון של עמוד הבית)</title>
+  <meta name="description" content="עמוד תצוגה פנימי: חלופה לאזור ההורדה והפוטר בעמוד הבית — רצועה אחת דקה במקום בלוק כהה, ופוטר שנושא את המשקל.">
+
+  <!-- ⚠️ עמוד תצוגה פנימי: `noindex`, ואינו ב-`sitemap.xml`.
+       הוא **כן** נגיש פומבית ב-rozicmove.com/preview-foot-quiet.html,
+       ולכן עובר את אותן בדיקות נגישות כמו כל דף אחר, ויורד אחרי ההכרעה.
+
+       ⚠️ אין `canonical` בכוונה — canonical אל "/" היה מצהיר שהעמוד הזה
+       הוא עמוד הבית, בדיוק ההפך ממה ש-`noindex` אומר.
+
+       ⚠️ העמוד הוא `cp index.html` מלא ולא קובץ חדש: כל מה שמעל מקטע
+       ההורדה זהה לאות לעמוד החי, כי החלופה הזאת נשפטת דווקא ביחס אליו. -->
+  <meta name="robots" content="noindex">
 
   <!-- Open Graph / social + AI crawlers -->
   <meta property="og:type" content="website">
@@ -31,6 +40,132 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css?v=57257b7b">
+
+  <!-- ══════════════════════════════════════════════════════════════════
+       חלופה ד׳ — "סיום שקט": פחות משקל בסוף
+       ══════════════════════════════════════════════════════════════════
+       שלוש החלופות האחרות מוסיפות נוכחות לתחתית. זו **מורידה** אותה.
+
+       המצב היום: אחרי ההירו הכהה, מקטע המסע, מקטע המובילים (navy) ומקטע
+       השאלות — התחתית היא **בלוק navy של 90px ריפוד** ואחריו **בלוק ירוק
+       כהה**. שני משטחים כבדים ברצף, בדיוק במקום שבו העין כבר עייפה.
+
+       מה יש כאן במקום: **רצועה אחת** על רקע לבן, עם אותו מסר ואותם שלושה
+       כפתורים, ומתחתיה הפוטר — **המסה הכהה היחידה בסוף העמוד**.
+
+       ── למה זה "מכוון" ולא "זנוח" ──────────────────────────────────────
+       1. הרצועה אינה רכיב חדש: היא **התאומה הבהירה של `.hp-app-inline`**,
+          רצועת האפליקציה שבתוך טור ההירו (style.css:2502). אותה אנטומיה
+          בדיוק — קו שיער עליון, שורת טקסט קצרה, ושלישיית `.btn-store`
+          לצידה. החלק העליון והתחתון של העמוד מדברים באותו משפט, אחד על
+          כהה ואחד על בהיר. זה ה"מתכתב עם החלק העליון".
+       2. **הקצוות מיושרים.** הרצועה והפוטר יושבים שניהם ב-`.container`,
+          הטקסט נצמד לתחילת השורה והכפתורים לסופה — בדיוק כמו
+          `.footer-brand` ו-`.footer-links` שמתחתיהם. נוצר קו אנכי אחד
+          שעובר דרך שני הבלוקים. יישור הוא מה שמבדיל "שקט" מ"לא גמור".
+       3. **ההיררכיה נשמרת, רק הסקאלה יורדת.** הכותרת יורדת מ-3.1rem
+          ל-1.9rem, אבל שלוש הדרגות (תווית · כותרת · שורת משנה) נשארות
+          מובחנות במשקל ובצבע. זה לא "אותו דבר קטן", זו אותה היררכיה
+          בסקאלה של רצועה.
+       4. **הכפתורים לא הוקטנו.** הם נשארים `.btn-store.large` במלואם,
+          עם רצפת 44px ליעד מגע. הרצועה שקטה — ה-CTA לא.
+
+       ── צבע ────────────────────────────────────────────────────────────
+       אין כאן ולו גוון כחול אחד. ה-navy (`--navy`) שהיה רקע המקטע ירד
+       לגמרי. היחיד שנשאר הוא `#4285F4` שבתוך ה-SVG של Google Play —
+       הלוגו הרשמי, דרישת מותג, ואסור לצבוע אותו מחדש.
+
+       כפתור Google על רקע לבן היה נעלם (רקע לבן + מסגרת ב-10% שקיפות),
+       ולכן הוא מקבל כאן את התבנית המתועדת של **כלל שני הירוקים**:
+       אלמנט ש"נשאר מסגרת" מקבל `--green-tint` כרקע ו---green-line כמסגרת,
+       בעוד `--green` המלא שמור לכפתור שמתמלא ("הזמן באתר").
+       ⚠️ `check-a11y` אינו בודק `background` — הרקעים כאן על אחריות
+       המעצב, ולכן כולם מטוקנים קיימים ולא מערכים גולמיים.
+       ══════════════════════════════════════════════════════════════════ -->
+  <style>
+    /* ── הרצועה ───────────────────────────────────────────────────── */
+    .fq {
+      /* לבן, ולא --bg כמו מקטע השאלות שמעליו: העמוד **מתבהר** בסופו
+         במקום להיחסם בעוד משטח כהה. ההפרש מ---bg קטן בכוונה — קו
+         השיער הוא שמפריד, לא ניגוד. */
+      background: var(--white);
+      border-block-start: 1px solid var(--border);
+      /* 90px היו הריפוד של `.download-section`. הרצועה חיה על כשליש. */
+      padding-block: clamp(30px, 3.4vw, 42px);
+    }
+
+    .fq-inner {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: clamp(18px, 2.6vw, 44px);
+      flex-wrap: wrap;
+    }
+
+    .fq-text { flex: 1 1 260px; }
+
+    /* `.section-label` מגיע מהאתר עצמו — אותה תווית של כל מקטע אחר.
+       רק המרווח שמתחתיה מתהדק לקצב של רצועה. */
+    .fq-text .section-label { margin-bottom: 4px; }
+
+    .fq-title {
+      font-size: clamp(1.4rem, 2.1vw, 1.9rem);
+      font-weight: 900;
+      letter-spacing: -0.5px;
+      line-height: 1.25;
+      color: var(--text);
+      margin: 0;
+    }
+
+    .fq-desc {
+      font-size: 0.92rem;
+      color: var(--text-muted);
+      margin: 6px 0 0;
+    }
+
+    .fq-btns {
+      display: flex;
+      gap: 10px;
+      /* ⚠️ `nowrap` בכוונה. עם `wrap`, רוחב ה-min-content של הקבוצה הוא
+         כפתור אחד — ואז בטווח 760–900px הכפתור השלישי נושר לשורה שנייה
+         *בתוך* הקבוצה ומשאיר שתיים-ואחד עקום. `nowrap` מכריח את שלושתם
+         להישאר יחידה אחת: או שורה אחת מיושרת, או ירידה שלמה מתחת לטקסט. */
+      flex-wrap: nowrap;
+      flex: none;
+    }
+
+    /* רצפה מפורשת ליעד המגע (WCAG 2.5.8) — `.btn-store` כולו ב-em,
+       וה-clamp יכול להוריד אותו מתחת ל-44px במסך צר. */
+    .fq .btn-store.large { min-height: 46px; }
+
+    /* ⚠️ על לבן, `.btn-google` (רקע לבן + מסגרת ב---border, 10%) נעלם.
+       זו בדיוק התבנית של "אלמנט שנשאר מסגרת" מהפלטה. */
+    .fq .btn-google {
+      background: var(--green-tint);
+      border-color: var(--green-line);
+    }
+    .fq .btn-google:hover { border-color: var(--green-line); background: var(--white); }
+
+    @media (max-width: 760px) {
+      .fq-inner { flex-direction: column; align-items: stretch; gap: 20px; }
+      /* שלושה כפתורים ברוחב מלא — ברצועה צרה עדיף עמוד אחד ברור על
+         פני שלוש עמודות דחוסות. ה-CTA האחרון בעמוד נשאר הכי לחיץ. */
+      .fq-btns { flex-direction: column; }
+      .fq-btns .btn-store { justify-content: center; }
+      .fq-btns .btn-store div { text-align: center; }
+    }
+
+    /* ── הפוטר — המסה היחידה בסוף ─────────────────────────────────── */
+    /* הוא לא משתנה במבנה: כל הקישורים, פרטי העוסק, הטלפון, המייל
+       והדפים המשפטיים נשארים כפי שהם — הם חובה ולא קישוט. מה שמשתנה
+       הוא שהוא כבר לא הבלוק הכבד **השני** ברצף, ולכן הוא יכול לנשום. */
+    .fq-footer { padding-top: clamp(34px, 3.6vw, 44px); }
+
+    /* הלוגו הוא עכשיו המשפט הסוגר של העמוד ולא הערת שוליים אחרי
+       כותרת של 3.1rem. חצי דרגה למעלה — לא יותר. */
+    .fq-footer .footer-logo { font-size: 1.22rem; }
+    .fq-footer .footer-logo svg { width: 1.1rem; height: 1.1rem; }
+  </style>
 
   <!--
     Structured data (JSON-LD). Kept deliberately free of prices, ratings and review
@@ -1610,17 +1745,26 @@
     </div>
   </section>
 
-  <!-- Download CTA -->
-  <section class="download-section" id="download">
-    <div class="download-bg">
-      <div class="dl-shape-1"></div>
-      <div class="dl-shape-2"></div>
-    </div>
-    <div class="container download-content reveal">
-      <p class="section-label light">מוכנים להתחיל?</p>
-      <h2>הורד את ROZIC MOVE</h2>
-      <p class="download-desc">חינם להורדה. זמין ב-iOS וב-Android.</p>
-      <div class="download-buttons">
+  <!-- ══════════════════════════════════════════════════════════════════
+       הרצועה — במקום מקטע ההורדה הכהה
+       ══════════════════════════════════════════════════════════════════
+       ⚠️ `id="download"` נשאר: הפוטר מקשר אליו ("הורד את האפליקציה"),
+       וגם הניווט העליון. שינוי המזהה היה שובר קישור קיים בעמוד.
+
+       ⚠️ שלוש מחרוזות הטקסט זהות למילה לאלה שבעמוד החי — גיא אמר
+       "טוב מבחינת תוכן, לא מבחינה עיצובית". רק הסקאלה והפריסה השתנו.
+
+       ⚠️ `.download-bg` על שני העיגולים הדקורטיביים שלו ירד: הוא היה
+       קיים כדי לרכך משטח כהה גדול, ואין כאן משטח כהה גדול.
+       ══════════════════════════════════════════════════════════════════ -->
+  <section class="fq" id="download">
+    <div class="container fq-inner reveal">
+      <div class="fq-text">
+        <p class="section-label">מוכנים להתחיל?</p>
+        <h2 class="fq-title">הורד את ROZIC MOVE</h2>
+        <p class="fq-desc">חינם להורדה. זמין ב-iOS וב-Android.</p>
+      </div>
+      <div class="fq-btns">
         <a tabindex="0" href="https://apps.apple.com/app/id6783814838" target="_blank" class="btn-store btn-apple large">
           <svg width="22" height="27" viewBox="0 0 20 24" fill="none" aria-hidden="true">
             <path d="M16.5 12.7c0-3.2 2.6-4.7 2.7-4.8-1.5-2.1-3.7-2.4-4.5-2.4-1.9-.2-3.7 1.1-4.7 1.1-1 0-2.5-1.1-4.1-1-2.1 0-4 1.2-5.1 3-2.2 3.8-.6 9.4 1.6 12.5 1 1.5 2.3 3.2 3.9 3.2 1.6-.1 2.2-1 4.1-1s2.4 1 4.1.9c1.7 0 2.8-1.5 3.8-3 1.2-1.7 1.7-3.4 1.7-3.5-.1 0-3.5-1.3-3.5-5zm-3.3-9.5c.9-1 1.4-2.4 1.3-3.8-1.2.1-2.7.8-3.6 1.8-.8.9-1.5 2.3-1.3 3.7 1.3.1 2.7-.7 3.6-1.7z" fill="currentColor"/>
@@ -1658,17 +1802,12 @@
   </main>
 
   <!-- Footer -->
-  <footer class="footer">
+  <footer class="footer fq-footer">
     <div class="footer-inner container">
       <div class="footer-brand">
         <div class="footer-logo">
           <svg width="16" height="16" viewBox="0 0 18 18" fill="none" aria-hidden="true">
-            <!-- ⚠️ 18.9 — היה `stroke="#0E5C43"` על רקע הפוטר `#1C4035`:
-                 **1.43:1**, כלומר החץ היה בלתי-נראה בפועל. הוא הועתק
-                 מהלוגו שבניווט, שם הרקע לבן. `currentColor` יורש את
-                 הלבן של `.footer-logo` — 11.45:1 — והוא גם מה שימנע
-                 את החזרה אם צבע הפוטר ישתנה שוב. -->
-            <path d="M3 9h12M9 3l6 6-6 6" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M3 9h12M9 3l6 6-6 6" stroke="#0E5C43" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
           </svg>
           ROZIC MOVE
         </div>
@@ -1987,5 +2126,67 @@
 </defs></svg>
 
   <script type="module" src="support-fab.js?v=4dec6326"></script>
+
+  <!-- ══════════════════════════════════════════════════════════════════
+       תצוגה בלבד — נטרול כל מה שמוביל לזרימת ההזמנה (74.1א)
+       ══════════════════════════════════════════════════════════════════
+       ⚠️ **למה זה סקריפט ולא עריכה ב-HTML.** ההירו והניווט הוכרזו מוגמרים,
+       וכל הקישורים אל `app/` יושבים בתוכם. עריכת `href` שם הייתה הופכת
+       את העמוד ללא-עותק-של-`index.html`, וזה בדיוק מה שהפיל סבב קודם.
+       המסמך נשאר זהה, והנטרול חי כאן בלבד — שכבה שיורדת עם העמוד.
+
+       ⚠️ **קישור חיצוני נפסל לפני בדיקת הנתיב.** הנתיב של
+       `apps.apple.com/app/id6783814838` הוא `/app/id6783814838` — כלומר
+       מכיל `/app/`, ובדיקת נתיב לבדה הייתה מנטרלת את כפתור ה-App Store
+       דווקא ברצועה שהיא נושא הסבב הזה.
+
+       ⚠️ **לא מסירים `href`.** `rmApplyNavAuth` שבתחתית העמוד מחזיר
+       `href` לקישור ההתחברות כשתשובת Firebase מגיעה, ודורס הסרה בשקט.
+       לכן `aria-disabled` + חסימת click/Enter בשלב ה-capture.
+
+       ⚠️ הקישורים **נשארים ממוקדים ב-Tab** ושומרים על השם הנגיש שלהם —
+       נוספת רק הודעה לקורא מסך. זה ההפך מ-`pointer-events:none`.
+       ══════════════════════════════════════════════════════════════════ -->
+  <script>
+    (function () {
+      var NOTE = ' — תצוגה בלבד, הקישור מנוטרל בעמוד הזה';
+
+      var links = document.querySelectorAll('a[href]');
+      for (var i = 0; i < links.length; i++) {
+        var a = links[i];
+        var url;
+        try { url = new URL(a.getAttribute('href'), location.href); } catch (e) { continue; }
+
+        /* ⚠️ החיצוני קודם — ראו ההערה למעלה על apps.apple.com/app/. */
+        if (url.origin !== location.origin) continue;
+        if (url.pathname.indexOf('/app/') === -1) continue;
+
+        a.setAttribute('aria-disabled', 'true');
+        a.setAttribute('data-preview-inert', '');
+
+        /* `<span>` חדש עם textContent, ולא הוספה ל-innerHTML: בסרגל
+           הניווט הכיתוב מוחלף דינמית ע"י `rmApplyNavAuth`, ודריסת ה-HTML
+           כאן הייתה מוחקת את ה-`[data-auth-label]` שהוא מחפש. */
+        var note = document.createElement('span');
+        note.className = 'hp-sr';
+        note.textContent = NOTE;
+        a.appendChild(note);
+      }
+
+      /* מאזין יחיד ב-capture: רץ לפני הגלילה החלקה ולפני כל מאזין אחר,
+         כך שגם קליק על אייקון בתוך הקישור נתפס דרך `closest`. */
+      document.addEventListener('click', function (e) {
+        var a = e.target.closest && e.target.closest('a[data-preview-inert]');
+        if (a) { e.preventDefault(); e.stopPropagation(); }
+      }, true);
+
+      /* Enter על קישור ממוקד אינו עובר דרך `click` בכל הדפדפנים. */
+      document.addEventListener('keydown', function (e) {
+        if (e.key !== 'Enter') return;
+        var a = e.target.closest && e.target.closest('a[data-preview-inert]');
+        if (a) e.preventDefault();
+      }, true);
+    })();
+  </script>
 </body>
 </html>

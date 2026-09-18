@@ -3,10 +3,14 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>ROZIC MOVE — הזמנת הובלה ומעבר דירה אונליין בישראל</title>
-  <meta name="description" content="פלטפורמה ישראלית להזמנת הובלות: מעבר דירה, מובילים בקטנה ושירות אריזה. בונים רשימת פריטים, מקבלים מחיר לפני אישור, ועוקבים אחרי המוביל בזמן אמת — באפליקציה או ישירות מהדפדפן.">
-  <link rel="canonical" href="https://rozicmove.com/">
-  <meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large">
+  <title>תצוגת עיצוב — סגירה ירוקה אחת (אזור ההורדה והפוטר)</title>
+  <meta name="description" content="עמוד תצוגה פנימי. עותק של עמוד הבית שבו אזור ההורדה והפוטר מתאחדים למשטח ירוק אחד רציף, בלי הבלוק הכחול שהפריד ביניהם.">
+  <!-- ⚠️ עמוד תצוגה פנימי: `noindex`, ואינו ב-`sitemap.xml`.
+       הוא **כן** נגיש פומבית ב-rozicmove.com/preview-foot-green.html,
+       ולכן הוא עובר את אותן בדיקות נגישות כמו כל דף אחר, וירד אחרי ההכרעה.
+       ⚠️ אין `canonical` בכוונה — canonical אל "/" היה מצהיר שהעמוד הזה
+       הוא עמוד הבית, בדיוק ההפך ממה ש-`noindex` אומר. -->
+  <meta name="robots" content="noindex">
 
   <!-- Open Graph / social + AI crawlers -->
   <meta property="og:type" content="website">
@@ -895,6 +899,261 @@
     .jr-stops .jr-stop { transition-delay: 0s; }
   }
   </style>
+
+  <!-- ══════════════════════════════════════════════════════════════════
+       תצוגת עיצוב — "סגירה ירוקה אחת" (`fg-` = foot-green)
+       ══════════════════════════════════════════════════════════════════
+       הבעיה שהעיצוב הזה תוקף: היום תחתית העמוד היא **שני בלוקים ענקיים
+       בשני צבעים** — אזור הורדה על `--navy` ואחריו פוטר ירוק. זה תופר
+       את העמוד לשניים, והצבע העליון הוא כחול.
+
+       הפתרון: אזור ההורדה והפוטר הופכים ל**משטח ירוק אחד רציף**, שממשיך
+       את מתכון הרקע של ההירו עד תחתית העמוד. הצבע שבו נגמר אזור ההורדה
+       הוא **בדיוק** הצבע שבו מתחיל הפוטר, ולכן אין תפר.
+
+       ⚠️ הסכנה שהוזהרתי מפניה היא "קיר ירוק". ההיררכיה בתוך הירוק נבנית
+       מארבעה דברים, כולם מטוקנים קיימים ולא מגוונים מומצאים:
+         1. **מדרגת גובה** — `--green` בראש ה-CTA יורד אל `--green-dark`
+            בפוטר. אור למעלה, שקט למטה.
+         2. **הזוהר** (`--green-glow`) יושב **רק** ב-CTA, בצד הכפתורים,
+            כמו הזוהר בהירו שיושב בצד הכרטיס. הפוטר נשאר בלי זוהר.
+         3. **רשת הנקודות** של ההירו (15px, `--green-wash`) רצה על שני
+            החלקים — זה מה שקושר את תחתית העמוד לראשו.
+         4. **קו הפרדה** ב---green-line: התפר שהיה מקרי הופך לקו מכוון.
+       בנוסף ה-CTA עבר ממרכוז לשני טורים (טקסט/כפתורים), בדיוק כמו
+       ההרכב הדו-טורי של ההירו.
+
+       ⚠️ ניגודיות — כל צבע טקסט כאן נמדד מול **הפיקסל הגרוע ביותר**
+       שמתחתיו, כלומר הרקע + הזוהר במלוא עוצמתו + נקודה מלאה של הרשת:
+         · ב-CTA הפיקסל הגרוע הוא #277256 (‎--green + glow 0.14 + dot 0.06)
+           לבן 5.79:1 · --green-wash 5.00:1
+         · בפוטר הפיקסל הגרוע הוא #174F3E (‎--green-dark + dot 0.06)
+           לבן 9.44:1 · --green-wash 8.15:1 · --green-on-dark 5.36:1
+           · rgba(255,255,255,0.62) 4.73:1
+       ⚠️ `--green-wash` על `--green` יוצא אצלי 6.89:1, בדיוק כפי שכתוב
+       ליד הטוקן — זו האימות של שיטת החישוב.
+       ⚠️ `--orange` משמש כאן **רק** כנקודה דקורטיבית בקוטר 7px, לפי
+       ייעוד הטוקן. אין עליו טקסט לבן (3.02:1).
+       ⚠️ `--green-line` משמש **רק** כקו/מסגרת, לעולם לא כצבע טקסט.
+       ══════════════════════════════════════════════════════════════════ -->
+  <style>
+  /* ── המשטח: מ---green בראש ה-CTA אל --green-dark בתחתית הפוטר ────── */
+  .download-section.fg-close {
+    background: linear-gradient(180deg, var(--green) 0%, var(--green-dark) 100%);
+    padding: clamp(66px, 6.4vw, 104px) 0 clamp(58px, 5.6vw, 88px);
+    text-align: start;
+    position: relative;
+    overflow: hidden;
+  }
+
+  /* הפוטר מתחיל **באותו** --green-dark שבו ה-CTA נגמר — זה מה שהופך
+     שני אלמנטים נפרדים למשטח אחד. `padding-top: 0` כי הקו והריווח
+     מגיעים מ-.fg-foot-inner. */
+  .footer.fg-foot {
+    background: var(--green-dark);
+    padding-top: 0;
+    position: relative;
+    overflow: hidden;
+    /* התפר הופך לקו מכוון. `--green-line` הוא טוקן "מסגרת בלבד", וזה
+       בדיוק השימוש שלו. `color-mix` ולא `rgb(from …)`: הוא נתמך מוקדם
+       יותר, וכאן אין נפילה חיננית — קו שלא נצבע הוא תפר שחוזר. */
+    border-block-start: 1px solid color-mix(in srgb, var(--green-line) 24%, transparent);
+  }
+  @supports not (color: color-mix(in srgb, red 50%, transparent)) {
+    .footer.fg-foot { border-block-start-color: rgba(255, 255, 255, 0.14); }
+  }
+
+  /* רשת הנקודות של ההירו — אותו צעד (15px) ואותו טוקן. 0.06 ולא 0.09:
+     המשטח כאן כהה מזה של ההירו, והנקודה הבודדת היא הפיקסל שקובע את
+     הניגודיות מתחת לאות. ראו המדידות בהערה שמעל. */
+  .fg-close::before,
+  .fg-foot::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+    background-image: radial-gradient(circle at 1px 1px, var(--green-wash) 1px, transparent 1px);
+    background-size: 15px 15px;
+    opacity: 0.06;
+  }
+
+  /* הזוהר — בן-הזוג של הזוהר בהירו, ובאותו היגיון: הוא יושב בצד
+     ה**כפתורים** (אטומים) ולא בצד הטקסט. `inset-inline-start` הוא
+     שמאל ב-RTL, כלומר בדיוק מאחורי שלושת הכפתורים. */
+  .fg-close::after {
+    content: '';
+    position: absolute;
+    z-index: 0;
+    pointer-events: none;
+    inset-block-start: -36%;
+    inset-inline-start: -6%;
+    width: min(680px, 58%);
+    aspect-ratio: 1;
+    border-radius: 50%;
+    background: radial-gradient(circle,
+      rgb(from var(--green-glow) r g b / 0.14) 0%,
+      rgb(from var(--green-glow) r g b / 0) 70%);
+  }
+  /* בלי `rgb(from …)` עדיף שהזוהר פשוט לא ייצבע — אותה החלטה כמו בהירו. */
+  @supports not (color: rgb(from white r g b / 1)) {
+    .fg-close::after { background: none; }
+  }
+
+  /* ── ה-CTA: שני טורים, כמו ההירו ─────────────────────────────────── */
+  .fg-cta {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: clamp(30px, 4.4vw, 76px);
+  }
+
+  /* ⚠️ `min-width: 0` על שני הטורים: בלעדיו טור ברירת המחדל של flex
+     אינו מתכווץ מתחת לרוחב התוכן שלו, ובטווח שבין 900px לקונטיינר
+     המלא שלישיית הכפתורים הייתה דוחפת את הטקסט אל מחוץ למסך במקום
+     לרדת לשורה שנייה. */
+  .fg-cta-text { max-width: 34ch; flex: 1 1 auto; min-width: 0; }
+
+  .fg-eyebrow {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    font-size: 0.78rem;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--green-wash);
+    margin-bottom: 14px;
+  }
+  /* הנקודה הכתומה — הניצוץ היחיד שאינו ירוק על כל המשטח, וזה בדיוק
+     הייעוד שרשום ליד `--orange`: נקודה דקורטיבית, בלי טקסט מעליה. */
+  .fg-eyebrow::before {
+    content: '';
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--orange);
+    flex: none;
+  }
+
+  .fg-title {
+    font-size: clamp(2rem, 4.2vw, 3rem);
+    font-weight: 900;
+    letter-spacing: -0.8px;
+    line-height: 1.12;
+    color: var(--white);
+    margin-bottom: 12px;
+  }
+
+  .fg-desc {
+    font-size: 1.02rem;
+    line-height: 1.55;
+    color: var(--green-wash);
+    margin: 0;
+  }
+
+  /* `.download-buttons` נשמר בכוונה — כל ההתנהגות הרספונסיבית של
+     שלושת הכפתורים (הערמה ב-900px, הכרטיסים ב-680px) כבר כתובה עליו
+     ב-style.css, ואין סיבה לכתוב אותה מחדש. */
+  .fg-cta .download-buttons {
+    justify-content: flex-end;
+    gap: 12px;
+    flex: 0 1 auto;
+    min-width: 0;
+  }
+
+  /* ⚠️ כפתורי החנות תוכננו לרקע כהה — ועל הירוק הם עובדים דווקא הפוך
+     ממה שהיה על הכחול: שני כפתורי החנויות נעשים **לבנים מלאים**, כי זה
+     גם הרקע שהלוגו הרשמי של Google Play אמור לשבת עליו. ההיגיון הזה
+     כבר קיים באתר — `.hp-app-inline .btn-apple` עושה בדיוק את זה על
+     הירוק של ההירו. */
+  .fg-cta .btn-apple,
+  .fg-cta .btn-google {
+    background: var(--white);
+    color: var(--text);
+    border: 1.5px solid transparent;
+  }
+  .fg-cta .btn-apple:hover,
+  .fg-cta .btn-google:hover { background: var(--bg); }
+  .fg-cta .btn-google small { opacity: 0.75; }
+
+  /* "הזמן באתר" הוא החלופה ולא החנות, ולכן הוא הכפתור ה**מתואר**:
+     מילוי כהה מאותו משטח ומסגרת ב---green-line. לבן על --green-dark
+     הוא 11.13:1. */
+  .fg-cta .btn-web {
+    background: var(--green-dark);
+    color: var(--white);
+    border: 1.5px solid color-mix(in srgb, var(--green-line) 55%, transparent);
+  }
+  .fg-cta .btn-web:hover {
+    background: var(--green-dark);
+    border-color: var(--green-line);
+    box-shadow: none;
+  }
+  @supports not (color: color-mix(in srgb, red 50%, transparent)) {
+    .fg-cta .btn-web { border-color: rgba(255, 255, 255, 0.34); }
+  }
+
+  /* ── הפוטר על אותו משטח ──────────────────────────────────────────── */
+  .fg-foot-inner {
+    position: relative;
+    z-index: 1;
+    padding-block: clamp(34px, 3.4vw, 48px) clamp(26px, 2.6vw, 34px);
+  }
+
+  .fg-foot .footer-logo { color: var(--white); }
+  .fg-foot .footer-tagline,
+  .fg-foot .footer-copy { color: var(--green-wash); }
+
+  /* כותרת העמודה מקבלת את הירוק-על-כהה במקום לבן דהוי: זה גוון שלישי
+     בתוך אותה משפחה, והוא מה שמונע מארבע העמודות להיראות כמו גוש אחד.
+     5.36:1 על הפיקסל הגרוע בפוטר. */
+  .fg-foot .footer-col-title { color: var(--green-on-dark); }
+  .fg-foot .footer-col a { color: var(--green-wash); }
+  .fg-foot .footer-col a:hover { color: var(--white); }
+
+  .fg-foot .footer-divider {
+    position: relative;
+    z-index: 1;
+    background: rgba(255, 255, 255, 0.09);
+  }
+
+  .fg-bottom {
+    position: relative;
+    z-index: 1;
+    padding-block: 15px 18px;
+  }
+  .fg-bottom p.footer-business { color: var(--green-wash); }
+  /* השורה האחרונה היא ההערה השקטה ביותר בעמוד — 4.73:1 מדוד, עובר AA. */
+  .fg-bottom p { color: rgba(255, 255, 255, 0.62); }
+
+  /* ── מתחת ל-900px: הטורים נערמים, הכול חוזר למרכז ────────────────── */
+  @media (max-width: 900px) {
+    .download-section.fg-close { text-align: center; }
+    .fg-cta {
+      flex-direction: column;
+      align-items: center;
+      gap: 30px;
+    }
+    .fg-cta-text { max-width: 40ch; }
+    .fg-eyebrow { justify-content: center; }
+    .fg-cta .download-buttons { justify-content: center; width: 100%; }
+    /* הזוהר עובר מתחת לכפתורים, שעברו למטה — בדיוק מה שההירו עושה
+       באותה נקודת שבירה. */
+    .fg-close::after {
+      inset-block-start: auto;
+      inset-block-end: -26%;
+      inset-inline-start: 50%;
+      transform: translateX(-50%);
+      width: min(460px, 86%);
+    }
+    /* ⚠️ `.footer-inner` נערם לעמודה ב-900px דרך style.css; ה-inner
+       שלנו רק מחזיר את הריווח האנכי שהוקטן. */
+    .fg-foot-inner { padding-block: 30px 24px; }
+  }
+  </style>
 </head>
 <!-- ⚠️ 15.9 — `has-nav-menu` מסמנת שלדף יש תפריט המבורגר. רק כאן.
      ה-CSS מסתיר את קישורי הניווט מתחת ל-680px **רק** בדף שיש בו מה
@@ -1610,16 +1869,19 @@
     </div>
   </section>
 
-  <!-- Download CTA -->
-  <section class="download-section" id="download">
-    <div class="download-bg">
-      <div class="dl-shape-1"></div>
-      <div class="dl-shape-2"></div>
-    </div>
-    <div class="container download-content reveal">
-      <p class="section-label light">מוכנים להתחיל?</p>
-      <h2>הורד את ROZIC MOVE</h2>
-      <p class="download-desc">חינם להורדה. זמין ב-iOS וב-Android.</p>
+  <!-- ═══ סגירת העמוד, חלק א': הקריאה לפעולה ═══
+       ⚠️ `class="download-section"` ו-`id="download"` נשמרים כמות שהם,
+       ולא מטעמי נוחות: עליהם תלויים קישור הפוטר `#download`, וכלל טבעת
+       המיקוד `.download-section :is(a,button,…):focus-visible` שמחליף
+       את הטבעת הירוקה בטבעת `--green-on-dark` הנראית על משטח כהה.
+       שם חדש היה משתיק את שניהם בשקט. -->
+  <section class="download-section fg-close" id="download">
+    <div class="container fg-cta reveal">
+      <div class="fg-cta-text">
+        <p class="fg-eyebrow">מוכנים להתחיל?</p>
+        <h2 class="fg-title">הורד את ROZIC MOVE</h2>
+        <p class="fg-desc">חינם להורדה. זמין ב-iOS וב-Android.</p>
+      </div>
       <div class="download-buttons">
         <a tabindex="0" href="https://apps.apple.com/app/id6783814838" target="_blank" class="btn-store btn-apple large">
           <svg width="22" height="27" viewBox="0 0 20 24" fill="none" aria-hidden="true">
@@ -1657,17 +1919,19 @@
 
   </main>
 
-  <!-- Footer -->
-  <footer class="footer">
-    <div class="footer-inner container">
+  <!-- ═══ סגירת העמוד, חלק ב': הפוטר — אותו משטח, מדרגה אחת עמוק יותר ═══
+       ⚠️ כל הקישורים והמידע המשפטי נשארים כמות שהם: ארבע עמודות
+       הקישורים, הטלפון והמייל (תקנה 34(א)(3)), הדפים המשפטיים ופרטי
+       העוסק. מה שהשתנה כאן הוא הרקע והצבעים בלבד. -->
+  <footer class="footer fg-foot">
+    <div class="footer-inner container fg-foot-inner">
       <div class="footer-brand">
+        <!-- ⚠️ החץ היה `stroke="#0E5C43"` — כלומר `--green` על רקע ירוק
+             כהה, ובפועל כמעט בלתי-נראה גם היום. `currentColor` מוריש את
+             הלבן של `.footer-logo`, וזו גם התבנית שהאתר כבר משתמש בה
+             באיור המשאית בהירו (`stroke="currentColor"` ולא אטריביוט hex). -->
         <div class="footer-logo">
           <svg width="16" height="16" viewBox="0 0 18 18" fill="none" aria-hidden="true">
-            <!-- ⚠️ 18.9 — היה `stroke="#0E5C43"` על רקע הפוטר `#1C4035`:
-                 **1.43:1**, כלומר החץ היה בלתי-נראה בפועל. הוא הועתק
-                 מהלוגו שבניווט, שם הרקע לבן. `currentColor` יורש את
-                 הלבן של `.footer-logo` — 11.45:1 — והוא גם מה שימנע
-                 את החזרה אם צבע הפוטר ישתנה שוב. -->
             <path d="M3 9h12M9 3l6 6-6 6" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
           </svg>
           ROZIC MOVE
@@ -1707,7 +1971,7 @@
       </div>
     </div>
     <div class="footer-divider"></div>
-    <div class="footer-bottom container">
+    <div class="footer-bottom container fg-bottom">
       <p class="footer-business">ROZIC MOVE, גיא רוזיק, עוסק מורשה 212942577, הגבעה 42 כפר האורנים, support@rozicmove.com</p>
       <p>כל הזכויות שמורות · מדינת ישראל</p>
     </div>
@@ -1987,5 +2251,75 @@
 </defs></svg>
 
   <script type="module" src="support-fab.js?v=4dec6326"></script>
+
+  <!-- ══════════════════════════════════════════════════════════════════
+       תצוגה בלבד — נטרול הקישורים אל זרימת ההזמנה (הכרעת גיא 74.1א)
+       ══════════════════════════════════════════════════════════════════
+       ⚠️ **למה סקריפט ולא עריכה ב-HTML.** רוב הקישורים אל `app/` יושבים
+       בהירו ובסרגל הניווט — אזורים שאסור לגעת בהם בעמוד הזה. מעבר לכך,
+       `rmApplyNavAuth` בתחתית המסמך **מחזיר `href`** לקישור ההתחברות
+       כשתשובת Firebase מגיעה, ולכן הסרת `href` נדרסת בשקט. הנטרול חי
+       כאן בלבד, בשכבה אחת שיורדת יחד עם העמוד.
+
+       ⚠️ `aria-disabled` ולא `disabled`/`pointer-events:none` — הקישורים
+       נשארים ממוקדים ב-Tab ושומרים על השם הנגיש שלהם, כדי שאפשר יהיה
+       לבדוק את טבעת המיקוד על המשטח הירוק, שהיא חלק ממה שנבדק כאן.
+
+       ⚠️ **הקישור החיצוני נפסל לפני בדיקת הנתיב.** `apps.apple.com/app/id…`
+       מכיל `/app/` ב-pathname, ולכן בדיקת נתיב בלבד הייתה מנטרלת דווקא
+       את כפתור App Store — הכפתור המרכזי במקטע שאנחנו באים להראות.
+       ══════════════════════════════════════════════════════════════════ -->
+  <script>
+    (function () {
+      var NOTE = ' — תצוגה בלבד, הקישור מנוטרל בעמוד הזה';
+
+      /* עוגנים שהיעד שלהם אינו קיים בעמוד. הבדיקה היא על קיום היעד
+         בפועל ולא על רשימה קשיחה. */
+      var anchors = document.querySelectorAll('a[href^="#"]');
+      for (var k = 0; k < anchors.length; k++) {
+        var id = anchors[k].getAttribute('href').slice(1);
+        if (!id || document.getElementById(id)) continue;
+        anchors[k].setAttribute('aria-disabled', 'true');
+        anchors[k].addEventListener('click', function (e) { e.preventDefault(); });
+      }
+
+      /* `a[href]` ואז סינון לפי ה-URL המפוענח, ולא בורר CSS על תחילית:
+         `href` מופיע גם כ-"app/login.html?next=account.html" וגם
+         כ-"app/apartment.html#start-chat". */
+      var links = document.querySelectorAll('a[href]');
+      for (var i = 0; i < links.length; i++) {
+        var a = links[i];
+        var url;
+        try { url = new URL(a.getAttribute('href'), location.href); } catch (e) { continue; }
+        /* ⚠️ הסדר כאן הוא הממצא — מוצא חיצוני יוצא ראשון. */
+        if (url.origin !== location.origin) continue;
+        if (url.pathname.indexOf('/app/') === -1) continue;
+
+        a.setAttribute('aria-disabled', 'true');
+        a.setAttribute('data-preview-inert', '');
+        /* ⚠️ `<span>` חדש ולא הוספה ל-innerHTML: בסרגל הניווט הכיתוב
+           מוחלף דינמית ע"י `rmApplyNavAuth`, ודריסת ה-HTML כאן הייתה
+           מוחקת את ה-`[data-auth-label]` שהוא מחפש. */
+        var note = document.createElement('span');
+        note.className = 'hp-sr';
+        note.textContent = NOTE;
+        a.appendChild(note);
+      }
+
+      /* מאזין יחיד בשלב ה-capture: רץ לפני הגלילה החלקה ולפני כל מאזין
+         אחר בעמוד, כך שגם קליק על אייקון בתוך הקישור נתפס. */
+      document.addEventListener('click', function (e) {
+        var a = e.target.closest && e.target.closest('a[data-preview-inert]');
+        if (a) { e.preventDefault(); e.stopPropagation(); }
+      }, true);
+
+      /* Enter על קישור ממוקד אינו עובר דרך `click` בכל הדפדפנים. */
+      document.addEventListener('keydown', function (e) {
+        if (e.key !== 'Enter') return;
+        var a = e.target.closest && e.target.closest('a[data-preview-inert]');
+        if (a) e.preventDefault();
+      }, true);
+    })();
+  </script>
 </body>
 </html>
