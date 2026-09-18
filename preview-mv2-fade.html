@@ -3,13 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>תצוגת עיצוב — המוצר עצמו (אזור ההורדה בתחתית עמוד הבית)</title>
-  <meta name="description" content="עמוד תצוגה פנימי. עותק של עמוד הבית שבו מקטע ההורדה שבתחתיתו מציג את מסך «מעקב בזמן אמת» של האפליקציה לצד הקריאה להורדה, במקום לתאר אותו במילים.">
-  <!-- ⚠️ עמוד תצוגה פנימי: `noindex`, ואינו ב-`sitemap.xml`.
-       הוא **כן** נגיש פומבית ב-rozicmove.com/preview-foot-device.html,
-       ולכן הוא עובר את אותן בדיקות נגישות כמו כל דף אחר, וירד אחרי ההכרעה.
-       ⚠️ אין `canonical` בכוונה — canonical אל "/" היה מצהיר שהעמוד הזה
-       הוא עמוד הבית, בדיוק ההפך ממה ש-`noindex` אומר. -->
+  <title>ROZIC MOVE — הזמנת הובלה ומעבר דירה אונליין בישראל</title>
+  <meta name="description" content="פלטפורמה ישראלית להזמנת הובלות: מעבר דירה, מובילים בקטנה ושירות אריזה. בונים רשימת פריטים, מקבלים מחיר לפני אישור, ועוקבים אחרי המוביל בזמן אמת — באפליקציה או ישירות מהדפדפן.">
   <meta name="robots" content="noindex">
 
   <!-- Open Graph / social + AI crawlers -->
@@ -898,375 +893,580 @@
   @media (prefers-reduced-motion: reduce) {
     .jr-stops .jr-stop { transition-delay: 0s; }
   }
-  </style>
-  <!-- ══════════════════════════════════════════════════════════════════
-       מקטע ההורדה — כיוון «המוצר עצמו»
-       ══════════════════════════════════════════════════════════════════
-       מי שהגיע לתחתית העמוד קרא על האפליקציה ומעולם לא ראה אותה. כאן
-       היא נוכחת: מסך «מעקב בזמן אמת» עומד לצד הקריאה להורדה.
 
-       ⚠️ **המכשיר הוא קישוט מוחלט** — `aria-hidden` על כל המסגרת, וכל
-       מילה שבתוכו מופיעה גם בטקסט שלצידה. קורא מסך שומע את המסר, לא
-       ציור של ממשק.
-
-       ⚠️ **אין כאן כחול בשום גוון** (למעט הלוגו הרשמי של Google Play,
-       שאסור לצבוע מחדש). המקטע הוחלף מ-`--navy` למשטח בהיר עם נטייה
-       ירוקה: הוא נכנס בין מקטע המובילים הכהה לבין הפוטר הירוק, ושובר
-       שני משטחים כהים רצופים במקום להוסיף שלישי.
-
-       ⚠️ **`check-a11y` אינו בודק `background`.** כל הניגודיות כאן
-       נמדדה ידנית מול המשטח הבהיר (`--bg` → `--green-light`):
-       `--text` 13.6:1 · `--text-mid` 8.2:1 · `--text-muted` 5.4:1 ·
-       `--green` 7.4:1 · `--green-ink` 5.1:1. `--orange` **אינו** משמש
-       לטקסט כאן (3.02:1) אלא לנקודה דקורטיבית בלבד.
-
-       ⚠️ שמות המחלקות הם `dvc-*` ולא `phone-*`/`app-ui`: ב-`style.css`
-       שוכבות כללי `.phone-frame`/`.app-ui` של הירו הישן שכבר אינם
-       בשימוש ב-HTML, ושימוש חוזר בהם היה גורר מידות ואנימציה שלא
-       שייכות לכאן. גם `.download-section` לא נשמר כמחלקה — הוא נושא
-       `background: var(--navy)` ודורס את `.btn-apple` ללבן.
-       העוגן `id="download"` כן נשמר: הסרגל, תפריט המובייל והפוטר
-       מצביעים עליו.
-       ══════════════════════════════════════════════════════════════════ -->
-  <style>
-    .dvc {
-      padding: 90px 0 96px;
-      /* ⚠️ מתחיל מלבן ולא מ-`--bg`: מקטע השאלות שמעליו הוא כבר `--bg`,
-         ובלי ההפרש הזה שני המקטעים נקראים כרצף אחד ארוך. */
-      background: linear-gradient(180deg, var(--white) 0%, var(--green-light) 100%);
-      position: relative;
-      overflow: hidden;
-    }
-
-    /* ‏שתי צורות רקע — התאום הבהיר של `.dl-shape-1/2` שהיו כאן קודם. */
-    .dvc::before,
-    .dvc::after {
-      content: '';
-      position: absolute;
-      border-radius: 50%;
-      pointer-events: none;
-    }
-    .dvc::before {
-      top: -140px; inset-inline-end: -160px;
-      width: 460px; height: 460px;
-      background: radial-gradient(circle, rgba(14,92,67,0.09) 0%, transparent 70%);
-    }
-    .dvc::after {
-      bottom: -180px; inset-inline-start: -140px;
-      width: 420px; height: 420px;
-      background: radial-gradient(circle, rgba(245,106,0,0.07) 0%, transparent 70%);
-    }
-
-    .dvc-inner {
-      position: relative;
-      display: flex;
-      align-items: center;
-      gap: 72px;
-    }
-
-    .dvc-text { flex: 1; min-width: 0; }
-
-    .dvc-text h2 {
-      font-size: clamp(1.9rem, 3.8vw, 2.9rem);
-      font-weight: 900;
-      letter-spacing: -0.8px;
-      line-height: 1.15;
-      color: var(--text);
-      margin-bottom: 14px;
-      /* ‏בלי זה הכותרת נמתחת על רוחב העמודה ומשאירה מילה יתומה בשורה
-         השנייה. `max-width` הוא הגיבוי לדפדפן שאינו תומך ב-balance,
-         ומכויל לשתי שורות — ב-15ch היא נשברה לשלוש. */
-      text-wrap: balance;
-      max-width: 17ch;
-    }
-
-    .dvc-desc {
-      color: var(--text-mid);
-      font-size: 1.04rem;
-      line-height: 1.7;
-      max-width: 34em;
-      margin-bottom: 26px;
-    }
-
-    /* ‏חמשת השלבים בטקסט — אותם חמישה שרואים במכשיר, כדי שהמסר
-       יעמוד בפני עצמו גם בלי הציור. הפס והנקודות מצטטים את
-       `.jr-stops` שבמקטע המסע שמעל. */
-    .dvc-steps-txt {
-      list-style: none;
-      margin: 0 0 30px;
-      padding: 0;
-      display: grid;
-      gap: 12px;
-      max-width: 34em;
-    }
-    .dvc-steps-txt li {
-      display: flex;
-      align-items: baseline;
-      gap: 12px;
-      font-size: 0.97rem;
-      color: var(--text-mid);
-      line-height: 1.55;
-    }
-    .dvc-steps-txt li b {
-      color: var(--text);
-      font-weight: 800;
-    }
-    .dvc-steps-txt li::before {
-      content: '';
-      flex-shrink: 0;
-      width: 9px;
-      height: 9px;
-      border-radius: 50%;
-      background: var(--green);
-      transform: translateY(-1px);
-    }
-
-    .dvc .download-buttons {
-      display: flex;
-      gap: 14px;
-      flex-wrap: wrap;
-      margin-bottom: 18px;
-      /* ‏ב-`style.css` המחלקה הזאת היא `justify-content: center`, כי שם
-         היא ישבה במקטע ממורכז. כאן העמודה מיושרת להתחלה, ומרכוז היה
-         מזיז את הכפתורים ביחס לכותרת ולפסקה שמעליהם — ובמיוחד את
-         השורה השנייה, כשהשלישייה נשברת ברוחב בינוני. */
-      justify-content: flex-start;
-    }
-
-    .dvc-note {
-      color: var(--text-muted);
-      font-size: 0.92rem;
-    }
-
-    /* ══ המכשיר ══════════════════════════════════════════════════════ */
-    .dvc-stage {
-      flex-shrink: 0;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 14px;
-    }
-
-    .dvc-frame {
-      /* ‏ב-rem ולא ב-px: הכיתוב שבתוך המסך גדל עם גופן הבסיס,
-         ומסגרת בפיקסלים קשיחים הייתה חותכת אותו. */
-      width: 16.5rem;
-      height: 33.5rem;
-      background: var(--text);
-      border-radius: 38px;
-      padding: 13px 10px;
-      position: relative;
-      box-shadow: 0 30px 70px rgba(20,42,34,0.30), 0 0 0 1px rgba(255,255,255,0.08) inset;
-    }
-
-    .dvc-notch {
-      width: 3.6rem;
-      height: 0.34rem;
-      background: rgba(255,255,255,0.18);
-      border-radius: 3px;
-      margin: 0 auto 0.56rem;
-    }
-
-    .dvc-screen {
+  /* ══ תחתית שקטה (77.1ג) ══ */
+    /* ── הרצועה ───────────────────────────────────────────────────── */
+    .fq {
+      /* לבן, ולא --bg כמו מקטע השאלות שמעליו: העמוד **מתבהר** בסופו
+         במקום להיחסם בעוד משטח כהה. ההפרש מ---bg קטן בכוונה — קו
+         השיער הוא שמפריד, לא ניגוד. */
       background: var(--white);
-      border-radius: 27px;
-      /* ‏`box-sizing: border-box` גלובלי (style.css:118) — 100% כאן הוא
-         כבר הגובה הפנימי של המסגרת. מחסירים רק את הגובה של החריץ
-         ואת השוליים שמתחתיו: 0.34rem + 0.56rem. */
-      height: calc(100% - 0.9rem);
-      overflow: hidden;
-      padding: 13px 12px;
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
+      border-block-start: 1px solid var(--border);
+      /* 90px היו הריפוד של `.download-section`. הרצועה חיה על כשליש. */
+      padding-block: clamp(40px, 4.4vw, 58px);
     }
 
-    .dvc-scr-top {
+    .fq-inner {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      font-size: 0.6rem;
-      font-weight: 700;
-      color: var(--text-muted);
-      letter-spacing: 0.4px;
+      gap: clamp(16px, 2vw, 28px);
+      flex-wrap: wrap;
     }
 
-    .dvc-scr-h {
-      font-size: 0.95rem;
+    /* ⚠️ 18.9 — הבסיס עלה מ-260 ל-430px לבקשת גיא: "המלל 'הורד את
+       ROZIC MOVE' יהיה בשורה אחת — תרחיב את השטח שזה נכנס בתוכו".
+       בבסיס 260 עמודת הטקסט התכווצה מול שלושת הכפתורים (~590px)
+       והכותרת נשברה לשתי שורות. 430 הוא רוחב הכותרת במידה המקסימלית
+       שלה (2.6rem × 18 תווים), ולכן היא נכנסת שלמה.
+       ⚠️ `flex-wrap` על `.fq-inner` הוא מה שמאפשר את זה בלי לשבור
+       מסכים בינוניים: כשאין מקום לשתי העמודות, הכפתורים יורדים לשורה
+       משלהם והכותרת נשארת שלמה — במקום שהיא תישבר. */
+    /* ⚠️ `auto` ולא מספר. בסיס קבוע (ניסיתי 430px) הוא מה ש**שבר**
+       את השורה: אלגוריתם ה-flex מחשב שבירה לפי ה-basis ולא לפי הדיו,
+       והכותרת בפועל צרה ממנו (363–405px לפי הרוחב). `auto` = רוחב
+       התוכן, כלומר בדיוק מה שהכותרת צריכה ולא יותר. */
+    .fq-text { flex: 1 1 auto; }
+
+    /* `.section-label` מגיע מהאתר עצמו — אותה תווית של כל מקטע אחר.
+       רק המרווח שמתחתיה מתהדק לקצב של רצועה. */
+    .fq-text .section-label { font-size: 1.02rem; letter-spacing: 1.4px; margin-bottom: 9px; }
+
+    /* ⚠️ 18.9 — הוגדל לבקשת גיא: "קצת תגדיל את האזור של זה".
+       1.4→1.8rem בתחתית ו-1.9→2.6rem למעלה, כלומר בערך שליש יותר, בלי
+       להתקרב לכותרת ההירו (clamp(2.4rem, 5vw, 3.4rem)) — התחתית עדיין
+       כפופה לה ואינה מתחרה בה. */
+    .fq-title {
+      /* ⚠️ מעל 760px הכותרת חייבת להישאר שלמה; מתחת לזה הרצועה כבר
+         עמודה ברוחב מלא, ושם `nowrap` היה יכול לגלוש בטלפון צר. */
+      white-space: nowrap;
+      font-size: clamp(1.8rem, 2.6vw, 2rem);
       font-weight: 900;
+      letter-spacing: -0.5px;
+      line-height: 1.2;
       color: var(--text);
-      letter-spacing: -0.3px;
+      margin: 0;
     }
 
-    /* ‏המפה. ⚠️ באפליקציה נקודת המוביל היא `--navy`; כאן היא דיו כהה,
-       כי אין כחול בעמוד הזה. שאר שתי הנקודות נאמנות ל-`style-app.css`
-       (מוצא `--green`, יעד `--danger`). */
-    .dvc-map {
-      position: relative;
-      /* ‏המפה בולעת את כל מה שנשאר במסך אחרי שאר הרכיבים, ולכן אין
-         שטח לבן מת בתחתית המכשיר בשום גודל גופן. */
-      flex: 1 1 9.5rem;
-      min-height: 9.5rem;
-      border-radius: 12px;
-      overflow: hidden;
-      background: linear-gradient(140deg, var(--green-light) 0%, var(--bg) 100%);
-      border: 1px solid var(--border);
-      /* ‏`ltr` כמו ב-`.track-map` האמיתי: המפה אינה טקסט, ומיקום
-         הנקודות נמדד משמאל בשתי המערכות — ה-svg וה-`left` שלהן. */
-      direction: ltr;
-    }
-    .dvc-map svg { position: absolute; inset: 0; width: 100%; height: 100%; }
-    .dvc-grid { stroke: rgba(14,92,67,0.13); stroke-width: 1; fill: none; }
-    .dvc-route { stroke: var(--green-mid); stroke-width: 2.6; fill: none; stroke-linecap: round; opacity: 0.55; }
-    .dvc-route-done { stroke: var(--green); stroke-width: 2.8; fill: none; stroke-linecap: round; }
-
-    .dvc-pin {
-      position: absolute;
-      width: 10px;
-      height: 10px;
-      border-radius: 50%;
-      transform: translate(-50%, -50%);
-      box-shadow: 0 0 0 2.5px var(--white);
-    }
-    .dvc-pin.from { background: var(--green); }
-    .dvc-pin.to   { background: var(--danger); }
-    .dvc-pin.drv  { background: var(--text); width: 13px; height: 13px; }
-
-    /* ‏הילת הפעימה סביב נקודת המוביל. `prefers-reduced-motion` מכבה. */
-    .dvc-pin.drv::after {
-      content: '';
-      position: absolute;
-      inset: -7px;
-      border-radius: 50%;
-      border: 2px solid var(--green);
-      animation: dvcPulse 2.2s ease-out infinite;
-    }
-    @keyframes dvcPulse {
-      0%   { transform: scale(0.55); opacity: 0.9; }
-      100% { transform: scale(1.35); opacity: 0; }
-    }
-
-    .dvc-legend {
+    .fq-btns {
       display: flex;
       gap: 10px;
-      font-size: 0.6rem;
-      color: var(--text-muted);
-    }
-    .dvc-legend span { display: inline-flex; align-items: center; gap: 4px; }
-    .dvc-legend i {
-      width: 7px; height: 7px; border-radius: 50%; display: inline-block;
-    }
-    .dvc-legend i.from { background: var(--green); }
-    .dvc-legend i.to   { background: var(--danger); }
-    .dvc-legend i.drv  { background: var(--text); }
-
-    /* ‏פס המצב — מצטט את `.track-panel` ב-`style-app.css`. */
-    .dvc-panel {
-      display: flex;
-      align-items: center;
-      gap: 7px;
-      font-size: 0.66rem;
-      font-weight: 700;
-      color: var(--green-dark);
-      background: var(--green-light);
-      border-radius: 9px;
-      padding: 7px 9px;
-    }
-    .dvc-panel em {
-      width: 6px; height: 6px; border-radius: 50%;
-      background: var(--green); flex-shrink: 0;
+      /* ⚠️ `nowrap` בכוונה. עם `wrap`, רוחב ה-min-content של הקבוצה הוא
+         כפתור אחד — ואז בטווח 760–900px הכפתור השלישי נושר לשורה שנייה
+         *בתוך* הקבוצה ומשאיר שתיים-ואחד עקום. `nowrap` מכריח את שלושתם
+         להישאר יחידה אחת: או שורה אחת מיושרת, או ירידה שלמה מתחת לטקסט. */
+      flex-wrap: nowrap;
+      flex: none;
     }
 
-    /* ‏חמשת השלבים בתוך המסך — אותו אוצר מילים של נקודה-על-פס
-       שיש ב-`.jr-stops` למעלה בעמוד. */
-    .dvc-prog { position: relative; padding-inline-start: 4px; }
-    .dvc-prog::before {
-      content: '';
-      position: absolute;
-      /* ‏מרכז הנקודה נמדד מקצה תיבת הריפוד: 4 (padding) + 3 (margin)
-         + 5 (חצי רוחב) = 12px. פס ברוחב 2 מתמרכז עליה ב-11. */
-      inset-inline-start: 11px;
-      top: 9px;
-      bottom: 9px;
-      width: 2px;
-      background: var(--green-light);
+    /* רצפה מפורשת ליעד המגע (WCAG 2.5.8) — `.btn-store` כולו ב-em,
+       וה-clamp יכול להוריד אותו מתחת ל-44px במסך צר. */
+    .fq .btn-store.large { min-height: 46px; }
+
+    /* ⚠️ על לבן, `.btn-google` (רקע לבן + מסגרת ב---border, 10%) נעלם.
+       זו בדיוק התבנית של "אלמנט שנשאר מסגרת" מהפלטה. */
+    .fq .btn-google {
+      background: var(--green-tint);
+      border-color: var(--green-line);
     }
-    .dvc-step {
-      position: relative;
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      padding: 4.5px 0;
-      font-size: 0.66rem;
-      color: var(--text-muted);
-    }
-    .dvc-step span {
-      position: relative;
-      z-index: 1;
-      flex-shrink: 0;
-      width: 10px; height: 10px;
-      border-radius: 50%;
-      background: var(--white);
-      box-shadow: 0 0 0 2px var(--border) inset;
-      margin-inline-start: 3px;
-    }
-    .dvc-step.done { color: var(--text-mid); }
-    .dvc-step.done span { background: var(--green); box-shadow: none; }
-    .dvc-step.now {
-      color: var(--green-dark);
-      font-weight: 800;
-      font-size: 0.7rem;
-    }
-    .dvc-step.now span {
-      background: var(--green);
-      box-shadow: 0 0 0 3px var(--green-light);
+    .fq .btn-google:hover { border-color: var(--green-line); background: var(--white); }
+
+    @media (max-width: 760px) {
+      .fq-inner { flex-direction: column; align-items: stretch; gap: 20px; }
+      /* בטלפון צר עדיף שהכותרת תישבר מאשר תגלוש מהמסך. */
+      .fq-title { white-space: normal; }
+      /* שלושה כפתורים ברוחב מלא — ברצועה צרה עדיף עמוד אחד ברור על
+         פני שלוש עמודות דחוסות. ה-CTA האחרון בעמוד נשאר הכי לחיץ. */
+      .fq-btns { flex-direction: column; }
+      .fq-btns .btn-store { justify-content: center; }
+      .fq-btns .btn-store div { text-align: center; }
     }
 
-    .dvc-cap {
-      font-size: 0.82rem;
-      color: var(--text-muted);
-      text-align: center;
-      max-width: 17rem;
-      line-height: 1.5;
-    }
+    /* ── הפוטר — המסה היחידה בסוף ─────────────────────────────────── */
+    /* הוא לא משתנה במבנה: כל הקישורים, פרטי העוסק, הטלפון, המייל
+       והדפים המשפטיים נשארים כפי שהם — הם חובה ולא קישוט. מה שמשתנה
+       הוא שהוא כבר לא הבלוק הכבד **השני** ברצף, ולכן הוא יכול לנשום. */
+    .fq-footer { padding-top: clamp(34px, 3.6vw, 44px); }
 
-    /* ‏ההטבעה הכללית היא `--green` והיא עובדת על המשטח הבהיר הזה —
-       אין כאן את ההחלפה ל-`--green-on-dark` שהמקטע הכהה נזקק לה. */
+    /* הלוגו הוא עכשיו המשפט הסוגר של העמוד ולא הערת שוליים אחרי
+       כותרת של 3.1rem. חצי דרגה למעלה — לא יותר. */
+    .fq-footer .footer-logo { font-size: 1.22rem; }
+    .fq-footer .footer-logo svg { width: 1.1rem; height: 1.1rem; }
+  </style>
+  <style>
+  /* ═══════════════════════════════════════════════════════════════════
+     עמוד תצוגה — "מדורג: בהיר למעלה, עמוק למטה" (מקטע המובילים בלבד)
+     ═══════════════════════════════════════════════════════════════════
+     הכללים כאן דורסים את `.movers-section` שב-style.css, ולכן הם
+     אחרי הטעינה שלו ובתוך הדף. שום מקטע אחר לא נוגע.
 
-    @media (prefers-reduced-motion: reduce) {
-      .dvc-pin.drv::after { animation: none; opacity: 0; }
-    }
+     ── הרעיון: גל אחד, לא לוח כהה שהונח על עמוד בהיר ─────────────────
+     המקטע יושב בין `.jr` שנוחת על `--green-light` לבין `.faq-section`
+     שהוא `--bg` — כלומר בין שני משטחים בהירים. בגרסה הכהה המלאה הוא
+     נקרא כלוח שהונח על העמוד. כאן הוא **נכנס בהיר, מעמיק באמצע, ויוצא
+     בהיר**: שלוש רצועות שהן שלוש תחנות במסלול של המוביל —
+     **מצטרף** (בהיר) · **לוקח** (עמוק) · **מרוויח** (בהיר).
 
-    @media (max-width: 1040px) {
-      .dvc-inner { gap: 44px; }
-      .dvc-frame { width: 15rem; height: 30.5rem; }
-    }
+     ── איך המדרגה בנויה, ולמה כך ────────────────────────────────────
+     ⚠️ לא גרדיאנט אחד על המקטע עם אחוזים. אחוז נמדד מגובה המקטע, וגובה
+     המקטע משתנה עם הטקסט ועם הרוחב — כלומר הגבול בין בהיר לעמוק היה
+     זז מתחת לטקסט בלי שאיש רואה. במקום זה:
+       · `.mv` נושא את **המשטח העמוק** (green-dark + שתי הילות) לכל גובהו.
+       · `.mv-band-open` ו-`.mv-band-close` הן רצועות אטומות ב---green-light
+         שנמוגות אל **שקוף** לאורך `--mv-ramp` פיקסלים בדיוק, ומתחתן
+         מתגלה המשטח העמוק של `.mv`.
+     התוצאה: הרמפה היא ערך בפיקסלים ששווה בדיוק ל-padding של הרצועה,
+     ולכן **כל טקסט יושב על משטח אטום ואחיד** — אף אות אינה על הרמפה.
+     בונוס: אין תפר בין רצועה לרצועה, כי שתיהן נמוגות אל אותו משטח.
 
-    @media (max-width: 900px) {
-      .dvc-inner {
-        flex-direction: column;
-        text-align: center;
-        gap: 46px;
-        /* ‏`align-items: center` נדרש בפריסה הדו-טורית (יישור אנכי),
-           אבל בעמודה הוא הופך לקביעת **רוחב** — כל ילד מקבל fit-content
-           במקום את רוחב המכל, ואז מרכוז הטקסט נמדד ביחס לרוחב אחר מזה
-           של המכל. `stretch` מחזיר את שני הילדים לרוחב מלא. */
-        align-items: stretch;
-      }
-      .dvc-desc, .dvc-steps-txt { margin-inline: auto; }
-      .dvc-steps-txt li { text-align: start; }
-      .dvc .download-buttons { justify-content: center; }
-      /* ‏במובייל המכשיר יורד אל מתחת לקריאה לפעולה: הכפתורים הם
-         העיקר, והציור הוא מה שמלווה אותם. */
-      .dvc-stage { order: 2; }
-    }
+     ⚠️ הדהייה נכתבת `rgba(231,243,237,0)` ולא `transparent` — זהו
+     `--green-light` באלפא 0, כדי שהאינטרפולציה תעבור בגוון של הטוקן
+     ולא תסתמך על התנהגות premultiplied של הדפדפן.
 
-    @media (max-width: 560px) {
-      .dvc { padding: 64px 0 70px; }
-      .dvc .download-buttons { flex-direction: column; }
-      .dvc .download-buttons .btn-store { justify-content: center; }
-      .dvc .download-buttons .btn-store div { text-align: center; }
-    }
+     ── שני משטרי צבע בתוך מקטע אחד ──────────────────────────────────
+     ⚠️ זו הסכנה של הווריאציה הזאת: אותו צבע טקסט שעובר ממשטח בהיר
+     למשטח עמוק נשבר באחד מהם. לכן **לכל רצועה משטר משלה**, וכל ערך
+     נמדד מול הפיקסל שמתחתיו בפועל:
+
+       רצועה בהירה (#E7F3ED — נמדד):
+         --text      #142A22   14.87:1 ✓
+         --text-mid  #3A4A3A    8.31:1 ✓
+         --green-ink #007A3D    4.79:1 ✓  (תווית התחנה)
+         .btn-light  מילוי --green + לבן = 7.98:1 ✓ — כאן הכפתור עובד
+                     כפי שהוא בשאר האתר, בלי דריסה.
+
+       רצועה עמוקה (--green-dark + הילות; הנקודה הבהירה ביותר נמדדה):
+         לבן                     7.85:1 ✓
+         rgba(255,255,255,0.72)  4.93:1 ✓
+         --green-wash #DFF3E8    6.77:1 ✓
+         --green-on-dark #4EDAA9 4.46:1 ✗ לטקסט קטן — **מילוי בלבד**
+                                 (ועל מילוי: #0A4433 עליו = 6.32:1 ✓)
+
+     ⚠️ טבעת המיקוד: `style.css` מגדיר ל-`.movers-section` טבעת
+     `--green-on-dark`. על הרצועות הבהירות היא **1.55:1 — בלתי־נראית**.
+     הכלל שלמטה מחזיר אותן ל---green (7.01:1 על #E7F3ED).
+     ───────────────────────────────────────────────────────────────── */
+  .mv {
+    /* אורך הרמפה. הוא גם ה-padding של הרצועה הבהירה מצד המדרגה, ולכן
+       הטקסט מתחיל בדיוק היכן שהמשטח כבר אטום. */
+    --mv-ramp: 150px;
+    padding: 0;
+    /* rgba(28,133,99,…) הוא --green-bright, ו-rgba(14,92,67,…) הוא
+       --green — שניהם מהפלטה, באלפא. רקע בלבד, לעולם לא טקסט.
+       המרכזים האנכיים מכוילים לרצועה העמוקה; מה שגולש ממנה מכוסה
+       ממילא ע"י הרצועות הבהירות האטומות.
+       ⚠️ האלפא ירדה מ-0.38/0.55 ל-0.22/0.40 אחרי מדידה. בגרסה הקודמת
+       ההילה ישבה מחוץ ללוח (`at 76% -14%`), וכאן הפריסה האנכית הביאה
+       את הלוח **אל תוך** מרכז ההילה: המשטח מתחת לשורות הקטנות עלה
+       ל-#296653 ושלוש שורות צנחו מתחת ל-AA. הקומפוזיציה השתנתה ולכן
+       הרקע נמדד מחדש — לא הועתק. */
+    background:
+      radial-gradient(1100px 620px at 76% 34%, rgba(28,133,99,0.22) 0%, transparent 62%),
+      radial-gradient(760px 520px at 6% 78%, rgba(14,92,67,0.40) 0%, transparent 70%),
+      var(--green-dark);
+  }
+  /* העיגול הדקורטיבי הישן היה מכויל ל---navy ולפריסה הישנה. */
+  .mv::before { content: none; }
+
+  .mv-band { position: relative; }
+  .mv-band > .container { position: relative; }
+
+  /* ── תווית התחנה — המילה שמסמנת באיזה שלב במסלול אנחנו ──────────── */
+  .mv-step {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 0.78rem;
+    font-weight: 800;
+    letter-spacing: 2px;
+    margin-bottom: 14px;
+  }
+  .mv-step::before,
+  .mv-step::after {
+    content: '';
+    width: 28px;
+    height: 2px;
+    border-radius: 2px;
+    background: currentColor;
+    opacity: 0.5;
+  }
+
+  /* ═══ 1 · מצטרף — הרצועה הבהירה העליונה ═══════════════════════════ */
+  .mv-band-open {
+    padding: 96px 0 var(--mv-ramp);
+    text-align: center;
+    /* אטום עד 24px *אחרי* שהטקסט נגמר, ורק אז מתחילה הרמפה.
+       ⚠️ הרמפה אינה לינארית בכוונה: דהייה לינארית מ-#E7F3ED אל משטח
+       ירוק־כהה עוברת חצי מהדרך באלפא ~0.5, ושם התערובת נקראת אפורה־
+       עשנה. ארבעת העצירות מכווצות את אזור הביניים הזה — הבהיר מחזיק,
+       ואז נופל מהר — וזה מה שגורם למדרגה להיקרא כגל ולא כערפל. */
+    background: linear-gradient(180deg,
+      var(--green-light) 0,
+      var(--green-light) calc(100% - var(--mv-ramp) + 24px),
+      rgba(231,243,237,0.88) calc(100% - var(--mv-ramp) * 0.70),
+      rgba(231,243,237,0.52) calc(100% - var(--mv-ramp) * 0.44),
+      rgba(231,243,237,0.18) calc(100% - var(--mv-ramp) * 0.20),
+      rgba(231,243,237,0) 100%);
+  }
+  .mv-open-in { max-width: 880px; }
+  .mv-band-open .mv-step { color: var(--green-ink); }
+
+  .mv-open-in h2 {
+    /* ⚠️ הכותרת חייבת להישאר בשורה אחת מ-1280 עד 1920. בגרסה הקודמת
+       היא ישבה בעמודה של 419px ולכן נשברה; כאן היא מרוכזת על רוחב
+       המכל המלא (1192px תוכן), ותקרת 2.9rem מיישרת אותה עם תקרת
+       `.container` — אותה מלכודת של ערך ב-vw שממשיך לגדול אחרי
+       שהמכל נעצר. נמדד: 165px דיו מול 1192px מכל בכל ארבעת הרוחבים. */
+    font-size: clamp(2rem, 3.6vw, 2.9rem);
+    font-weight: 900;
+    letter-spacing: -0.8px;
+    line-height: 1.12;
+    color: var(--text);
+    margin-bottom: 14px;
+  }
+  .mv-open-in .mv-desc {
+    color: var(--text-mid);
+    font-size: 1.06rem;
+    line-height: 1.75;
+    max-width: 62ch;
+    margin: 0 auto;
+  }
+
+  /* ═══ 2 · לוקח — הרצועה העמוקה ════════════════════════════════════
+     בלי `background` משלה בכוונה: היא **חושפת** את המשטח של `.mv`,
+     ולכן אין תפר בינה לבין הרמפות של שתי שכנותיה. */
+  .mv-band-deep { padding: 30px 0 44px; }
+  .mv-band-deep .mv-step { color: var(--green-wash); }  /* 6.77:1 */
+  .mv-deep-head { text-align: center; margin-bottom: 30px; }
+
+  /* המשפט שהופך את המוקאפ מקישוט לטיעון. */
+  .mv-lead {
+    color: var(--green-wash);
+    font-size: 1.04rem;
+    font-weight: 600;
+    line-height: 1.7;
+    max-width: 62ch;
+    margin: 0 auto;
+  }
+
+  /* ── הלוח ─────────────────────────────────────────────────────────── */
+  .mv-board-wrap {
+    min-width: 0;
+    /* 800 ולא רוחב המכל המלא: ברוחב גדול יותר שורת ההזמנה נפרמת —
+       הכתובות נצמדות לקצה אחד והסכום והכפתור לשני, ובאמצע נפער חלל
+       שגורם לכרטיס להיראות ריק במקום צפוף. */
+    max-width: 800px;
+    margin: 0 auto;
+  }
+
+  .mv-board-note {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 12px;
+    font-size: 0.8rem;
+    font-weight: 800;
+    letter-spacing: 0.4px;
+    color: rgba(255,255,255,0.72);
+  }
+  /* סימון ההדגמה — גלוי, ולא רק בהערה בקוד. הלוח עצמו aria-hidden,
+     אז זה הטקסט היחיד שקורא מסך שומע עליו. */
+  .mv-board-tag {
+    font-weight: 700;
+    letter-spacing: 0;
+    font-size: 0.72rem;
+    color: var(--green-wash);
+    background: rgba(78,218,169,0.14);
+    border: 1px solid rgba(78,218,169,0.3);
+    border-radius: 50px;
+    padding: 3px 12px;
+  }
+
+  .mv-board {
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.13);
+    border-radius: 22px;
+    padding: 18px;
+    backdrop-filter: blur(8px);
+    box-shadow: 0 24px 60px rgba(10,68,51,0.45);
+  }
+
+  /* מתג הזמינות — הכותרת של הלוח, כי זה הדבר הראשון שהמוביל נוגע בו. */
+  .mv-b-bar {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 0 4px 14px;
+    border-bottom: 1px solid rgba(255,255,255,0.10);
+    color: var(--white);
+    font-size: 0.86rem;
+  }
+  .mv-b-switch {
+    width: 38px; height: 21px;
+    border-radius: 50px;
+    background: var(--green-on-dark);
+    display: flex; align-items: center;
+    padding: 2px;
+    flex-shrink: 0;
+  }
+  .mv-b-switch i {
+    width: 17px; height: 17px;
+    border-radius: 50%;
+    background: var(--green-dark);
+    margin-inline-start: auto;
+  }
+  .mv-b-bar-note {
+    margin-inline-start: auto;
+    font-size: 0.74rem;
+    font-weight: 600;
+    color: rgba(255,255,255,0.68);
+  }
+
+  .mv-b-head {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 14px 4px 12px;
+  }
+  .mv-b-head-tx b {
+    display: block;
+    font-size: 0.92rem;
+    font-weight: 800;
+    color: var(--white);
+  }
+  .mv-b-head-tx i {
+    display: block;
+    font-style: normal;
+    font-size: 0.74rem;
+    color: rgba(255,255,255,0.68);
+    margin-top: 2px;
+  }
+  .mv-b-chips {
+    margin-inline-start: auto;
+    display: flex;
+    gap: 6px;
+    flex-shrink: 0;
+  }
+  .mv-b-chips span {
+    font-size: 0.68rem;
+    font-weight: 700;
+    color: rgba(255,255,255,0.72);
+    background: rgba(255,255,255,0.07);
+    border: 1px solid rgba(255,255,255,0.12);
+    border-radius: 50px;
+    padding: 4px 11px;
+  }
+
+  .mv-b-list { display: flex; flex-direction: column; gap: 10px; }
+
+  .mv-b-order {
+    background: rgba(255,255,255,0.055);
+    border: 1px solid rgba(255,255,255,0.09);
+    border-radius: 14px;
+    padding: 12px 14px;
+  }
+
+  /* ⚠️ `--orange` עם טקסט לבן הוא 3.02:1 — מתחת ל-AA. מילוי כתום מלא
+     עם טקסט לבן חייב `--orange-deep` (4.87:1). */
+  .mv-b-flag {
+    display: inline-block;
+    background: var(--orange-deep);
+    color: var(--white);
+    font-size: 0.62rem;
+    font-weight: 800;
+    border-radius: 6px;
+    padding: 2px 8px;
+    margin-bottom: 9px;
+  }
+
+  .mv-b-row { display: flex; align-items: center; gap: 14px; }
+
+  .mv-b-what { min-width: 0; flex: 1; }
+  .mv-b-what > b {
+    display: block;
+    font-size: 0.88rem;
+    font-weight: 800;
+    color: var(--white);
+    margin-bottom: 6px;
+  }
+  .mv-b-facts { display: flex; flex-wrap: wrap; gap: 6px 14px; }
+  /* ⚠️ נמדד: על שורת ההזמנה (#265C4C אחרי שכבות הזכוכית של הלוח)
+     0.68 נותן 4.57 — עובר בקושי — ו-0.55 של התווית נותן **3.58, נופל**.
+     התיקון אינו "להבהיר את שניהם": זה היה משטח את ההיררכיה בין התווית
+     לערך. הערך עלה ל-0.86 והתווית ל-0.74, כך שהפער נשמר ושניהם עוברים. */
+  .mv-b-facts i {
+    font-style: normal;
+    font-size: 0.74rem;
+    color: rgba(255,255,255,0.86);
+  }
+  .mv-b-facts em {
+    font-style: normal;
+    font-size: 0.64rem;
+    font-weight: 800;
+    letter-spacing: 0.4px;
+    color: rgba(255,255,255,0.74);
+    margin-inline-end: 5px;
+  }
+
+  /* הסכום הוא כל הנקודה של הכרטיס: הרווח של המוביל, לא מחיר הלקוח. */
+  .mv-b-pay { text-align: center; flex-shrink: 0; }
+  .mv-b-pay b {
+    display: block;
+    font-size: 1.22rem;
+    font-weight: 900;
+    letter-spacing: -0.4px;
+    color: var(--green-on-dark);   /* טקסט גדול — 4.52:1 מול שורת ההזמנה, AA לטקסט גדול */
+  }
+  .mv-b-pay i {
+    display: block;
+    font-style: normal;
+    font-size: 0.64rem;
+    font-weight: 700;
+    color: rgba(255,255,255,0.68);
+    margin-top: 1px;
+  }
+
+  .mv-b-take {
+    flex-shrink: 0;
+    background: var(--green-on-dark);
+    color: var(--green-dark);       /* 6.32:1 */
+    font-size: 0.78rem;
+    font-weight: 800;
+    border-radius: 10px;
+    padding: 9px 16px;
+  }
+
+  .mv-b-foot {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 22px;
+    margin-top: 14px;
+    padding: 13px 4px 2px;
+    border-top: 1px solid rgba(255,255,255,0.10);
+  }
+  .mv-b-foot-it {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: rgba(255,255,255,0.72);
+  }
+
+  /* הסימונים 1-4 — על הלוח (ציור) וברשימה (טקסט), אותו עיצוב. */
+  .mv-b-mark,
+  .mv-key-n {
+    flex-shrink: 0;
+    width: 1.35rem;
+    height: 1.35rem;
+    border-radius: 50%;
+    background: var(--green-on-dark);
+    color: var(--green-dark);       /* 6.32:1 */
+    font-size: 0.72rem;
+    font-weight: 900;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+  }
+
+  /* ── ארבע ההטבות: שורה אחת רחבה מתחת ללוח, בלי ארבע חלוניות ──────── */
+  .mv-keys {
+    list-style: none;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0;
+    margin: 42px 0 0;
+    padding-top: 34px;
+    border-top: 1px solid rgba(255,255,255,0.12);
+  }
+  .mv-keys li {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding-inline: 26px;
+    color: rgba(255,255,255,0.85);
+    font-size: 0.92rem;
+    font-weight: 500;
+    line-height: 1.55;
+  }
+  .mv-keys li:first-child { padding-inline-start: 0; }
+  .mv-keys li:last-child  { padding-inline-end: 0; }
+  .mv-keys li + li { border-inline-start: 1px solid rgba(255,255,255,0.12); }
+
+  /* ═══ 3 · מרוויח — הרצועה הבהירה התחתונה ══════════════════════════
+     כאן הטקסט חוזר לכהה, וה-CTA חוזר להיות `.btn-light` המקורי של
+     האתר. ⚠️ בגרסה הכהה הוא נדרס למילוי `--green-on-dark`, כי מילוי
+     `--green` על משטח ירוק הוא 1.39:1 — בלתי־נראה. כאן אין דריסה
+     ואסור שתהיה: על #E7F3ED המילוי המקורי הוא הכפתור הנכון.
+     היציאה אל `--bg` בתחתית היא מה שמחבר למקטע השאלות בלי מדרגה. */
+  .mv-band-close {
+    padding: var(--mv-ramp) 0 96px;
+    text-align: center;
+    background: linear-gradient(180deg,
+      rgba(231,243,237,0) 0,
+      rgba(231,243,237,0.18) calc(var(--mv-ramp) * 0.20),
+      rgba(231,243,237,0.52) calc(var(--mv-ramp) * 0.44),
+      rgba(231,243,237,0.88) calc(var(--mv-ramp) * 0.70),
+      var(--green-light) calc(var(--mv-ramp) - 24px),
+      var(--green-light) 58%,
+      var(--bg) 100%);
+  }
+  .mv-close-in { max-width: 720px; }
+  .mv-band-close .mv-step { color: var(--green-ink); }
+
+  .mv-close-tx {
+    color: var(--text-mid);
+    font-size: 1.06rem;
+    line-height: 1.75;
+    margin-bottom: 28px;
+  }
+  .mv-close-tx b {
+    color: var(--text);
+    font-weight: 800;
+  }
+  .mv .btn-light {
+    padding: 15px 36px;
+    font-size: 1rem;
+  }
+
+  /* ⚠️ `style.css` נותן ל-`.movers-section` טבעת מיקוד `--green-on-dark`,
+     שהיא 1.55:1 על הרצועות הבהירות — כלומר אין טבעת. הסגוליות כאן זהה
+     (0,3,0) והכלל מאוחר יותר במסמך, ולכן הוא גובר בלי `!important`. */
+  .mv-band-open :is(a, button, summary, [tabindex]):focus-visible,
+  .mv-band-close :is(a, button, summary, [tabindex]):focus-visible {
+    outline-color: var(--green);   /* 7.01:1 על #E7F3ED */
+  }
+
+  /* ── פריסות צרות ─────────────────────────────────────────────────── */
+  @media (max-width: 1080px) {
+    .mv-keys { grid-template-columns: repeat(2, 1fr); gap: 22px 0; }
+    .mv-keys li:nth-child(odd)  { padding-inline-start: 0; }
+    .mv-keys li:nth-child(even) { padding-inline-end: 0; }
+    .mv-keys li:nth-child(odd) + li { border-inline-start: 1px solid rgba(255,255,255,0.12); }
+    .mv-keys li:nth-child(even) + li { border-inline-start: 0; }
+  }
+
+  @media (max-width: 760px) {
+    /* הרמפה מתקצרת יחד עם המקטע — היא גם ה-padding, ולכן שינוי אחד
+       מזיז את שניהם ביחד ושומר על ההתאמה בין הטקסט למשטח. */
+    .mv { --mv-ramp: 104px; }
+    .mv-band-open { padding: 70px 0 var(--mv-ramp); }
+    .mv-band-deep { padding: 24px 0 34px; }
+    .mv-band-close { padding: var(--mv-ramp) 0 72px; }
+    .mv-board { padding: 14px; }
+    /* בטלפון השורה האופקית של ההזמנה נשברת: הכפתור והסכום יורדים
+       לשורה משלהם במקום להידחס לרוחב של שתי מילים. */
+    .mv-b-row { flex-wrap: wrap; }
+    .mv-b-what { flex: 1 1 100%; }
+    .mv-b-pay { text-align: start; }
+    .mv-b-take { margin-inline-start: auto; }
+    .mv-b-chips { display: none; }
+    .mv-keys { grid-template-columns: 1fr; gap: 18px; margin-top: 34px; }
+    .mv-keys li { padding-inline: 0; border-inline-start: 0 !important; }
+  }
   </style>
 </head>
 <!-- ⚠️ 15.9 — `has-nav-menu` מסמנת שלדף יש תפריט המבורגר. רק כאן.
@@ -1862,70 +2062,158 @@
     </div>
   </section>
 
-  <section class="movers-section" id="for-movers">
-    <div class="container movers-inner">
-      <div class="movers-text reveal">
-        <p class="section-label light">הצטרף לצוות</p>
+  <!-- ═══ למובילים עצמאיים — "מדורג" (עמוד תצוגה) ═════════════════════
+       המקטע נקרא כגל אחד ולא כלוח כהה שהונח על עמוד בהיר: הוא נכנס
+       ב---green-light (המשך ישיר לנחיתה של `.jr`), מעמיק אל --green-dark
+       באמצע, ויוצא אל --bg (הרקע של מקטע השאלות). שלוש הרצועות הן שלוש
+       תחנות במסלול של המוביל: מצטרף · לוקח · מרוויח.
+       הטקסט הכבד — הלוח וארבע ההטבות — יושב באזור העמוק, ושתי הרצועות
+       הבהירות נושאות טקסט כהה. שני משטרי צבע בתוך מקטע אחד, במכוון.
+       ⚠️ `class="movers-section"` נשמר בכוונה: עליו תלוי כלל טבעת
+       המיקוד `--green-on-dark` ב-style.css (ונדרס לרצועות הבהירות).
+       ⚠️ `id="for-movers"` נשמר: הסרגל, תפריט המובייל והפוטר מקשרים אליו. -->
+  <section class="movers-section mv" id="for-movers">
+
+    <!-- ── 1 · מצטרף ─────────────────────────────────────────────── -->
+    <div class="mv-band mv-band-open">
+      <div class="container mv-open-in reveal">
+        <p class="mv-step">מצטרף</p>
         <h2>למובילים עצמאיים</h2>
-        <p class="movers-desc">הפוך את הרכב שלך למקור הכנסה. קבל הזמנות, הגדר זמינות, ונהל הכול ישירות מהאפליקציה.</p>
-        <ul class="movers-benefits">
-          <li>
-            <div class="benefit-check">
-              <svg aria-hidden="true" width="14" height="11" viewBox="0 0 14 11" fill="none"><path d="M1 5l4.5 4.5L13 1" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        <p class="mv-desc">הרכב שלך כבר עובד — כאן הוא מקבל מסלול. אתה מגדיר מתי אתה זמין, לוח ההזמנות נפתח לפניך, ואתה מנהל את הכול ישירות מהאפליקציה.</p>
+      </div>
+    </div>
+
+    <!-- ── 2 · לוקח ──────────────────────────────────────────────────
+         המוקאפ אינו קישוט בצד: זה הלוח שהמוביל פותח בפועל, וארבע
+         ההטבות תלויות עליו כהסבר ממוספר. הסימונים (1-4) מופיעים
+         פעמיים — על הלוח (`aria-hidden`, ציור) וברשימה שמתחתיו
+         (טקסט אמיתי). קורא מסך שומע רק את הרשימה. -->
+    <div class="mv-band mv-band-deep">
+      <div class="container">
+
+        <div class="mv-deep-head reveal">
+          <p class="mv-step">לוקח</p>
+          <p class="mv-lead">כאן המסלול הופך למסך. מה מחכה, לאן, ומה אתה מרוויח מכל הובלה — לפני שאתה לוקח אותה.</p>
+        </div>
+
+        <div class="mv-board-wrap reveal-right">
+          <p class="mv-board-note">
+            הלוח שהמוביל פותח
+            <span class="mv-board-tag">איור ממשק · כתובות וסכומים להדגמה</span>
+          </p>
+
+          <!-- ציור ממשק בלבד. `aria-hidden` כי אין כאן מידע שקורא מסך
+               אמור לשמוע — כל טענה שהציור ממחיש כתובה בטקסט שלצידו. -->
+          <div class="mv-board" aria-hidden="true">
+
+            <div class="mv-b-bar">
+              <span class="mv-b-mark">1</span>
+              <span class="mv-b-switch"><i></i></span>
+              <b>זמין לעבודות</b>
+              <span class="mv-b-bar-note">אתה מחליט מתי</span>
             </div>
+
+            <div class="mv-b-head">
+              <span class="mv-b-mark">2</span>
+              <div class="mv-b-head-tx">
+                <b>הזמנות פתוחות</b>
+                <i>בחר הזמנה ולחץ "קח אותה" כדי לשייך אותה אליך</i>
+              </div>
+              <div class="mv-b-chips"><span>אזור</span><span>תאריך</span><span>שעה</span></div>
+            </div>
+
+            <div class="mv-b-list">
+
+              <div class="mv-b-order">
+                <span class="mv-b-flag">דחוף · המועד בתוך 24 שעות</span>
+                <div class="mv-b-row">
+                  <div class="mv-b-what">
+                    <b>הובלת דירה</b>
+                    <span class="mv-b-facts">
+                      <i><em>מוצא</em> רמת גן</i>
+                      <i><em>יעד</em> תל אביב</i>
+                      <i><em>שעה</em> 09:00–12:00</i>
+                    </span>
+                  </div>
+                  <div class="mv-b-pay"><b>₪1,180</b><i>הרווח שלך</i></div>
+                  <span class="mv-b-take">קח אותה</span>
+                </div>
+              </div>
+
+              <div class="mv-b-order">
+                <div class="mv-b-row">
+                  <div class="mv-b-what">
+                    <b>מובילים בקטנה</b>
+                    <span class="mv-b-facts">
+                      <i><em>מוצא</em> פתח תקווה</i>
+                      <i><em>יעד</em> ראש העין</i>
+                      <i><em>שעה</em> 14:00–16:00</i>
+                    </span>
+                  </div>
+                  <div class="mv-b-pay"><b>₪540</b><i>הרווח שלך</i></div>
+                  <span class="mv-b-take">קח אותה</span>
+                </div>
+              </div>
+
+              <div class="mv-b-order">
+                <div class="mv-b-row">
+                  <div class="mv-b-what">
+                    <b>הובלת דירה</b>
+                    <span class="mv-b-facts">
+                      <i><em>מוצא</em> הרצליה</i>
+                      <i><em>יעד</em> נתניה</i>
+                      <i><em>שעה</em> 08:00–11:00</i>
+                    </span>
+                  </div>
+                  <div class="mv-b-pay"><b>₪860</b><i>הרווח שלך</i></div>
+                  <span class="mv-b-take">קח אותה</span>
+                </div>
+              </div>
+
+            </div>
+
+            <div class="mv-b-foot">
+              <span class="mv-b-foot-it"><span class="mv-b-mark">3</span>דשבורד מפורט — ביצועים, דירוגים והכנסות</span>
+              <span class="mv-b-foot-it"><span class="mv-b-mark">4</span>יתרת רווחים · ההעברה אחת לשבועיים</span>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- ארבע ההטבות — תוכן מאושר. הן ממוספרות כדי להצביע על החלק
+             בלוח שמקיים כל אחת מהן. -->
+        <ul class="mv-keys reveal">
+          <li>
+            <span class="mv-key-n" aria-hidden="true">1</span>
             <div>שעות עבודה גמישות לחלוטין</div>
           </li>
           <li>
-            <div class="benefit-check">
-              <svg aria-hidden="true" width="14" height="11" viewBox="0 0 14 11" fill="none"><path d="M1 5l4.5 4.5L13 1" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-            </div>
+            <span class="mv-key-n" aria-hidden="true">2</span>
             <div>לוח הזמנות דיגיטלי עם ניהול הזמנות</div>
           </li>
           <li>
-            <div class="benefit-check">
-              <svg aria-hidden="true" width="14" height="11" viewBox="0 0 14 11" fill="none"><path d="M1 5l4.5 4.5L13 1" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-            </div>
+            <span class="mv-key-n" aria-hidden="true">3</span>
             <div>תמיכה מהצוות ומערכת דירוגים שקופה</div>
           </li>
           <li>
-            <div class="benefit-check">
-              <svg aria-hidden="true" width="14" height="11" viewBox="0 0 14 11" fill="none"><path d="M1 5l4.5 4.5L13 1" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-            </div>
+            <span class="mv-key-n" aria-hidden="true">4</span>
             <div>הרווח נזקף בסיום ההובלה, והתשלום מועבר אחת לשבועיים</div>
           </li>
         </ul>
-        <a tabindex="0" href="#download" class="btn-light">הצטרף כמוביל</a>
-      </div>
-      <div class="movers-visual reveal-right">
-        <div class="driver-card">
-          <div class="driver-head">
-            <div class="driver-ava"></div>
-            <div>
-              <div class="driver-name">יוסי פרידמן</div>
-              <div class="driver-level">מוביל מאומת</div>
-            </div>
-            <div class="driver-badge-online">פעיל</div>
-          </div>
-          <div class="driver-orders-label">הזמנות פתוחות</div>
-          <div class="driver-orders">
-            <div class="order-row">
-              <div class="order-dot green-dot"></div>
-              <div class="order-text">הובלה · רמת גן → תל אביב</div>
-            </div>
-            <div class="order-row">
-              <div class="order-dot orange-dot"></div>
-              <div class="order-text">הובלה · פתח תקווה</div>
-            </div>
-            <div class="order-row">
-              <div class="order-dot blue-dot"></div>
-              <div class="order-text">עוברים דירה · הרצליה <span class="new-badge">חדש</span></div>
-            </div>
-          </div>
-        </div>
+
       </div>
     </div>
-  </section>
 
+    <!-- ── 3 · מרוויח ────────────────────────────────────────────── -->
+    <div class="mv-band mv-band-close">
+      <div class="container mv-close-in reveal">
+        <p class="mv-step">מרוויח</p>
+        <p class="mv-close-tx">סיימת את ההובלה — <b>הרווח נזקף ליתרה שלך</b>, והתשלום מועבר אחת לשבועיים. ואז אתה חוזר ללוח ובוחר את ההובלה הבאה.</p>
+        <a tabindex="0" href="#download" class="btn-light mv-cta">הצטרף כמוביל</a>
+      </div>
+    </div>
+
+  </section>
   <!-- FAQ -->
   <section class="faq-section" id="faq">
     <div class="container faq-container">
@@ -1983,42 +2271,26 @@
     </div>
   </section>
 
-  <!-- Download CTA — כיוון «המוצר עצמו» -->
+  <!-- Download CTA -->
   <!-- ══════════════════════════════════════════════════════════════════
-       ⚠️ **כל נוסח שבתוך המכשיר נלקח מהמוצר, לא הומצא.**
-       · «מעקב בזמן אמת» — הכותרת ב-`app/order-track.html` (שורה 35).
-       · «המוביל משתף מיקום בזמן אמת» — `app/order-track.html` שורה 151,
-         הנוסח שמופיע בפאנל כשיש מיקום טרי.
-       · «מוצא · יעד · המוביל» — מקרא המפה, `app/order-track.html` 48–50.
-       · חמשת השלבים — `ORDER_PROGRESS_STEPS` ב-`app/orders.js` 176–182,
-         שהוא בעצמו מראה של `src/components/OrderProgressBar.tsx`.
-       · «המוביל בדרך אליך» מודגש כשלב הפעיל — זו בדיוק התווית של
-         הסטטוס `en_route` ב-`STATUS_LABELS` (`app/orders.js` שורה 48).
+       תחתית שקטה — הכרעת גיא 77.1ג, מתוך ארבעה כיוונים.
+       החליף מקטע `--navy` בריפוד 90px ברצועה בהירה אחת.
 
-       **אין כאן שם לקוח, שם מוביל, כתובת, מחיר, דירוג או מספר הזמנה** —
-       שום שדה שאפשר לטעות בו כנתון אמיתי. הכיתוב מתחת למכשיר אומר
-       במפורש שזו הדמיה, והוא **אינו** מוסתר מקורא מסך.
+       ⚠️ הרצועה אינה רכיב חדש: היא **התאומה הבהירה של `.hp-app-inline`**,
+       רצועת האפליקציה שבתוך טור ההירו — אותו קו שיער, אותה שורת טקסט
+       קצרה, אותה שלישיית `.btn-store`. זו התשובה ל"שיתכתב עם החלק העליון".
+
+       ⚠️ `id="download"` נשמר — הסרגל, תפריט המובייל והפוטר מקשרים אליו.
+       ⚠️ `.btn-google` נעלם על לבן (רקע לבן + מסגרת שקופה), ולכן קיבל
+       כאן את תבנית "נשאר מסגרת" לפי כלל שני הירוקים.
        ══════════════════════════════════════════════════════════════════ -->
-  <section class="dvc" id="download">
-    <div class="container dvc-inner">
-
-      <!-- ‏הטקסט הוא המסר. כל מה שרואים במכשיר נאמר גם כאן. -->
-      <div class="dvc-text reveal">
-        <p class="section-label">האפליקציה</p>
-        <h2>ככה נראית הובלה שכבר בדרך</h2>
-        <p class="dvc-desc">אחרי התשלום אתה לא מחכה לטלפון. ההזמנה עוברת
-        חמישה שלבים, אחד מהם דולק בכל רגע, וכשהמוביל משתף מיקום הוא על
-        המפה שלך.</p>
-
-        <ul class="dvc-steps-txt" role="list">
-          <li><b>מחפשים מוביל</b> — ההזמנה פתוחה למובילים הזמינים</li>
-          <li><b>מוביל שובץ</b> — נפתח צ'אט ישיר איתו</li>
-          <li><b>המוביל בדרך אליך</b> — המעקב על המפה נדלק</li>
-          <li><b>המוביל מבצע את ההובלה</b></li>
-          <li><b>ההובלה הושלמה</b> — נשאר לדרג</li>
-        </ul>
-
-        <div class="download-buttons">
+  <section class="fq" id="download">
+    <div class="container fq-inner reveal">
+      <div class="fq-text">
+        <p class="section-label">מוכנים להתחיל?</p>
+        <h2 class="fq-title">הורד את ROZIC MOVE</h2>
+      </div>
+      <div class="fq-btns">
         <a tabindex="0" href="https://apps.apple.com/app/id6783814838" target="_blank" class="btn-store btn-apple large">
           <svg width="22" height="27" viewBox="0 0 20 24" fill="none" aria-hidden="true">
             <path d="M16.5 12.7c0-3.2 2.6-4.7 2.7-4.8-1.5-2.1-3.7-2.4-4.5-2.4-1.9-.2-3.7 1.1-4.7 1.1-1 0-2.5-1.1-4.1-1-2.1 0-4 1.2-5.1 3-2.2 3.8-.6 9.4 1.6 12.5 1 1.5 2.3 3.2 3.9 3.2 1.6-.1 2.2-1 4.1-1s2.4 1 4.1.9c1.7 0 2.8-1.5 3.8-3 1.2-1.7 1.7-3.4 1.7-3.5-.1 0-3.5-1.3-3.5-5zm-3.3-9.5c.9-1 1.4-2.4 1.3-3.8-1.2.1-2.7.8-3.6 1.8-.8.9-1.5 2.3-1.3 3.7 1.3.1 2.7-.7 3.6-1.7z" fill="currentColor"/>
@@ -2049,81 +2321,24 @@
             <strong>הזמן באתר</strong>
           </div>
         </a>
-        </div>
-
-        <p class="dvc-note">חינם להורדה. זמין ב-iOS וב-Android, או ישירות
-        מהדפדפן בלי להתקין כלום.</p>
       </div>
-
-      <!-- ‏המכשיר — קישוט טהור. `aria-hidden` על כל המסגרת, וכל
-           ה-svg שבתוכה מסומנים גם הם. אין כאן אף כותרת אמיתית
-           (`<h…>`), כדי שעץ הכותרות של העמוד לא ייקרע. -->
-      <div class="dvc-stage reveal">
-        <div class="dvc-frame" aria-hidden="true">
-          <div class="dvc-notch"></div>
-          <div class="dvc-screen">
-
-            <div class="dvc-scr-top">
-              <span>ROZIC MOVE</span>
-              <span>הזמנה פעילה</span>
-            </div>
-            <div class="dvc-scr-h">מעקב בזמן אמת</div>
-
-            <div class="dvc-map">
-              <svg viewBox="0 0 240 150" preserveAspectRatio="none" aria-hidden="true" focusable="false">
-                <!-- ‏רשת רחובות מרומזת — טקסטורה, לא מפה של מקום אמיתי. -->
-                <g class="dvc-grid">
-                  <path d="M0 38h240M0 84h240M0 122h240"/>
-                  <path d="M52 0v150M118 0v150M186 0v150"/>
-                </g>
-                <!-- ‏המקטע שכבר נסע, והמקטע שנותר. -->
-                <path class="dvc-route-done" d="M36 122 L52 122 L52 84 L118 84"/>
-                <path class="dvc-route" d="M118 84 L186 84 L186 38 L206 38"/>
-              </svg>
-              <!-- ‏שלוש הנקודות יושבות בדיוק על קצוות המסלול שב-svg:
-                   (36,122) · (118,84) · (206,38) מתוך viewBox 240×150,
-                   מומרים לאחוזים. `preserveAspectRatio="none"` מותח את
-                   ה-svg לגודל התיבה, ולכן שתי המערכות חופפות. -->
-              <span class="dvc-pin from" style="left:15%; top:81.3%"></span>
-              <span class="dvc-pin drv"  style="left:49.2%; top:56%"></span>
-              <span class="dvc-pin to"   style="left:85.8%; top:25.3%"></span>
-            </div>
-
-            <div class="dvc-legend">
-              <span><i class="from"></i>מוצא</span>
-              <span><i class="to"></i>יעד</span>
-              <span><i class="drv"></i>המוביל</span>
-            </div>
-
-            <div class="dvc-panel"><em></em>המוביל משתף מיקום בזמן אמת</div>
-
-            <div class="dvc-prog">
-              <div class="dvc-step done"><span></span>מחפשים מוביל</div>
-              <div class="dvc-step done"><span></span>מוביל שובץ</div>
-              <div class="dvc-step now"><span></span>המוביל בדרך אליך</div>
-              <div class="dvc-step"><span></span>המוביל מבצע את ההובלה</div>
-              <div class="dvc-step"><span></span>ההובלה הושלמה</div>
-            </div>
-
-          </div>
-        </div>
-
-        <p class="dvc-cap">הדמיה של מסך «מעקב בזמן אמת» באפליקציה. הנתונים
-        על המפה הם להמחשה בלבד.</p>
-      </div>
-
     </div>
   </section>
 
   </main>
 
   <!-- Footer -->
-  <footer class="footer">
+  <footer class="footer fq-footer">
     <div class="footer-inner container">
       <div class="footer-brand">
         <div class="footer-logo">
           <svg width="16" height="16" viewBox="0 0 18 18" fill="none" aria-hidden="true">
-            <path d="M3 9h12M9 3l6 6-6 6" stroke="#0E5C43" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+            <!-- ⚠️ 18.9 — היה `stroke="#0E5C43"` על רקע הפוטר `#1C4035`:
+                 **1.43:1**, כלומר החץ היה בלתי-נראה בפועל. הוא הועתק
+                 מהלוגו שבניווט, שם הרקע לבן. `currentColor` יורש את
+                 הלבן של `.footer-logo` — 11.45:1 — והוא גם מה שימנע
+                 את החזרה אם צבע הפוטר ישתנה שוב. -->
+            <path d="M3 9h12M9 3l6 6-6 6" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
           </svg>
           ROZIC MOVE
         </div>
@@ -2443,75 +2658,32 @@
 
   <script type="module" src="support-fab.js?v=4cc72bd0"></script>
 
-  <!-- ══════════════════════════════════════════════════════════════════
-       תצוגה בלבד — נטרול כל מה שמוביל לזרימת ההזמנה
-       ══════════════════════════════════════════════════════════════════
-       גיא (74.1א): *"רק הנראות ללא לחיצה על כפתורי המשך."*
+  <!-- ── תצוגה בלבד: נטרול הכניסה לזרימת ההזמנה ─────────────────────────
+       זה עמוד הדגמה, ואסור שלחיצה ממנו תפתח הזמנה אמיתית או תשלח מישהו
+       להתחברות. הנטרול נעשה כאן בסקריפט ולא בעריכת ה-HTML משתי סיבות:
 
-       ⚠️ **למה זה סקריפט ולא עריכה ב-HTML.** רוב הקישורים אל `app/`
-       יושבים בהירו ובסרגל הניווט — אזורים שאסור לגעת בהם בסבב הזה.
-       שינוי `href` שם היה הופך את העמוד ללא-עותק-של-`index.html`,
-       וזה בדיוק הכישלון של הסבב שנפסל. המסמך נשאר זהה, והנטרול חי
-       כשכבה אחת שיורדת יחד עם העמוד.
-
-       ⚠️ **`aria-disabled` ולא הסרת `href`.** `rmApplyNavAuth` שבתחתית
-       העמוד מחזיר `href` לקישור ההתחברות כשתשובת Firebase מגיעה, ודורס
-       כל הסרה בשקט. החסימה היא `preventDefault` בשלב ה-capture.
-
-       ⚠️ **הקישורים החיצוניים נפסלים לפני בדיקת הנתיב.** ה-`pathname`
-       של `https://apps.apple.com/app/id6783814838` הוא `/app/id…` —
-       בדיקת `'/app/'` לבדה הייתה מנטרלת את כפתור ה-App Store, שהוא
-       בדיוק מה שהמקטע הזה בא להראות.
-       ══════════════════════════════════════════════════════════════════ -->
+       ⚠️ 1. **לא מסירים `href`.** `rmApplyNavAuth` שרץ בעמוד הזה מחזיר
+          `href` לקישור ההתחברות ברגע שתשובת Firebase חוזרת, ודורס כל
+          הסרה סטטית — בשקט. `aria-disabled` + חסימת click בשלב ה-capture
+          שורדת את זה.
+       ⚠️ 2. **`url.origin !== location.origin` נבדק *לפני* `/app/`.**
+          בלי זה `https://apps.apple.com/app/id…` נתפס על ידי בדיקת
+          הנתיב, ודווקא כפתור ה-App Store הוא זה שמנוטרל. ב-`file://`
+          שני ה-origin הם `"null"` וההשוואה עוברת כרגיל. -->
   <script>
     (function () {
-      var NOTE = ' — תצוגה בלבד, הקישור מנוטרל בעמוד הזה';
-
-      /* ‏עוגנים פנימיים שהיעד שלהם אינו קיים בעמוד. הבדיקה היא על קיום
-         ה-id בפועל ולא על רשימה קשיחה, כדי שהיא לא תשקר אם מקטע יזוז. */
-      var anchors = document.querySelectorAll('a[href^="#"]');
-      for (var k = 0; k < anchors.length; k++) {
-        var id = anchors[k].getAttribute('href').slice(1);
-        if (!id || document.getElementById(id)) continue;
-        anchors[k].setAttribute('aria-disabled', 'true');
-        anchors[k].addEventListener('click', function (e) { e.preventDefault(); });
-      }
-
-      var links = document.querySelectorAll('a[href]');
-      for (var i = 0; i < links.length; i++) {
-        var a = links[i];
+      var here = location.origin;
+      document.querySelectorAll('a[href]').forEach(function (a) {
         var url;
-        try { url = new URL(a.getAttribute('href'), location.href); } catch (e) { continue; }
-
-        /* ⚠️ הסדר הזה הוא כל העניין: קודם פוסלים כל יעד שאינו באתר
-           שלנו, ורק אחר כך בודקים את הנתיב. */
-        if (url.host !== location.host) continue;
-        if (url.pathname.indexOf('/app/') === -1) continue;
-
+        try { url = new URL(a.getAttribute('href'), location.href); } catch (e) { return; }
+        if (url.origin !== here) return;              // ← חייב להיות ראשון
+        if (url.pathname.indexOf('/app/') === -1) return;
         a.setAttribute('aria-disabled', 'true');
-        a.setAttribute('data-preview-inert', '');
-
-        /* ⚠️ `<span>` חדש ולא הוספה ל-innerHTML: בסרגל הניווט הכיתוב
-           מוחלף דינמית ע"י `rmApplyNavAuth`, ודריסת ה-HTML כאן הייתה
-           מוחקת את ה-`[data-auth-label]` שהוא מחפש. */
-        var note = document.createElement('span');
-        note.className = 'hp-sr';
-        note.textContent = NOTE;
-        a.appendChild(note);
-      }
-
-      /* ‏מאזין יחיד בשלב ה-capture: רץ לפני הגלילה החלקה ולפני כל מאזין
-         אחר בעמוד, כך שגם לחיצה על אייקון בתוך הקישור נתפסת. */
+        a.dataset.previewDisabled = '1';
+      });
       document.addEventListener('click', function (e) {
-        var a = e.target.closest && e.target.closest('a[data-preview-inert]');
+        var a = e.target && e.target.closest && e.target.closest('a[data-preview-disabled]');
         if (a) { e.preventDefault(); e.stopPropagation(); }
-      }, true);
-
-      /* ‏Enter על קישור ממוקד אינו עובר דרך `click` בכל הדפדפנים. */
-      document.addEventListener('keydown', function (e) {
-        if (e.key !== 'Enter') return;
-        var a = e.target.closest && e.target.closest('a[data-preview-inert]');
-        if (a) e.preventDefault();
       }, true);
     })();
   </script>
