@@ -16,12 +16,13 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="../style.css?v=93d67ba9">
-  <link rel="stylesheet" href="style-app.css?v=fdbb8c13">
+  <link rel="stylesheet" href="style-app.css?v=f44707e8">
 </head>
 <body class="app-body">
-<div data-build-stamp class="build-stamp" aria-hidden="true">עודכן 17.09 · 23:09</div>
+<div data-build-stamp class="build-stamp" aria-hidden="true">עודכן 18.09 · 10:14</div>
   <a class="skip-link" href="#main-content">דלג לתוכן המרכזי</a>
   <script type="module" src="pilot-banner.js?v=14a0e537"></script>
+  <script type="module" src="offline-banner.js?v=96b835df"></script>
   <main id="main-content" tabindex="-1">
 
   <div class="step-hero">
@@ -390,6 +391,24 @@
 
       unsubTicket = subscribeToTicket(ticketId, (t) => {
         ticket = t;
+        /**
+         * ⚠️ 18.9 — **איפוס שני, ובלעדיו החיווי החדש (`support-unread.js`)
+         * היה נדלק בזמן שהצ'אט פתוח מול העיניים.**
+         *
+         * `markUserRead` נקרא ב-callback של מנוי ה**הודעות** (ראו
+         * `subscribeMessages`), כלומר על כל עדכון כל עוד המסך פתוח — זו
+         * ההתנהגות של `SupportChatScreen` באפליקציה והיא נכונה. אבל
+         * `sendSupportMessage` כותב בשני שלבים: קודם `addDoc` לתת-האוסף
+         * `messages`, ואז `updateDoc` על מסמך הפנייה עם `increment(1)`.
+         * הסדר הזה הוא בדיוק המרוץ: ה-snapshot של ההודעות יורה על השלב
+         * הראשון ומאפס ל-0, ומיד אחריו ה-increment של השלב השני מחזיר
+         * ל-1 — מונה "לא-נקרא" שנתקע על הודעה שכבר נקראה.
+         *
+         * ה-callback הזה הוא הצד השני של אותה כתיבה, והוא רץ **אחרי**
+         * ה-increment. התנאי `> 0` הוא מה שמונע לולאה: האיפוס עצמו מפעיל
+         * את המאזין שוב, ובפעם הזאת המונה כבר 0 ואין כתיבה נוספת.
+         */
+        if ((t?.unreadUser ?? 0) > 0) markUserRead(ticketId);
         reveal();
         renderTicketState();
       });
