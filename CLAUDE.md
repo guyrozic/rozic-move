@@ -72,9 +72,16 @@ node scripts/check-app-web-const-sync.mjs         # קבועים מול Hovalot
 של ריפו האפליקציה (`cancellation-policy-prompt-sync` וכו', ב-Hovalot).
 
 ## מה שקל לפספס
-- `preview-home.html` ו-`preview-heroes.html` נשארו בריפו כרפרנס לעיצוב
-  ההירו. הם נושאים `noindex` ואינם ב-`sitemap.xml`, אבל **הם כן נגישים
-  פומבית** ב-`rozicmove.com/preview-*.html`.
+- **דפי `preview-*.html` נגישים פומבית** ב-`rozicmove.com/preview-*.html`,
+  למרות `noindex` ולמרות שאינם ב-`sitemap.xml` ואינם מקושרים משום מקום.
+  הם משמשים להצגת כיווני עיצוב לגיא, **ויורדים אחרי שהוא מכריע.**
+  ⚠️ 18.9 — הסעיף הזה נקב בשמות `preview-home.html` ו-`preview-heroes.html`
+  שנמחקו מהריפו כבר ב-16.9. **לא לנקוב בשמות כאן** — הם משתנים בכל סבב
+  עיצוב, והרשימה מתיישנת בשקט. `ls preview-*.html` נותן את האמת.
+- ⚠️ **עמוד תצוגה נבנה ב-`cp index.html`, לא מאפס.** ב-17.9 נבנו ארבעה
+  כיווני עיצוב כעמודים עצמאיים — הם לא טענו את `style.css`, לא כללו את
+  ההירו, **וגיא פסל את כולם.** הבדיקה הזולה: `grep 'rel="stylesheet"'`
+  ו-`grep 'class="hp-stage"'` על התוצאה.
 - `robots.txt` מכיל הסבר למה `Disallow` **אינו** הדרך להוריד דף
   מהאינדקס — לקרוא אותו לפני שמוסיפים שם שורה.
 - `app/pilot-banner.js` + `app/pilot-mode.js` החליפו את
