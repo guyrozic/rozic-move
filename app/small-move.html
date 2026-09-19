@@ -33,7 +33,7 @@
   <!-- ⚠️ נטען אחרון בכוונה — `flow.css` דורס את `style-app.css` תחת
        `.flow-b` בלבד. 14 המסכים האחרים שחולקים את `style-app.css`
        אינם מושפעים, כי המחלקה יושבת על ה-<body> של הדף הזה. -->
-  <link rel="stylesheet" href="flow.css?v=b052cc0a">
+  <link rel="stylesheet" href="flow.css?v=5e3c626c">
   <style>
     /* התווית שליד המחיר בפס התחתון (19.9). */
     .bottom-price-wrap { display: flex; align-items: baseline; gap: 8px; min-width: 0; }
@@ -119,7 +119,7 @@
   </style>
 </head>
 <body class="app-body flow-b">
-<div data-build-stamp class="build-stamp" aria-hidden="true">עודכן 20.09 · 01:49</div>
+<div data-build-stamp class="build-stamp" aria-hidden="true">עודכן 20.09 · 02:08</div>
   <!-- ⚠️ 15.9 — "דלג לתוכן המרכזי" (WCAG 2.4.1, רמה A). זהו האלמנט הממוקד
        הראשון בדף: מוסתר מהעין, מופיע בפינה ברגע שמגיעים אליו ב-Tab, ומעביר
        את המיקוד אל <main id="main-content" tabindex="-1">. בלי ה-tabindex
@@ -146,11 +146,12 @@
   <div class="step-hero" id="step-hero">
     <div class="step-hero-inner">
       <a tabindex="0" href="index.html" class="btn-text" style="padding:0; margin-bottom:10px; display:inline-block;">→ בחירת שירות</a>
+      <p class="step-kick" id="step-kick">מובילים בקטנה · שלב 1 מתוך 4</p>
       <div class="stepper">
-        <div class="step-dot active" data-step="1"></div>
-        <div class="step-dot" data-step="2"></div>
-        <div class="step-dot" data-step="3"></div>
-        <div class="step-dot" data-step="4"></div>
+        <div class="step-dot active" data-step="1">פריטים</div>
+        <div class="step-dot" data-step="2">אריזה</div>
+        <div class="step-dot" data-step="3">פרטי הובלה</div>
+        <div class="step-dot" data-step="4">סיכום</div>
       </div>
       <!-- ⚠️ `tabindex="-1"` — ראו goToStep. מאפשר מיקוד תכנותי בלבד;
            הכותרת אינה נכנסת לסדר ה-Tab ואינה משנה דבר במראה. -->
@@ -168,11 +169,15 @@
           <!-- ⚠️ 20.9 — שני מסלולי ה-AI עברו לשורה אחת. עטיפה ויזואלית
                בלבד: אין בה מזהה ואף בורר JS לא עובר דרכה. -->
           <div class="routes-row">
-          <div class="ai-upload-card">
-            <div class="ai-upload-icon-wrap"><div class="ai-upload-icon">📸</div></div>
+          <div class="ai-upload-card rt rt-lead" id="start-photo">
+            <span class="rt-badge">הכי מהיר</span>
+            <div class="ai-upload-icon-wrap"><div class="rt-ic"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M3 7h3l2-3h8l2 3h3v13H3zM12 9a4 4 0 100 8 4 4 0 000-8z" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg></div></div>
             <div class="ai-upload-body">
-              <h2>סריקת פריטים ב-AI</h2>
-              <p>העלה תמונות מהמחשב או מהנייד — נזהה את הפריטים בעצמנו.</p>
+              <h2>צלמו את הפריטים</h2>
+              <p>תמונה לכל פריט או פינה. נזהה אותם, ואתם רק מאשרים.</p>
+              <label class="rt-drop" for="ai-photo-input" id="ai-dropzone">
+                <b>גררו תמונות לכאן</b><span>או לחצו לבחירה</span>
+              </label>
               <div class="ai-photo-thumbs" id="ai-photo-thumbs"></div>
               <div class="ai-upload-progress" id="ai-progress-wrap" style="display:none;">
                 <div class="ai-upload-progress-fill" id="ai-progress-fill" style="width:0%"></div>
@@ -208,15 +213,24 @@
                השאלות בין תיבת ההודעה ל"או בחר ידנית", לא מעל תיבת ההודעה).
                "חושב..." מתחלף לאותם ארבעה נוסחים ובאותו הקצב כמו
                CHAT_LOADING_PHRASES באפליקציה — כדי שהאתר לא ייראה תקוע. -->
-          <div class="ai-chat-card" id="start-chat">
-            <h2>💬 או כתוב לנו מה יש לך</h2>
-            <p>למשל: "יש לי מיטה זוגית ושתי ספות" — נוסיף את זה בעצמנו.</p>
+          <div class="ai-chat-card rt" id="start-chat">
+            <div class="rt-ic"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M21 12a8 8 0 01-8 8H4l2-3a8 8 0 1115-5z" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+            <h2>או פשוט תכתבו</h2>
+            <p>בשפה חופשית, כמו שהייתם אומרים לחבר.</p>
             <div class="ai-chat-thread" id="ai-chat-thread"></div>
             <div class="ai-chat-input-row">
               <input type="text" id="ai-chat-input" placeholder="כתוב כאן..." aria-label="הודעה לעוזר ה-AI">
               <button tabindex="0" class="btn btn-primary" id="ai-chat-send-btn">שלח</button>
             </div>
             <div id="ai-questions"></div>
+          </div>
+
+          <div class="app-card rt rt-manual" id="start-manual">
+            <div class="rt-ic"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h10" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg></div>
+            <h2>או מהרשימה</h2>
+            <p>אם אתם כבר יודעים בדיוק מה יש.</p>
+            <div class="rt-chips" id="manual-chips"></div>
+            <button tabindex="0" class="btn btn-secondary" id="open-catalog-btn">פתיחת הקטלוג</button>
           </div>
           </div><!-- /.routes-row -->
 
@@ -492,9 +506,11 @@
 
       <div class="app-side">
         <div class="side-summary-card">
-          <h3>סיכום ההזמנה</h3>
+          <h3>ההזמנה שלך</h3>
           <div class="price-lines" id="side-price-lines"></div>
           <div class="price-total"><span>סה"כ</span><strong id="side-price-total">₪0</strong></div>
+          <p class="sum-note">מתעדכן עם כל שינוי. נעול רק בתשלום.</p>
+          <button tabindex="0" class="btn btn-primary sum-go" id="side-go-btn">להמשיך לאריזה</button>
         </div>
       </div>
     </div>
@@ -748,6 +764,13 @@
       document.getElementById('side-price-lines').innerHTML = lines.map(([l, v]) => `<div class="price-line"><span>${l}</span><span>${v}</span></div>`).join('');
       document.getElementById('side-price-total').textContent = `₪${formatPrice(p.totalPrice)}`;
       document.getElementById('bottom-price').textContent = step === 1 ? `₪${formatPrice(p.itemsTotal)}` : `₪${formatPrice(p.totalPrice)}`;
+      /* משקף את `#next-btn` ואינו מחליף אותו — תנאי מעבר אחד. */
+      const sideGo = document.getElementById('side-go-btn');
+      if (sideGo) {
+        const next = document.getElementById('next-btn');
+        sideGo.disabled = !!next?.disabled;
+        sideGo.style.display = step === 1 ? '' : 'none';
+      }
       return p;
     }
 
@@ -819,6 +842,25 @@
       ev.preventDefault();
       document.getElementById('ai-photo-input').click();
     });
+    /* ⚠️ בלי `preventDefault` על `dragover` הדפדפן פותח את התמונה בטאב
+       במקום למסור אותה לדף — כלומר הלקוח מאבד את מה שמילא. */
+    (() => {
+      const zone = document.getElementById('ai-dropzone');
+      if (!zone) return;
+      const off = (e) => { e.preventDefault(); zone.classList.remove('over'); };
+      ['dragenter', 'dragover'].forEach(ev => zone.addEventListener(ev, (e) => {
+        e.preventDefault(); zone.classList.add('over');
+      }));
+      ['dragleave', 'dragend'].forEach(ev => zone.addEventListener(ev, off));
+      zone.addEventListener('drop', (e) => {
+        off(e);
+        const files = [...(e.dataTransfer?.files || [])].filter(f => f.type.startsWith('image/'));
+        if (!files.length) return;
+        aiPhotos.push(...files);
+        renderAIPhotos();
+      });
+    })();
+
     document.getElementById('ai-photo-input').addEventListener('change', (e) => {
       aiPhotos.push(...Array.from(e.target.files || []));
       e.target.value = '';
@@ -1155,6 +1197,48 @@
     boxesTab.addEventListener('click', selectBoxes);
     activateOnKey(boxesTab, selectBoxes);
     roomTabsEl.appendChild(boxesTab);
+
+    /* הכרטיס השלישי — נבנה מ-`ALL_ROOMS`, אותו מקור של לשוניות הקטלוג. */
+    const manualChipsEl = document.getElementById('manual-chips');
+    const CHIP_PREVIEW = 3;
+
+    function openCatalog(roomKey) {
+      const fold = document.getElementById('manual-fold');
+      if (fold) fold.open = true;
+      if (roomKey) { activeRoom = roomKey; renderRoomTabs(); renderItems(); }
+      const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      document.getElementById('start-list')?.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block: 'start' });
+      roomTabsEl.querySelector('.room-tab.active')?.focus({ preventScroll: true });
+    }
+
+    if (manualChipsEl) {
+      ALL_ROOMS.slice(0, CHIP_PREVIEW).forEach((room, i) => {
+        const chip = document.createElement('span');
+        chip.className = 'rt-chip' + (i === 0 ? ' on' : '');
+        chip.textContent = room.label;
+        const go = () => openCatalog(room.key);
+        makeChipAccessible(chip, i === 0);
+        chip.addEventListener('click', go);
+        activateOnKey(chip, go);
+        manualChipsEl.appendChild(chip);
+      });
+      const rest = ALL_ROOMS.length - CHIP_PREVIEW;
+      if (rest > 0) {
+        const more = document.createElement('span');
+        more.className = 'rt-chip';
+        more.textContent = `+${rest}`;
+        makeChipAccessible(more, false);
+        const go = () => openCatalog(null);
+        more.addEventListener('click', go);
+        activateOnKey(more, go);
+        manualChipsEl.appendChild(more);
+      }
+    }
+
+    document.getElementById('open-catalog-btn')?.addEventListener('click', () => openCatalog(null));
+    document.getElementById('side-go-btn')?.addEventListener('click', () => {
+      document.getElementById('next-btn')?.click();
+    });
 
     function renderRoomTabs() {
       // ה-`aria-pressed` נצמד למחלקה `active` — אחרת קורא מסך ימשיך להכריז
@@ -2108,6 +2192,7 @@
       titleEl.textContent = STEP_TITLES[step][0];
       document.getElementById('step-desc').textContent = STEP_TITLES[step][1];
       document.getElementById('step-hero').className = 'step-hero step-' + step;
+      document.getElementById('step-kick').textContent = `מובילים בקטנה · שלב ${step} מתוך 4`;
       /* ⚠️ 19.9 (61.2א) — הפס נשאר בכל השלבים, והכפתור מוסתר.
 
          עד כה הפס כולו הוסתר בשלבים 2–4. בדסקטופ זה בסדר כי `.app-side`

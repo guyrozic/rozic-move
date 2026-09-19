@@ -95,15 +95,58 @@
 .flow-b .step-hero p,
 .flow-b .step-hero #step-desc { color: var(--fl-wash); }
 
-/* הסטפר על הבמה */
+/* ── העינית ושביל השלבים ──────────────────────────────────────────
+   ⚠️ `.step-dot` היה פס אפור בגובה 5px בלי מילה. הכלל הבסיסי מגיע
+   עם `flex: 1` ו-`height: 5px`, ולכן שניהם מאופסים כאן במפורש —
+   בלי זה התווית נחתכת לגובה חמישה פיקסלים. */
+.flow-b .step-kick {
+  font-size: .78rem;
+  font-weight: 800;
+  letter-spacing: 2.2px;
+  color: var(--fl-wash);
+  margin: 0 0 9px;
+}
+.flow-b .step-hero .stepper {
+  max-width: none;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 4px;
+}
 .flow-b .step-hero .stepper .step-dot {
-  background: rgba(255,255,255,.2);
+  flex: 0 0 auto;
+  height: auto;
+  border-radius: 0;
+  background: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-size: .84rem;
+  font-weight: 700;
+  /* ⚠️ נמדד: ב-0.62 (הערך מהמוקאפ) התווית נותנת 3.14 על הבמה — מתחת
+     ל-AA. 0.90 נותן 4.78. ההבחנה בין שלב שעברת לשלב שלפניך נשענת
+     ממילא על הנקודה (מנטה מלאה מול מתאר ריק) ולא על עוצמת הטקסט,
+     ולכן ההעלאה לא מוחקת שום מידע. */
+  color: rgba(231,243,237,.9);
+  box-shadow: none;
 }
-.flow-b .step-hero .stepper .step-dot.active {
+.flow-b .step-hero .stepper .step-dot::before {
+  content: '';
+  width: 9px; height: 9px;
+  border-radius: 50%;
+  border: 1.5px solid rgba(255,255,255,.3);
+  flex: none;
+}
+.flow-b .step-hero .stepper .step-dot.active { color: var(--white); }
+.flow-b .step-hero .stepper .step-dot.active::before {
   background: var(--fl-mint);
-  box-shadow: 0 0 0 4px rgba(78,218,169,.22);
+  border-color: var(--fl-mint);
+  box-shadow: 0 0 0 4px rgba(78,218,169,.2);
 }
-.flow-b .step-hero .stepper .step-dot.done { background: rgba(78,218,169,.55); }
+.flow-b .step-hero .stepper .step-dot.done { color: var(--fl-wash); }
+.flow-b .step-hero .stepper .step-dot.done::before {
+  background: rgba(78,218,169,.55);
+  border-color: rgba(78,218,169,.55);
+}
 
 /* ── הכרטיסים צפים על הבמה ─────────────────────────────────────────
    ⚠️ **ההרמה חלה על `.app-layout` בלבד — כלומר על שני מסכי האשף.**
@@ -157,9 +200,15 @@
    אל מחוץ לשוליים. במסך צר זה נראה כמו פריסה שבורה, לא כמו כרטיס רחב. */
 .flow-b .routes-row {
   display: grid;
-  grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 16px;
   align-items: stretch;
+}
+/* ⚠️ מתחת ל-1080 שלוש עמודות מרסקות כל כרטיס לרוחב שבו הכותרת נשברת
+   לשלוש שורות. שתיים ואז אחת — הסריקה נשארת ראשונה ורחבה. */
+@media (max-width: 1080px) {
+  .flow-b .routes-row { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .flow-b .routes-row .rt-lead { grid-column: 1 / -1; }
 }
 .flow-b .routes-row > * { margin-bottom: 0; min-width: 0; }
 
@@ -195,11 +244,127 @@
   .flow-b .routes-row { grid-template-columns: minmax(0, 1fr); gap: 14px; }
 }
 
+/* ── רכיבי כרטיס המסלול ───────────────────────────────────────────
+   שלושת הכרטיסים חולקים עכשיו את אותו שלד: אייקון בריבוע, כותרת,
+   משפט, אזור תוכן שנצמד לתחתית, וכפתור אחד ברוחב מלא. */
+.flow-b .rt {
+  display: flex;
+  flex-direction: column;
+  padding: 24px 22px 22px;
+}
+.flow-b .rt-lead {
+  box-shadow: 0 2px 5px rgba(10,68,51,.06), 0 26px 58px -16px rgba(10,68,51,.38);
+}
+/* ⚠️ **לא `position: absolute`.** הניסיון הראשון מיקם את התג עם
+   `inset-inline-end`, והוא נחת בצד שמאל — ב-RTL ה-inline-end הוא
+   השמאל. זו אותה מלכודת שכבר עלתה בסבב הזה. במוקאפ התג בכלל אינו
+   ממוקם: הוא פריט flex רגיל עם `align-self`, ולכן הוא יושב בהתחלה
+   של הציר — הימין ב-RTL — בלי שום התייחסות לכיוון. */
+.flow-b .rt-badge {
+  align-self: flex-start;
+  background: var(--fl-deep);
+  color: var(--fl-mint);
+  font-size: .7rem;
+  font-weight: 800;
+  letter-spacing: 1px;
+  padding: 3px 10px;
+  border-radius: 50px;
+  margin-bottom: 11px;
+}
+.flow-b .rt-ic {
+  width: 44px; height: 44px;
+  border-radius: 13px;
+  background: var(--fl-wash);
+  color: var(--green);
+  display: flex; align-items: center; justify-content: center;
+  margin-bottom: 15px;
+}
+.flow-b .rt-ic svg { width: 23px; height: 23px; }
+/* הכרטיס המוביל מקבל את ההיפוך: ריבוע כהה ואייקון מנטה. */
+.flow-b .rt-lead .rt-ic { background: var(--fl-deep); color: var(--fl-mint); }
+/* ⚠️ עוטף האייקון הישן החזיק אמוג'י 📸 ברקע וריפוד משלו, והוא גם מרכז
+   את תוכנו — נמדד: האייקון נחת 129px מקצה הכרטיס במקום להיצמד אליו.
+   `display: contents` מוציא את העוטף מהפריסה לגמרי, כך ש-`.rt-ic`
+   הופך לילד ישיר של עמודת הכרטיס ומתיישר כמו התג והכותרת. העוטף
+   נשאר ב-DOM כי הוא מופיע בשני הדפים ואינו שלי למחוק. */
+.flow-b .routes-row .ai-upload-icon-wrap { display: contents; }
+.flow-b .rt h2 { margin-bottom: 6px; }
+.flow-b .rt > p,
+.flow-b .rt .ai-upload-body > p { font-size: .94rem; margin-bottom: 17px; }
+
+/* ⚠️ כרטיס הסריקה הוא `display: flex` בשורה (אייקון + גוף). בשלוש
+   עמודות זה לא נכנס, ולכן כאן הוא עובר לעמודה — בדיוק כמו שני
+   הכרטיסים האחרים. */
+.flow-b .routes-row .ai-upload-card {
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0;
+}
+
+/* אזור הגרירה */
+.flow-b .rt-drop {
+  display: block;
+  border: 1.5px dashed var(--fl-line);
+  border-radius: 12px;
+  padding: 18px 14px;
+  text-align: center;
+  cursor: pointer;
+  margin-bottom: 14px;
+  transition: border-color .18s, background .18s;
+}
+.flow-b .rt-drop b { display: block; font-size: .93rem; margin-bottom: 2px; color: var(--text); }
+.flow-b .rt-drop span { font-size: .84rem; color: var(--text-muted); }
+.flow-b .rt-drop:hover,
+.flow-b .rt-drop.over { border-color: var(--green); background: var(--fl-wash); }
+.flow-b .rt-drop:focus-within { outline: 2px solid var(--green); outline-offset: 2px; }
+@media (prefers-reduced-motion: reduce) { .flow-b .rt-drop { transition: none; } }
+
+/* ⚠️ `#ai-photo-label` מוסתר מהעין בלבד ולא ב-`display:none`: הוא
+   מחזיק מאזין keydown, ו-`for` שלו מצביע על ה-input. אזור הגרירה
+   ממלא את תפקידו החזותי. */
+.flow-b .routes-row #ai-photo-label { display: none; }
+.flow-b .ai-upload-actions .btn { flex: 1 1 100%; }
+
+/* צ׳יפי הקטגוריות בכרטיס השלישי */
+.flow-b .rt-chips { display: flex; gap: 7px; flex-wrap: wrap; margin-bottom: 14px; }
+.flow-b .rt-chip {
+  border: 1px solid var(--fl-line);
+  border-radius: 999px;
+  padding: .3rem .7rem;
+  font-size: .84rem;
+  font-weight: 600;
+  color: var(--text-mid);
+  cursor: pointer;
+  transition: background .18s, color .18s, border-color .18s;
+}
+.flow-b .rt-chip:hover { border-color: var(--green); color: var(--green); }
+.flow-b .rt-chip.on { background: var(--green); border-color: var(--green); color: var(--white); }
+.flow-b .rt-chip:focus-visible { outline: 2px solid var(--green); outline-offset: 2px; }
+@media (prefers-reduced-motion: reduce) { .flow-b .rt-chip { transition: none; } }
+
+/* הכפתור התחתון של כל כרטיס — אחד, ברוחב מלא, על אותו קו */
+.flow-b .rt-manual { display: flex; flex-direction: column; }
+.flow-b .rt-manual .rt-chips { margin-top: auto; }
+.flow-b .routes-row #open-catalog-btn,
+.flow-b .routes-row .ai-chat-input-row,
+.flow-b .routes-row .ai-upload-actions { width: 100%; }
+.flow-b .routes-row #open-catalog-btn { justify-content: center; }
+
 /* ── הרשימה הידנית, מקופלת ────────────────────────────────────────
    ⚠️ **זה תיקון מוצר ולא רק עיצוב.** נמדד ב-19.9: `#start-list`
    תפס 14,047 מתוך 15,409 פיקסלים בנייד — 91% מהמסך — כי 64 כרטיסי
    פריט של קטגוריה אחת נפרסו תמיד. הסריקה והצ׳אט, שני מסלולי ה-AI
    שהם לב המוצר, קיבלו יחד פחות מ-10%. */
+/* ⚠️ מרגע שחזר הכרטיס השלישי ("או מהרשימה" + "פתיחת הקטלוג"), שורת
+   ה-`<summary>` הפכה לכפילות של אותה פעולה במרחק 30 פיקסלים. היא
+   מוסתרת ולא נמחקת: ה-`<details>` נשאר המכל שפותח וסוגר את הקטלוג,
+   ו-`openCatalog()` הוא מי שמפעיל אותו. `<details>` בלי `<summary>`
+   גלוי עדיין עובד תקין דרך המאפיין `open`.
+   ⚠️ **`display: none` ולא `visibility`** — summary נסתר-למחצה עדיין
+   תופס שורה ריקה בראש הקטלוג. */
+.flow-b .manual-fold > summary { display: none; }
+.flow-b .manual-fold:not([open]) { display: none; }
+
 .flow-b .manual-fold {
   background: var(--white);
   border: 0;
@@ -269,11 +434,42 @@
 /* ⚠️ `.price-line.discount` הוא `--green-dark` בבסיס — ירוק כהה על ירוק
    כהה, כלומר שורת ההנחה הייתה נעלמת לגמרי. */
 .flow-b .app-side .price-line.discount { color: var(--fl-mint); }
+.flow-b .app-side .side-summary-card h3 {
+  font-size: .78rem;
+  letter-spacing: 2px;
+  margin-bottom: 15px;
+}
+/* הסה״כ הוא המספר שהלקוח בא בשבילו — במוקאפ הוא 2rem, לא 1.2. */
 .flow-b .app-side .price-total {
   color: var(--white);
   border-top-color: rgba(255,255,255,.16);
+  align-items: baseline;
+  margin-top: 14px;
 }
-.flow-b .app-side .price-total strong { color: var(--fl-mint); }
+.flow-b .app-side .price-total span { font-size: .92rem; font-weight: 600; color: var(--fl-wash); }
+.flow-b .app-side .price-total strong {
+  color: var(--fl-mint);
+  font-size: 2rem;
+  font-weight: 900;
+  letter-spacing: -1.2px;
+  font-variant-numeric: tabular-nums;
+}
+.flow-b .app-side .sum-note {
+  font-size: .83rem;
+  color: rgba(223,243,232,.72);
+  margin: 8px 0 0;
+  line-height: 1.5;
+}
+/* הכפתור הראשי בטור הצדדי — מנטה על כהה, ההפך מהכפתור על לבן. */
+.flow-b .app-side .sum-go {
+  width: 100%;
+  margin-top: 17px;
+  background: var(--fl-mint);
+  color: var(--fl-deep);
+  justify-content: center;
+}
+.flow-b .app-side .sum-go:hover:not(:disabled) { background: #6FE3B5; }
+.flow-b .app-side .sum-go:disabled { opacity: .45; }
 
 /* ── הפס התחתון ─────────────────────────────────────────────────── */
 .flow-b .app-bottom-bar {
