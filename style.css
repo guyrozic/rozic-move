@@ -162,6 +162,24 @@ img, svg { display: block; }
   opacity: 1;
   transform: none;
 }
+
+/* ⚠️ 19.9 — `prefers-reduced-motion` על החשיפה בגלילה.
+   שני ה-media queries הקיימים בקובץ מכסים את `.skip-link` ואת
+   `.pilot-banner` בלבד — ו-21 אלמנטים בדף הבית זזו ב-30px
+   בכל גלילה בלי שום כיסוי. למי שהגדיר במערכת הפחתת תנועה
+   זו אינה העדפה אלא צורך — תנועה נרחבת מעוררת בחילה
+   אצל אנשים עם רגישות וסטיבולרית.
+   ⚠️ התוכן נשאר **גלוי במלואו** ולא מוסתר: האנימציה מתחילה
+   מ-`opacity: 0`, וביטול ה-transition לבדו היה משאיר את הדף ריק
+   לחלוטין אם ה-IntersectionObserver לא ירוץ. */
+@media (prefers-reduced-motion: reduce) {
+  .reveal,
+  .reveal-right {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+}
 .reveal:nth-child(2) { transition-delay: 0.08s; }
 .reveal:nth-child(3) { transition-delay: 0.16s; }
 .reveal:nth-child(4) { transition-delay: 0.24s; }
