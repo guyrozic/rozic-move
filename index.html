@@ -1174,6 +1174,28 @@
     font-weight: 800;
     color: var(--white);
   }
+  /* ⚠️ הסימון שהכתובות והסכומים בלוח מומצאים. הוא החליף את הכיתוב
+     שישב מעל הלוח והוסר ב-19.9 — ובלעדיו ₪1,180 ו"רמת גן ← תל אביב"
+     מוצגים בלי שום סימן שהם איור.
+     המילוי 0.09 ולא 0.15: רקע בהיר יותר מבהיר את המשטח ומוריד את
+     הניגודיות מול הטקסט הבהיר — נמדד 4.57:1 ב-0.15 מול 5.3:1 ב-0.09.
+     הלוח כולו aria-hidden, ולכן זה לא נשמע בקורא מסך. זה תקין: מי
+     שלא שומע את הסכום גם לא זקוק לגילוי שהוא מומצא. */
+  .mv-b-demo {
+    display: inline-block;
+    vertical-align: 2px;
+    margin-inline-start: 8px;
+    font-size: 0.66rem;
+    line-height: 1.6;
+    font-weight: 800;
+    letter-spacing: 0.4px;
+    color: var(--green-on-dark);
+    background: rgba(78,218,169,0.09);
+    border: 1px solid rgba(78,218,169,0.40);
+    border-radius: 50px;
+    padding: 2px 9px;
+  }
+
   .mv-b-head-tx i {
     display: block;
     font-style: normal;
@@ -1380,7 +1402,7 @@
      שיחליף אותם; בלי הסימון הזה הם נעלמו גם בחמשת הדפים המשפטיים,
      בלי שום דרך להגיע אליהם (WCAG 1.4.4). -->
 <body class="has-nav-menu hp-home">
-<div data-build-stamp class="build-stamp" aria-hidden="true">עודכן 19.09 · 14:43</div>
+<div data-build-stamp class="build-stamp" aria-hidden="true">עודכן 19.09 · 14:52</div>
   <!-- ⚠️ 15.9 — "דלג לתוכן המרכזי" (WCAG 2.4.1, רמה A). זהו האלמנט הממוקד
        הראשון בדף: מוסתר מהעין, מופיע בפינה ברגע שמגיעים אליו ב-Tab, ומעביר
        את המיקוד אל <main id="main-content" tabindex="-1">. בלי ה-tabindex
@@ -1986,7 +2008,7 @@
 
           <div class="mv-b-head">
             <div class="mv-b-head-tx">
-              <b>הזמנות פתוחות</b>
+              <b>הזמנות פתוחות <span class="mv-b-demo">להדגמה</span></b>
               <i>בחר הזמנה ולחץ "קח אותה" כדי לשייך אותה אליך</i>
             </div>
             <div class="mv-b-chips"><span>אזור</span><span>תאריך</span><span>שעה</span></div>
