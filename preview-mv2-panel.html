@@ -1316,26 +1316,6 @@
     color: rgba(255,255,255,0.72);
   }
 
-  /* הסימונים 1-4 — על הלוח (ציור) וברשימה (טקסט), אותו עיצוב.
-     ⚠️ זה **מילוי**, ולכן הוא חוקי בשני האזורים: הטקסט שבתוכו נמדד
-     מול הירוק הבהיר (6.32:1) ולא מול המשטח שמאחוריו. העיגול עצמו מול
-     המשטח המובהר הוא 3.72:1 — מעל 3:1 הנדרש לרכיב גרפי. */
-  .mv-b-mark,
-  .mv-key-n {
-    flex-shrink: 0;
-    width: 1.4rem;
-    height: 1.4rem;
-    border-radius: 50%;
-    background: var(--green-on-dark);
-    color: var(--green-dark);
-    font-size: 0.74rem;
-    font-weight: 900;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    line-height: 1;
-  }
-
   /* ── הטור שלצד הלוח: ארבע ההטבות ואז הכפתור ───────────────────────
      ההטבות ירדו מארבע-לרוחב לעמודה אחת שנשענת על הלוח, כך שכל מספר
      עומד בגובה דומה לחלק שהוא מצביע עליו. */
@@ -1413,7 +1393,7 @@
      שיחליף אותם; בלי הסימון הזה הם נעלמו גם בחמשת הדפים המשפטיים,
      בלי שום דרך להגיע אליהם (WCAG 1.4.4). -->
 <body class="has-nav-menu hp-home">
-<div data-build-stamp class="build-stamp" aria-hidden="true">עודכן 18.09 · 17:08</div>
+<div data-build-stamp class="build-stamp" aria-hidden="true">עודכן 19.09 · 14:35</div>
   <!-- ⚠️ 15.9 — "דלג לתוכן המרכזי" (WCAG 2.4.1, רמה A). זהו האלמנט הממוקד
        הראשון בדף: מוסתר מהעין, מופיע בפינה ברגע שמגיעים אליו ב-Tab, ומעביר
        את המיקוד אל <main id="main-content" tabindex="-1">. בלי ה-tabindex
@@ -2007,9 +1987,10 @@
        ל-`--green` והלוח ירד ל-`--green-dark` אטום, כדי שהמסך יבלוט
        מהמקטע במקום להיטמע בו. בנוסף: הכותרת עלתה לשורה רוחב-מלא
        משלה, כך שהלוח גדל, וארבע ההטבות ירדו לעמודה שנשענת עליו.
-       הטקסט **מצביע** על המסך ("ככה זה נראה אצלך") ולא מתאר אותו.
-       הסימונים (1-4) מופיעים פעמיים — על הלוח (`aria-hidden`, ציור)
-       וברשימה שלצידו (טקסט אמיתי). קורא מסך שומע רק את הרשימה.
+       ⚠️ 19.9, הכרעת גיא: הלוח נוקה. ירדו שורת הזמינות, רגלית
+       הדשבורד ויתרת הרווחים, וכל הסימונים הממוספרים — "אני רוצה את
+       הלוח יותר נקי". הכותרת המשנית היא "הרווח ידוע מראש", שנלקחה
+       מווריאציה אחרת שגיא ביקש לשלב.
        ⚠️ `class="movers-section"` נשמר בכוונה: עליו תלוי כלל טבעת
        המיקוד `--green-on-dark` ב-style.css. ⚠️ `id="for-movers"` נשמר:
        הסרגל, תפריט המובייל והפוטר מקשרים אליו. -->
@@ -2019,7 +2000,7 @@
       <div class="mv-head reveal">
         <p class="section-label light">הצטרף לצוות</p>
         <h2>למובילים עצמאיים</h2>
-        <p class="mv-lead">ככה זה נראה אצלך.</p>
+        <p class="mv-lead">הרווח ידוע מראש.</p>
         <p class="mv-desc">לא רשימת הבטחות — הלוח עצמו. מה פתוח עכשיו, לאן, וכמה נכנס לך מכל הובלה, עוד לפני שלחצת "קח אותה".</p>
       </div>
 
@@ -2033,15 +2014,7 @@
              אמור לשמוע — כל טענה שהציור ממחיש כתובה בטקסט שלצידו. -->
         <div class="mv-board" aria-hidden="true">
 
-          <div class="mv-b-bar">
-            <span class="mv-b-mark">1</span>
-            <span class="mv-b-switch"><i></i></span>
-            <b>זמין לעבודות</b>
-            <span class="mv-b-bar-note">אתה מחליט מתי</span>
-          </div>
-
           <div class="mv-b-head">
-            <span class="mv-b-mark">2</span>
             <div class="mv-b-head-tx">
               <b>הזמנות פתוחות</b>
               <i>בחר הזמנה ולחץ "קח אותה" כדי לשייך אותה אליך</i>
@@ -2099,11 +2072,6 @@
 
           </div>
 
-          <div class="mv-b-foot">
-            <span class="mv-b-foot-it"><span class="mv-b-mark">3</span>דשבורד מפורט — ביצועים, דירוגים והכנסות</span>
-            <span class="mv-b-foot-it"><span class="mv-b-mark">4</span>יתרת רווחים · ההעברה אחת לשבועיים</span>
-          </div>
-
         </div>
       </div>
 
@@ -2113,20 +2081,16 @@
       <div class="mv-side reveal">
       <ul class="mv-keys">
         <li>
-          <span class="mv-key-n" aria-hidden="true">1</span>
-          <div>שעות עבודה גמישות לחלוטין</div>
+          <div>שעות עבודה גמישות לחלוטין &mdash; אתם מחליטים מתי וכמה לעבוד</div>
         </li>
         <li>
-          <span class="mv-key-n" aria-hidden="true">2</span>
           <div>לוח הזמנות דיגיטלי עם ניהול הזמנות</div>
         </li>
         <li>
-          <span class="mv-key-n" aria-hidden="true">3</span>
           <div>תמיכה מהצוות ומערכת דירוגים שקופה</div>
         </li>
         <li>
-          <span class="mv-key-n" aria-hidden="true">4</span>
-          <div>הרווח נזקף בסיום ההובלה, והתשלום מועבר אחת לשבועיים</div>
+          <div>הרווח נכנס לחשבון עם סיום ההובלה, והתשלום מועבר אחת לשבועיים</div>
         </li>
       </ul>
         <a tabindex="0" href="#download" class="btn-light mv-cta">הצטרף כמוביל</a>

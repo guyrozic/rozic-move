@@ -993,6 +993,400 @@
        כותרת של 3.1rem. חצי דרגה למעלה — לא יותר. */
     .fq-footer .footer-logo { font-size: 1.22rem; }
     .fq-footer .footer-logo svg { width: 1.1rem; height: 1.1rem; }
+
+  /* ══ מקטע המובילים — הכרעת גיא #79ד, עם שמונת השינויים שביקש ══ */
+  /* ═══════════════════════════════════════════════════════════════════
+     עמוד תצוגה — "המסך מדבר" · וריאציה: המשטח מובהר, הלוח מעמיק
+     ═══════════════════════════════════════════════════════════════════
+     הכללים כאן דורסים את `.movers-section` שב-style.css, ולכן הם
+     אחרי הטעינה שלו ובתוך הדף. שום מקטע אחר לא נוגע.
+
+     ── מה השתנה מול "המסך הוא הטיעון", ולמה ─────────────────────────
+     שם המשטח והלוח ישבו באותו טווח כהות (`--green-dark` מתחת, לוח
+     `rgba(255,255,255,0.06)` מעליו) — והלוח **צף** במקום לבלוט. כאן הם
+     מתרחקים זה מזה:
+
+        המשטח  `--green-dark` #0A4433  →  `--green` #0E5C43   (מובהר)
+        הלוח   שקוף 6% מעל המשטח       →  `--green-dark` אטום  (מעמיק)
+
+     התוצאה היא **ניגוד פנימי**: המקטע נקרא בהיר יותר, והמסך בולט ממנו
+     במקום להיטמע בו. וזה בדיוק מה שהכיוון רוצה — **המסך הוא הטיעון**.
+
+     ⚠️ **הלוח אטום ולא שקוף, וזו החלטה ולא סגנון.** ברגע שהוא אטום,
+     יחסי הניגודיות **בתוכו** מנותקים ממה שמתחתיו — הם נמדדים מול
+     #0A4433 קבוע, ולא מול משטח שמשתנה עם ההילה. זה גם מה שמתיר לו
+     להיות כהה בבטחה, וזה גם מה שמשפר את המספרים הפנימיים מול הגרסה
+     השקופה (למשל `--green-on-dark` על שורת הזמנה: 4.52 → 5.18).
+
+     ⚠️ **תקרת המשטח היא `--green`.** `--green-bright` אינו משטח לטקסט
+     (4.58 מול לבן, 2.60 מול `--green-on-dark`) — רק הילה ומילוי.
+
+     ── ניגודיות: אותו טוקן, שתי כשירויות באותו מקטע ──────────────────
+     **על המשטח המובהר** (#0E5C43, ובנקודה הבהירה ביותר של ההילה
+     rgb(20,108,80) — כל המספרים למטה הם מול הנקודה הבהירה, המקרה הגרוע):
+        לבן                       6.38:1 ✓   (7.98 על המשטח הנקי)
+        --green-wash  #DFF3E8     5.51:1 ✓   (6.89 על המשטח הנקי)
+        --green-on-dark #4EDAA9   3.72:1 ✗ ← **פסול לטקסט כאן.** נשאר
+                                             מילוי בלבד (עיגולי 1-4,
+                                             טבעת המיקוד) — שם 3:1 מספיק.
+     **בתוך הלוח הכהה** (#0A4433 אטום) אותו `--green-on-dark` הוא 6.32:1
+     וכשיר לגמרי. לכן הוא מופיע כטקסט **רק בתוך הלוח**, ורק כמילוי מחוצה לו.
+
+     ⚠️ **אין כאן רשת נקודות.** נמדד שרשת נקודות מתחת לאות מורידה עוד
+     (`--green-on-dark` על `--green`: 4.53 → 4.22). המשטח כאן נשאר נקי,
+     וההילה היחידה עומדת מתחת ללוח האטום ולא מתחת לטקסט.
+     ───────────────────────────────────────────────────────────────── */
+  .mv {
+    padding: 96px 0 100px;
+    /* rgba(28,133,99,…) הוא --green-bright ו-rgba(10,68,51,…) הוא
+       --green-dark — שניהם מהפלטה, באלפא. רקע בלבד, לעולם לא טקסט.
+
+       ⚠️ **המיקום כאן נקבע במדידה, לא בטעם.** בסבב הראשון ההילה הבהירה
+       ישבה מתחת ללוח (24% 72%) — כלומר נבלעה בו, בעוד הצל הכהה דווקא
+       נחת על המשטח **שצמוד ללוח מימין**. התוצאה: המשטח שם היה
+       rgb(11,81,59) והלוח rgb(10,68,51) — **1.19:1, כלומר בדיוק אותו
+       "לוח שצף" שהווריאציה הזאת באה לתקן.**
+       לכן ההילה עברה ל-88% 40%, אל הטור שמימין ללוח: המשטח **הצמוד**
+       ללוח הוא הבהיר ביותר במקטע, והמסך הכהה נחתך ממנו.
+       הפינה שמתכהה היא השמאלית-עליונה, שאין בה טקסט כלל. */
+    background:
+      radial-gradient(760px 620px at 88% 40%, rgba(28,133,99,0.40) 0%, transparent 68%),
+      radial-gradient(900px 640px at 4% 6%, rgba(10,68,51,0.45) 0%, transparent 70%),
+      var(--green);
+  }
+  /* העיגול הדקורטיבי הישן היה מכויל ל---navy ולפריסה הישנה. */
+  .mv::before { content: none; }
+
+  /* ── התצורה: כותרת רוחב-מלא למעלה, ולוח גדול בשורה שמתחתיה ────────
+     בגרסה הקודמת הטקסט והלוח חלקו שורה אחת, והטקסט לקח 0.78 מתוך 2.1.
+     כאן הכותרת עולה לשורה משלה, ומה שנשאר לצד הלוח הוא רק ארבע ההטבות
+     והכפתור — כלומר **הלוח גדל ביחס לטקסט** (מ-~62% מרוחב התוכן ל-~69%),
+     והוא גם מקבל את מלוא הגובה של השורה. */
+  .mv-inner {
+    display: grid;
+    /* `minmax(0, …)` על עמודת הלוח — בלעדיו תוכן ה-grid לא מתכווץ
+       מתחת ל-min-content ושורות הכתובות דוחפות את הפריסה. */
+    grid-template-columns: minmax(300px, 0.68fr) minmax(0, 1.52fr);
+    gap: 42px 56px;
+    align-items: start;
+  }
+  .mv-head       { grid-column: 1 / -1; grid-row: 1; }
+  .mv-board-wrap { grid-column: 2; grid-row: 2; min-width: 0; }
+  .mv-side       { grid-column: 1; grid-row: 2; }
+
+  /* ── הכותרת ──────────────────────────────────────────────────────── */
+  .mv-head { max-width: 62ch; }
+  .mv-head .section-label.light { color: var(--green-wash); }
+
+  .mv-head h2 {
+    /* ⚠️ 18.9, נמדד ע"י עמוס בדפדפן: ב-3.9vw הכותרת הגיעה ל-53–61px
+       ו-"למובילים עצמאיים" נשבר לשתי שורות מ-1366px ומעלה — ערך ב-vw
+       שממשיך לגדול אחרי שהמכל כבר נעצר. התקרה הזאת נשארת כפי שהיא.
+       (כאן הכותרת ממילא בשורה רחבה משלה, אבל התקרה היא ההגנה.) */
+    font-size: clamp(1.9rem, 3.4vw, 2.2rem);
+    font-weight: 900;
+    letter-spacing: -0.8px;
+    line-height: 1.14;
+    color: var(--white);            /* 6.38:1 במקרה הגרוע */
+    margin-bottom: 16px;
+  }
+
+  /* המשפט שמצביע על המסך במקום לתאר אותו. לבן ולא --green-wash: זו
+     השורה שהעין נוחתת עליה, ומשם היא ממשיכה אל הלוח. */
+  .mv-lead {
+    color: var(--white);            /* 6.38:1 במקרה הגרוע */
+    font-size: 1.32rem;
+    font-weight: 800;
+    line-height: 1.45;
+    margin-bottom: 10px;
+  }
+  .mv-desc {
+    color: var(--green-wash);       /* 5.51:1 במקרה הגרוע */
+    font-size: 1.02rem;
+    line-height: 1.7;
+    margin: 0;
+  }
+
+  /* ── הלוח ─────────────────────────────────────────────────────────── */
+  .mv-board-note {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 12px;
+    font-size: 0.8rem;
+    font-weight: 800;
+    letter-spacing: 0.4px;
+    color: var(--green-wash);       /* על המשטח, לא בתוך הלוח */
+  }
+  /* סימון ההדגמה — גלוי, ולא רק בהערה בקוד. הלוח עצמו aria-hidden,
+     אז זה הטקסט היחיד שקורא מסך שומע עליו.
+     --green-wash על המילוי המורכב rgb(23,110,81) = 5.35:1. */
+  .mv-board-tag {
+    font-weight: 700;
+    letter-spacing: 0;
+    font-size: 0.72rem;
+    color: var(--green-wash);
+    background: rgba(78,218,169,0.14);
+    border: 1px solid rgba(78,218,169,0.34);
+    border-radius: 50px;
+    padding: 3px 12px;
+  }
+
+  /* ⚠️ אטום, לא שקוף — ראה ההסבר בראש הבלוק.
+     **שני הטוקנים לבדם אינם מספיקים:** `--green` מול `--green-dark` הם
+     1.39:1 ברקע נקי, ובפועל נמדד 1.74:1 מול המשטח הצמוד (שההילה
+     מבהירה). לכן ההרמה נשענת על שלושה דברים ולא על ההפרש בלבד:
+       1. **קו שפה ספקולרי** — 1px לבן ב-44%, וזה ערך שנמדד ולא נבחר:
+          ב-26% הוא 2.24:1 מול גוף הלוח (כי הוא יושב על הצל ולא על
+          המשטח הנקי), וב-38% שלוש פאות עברו 3:1 אבל **הפאה התחתונה
+          נפלה ל-2.85** — שם הצל הכי כהה. ב-44% כל ארבע הפאות עוברות.
+       2. **צל עמוק** — הוא עצמו הכלי: הוא מכהה את המשטח שסביב הלוח
+          מ-rgb(18,106,77) ל-rgb(11,79,57), והמדרגה הזאת היא מה שהעין
+          קוראת כעומק.
+       3. **ההילה הבהירה מימינו**, שנותנת למה שהלוח נחתך ממנו. */
+  .mv-board {
+    background: var(--green-dark);
+    border: 0;
+    border-radius: 22px;
+    padding: 20px;
+    box-shadow:
+      0 0 0 1px rgba(255,255,255,0.44),
+      0 32px 70px rgba(4,30,22,0.55);
+  }
+
+  /* מתג הזמינות — הכותרת של הלוח, כי זה הדבר הראשון שהמוביל נוגע בו. */
+  .mv-b-bar {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 0 4px 14px;
+    border-bottom: 1px solid rgba(255,255,255,0.11);
+    color: var(--white);            /* 11.13:1 על #0A4433 */
+    font-size: 0.86rem;
+  }
+  .mv-b-switch {
+    width: 38px; height: 21px;
+    border-radius: 50px;
+    background: var(--green-on-dark);
+    display: flex; align-items: center;
+    padding: 2px;
+    flex-shrink: 0;
+  }
+  .mv-b-switch i {
+    width: 17px; height: 17px;
+    border-radius: 50%;
+    background: var(--green-dark);
+    margin-inline-start: auto;
+  }
+  .mv-b-bar-note {
+    margin-inline-start: auto;
+    font-size: 0.74rem;
+    font-weight: 600;
+    color: rgba(255,255,255,0.72);  /* 6.59:1 על #0A4433 */
+  }
+
+  .mv-b-head {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 14px 4px 12px;
+  }
+  .mv-b-head-tx b {
+    display: block;
+    font-size: 0.92rem;
+    font-weight: 800;
+    color: var(--white);
+  }
+  .mv-b-head-tx i {
+    display: block;
+    font-style: normal;
+    font-size: 0.74rem;
+    color: rgba(255,255,255,0.72);
+    margin-top: 2px;
+  }
+  .mv-b-chips {
+    margin-inline-start: auto;
+    display: flex;
+    gap: 6px;
+    flex-shrink: 0;
+  }
+  .mv-b-chips span {
+    font-size: 0.68rem;
+    font-weight: 700;
+    color: rgba(255,255,255,0.72);
+    background: rgba(255,255,255,0.07);
+    border: 1px solid rgba(255,255,255,0.13);
+    border-radius: 50px;
+    padding: 4px 11px;
+  }
+
+  .mv-b-list { display: flex; flex-direction: column; gap: 10px; }
+
+  /* 7% לבן מעל #0A4433 = rgb(27,81,65). כל המספרים הפנימיים נמדדים מולו. */
+  .mv-b-order {
+    background: rgba(255,255,255,0.07);
+    border: 1px solid rgba(255,255,255,0.10);
+    border-radius: 14px;
+    padding: 12px 14px;
+  }
+
+  /* ⚠️ `--orange` עם טקסט לבן הוא 3.02:1 — מתחת ל-AA. מילוי כתום מלא
+     עם טקסט לבן חייב `--orange-deep` (4.87:1). */
+  .mv-b-flag {
+    display: inline-block;
+    background: var(--orange-deep);
+    color: var(--white);
+    font-size: 0.62rem;
+    font-weight: 800;
+    border-radius: 6px;
+    padding: 2px 8px;
+    margin-bottom: 9px;
+  }
+
+  .mv-b-row { display: flex; align-items: center; gap: 14px; }
+
+  .mv-b-what { min-width: 0; flex: 1; }
+  .mv-b-what > b {
+    display: block;
+    font-size: 0.88rem;
+    font-weight: 800;
+    color: var(--white);            /* 9.12:1 על שורת ההזמנה */
+    margin-bottom: 6px;
+  }
+  .mv-b-facts { display: flex; flex-wrap: wrap; gap: 6px 14px; }
+  .mv-b-facts i {
+    font-style: normal;
+    font-size: 0.74rem;
+    color: rgba(255,255,255,0.68);  /* 5.13:1 על שורת ההזמנה */
+  }
+  /* ⚠️ היה 0.55 — על הלוח האטום זה 4.10:1, מתחת ל-AA לטקסט קטן.
+     0.65 מחזיר ל-4.89:1 ושומר על ההיררכיה מול ה-i שלצידו. */
+  .mv-b-facts em {
+    font-style: normal;
+    font-size: 0.64rem;
+    font-weight: 800;
+    letter-spacing: 0.4px;
+    color: rgba(255,255,255,0.65);
+    margin-inline-end: 5px;
+  }
+
+  /* הסכום הוא כל הנקודה של הכרטיס: הרווח של המוביל, לא מחיר הלקוח.
+     על הלוח האטום הוא 5.18:1 — עובר AA גם כטקסט רגיל, ולא רק כגדול. */
+  .mv-b-pay { text-align: center; flex-shrink: 0; }
+  .mv-b-pay b {
+    display: block;
+    font-size: 1.24rem;
+    font-weight: 900;
+    letter-spacing: -0.4px;
+    color: var(--green-on-dark);
+  }
+  .mv-b-pay i {
+    display: block;
+    font-style: normal;
+    font-size: 0.64rem;
+    font-weight: 700;
+    color: rgba(255,255,255,0.68);
+    margin-top: 1px;
+  }
+
+  .mv-b-take {
+    flex-shrink: 0;
+    background: var(--green-on-dark);
+    color: var(--green-dark);       /* 6.32:1 */
+    font-size: 0.78rem;
+    font-weight: 800;
+    border-radius: 10px;
+    padding: 9px 16px;
+  }
+
+  .mv-b-foot {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 22px;
+    margin-top: 14px;
+    padding: 13px 4px 2px;
+    border-top: 1px solid rgba(255,255,255,0.11);
+  }
+  .mv-b-foot-it {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: rgba(255,255,255,0.72);
+  }
+
+  /* ── הטור שלצד הלוח: ארבע ההטבות ואז הכפתור ───────────────────────
+     ההטבות ירדו מארבע-לרוחב לעמודה אחת שנשענת על הלוח, כך שכל מספר
+     עומד בגובה דומה לחלק שהוא מצביע עליו. */
+  .mv-side { display: flex; flex-direction: column; }
+
+  .mv-keys {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+  }
+  .mv-keys li {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 15px 0;
+    color: var(--green-wash);       /* 5.51:1 במקרה הגרוע */
+    font-size: 0.95rem;
+    font-weight: 500;
+    line-height: 1.55;
+  }
+  .mv-keys li:first-child { padding-top: 0; }
+  .mv-keys li + li { border-top: 1px solid rgba(255,255,255,0.16); }
+
+  /* ⚠️ `.btn-light` המקורי הוא מילוי `--green` (#0E5C43) — ועל משטח
+     שהוא **בדיוק** `--green` הוא 1.00:1, בלתי-נראה לחלוטין. על משטח
+     מובהר מה ש"מתמלא" מקבל לבן: #0A4433 על לבן = 11.13:1, והמילוי
+     הלבן מול המשטח הוא 7.98:1 — הכפתור הכי בולט במקטע, וזה נכון. */
+  .mv .btn-light {
+    align-self: flex-start;
+    margin-top: 26px;
+    background: var(--white);
+    color: var(--green-dark);
+    padding: 15px 34px;
+    font-size: 1rem;
+  }
+  .mv .btn-light:hover {
+    background: var(--green-wash);  /* #0A4433 עליו = 9.60:1 */
+    color: var(--green-dark);
+  }
+
+  /* ── פריסות צרות ─────────────────────────────────────────────────── */
+  @media (max-width: 1080px) {
+    .mv-inner { grid-template-columns: 1fr; gap: 34px; }
+    .mv-head       { grid-column: 1; grid-row: auto; }
+    .mv-board-wrap { grid-column: 1; grid-row: auto; }
+    .mv-side       { grid-column: 1; grid-row: auto; }
+    .mv-head { max-width: 58ch; }
+    .mv-keys { display: grid; grid-template-columns: repeat(2, 1fr); gap: 0 34px; }
+    .mv-keys li:nth-child(-n+2) { padding-top: 0; }
+    .mv-keys li:nth-child(2) { border-top: 0; }
+    .mv .btn-light { margin-top: 30px; }
+  }
+
+  @media (max-width: 760px) {
+    .mv { padding: 70px 0 74px; }
+    .mv-lead { font-size: 1.16rem; }
+    .mv-board { padding: 15px; }
+    /* בטלפון השורה האופקית של ההזמנה נשברת: הכפתור והסכום יורדים
+       לשורה משלהם במקום להידחס לרוחב של שתי מילים. */
+    .mv-b-row { flex-wrap: wrap; }
+    .mv-b-what { flex: 1 1 100%; }
+    .mv-b-pay { text-align: start; }
+    .mv-b-take { margin-inline-start: auto; }
+    .mv-b-chips { display: none; }
+    .mv-keys { display: flex; }
+    .mv-keys li:nth-child(2) { border-top: 1px solid rgba(255,255,255,0.16); }
+    .mv-keys li:nth-child(2) { padding-top: 15px; }
+  }
   </style>
 </head>
 <!-- ⚠️ 15.9 — `has-nav-menu` מסמנת שלדף יש תפריט המבורגר. רק כאן.
@@ -1000,7 +1394,7 @@
      שיחליף אותם; בלי הסימון הזה הם נעלמו גם בחמשת הדפים המשפטיים,
      בלי שום דרך להגיע אליהם (WCAG 1.4.4). -->
 <body class="has-nav-menu hp-home">
-<div data-build-stamp class="build-stamp" aria-hidden="true">עודכן 18.09 · 17:08</div>
+<div data-build-stamp class="build-stamp" aria-hidden="true">עודכן 19.09 · 14:35</div>
   <!-- ⚠️ 15.9 — "דלג לתוכן המרכזי" (WCAG 2.4.1, רמה A). זהו האלמנט הממוקד
        הראשון בדף: מוסתר מהעין, מופיע בפינה ברגע שמגיעים אליו ב-Tab, ומעביר
        את המיקוד אל <main id="main-content" tabindex="-1">. בלי ה-tabindex
@@ -1588,71 +1982,111 @@
     </div>
   </section>
 
-  <section class="movers-section" id="for-movers">
-    <div class="container movers-inner">
-      <div class="movers-text reveal">
+  <section class="movers-section mv" id="for-movers">
+    <div class="container mv-inner">
+
+      <div class="mv-head reveal">
         <p class="section-label light">הצטרף לצוות</p>
         <h2>למובילים עצמאיים</h2>
-        <p class="movers-desc">הפוך את הרכב שלך למקור הכנסה. קבל הזמנות, הגדר זמינות, ונהל הכול ישירות מהאפליקציה.</p>
-        <ul class="movers-benefits">
-          <li>
-            <div class="benefit-check">
-              <svg aria-hidden="true" width="14" height="11" viewBox="0 0 14 11" fill="none"><path d="M1 5l4.5 4.5L13 1" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-            </div>
-            <div>שעות עבודה גמישות לחלוטין</div>
-          </li>
-          <li>
-            <div class="benefit-check">
-              <svg aria-hidden="true" width="14" height="11" viewBox="0 0 14 11" fill="none"><path d="M1 5l4.5 4.5L13 1" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-            </div>
-            <div>לוח הזמנות דיגיטלי עם ניהול הזמנות</div>
-          </li>
-          <li>
-            <div class="benefit-check">
-              <svg aria-hidden="true" width="14" height="11" viewBox="0 0 14 11" fill="none"><path d="M1 5l4.5 4.5L13 1" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-            </div>
-            <div>תמיכה מהצוות ומערכת דירוגים שקופה</div>
-          </li>
-          <li>
-            <div class="benefit-check">
-              <svg aria-hidden="true" width="14" height="11" viewBox="0 0 14 11" fill="none"><path d="M1 5l4.5 4.5L13 1" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-            </div>
-            <div>הרווח נזקף בסיום ההובלה, והתשלום מועבר אחת לשבועיים</div>
-          </li>
-        </ul>
-        <a tabindex="0" href="#download" class="btn-light">הצטרף כמוביל</a>
+        <p class="mv-lead">הרווח ידוע מראש.</p>
+        <p class="mv-desc">לא רשימת הבטחות — הלוח עצמו. מה פתוח עכשיו, לאן, וכמה נכנס לך מכל הובלה, עוד לפני שלחצת "קח אותה".</p>
       </div>
-      <div class="movers-visual reveal-right">
-        <div class="driver-card">
-          <div class="driver-head">
-            <div class="driver-ava"></div>
-            <div>
-              <div class="driver-name">יוסי פרידמן</div>
-              <div class="driver-level">מוביל מאומת</div>
+
+      <div class="mv-board-wrap reveal-right">
+        <p class="mv-board-note">
+          המסך שנפתח לך באפליקציה
+          <span class="mv-board-tag">איור ממשק · כתובות וסכומים להדגמה</span>
+        </p>
+
+        <!-- ציור ממשק בלבד. `aria-hidden` כי אין כאן מידע שקורא מסך
+             אמור לשמוע — כל טענה שהציור ממחיש כתובה בטקסט שלצידו. -->
+        <div class="mv-board" aria-hidden="true">
+
+          <div class="mv-b-head">
+            <div class="mv-b-head-tx">
+              <b>הזמנות פתוחות</b>
+              <i>בחר הזמנה ולחץ "קח אותה" כדי לשייך אותה אליך</i>
             </div>
-            <div class="driver-badge-online">פעיל</div>
+            <div class="mv-b-chips"><span>אזור</span><span>תאריך</span><span>שעה</span></div>
           </div>
-          <div class="driver-orders-label">הזמנות פתוחות</div>
-          <div class="driver-orders">
-            <div class="order-row">
-              <div class="order-dot green-dot"></div>
-              <div class="order-text">הובלה · רמת גן → תל אביב</div>
+
+          <div class="mv-b-list">
+
+            <div class="mv-b-order">
+              <span class="mv-b-flag">דחוף · המועד בתוך 24 שעות</span>
+              <div class="mv-b-row">
+                <div class="mv-b-what">
+                  <b>הובלת דירה</b>
+                  <span class="mv-b-facts">
+                    <i><em>מוצא</em> רמת גן</i>
+                    <i><em>יעד</em> תל אביב</i>
+                    <i><em>שעה</em> 09:00–12:00</i>
+                  </span>
+                </div>
+                <div class="mv-b-pay"><b>₪1,180</b><i>הרווח שלך</i></div>
+                <span class="mv-b-take">קח אותה</span>
+              </div>
             </div>
-            <div class="order-row">
-              <div class="order-dot orange-dot"></div>
-              <div class="order-text">הובלה · פתח תקווה</div>
+
+            <div class="mv-b-order">
+              <div class="mv-b-row">
+                <div class="mv-b-what">
+                  <b>מובילים בקטנה</b>
+                  <span class="mv-b-facts">
+                    <i><em>מוצא</em> פתח תקווה</i>
+                    <i><em>יעד</em> ראש העין</i>
+                    <i><em>שעה</em> 14:00–16:00</i>
+                  </span>
+                </div>
+                <div class="mv-b-pay"><b>₪540</b><i>הרווח שלך</i></div>
+                <span class="mv-b-take">קח אותה</span>
+              </div>
             </div>
-            <div class="order-row">
-              <div class="order-dot blue-dot"></div>
-              <div class="order-text">עוברים דירה · הרצליה <span class="new-badge">חדש</span></div>
+
+            <div class="mv-b-order">
+              <div class="mv-b-row">
+                <div class="mv-b-what">
+                  <b>הובלת דירה</b>
+                  <span class="mv-b-facts">
+                    <i><em>מוצא</em> הרצליה</i>
+                    <i><em>יעד</em> נתניה</i>
+                    <i><em>שעה</em> 08:00–11:00</i>
+                  </span>
+                </div>
+                <div class="mv-b-pay"><b>₪860</b><i>הרווח שלך</i></div>
+                <span class="mv-b-take">קח אותה</span>
+              </div>
             </div>
+
           </div>
+
         </div>
       </div>
+
+      <!-- הטור שלצד הלוח: ארבע ההטבות (תוכן מאושר, נוסח לא שונה)
+           ואז הכפתור. הן ממוספרות כדי להצביע על החלק בלוח שמקיים כל
+           אחת מהן, ובעמודה הזאת כל מספר עומד בגובה דומה לחלק שלו. -->
+      <div class="mv-side reveal">
+      <ul class="mv-keys">
+        <li>
+          <div>שעות עבודה גמישות לחלוטין &mdash; אתם מחליטים מתי וכמה לעבוד</div>
+        </li>
+        <li>
+          <div>לוח הזמנות דיגיטלי עם ניהול הזמנות</div>
+        </li>
+        <li>
+          <div>תמיכה מהצוות ומערכת דירוגים שקופה</div>
+        </li>
+        <li>
+          <div>הרווח נכנס לחשבון עם סיום ההובלה, והתשלום מועבר אחת לשבועיים</div>
+        </li>
+      </ul>
+        <a tabindex="0" href="#download" class="btn-light mv-cta">הצטרף כמוביל</a>
+      </div>
+
     </div>
   </section>
 
-  <!-- FAQ -->
   <section class="faq-section" id="faq">
     <div class="container faq-container">
       <div class="section-header reveal">
