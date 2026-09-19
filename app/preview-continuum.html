@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex">
+  <!-- ⚠️ דף תצוגה בלבד — כיוון "continuum" למסכי ההמשך. noindex, לא מקושר
+       משום מקום, ולא ב-sitemap. יורד אחרי הכרעת גיא. -->
+  <title>ROZIC MOVE — הזמנה באתר (תצוגה: continuum)</title>
+
+  <!-- Open Graph / Twitter — קישור לדף הזה הוצג עד היום בלי כותרת,
+       בלי תיאור ובלי תצוגה מקדימה בכל מקום שמשתפים אותו. -->
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="ROZIC MOVE">
+  <meta property="og:locale" content="he_IL">
+  <meta property="og:url" content="https://rozicmove.com/app/index.html">
+  <meta property="og:title" content="הזמנה באתר — ROZIC MOVE">
+  <meta property="og:description" content="הזמנת הובלה ומעבר דירה ישירות מהדפדפן, בלי הורדת אפליקציה: בוחרים שירות, בונים רשימת פריטים ומקבלים מחיר לפני אישור.">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="הזמנה באתר — ROZIC MOVE">
+  <meta name="twitter:description" content="הזמנת הובלה ומעבר דירה ישירות מהדפדפן, בלי הורדת אפליקציה: בוחרים שירות, בונים רשימת פריטים ומקבלים מחיר לפני אישור.">
+  <!-- 15.9 — תמונת השיתוף. המקור: scripts/og-image.svg, נבנית מחדש ב-node scripts/make-og-image.mjs -->
+  <meta property="og:image" content="https://rozicmove.com/og-image.png">
+  <meta property="og:image:type" content="image/png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="לוגו ROZIC MOVE על רקע ירוק כהה, עם הסלוגן &quot;מזיזים אותך קדימה&quot;">
+  <meta name="twitter:image" content="https://rozicmove.com/og-image.png">
+  <meta name="twitter:image:alt" content="לוגו ROZIC MOVE על רקע ירוק כהה, עם הסלוגן &quot;מזיזים אותך קדימה&quot;">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../style.css?v=b6fbed57">
+  <link rel="stylesheet" href="style-app.css?v=f44707e8">
+  <link rel="stylesheet" href="hub.css?v=1">
+  <style>
+    /* --- נגישות מקלדת --- */
+    /* טבעת מיקוד נראית. `outline` בלבד ומחוץ לקופסה — אינו תופס מקום
+       בפריסה, ולכן שום דבר לא זז כשהמיקוד עובר. --green הקיים, בלי צבע חדש. */
+    .app-body a:focus-visible,
+    .app-body button:focus-visible { outline: 3px solid var(--green); outline-offset: 2px; }
+
+    /* ══════════════════════════════════════════════════════════════════
+       כיוון "continuum" — דף הבית ממשיך פנימה.
+       ═══════════════════════════════════════════════════════════════════
+       הרעיון: `.step-hero` (הרצועה הפתוחה של כל מסך פנימי) עוברת מהגרדיאנט
+       הירוק-חיוור המקורי (`#C8EDD8 → #E0F5E9 → #F0FAF5`, style-app.css
+       שורה 601) לאותה מתכונת בדיוק כמו מקטע המובילים בדף הבית (`.mv`,
+       index.html שורות ~1046–1069) והפוטר המשותף (style.css שורה 1353
+       ואילך, שכבר עודכן ב-19.9 לאותה שפה): גרדיאנט רדיאלי כפול מעל
+       --green-dark, ומעליו רשת נקודות 15px בגוון --green-wash.
+       שני הטוקנים והמתכונת מגיעים משם ולא הומצאו כאן. */
+    .step-hero {
+      background:
+        radial-gradient(720px 520px at 92% 14%, rgba(28,133,99,0.52) 0%, transparent 68%),
+        radial-gradient(680px 520px at 4% 96%, rgba(10,68,51,0.55) 0%, transparent 70%),
+        var(--green-dark);
+      /* ⚠️ ריפוד תחתון מוגדל: החלק הזה של הרצועה יושב *מאחורי* כרטיסי
+         השירות (ראו `.svc-float` למטה) — בדיוק כמו שהלוח הכהה בדף
+         הבית יושב על המשטח שמתחתיו, ולא נגמר איפה שהטקסט נגמר. */
+      padding: 34px 0 118px;
+    }
+    /* ההילה הישנה (עיגול בהיר אחד, מכויל לגרדיאנט החיוור) יורדת —
+       שתי ההילות החדשות למעלה מחליפות אותה. */
+    .step-hero::before { content: none; }
+    /* רשת הנקודות — אותו צעד ואותו גוון כמו בהירו/במובילים/בפוטר, וגם
+       אותה אטימות (0.055): המשטח כאן כהה מהמשטח שנמדד ב-.mv (#10664A),
+       ולכן יש מרווח נוסף, אבל לא ניצלתי אותו — נשארתי בערך המדוד כדי
+       שרשת הנקודות תהיה זהה בכל האתר ולא תדרוש כיול נפרד לכל מסך.
+       הניגודיות בפועל (h1/p על הפיקסלים, עם הרשת וההילות) נמדדה
+       ומדווחת בדוח ההגשה. */
+    .step-hero::after {
+      content: '';
+      position: absolute; inset: 0;
+      pointer-events: none; z-index: 1;
+      background-image: radial-gradient(circle at 1px 1px, var(--green-wash) 1px, transparent 1px);
+      background-size: 15px 15px;
+      opacity: 0.055;
+    }
+    .step-hero-inner { position: relative; z-index: 2; }
+
+    /* טקסט על הכהה: לבן לכותרת (ניגודיות גבוהה ביותר), --green-wash
+       לתת-הכותרת — הרך התקני על ירוק כהה בכל האתר (10.9:1 על
+       --green-dark לפי הטבלה שנמדדה, גם עם רשת הנקודות). */
+    .step-hero h1 { color: var(--white); }
+    .step-hero p { color: var(--green-wash); }
+
+    /* התג "בלי הורדת אפליקציה" — היה div בלי מחלקה מוגדרת בשום גיליון
+       משותף (נבדק: לא קיים לא ב-style-app.css ולא ב-hub.css), ולכן
+       הסגנון כולו חדש בתוך הדף הזה ואינו דורס משהו קיים. גלולה לבנה
+       אטומה — בדיוק כמו ".btn-light המקורי" שהבריף מזהיר מפניו, כאן
+       הטקסט הכהה יושב *בתוך* הגלולה הלבנה ולא במילוי ירוק. */
+    .hero-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 14px;
+      border-radius: 999px;
+      background: var(--white);
+      color: var(--green-dark);
+      font-size: 0.78rem;
+      font-weight: 800;
+      box-shadow: var(--shadow-1);
+    }
+
+    /* ── אריח "מובילים בקטנה": יוצא מהכחול (--navy) ────────────────────
+       הצבע השני נשאר בתוך משפחת הירוק (--green-mid, --green-tint,
+       --green-wash — שלושתם טוקנים קיימים), במקום להמציא גוון. שלושת
+       האריחים נבדלים כך: ניטרלי-בהיר (עוברים דירה, ברירת המחדל של
+       .service-tile) → ירוק-אמצע רווי יותר (מובילים בקטנה) → כתום
+       (מעבירים את זה הלאה, tile-orange הקיים, בלי שינוי). */
+    .service-tile.tile-navy { background: linear-gradient(155deg, var(--white) 0%, var(--green-tint) 130%); }
+    .service-tile.tile-navy .tile-icon-wrap {
+      background: linear-gradient(155deg, var(--white) 0%, var(--green-wash) 100%);
+      color: var(--green-mid);
+      box-shadow: var(--shadow-1), inset 0 0 0 1px rgba(27,127,92,0.22);
+    }
+    .service-tile.tile-navy::before { background: radial-gradient(140px 140px at 85% -10%, rgba(27,127,92,0.16), transparent 70%); }
+    .service-tile.tile-navy:hover { box-shadow: 0 4px 14px rgba(27,127,92,0.10), 0 28px 56px -16px rgba(27,127,92,0.26); border-color: rgba(27,127,92,0.28); }
+
+    /* ── "עליה יושב התוכן בכרטיסים לבנים שצפים מעליה" ──────────────────
+       הכותרת "השירותים שלנו" והאריחים נמשכים מעלה לתוך הריפוד שהוסף
+       ל-.step-hero, כך שהם צפים על קצה הרצועה הכהה — במקום שהרצועה
+       תיגמר בקו נקי ואחריו יתחיל שטח לבן נפרד. */
+    .svc-float {
+      position: relative;
+      z-index: 3;
+      margin-top: -92px;
+    }
+    .svc-float .hub-section-title {
+      /* --green-wash הוא הטקסט הרך התקני על ירוק כהה (ראו hp-kicker,
+         mv-head .section-label.light) — כאן היא יושבת בתוך הרצועה. */
+      color: var(--green-wash);
+      font-size: 0.85rem;
+      margin-bottom: 18px;
+    }
+  </style>
+</head>
+<body class="app-body">
+<div data-build-stamp class="build-stamp" aria-hidden="true">עודכן 19.09 · 15:24</div>
+  <!-- ⚠️ 15.9 — "דלג לתוכן המרכזי" (WCAG 2.4.1, רמה A). זהו האלמנט הממוקד
+       הראשון בדף: מוסתר מהעין, מופיע בפינה ברגע שמגיעים אליו ב-Tab, ומעביר
+       את המיקוד אל <main id="main-content" tabindex="-1">. בלי ה-tabindex
+       על היעד הדפדפן מזיז את הגלילה בלבד, המיקוד נשאר על הקישור, וה-Tab
+       הבא חוזר לתחילת הניווט — כלומר הקישור לא עושה כלום. -->
+  <a class="skip-link" href="#main-content">דלג לתוכן המרכזי</a>
+  <!-- ⚠️ `tabindex="0"` על הלינקים בדף אינו מיותר. בספארי במק, ברירת המחדל
+       של המערכת ("Tab מדגיש כל פריט" כבוי) משאירה בסדר ה-Tab **שדות טקסט
+       בלבד** — ובדף הזה אין אף שדה טקסט, כלומר נמדדו בו **אפס** תחנות Tab
+       והוא היה בלתי-נגיש למקלדת לחלוטין, כולל המעבר ללוח היד-שנייה.
+       נמדד: אלמנט עם `tabindex="0"` מפורש **כן** נכנס לסדר גם במצב הזה
+       (WebKit, 15.9). -->
+  <script type="module" src="pilot-banner.js?v=14a0e537"></script>
+  <script type="module" src="offline-banner.js?v=96b835df"></script>
+  <script type="module" src="support-unread.js?v=3e4792c2"></script>
+  <div class="app-topbar">
+    <a tabindex="0" href="../index.html" class="app-logo-link">
+      <svg aria-hidden="true" width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M3 9h12M9 3l6 6-6 6" stroke="#0E5C43" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      ROZIC MOVE
+    </a>
+    <div style="flex:1"></div>
+    <a tabindex="0" href="account.html" class="back-btn" title="החשבון שלי" aria-label="החשבון שלי" style="font-size:1rem;">👤</a>
+  </div>
+
+  <main id="main-content" tabindex="-1">
+
+  <div class="step-hero">
+    <div class="step-hero-inner">
+      <div class="hero-badge" style="margin-bottom:14px;">בלי הורדת אפליקציה</div>
+      <!-- ⚠️ הטקסט הסטטי כאן הוא ברירת המחדל לאורח (ולמי שה-JS טרם רץ) —
+           המודול בתחתית הדף מחליף אותו בברכה אישית למשתמש מחובר, לפי
+           השעה ושמו הפרטי, בדיוק כמו getTimeGreeting() ב-HomeScreen.tsx
+           באפליקציה. שני ה-id-ים הם העוגן היחיד שה-JS צריך. -->
+      <h1 id="hero-title">לאן מובילים היום?</h1>
+      <p id="hero-sub">בחר שירות, קבל מחיר מיידי, ואשר הזמנה תוך דקות — ישירות מהדפדפן.</p>
+    </div>
+  </div>
+
+  <div class="app-container wide">
+
+    <!-- "ההזמנה הקרובה שלך" — מוזרק ב-JS רק למשתמש מחובר עם הזמנה
+         פעילה (pending/assigned/en_route/in_progress, כמו
+         ACTIVE_CUSTOMER_STATUSES באפליקציה). ריק ולא display:none: כך
+         אין קפיצת פריסה ברגע שהתוכן נכנס. -->
+    <div id="next-order-wrap"></div>
+
+    <div class="hub-section svc-float">
+      <h2 class="hub-section-title">השירותים שלנו</h2>
+      <div class="service-tiles">
+        <a tabindex="0" href="apartment.html" class="service-tile">
+          <div class="tile-icon-wrap">
+            <svg width="26" height="26" viewBox="0 0 36 36" fill="none" aria-hidden="true">
+              <path d="M6 30V15l12-10 12 10v15" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
+              <rect x="13" y="20" width="10" height="10" rx="1" stroke="currentColor" stroke-width="2.4"/>
+              <path d="M15 20v-3a3 3 0 016 0v3" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/>
+            </svg>
+          </div>
+          <div class="tile-name">עוברים דירה</div>
+          <div class="tile-desc">הובלה מלאה + אריזה</div>
+        </a>
+        <a tabindex="0" href="small-move.html" class="service-tile tile-navy">
+          <div class="tile-icon-wrap">
+            <svg width="26" height="26" viewBox="0 0 36 36" fill="none" aria-hidden="true">
+              <rect x="2" y="13" width="32" height="15" rx="3" stroke="currentColor" stroke-width="2.4"/>
+              <circle cx="9" cy="28" r="3" stroke="currentColor" stroke-width="2.4"/>
+              <circle cx="27" cy="28" r="3" stroke="currentColor" stroke-width="2.4"/>
+              <path d="M2 19h32" stroke="currentColor" stroke-width="2.4"/>
+              <path d="M22 13V9l8 4" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </div>
+          <div class="tile-name">מובילים בקטנה</div>
+          <div class="tile-desc">פריטים בודדים</div>
+        </a>
+        <a tabindex="0" href="marketplace.html" class="service-tile tile-orange">
+          <div class="tile-icon-wrap">
+            <svg width="26" height="26" viewBox="0 0 36 36" fill="none" aria-hidden="true">
+              <rect x="5" y="15" width="26" height="17" rx="2" stroke="currentColor" stroke-width="2.4"/>
+              <path d="M5 21h26" stroke="currentColor" stroke-width="2.4"/>
+              <path d="M18 15v17" stroke="currentColor" stroke-width="2.4"/>
+              <path d="M18 15c-3-6-11-6-11 0M18 15c3-6 11-6 11 0" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/>
+            </svg>
+          </div>
+          <div class="tile-name">מעבירים את זה הלאה</div>
+          <div class="tile-desc">תן וקבל בחינם</div>
+        </a>
+      </div>
+    </div>
+
+    <div class="hub-section">
+      <h2 class="hub-section-title">החשבון שלי</h2>
+      <div class="account-links">
+        <a tabindex="0" href="account.html#orders" class="account-link">
+          <div class="account-link-icon">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <rect x="5" y="3" width="14" height="18" rx="2" stroke="currentColor" stroke-width="2"/>
+              <path d="M9 8h6M9 12h6M9 16h4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+            </svg>
+          </div>
+          <div class="account-link-name">ההזמנות שלי</div>
+        </a>
+        <a tabindex="0" href="account.html" class="account-link">
+          <div class="account-link-icon">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <circle cx="12" cy="12" r="3.2" stroke="currentColor" stroke-width="2"/>
+              <path d="M12 3v2.5M12 18.5V21M21 12h-2.5M5.5 12H3M18.4 5.6l-1.8 1.8M7.4 16.6l-1.8 1.8M18.4 18.4l-1.8-1.8M7.4 7.4L5.6 5.6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+            </svg>
+          </div>
+          <div class="account-link-name">הגדרות</div>
+        </a>
+        <a tabindex="0" href="account.html#support" class="account-link">
+          <div class="account-link-icon">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <path d="M4 12a8 8 0 1114.5 4.6L20 20l-4-1.2A8 8 0 014 12z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              <path d="M9.5 9.5a2.5 2.5 0 014.7 1.2c0 1.5-2.2 1.8-2.2 3.3" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+              <circle cx="12" cy="17" r="0.6" fill="currentColor"/>
+            </svg>
+          </div>
+          <div class="account-link-name">תמיכה טכנית</div>
+        </a>
+      </div>
+    </div>
+
+  </div>
+
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner container">
+      <div class="footer-brand">
+        <div class="footer-logo">ROZIC MOVE</div>
+        <p class="footer-tagline">מזיזים אותך קדימה</p>
+        <p class="footer-copy">ROZIC MOVE © 2026</p>
+      </div>
+      <div class="footer-links">
+        <div class="footer-col">
+          <div class="footer-col-title">משפטי</div>
+          <a tabindex="0" href="/privacy.html">מדיניות פרטיות</a>
+          <a tabindex="0" href="/terms.html">תנאי שימוש</a>
+          <a tabindex="0" href="/accessibility.html">הצהרת נגישות</a>
+          <a tabindex="0" href="/delete-account.html">מחיקת חשבון</a>
+        </div>
+      </div>
+    </div>
+    <div class="footer-divider"></div>
+    <div class="footer-bottom container">
+      <p>כל הזכויות שמורות · מדינת ישראל</p>
+    </div>
+  </footer>
+
+  <script type="module">
+    // 14.9 — מסך בחירת השירות פתוח לאורחים. גיא: "לקוח יוכל לשוטט
+    // באתר בלבד לפני הרשמה, הוא יוכל לקבל מחיר לפני הרשמה, אבל עוד
+    // לפני שלב התשלום תהיה הרשמה". החסימה היחידה כאן היא מוביל —
+    // הזמנת הובלה אינה מסך שלו. ראו guest-checkout.js.
+    //
+    // ⚠️ 15.9 — החסימה כאן צומצמה לשני אריחי ההזמנה בלבד.
+    // הדף הזה הוא ה-hub, ויושבים בו גם "מעבירים את זה הלאה", "ההזמנות שלי",
+    // "הגדרות" ו"תמיכה טכנית" — כולם מסכים שמוביל רשאי להיכנס אליהם,
+    // וכולם פתוחים לו ממילא בכניסה ישירה. חסימת הדף כולה סגרה לו את
+    // *הדרך* אליהם בלי לחסום אותם, והשאירה לו מוצא יחיד לדף הבית.
+    //
+    // ⚠️ **האכיפה לא נחלשה:** `apartment.html` ו-`small-move.html`
+    // ממשיכים לקרוא ל-`showDriverBlockAndHalt()` בשורה הראשונה, ולכן
+    // קישור ישיר, רענון, back או לשונית חדשה נחסמים בדיוק כמו קודם.
+    import { getAuthOptional, isDriverAccount, blockOrderTilesForDriver } from './guest-checkout.js';
+    // קריאה בלבד — הדף הזה לא כותב להזמנות, רק קורא כדי להציג את
+    // "ההזמנה הקרובה שלך". אותן שלוש פונקציות ש-account.html כבר
+    // משתמש בהן לרשימת ההזמנות שלו.
+    import { subscribeToUserOrders, customerTotalOf, STATUS_LABELS } from './orders.js';
+
+    /**
+     * אותן ארבע סטטוסים בדיוק כמו ACTIVE_CUSTOMER_STATUSES ב-
+     * Hovalot/src/services/orders.ts — הזמנה שכבר שולמה ומחכה למוביל
+     * או בדרך. `pending_pricing`/`pending_payment` (עדיין לפני תשלום)
+     * ו-`draft` לא נכללים בכוונה: זו עדיין לא "הזמנה קרובה" מבחינת
+     * הלקוח, וגם לא `completed`/`cancelled` — אלה כבר לא "קרובות".
+     */
+    const ACTIVE_ORDER_STATUSES = new Set(['pending', 'assigned', 'en_route', 'in_progress']);
+
+    /** בריחת HTML — זהה ל-`esc` ב-account.html/marketplace.html. שדות ההזמנה
+        (כותרת, כתובות) הם טקסט חופשי שהלקוח עצמו הקליד בטופס ההזמנה. */
+    const esc = (v) => String(v ?? '')
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+
+    /** מראה את getTimeGreeting() ב-HomeScreen.tsx באפליקציה, אותם סעיפי שעה. */
+    function timeGreeting() {
+      const h = new Date().getHours();
+      if (h < 5) return 'לילה טוב';
+      if (h < 12) return 'בוקר טוב';
+      if (h < 18) return 'צהריים טובים';
+      return 'ערב טוב';
+    }
+
+    function renderNextOrder(order) {
+      const wrap = document.getElementById('next-order-wrap');
+      if (!wrap) return;
+      if (!order) { wrap.innerHTML = ''; return; }
+      const title = order.title || 'הזמנה';
+      const routeRow = (order.fromAddress && order.toAddress)
+        ? `<div class="next-order-route">${esc(order.fromAddress)} ← ${esc(order.toAddress)}</div>` : '';
+      // אותו נוסח בדיוק כמו order-status.html: תאריך + ' · ' + חלון זמן.
+      const dateRow = order.scheduledDate
+        ? `<div class="next-order-date">${esc(order.scheduledDate)}${order.timeSlot ? ' · ' + esc(order.timeSlot) : ''}</div>` : '';
+      wrap.innerHTML = `
+        <a tabindex="0" class="next-order-card" href="order-status.html?id=${encodeURIComponent(order.id)}" aria-label="ההזמנה הקרובה שלך — ${esc(title)}">
+          <div class="next-order-stripe" aria-hidden="true"></div>
+          <div class="next-order-body">
+            <div class="next-order-badge"><span class="dot" aria-hidden="true">●</span> ההזמנה הקרובה שלך</div>
+            <div class="next-order-title">${esc(title)}</div>
+            ${routeRow}
+            ${dateRow}
+            <span class="status-badge ${esc(order.status)} next-order-status">${esc(STATUS_LABELS[order.status] || order.status)}</span>
+            <div class="next-order-footer">
+              <div class="next-order-price">₪${esc(customerTotalOf(order))}</div>
+              <div class="next-order-link">למעבר להזמנה ←</div>
+            </div>
+          </div>
+        </a>`;
+    }
+
+    const authState = await getAuthOptional();
+    if (isDriverAccount(authState)) {
+      blockOrderTilesForDriver();
+    } else if (authState) {
+      const firstName = (authState.profile.name || '').trim().split(' ')[0];
+      const heroTitle = document.getElementById('hero-title');
+      const heroSub = document.getElementById('hero-sub');
+      if (heroTitle) heroTitle.textContent = firstName ? `${timeGreeting()}, ${firstName}` : timeGreeting();
+      if (heroSub) heroSub.textContent = 'מה מובילים היום?';
+
+      // מנוי חי: הזמנה שמשנה סטטוס (למשל מוביל שיבץ את עצמו) מעדכנת
+      // את הכרטיס בלי רענון דף — אותו מנגנון בדיוק כמו subscribeToActiveOrders
+      // ב-HomeScreen.tsx. subscribeToUserOrders כבר מחזיר ממוין מהחדש לישן.
+      subscribeToUserOrders(authState.authUser.uid, (orders) => {
+        renderNextOrder(orders.find(o => ACTIVE_ORDER_STATUSES.has(o.status)) || null);
+      });
+    }
+  </script>
+
+  <!-- ⚠️ דף תצוגה בלבד. הקישורים נשארים אמיתיים (href לא נגע בהם) כדי
+       שקורא-מסך ובדיקת נגישות יראו מבנה תקין, אבל ניווט בפועל בין
+       דפים מבוטל: זה מסך אחד מתוך 15, לא כל הזרימה. -->
+  <script>
+    document.addEventListener('click', e => {
+      const a = e.target.closest('a[href]'); if (!a) return;
+      const url = new URL(a.href, location.href);
+      if (url.origin !== location.origin) return;   // ⚠️ חיצוני ראשון
+      if (url.pathname !== location.pathname) { e.preventDefault(); a.setAttribute('aria-disabled','true'); }
+    }, true);
+  </script>
+</body>
+</html>
