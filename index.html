@@ -30,7 +30,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="style.css?v=57257b7b">
+  <link rel="stylesheet" href="style.css?v=b6fbed57">
 
   <!--
     Structured data (JSON-LD). Kept deliberately free of prices, ratings and review
@@ -1050,10 +1050,25 @@
        ללוח הוא הבהיר ביותר במקטע, והמסך הכהה נחתך ממנו.
        הפינה שמתכהה היא השמאלית-עליונה, שאין בה טקסט כלל. */
     background:
-      radial-gradient(760px 620px at 88% 40%, rgba(28,133,99,0.40) 0%, transparent 68%),
+      radial-gradient(760px 620px at 88% 40%, rgba(28,133,99,0.54) 0%, transparent 68%),
       radial-gradient(900px 640px at 4% 6%, rgba(10,68,51,0.45) 0%, transparent 70%),
-      var(--green);
+      #10664A;
   }
+
+  /* רשת הנקודות — אותו צעד ואותו גוון כמו בהירו ובמסך העלייה.
+     ⚠️ 0.055 ולא 0.09 כמו בהירו. נמדד על הפיקסלים עצמם: ב-0.09
+     התיאור יורד ל-4.34 וההטבות ל-4.24, שניהם מתחת ל-AA. נקודה בקוטר
+     פיקסל היא הפיקסל הבהיר ביותר שמתחת לאות, והיא לבדה קובעת את
+     הרקע שם. 0.055 הוא הערך הגבוה ביותר שבו הכל עובר. */
+  .mv::after {
+    content: '';
+    position: absolute; inset: 0;
+    pointer-events: none; z-index: 1;
+    background-image: radial-gradient(circle at 1px 1px, var(--green-wash) 1px, transparent 1px);
+    background-size: 15px 15px;
+    opacity: 0.055;
+  }
+  .mv-inner { position: relative; z-index: 2; }
   /* העיגול הדקורטיבי הישן היה מכויל ל---navy ולפריסה הישנה. */
   .mv::before { content: none; }
 
@@ -1100,8 +1115,11 @@
     line-height: 1.45;
     margin-bottom: 10px;
   }
+  /* ⚠️ לבן ולא --green-wash. על הירוק המובהר נמדד --green-wash ב-4.30
+     גם בנקודות של 0.055 וב-4.42 אפילו ב-0.04 — כלומר אין אטימות
+     נקודות שמצילה אותו. הלבן הוא מה שקונה חזרה את המרווח (5.11). */
   .mv-desc {
-    color: var(--green-wash);       /* 5.51:1 במקרה הגרוע */
+    color: var(--white);            /* 5.11:1 נמדד על הפיקסלים */
     font-size: 1.02rem;
     line-height: 1.7;
     margin: 0;
@@ -1332,7 +1350,7 @@
     align-items: flex-start;
     gap: 13px;
     padding: 16px 0;
-    color: var(--green-wash);       /* 5.51:1 במקרה הגרוע */
+    color: var(--white);            /* 4.97:1 נמדד — ראו ההערה ב-.mv-desc */
     font-size: 1.02rem;
     font-weight: 500;
     line-height: 1.55;
@@ -1402,7 +1420,7 @@
      שיחליף אותם; בלי הסימון הזה הם נעלמו גם בחמשת הדפים המשפטיים,
      בלי שום דרך להגיע אליהם (WCAG 1.4.4). -->
 <body class="has-nav-menu hp-home">
-<div data-build-stamp class="build-stamp" aria-hidden="true">עודכן 19.09 · 14:52</div>
+<div data-build-stamp class="build-stamp" aria-hidden="true">עודכן 19.09 · 15:24</div>
   <!-- ⚠️ 15.9 — "דלג לתוכן המרכזי" (WCAG 2.4.1, רמה A). זהו האלמנט הממוקד
        הראשון בדף: מוסתר מהעין, מופיע בפינה ברגע שמגיעים אליו ב-Tab, ומעביר
        את המיקוד אל <main id="main-content" tabindex="-1">. בלי ה-tabindex

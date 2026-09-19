@@ -1356,9 +1356,31 @@ img, svg { display: block; }
      31%–33% מגובה הדף במסך בחירת השירות. הסיבה שזה הוחמר עכשיו
      היא הגדלת בסיס הגופן — כל הריווח כאן ב-rem וגדל איתו.
      #0F1F0F היה כהה עד שנקרא כשחור; הגוון החדש נוטה ל-pine. */
-  background: #1C4035;
+  /* 19.9 — גיא ביקש את רשת הנקודות של האפליקציה גם כאן, ואת אותה
+     הבהרה שנעשתה במקטע המובילים. #1C4035 → #204A3C, אותה מדרגה.
+     ⚠️ הפוטר משותף לכל דפי האתר — השינוי הזה נמדד ב-index.html
+     ואומת בדף נוסף. */
+  background: #204A3C;
   padding-top: 28px;
+  position: relative;
+  overflow: hidden;
 }
+
+/* רשת הנקודות. ⚠️ 0.055 ולא 0.09 — ראו ההערה ב-.hp-stage::before:
+   נקודה בודדת מרימה את הרקע דווקא מתחת לאות. נמדד: ב-0.09 כותרת
+   העמודה יורדת ל-4.22 והתגית ל-3.97. */
+.footer::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 1;
+  background-image: radial-gradient(circle at 1px 1px, var(--green-wash) 1px, transparent 1px);
+  background-size: 15px 15px;
+  opacity: 0.055;
+}
+.footer-inner,
+.footer-bottom { position: relative; z-index: 2; }
 
 .footer-inner {
   display: flex;
@@ -1384,14 +1406,15 @@ img, svg { display: block; }
 
 .footer-tagline {
   font-size: 0.8rem;
-  color: rgba(255,255,255,0.55);
+  /* 19.9 — 0.55 היה גבולי (4.67) עוד לפני ההבהרה, ואיתה ירד ל-3.97. */
+  color: rgba(255,255,255,0.68);
   margin-bottom: 12px;
 }
 
 .footer-copy {
   font-size: 0.78rem;
-  /* 0.45 נמדד 4.02:1 על הרקע החדש — מתחת ל-AA לטקסט קטן. */
-  color: rgba(255,255,255,0.62);
+  /* 0.45 נמדד 4.02:1 על הרקע הקודם. 19.9 — הרקע הובהר שוב, 0.62→0.68. */
+  color: rgba(255,255,255,0.68);
 }
 
 .footer-links {
@@ -1410,8 +1433,9 @@ img, svg { display: block; }
 .footer-col-title {
   font-size: 0.75rem;
   font-weight: 700;
-  /* 15.9 — 4.14:1 מדוד מול rgb(28,64,53) אחרי שינוי הפוטר. 0.58 => 5.0:1 */
-  color: rgba(255,255,255,0.58);
+  /* 15.9 — 4.14:1 מדוד מול rgb(28,64,53). 19.9 — הרקע הובהר ונוספו
+     נקודות, ו-0.58 ירד ל-4.23. 0.66 מחזיר אותו מעל AA. */
+  color: rgba(255,255,255,0.66);
   text-transform: uppercase;
   letter-spacing: 1px;
   margin-bottom: 4px;
@@ -1444,8 +1468,10 @@ img, svg { display: block; }
 
 .footer-bottom p {
   font-size: 0.78rem;
-  /* ראו ההערה ב-.footer-copy — אותה מדידה. */
-  color: rgba(255,255,255,0.62);
+  /* ראו ההערה ב-.footer-copy — אותה מדידה, ולכן גם אותו עדכון ב-19.9.
+     ⚠️ נתפס רק בבדיקה של app/index.html: ב-index.html השורה הראשונה
+     כאן היא .footer-business (0.72) ולכן הכלל הזה לא נמדד שם כלל. */
+  color: rgba(255,255,255,0.68);
 }
 
 /* גילוי פרטי העוסק בפוטר — נדרש בעסקת מכר מרחוק.
