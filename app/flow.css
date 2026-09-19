@@ -237,7 +237,7 @@
   grid-template-columns: repeat(3, minmax(0, 1fr));
   /* הרווח גדל עם החלון. הוא גם מקטין את הכרטיסים — שתי הבקשות
      ("תקטין קצת" ו"תרווח קצת") מושכות לאותו כיוון ומתקזזות כאן. */
-  gap: clamp(18px, 2.3vw, 56px);
+  gap: clamp(18px, 3.2vw, 80px);
   align-items: stretch;
 }
 /* ⚠️ מתחת ל-1080 שלוש עמודות מרסקות כל כרטיס לרוחב שבו הכותרת נשברת
@@ -291,7 +291,7 @@
 /* ⚠️ 2280 היה רחב מדי — גיא ראה 86% מהמסך וביקש "את האיזון בין
    לבין". 1320 (המקורי) נתן 48% ו-2280 נתן 86%; 1800 נופל בדיוק
    באמצע — 67% במסך של 2558, שהוא הרוחב שלו. */
-.flow-b .app-shell-wide { max-width: min(1660px, 94vw); }
+.flow-b .app-shell-wide { max-width: min(1580px, 94vw); }
 
 /* ⚠️ כרטיס שגדל בלי שהתוכן בתוכו גדל נראה חלול. הריפוד, האייקון,
    הכותרת והפסקה גדלים עם רוחב החלון — אבל דרך `clamp`, כך שברוחבים
@@ -313,7 +313,7 @@
     border-radius: clamp(13px, .9vw, 17px);
   }
   .flow-b .routes-row .rt-ic svg { width: 52%; height: 52%; }
-  .flow-b .routes-row .rt-drop { padding: clamp(18px, 1.5vw, 23px) 14px; }
+  .flow-b .routes-row .rt-drop { padding: clamp(15px, 1.1vw, 19px) 14px; }
   .flow-b .routes-row .rt .btn { font-size: clamp(.95rem, .72vw, 1rem); padding-block: clamp(13px, 1vw, 18px); }
 }
 
@@ -397,8 +397,13 @@
   margin-bottom: 14px;
   transition: border-color .18s, background .18s;
 }
-.flow-b .rt-drop b { display: block; font-size: .93rem; margin-bottom: 2px; color: var(--text); }
+/* ⚠️ אזור הגרירה היה 117px משתי שורות טקסט וריפוד גדול — הפריט הגבוה
+   ביותר בכרטיס. נמדד שהתוכן מילא ריבוע של 500 בדיוק, כלומר לא היה
+   לאן להקטין. השורה השנייה עברה לאותה שורה עם הראשונה, וזה מה שפינה
+   את המקום לריבוע קטן יותר בלי למחוק שום מידע. */
+.flow-b .rt-drop b { font-size: .93rem; color: var(--text); }
 .flow-b .rt-drop span { font-size: .84rem; color: var(--text-muted); }
+.flow-b .rt-drop b::after { content: ' · '; color: var(--text-muted); font-weight: 400; }
 .flow-b .rt-drop:hover,
 .flow-b .rt-drop.over { border-color: var(--green); background: var(--fl-wash); }
 .flow-b .rt-drop:focus-within { outline: 2px solid var(--green); outline-offset: 2px; }
