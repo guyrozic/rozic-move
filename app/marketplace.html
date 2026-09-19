@@ -27,8 +27,11 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="../style.css?v=db7f94bd">
+  <link rel="stylesheet" href="../style.css?v=47a00e76">
   <link rel="stylesheet" href="style-app.css?v=53ef95b8">
+  <!-- ⚠️ נטען אחרון בכוונה — `flow.css` דורס את `style-app.css` תחת
+       `.flow-b` בלבד, כך שדף שלא טוען אותו אינו מושפע. -->
+  <link rel="stylesheet" href="flow.css?v=b052cc0a">
   <style>
     .listing-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 12px; }
     .listing-card { background: var(--white); border: 1px solid var(--border); border-radius: 16px; overflow: hidden; cursor: pointer; text-align: right; box-shadow: var(--shadow-1); transition: transform 0.25s var(--ease), box-shadow 0.25s var(--ease), border-color 0.25s var(--ease); }
@@ -80,8 +83,8 @@
     .modal-box:focus { outline: none; }
   </style>
 </head>
-<body class="app-body">
-<div data-build-stamp class="build-stamp" aria-hidden="true">עודכן 19.09 · 16:07</div>
+<body class="app-body flow-b">
+<div data-build-stamp class="build-stamp" aria-hidden="true">עודכן 20.09 · 01:49</div>
   <!-- ⚠️ 15.9 — "דלג לתוכן המרכזי" (WCAG 2.4.1, רמה A). זהו האלמנט הממוקד
        הראשון בדף: מוסתר מהעין, מופיע בפינה ברגע שמגיעים אליו ב-Tab, ומעביר
        את המיקוד אל <main id="main-content" tabindex="-1">. בלי ה-tabindex
@@ -91,6 +94,17 @@
   <script type="module" src="pilot-banner.js?v=14a0e537"></script>
   <script type="module" src="offline-banner.js?v=96b835df"></script>
   <script type="module" src="support-unread.js?v=3e4792c2"></script>
+  <!-- ⚠️ 20.9 — הסרגל נוסף כחלק מהחלת קו העיצוב. המבנה זהה בדיוק לזה
+       שב-`app/index.html`, כדי שהסרגל יישאר אחד בכל המסכים. -->
+  <div class="app-topbar">
+    <a tabindex="0" href="index.html" class="app-logo-link">
+      <svg aria-hidden="true" width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M3 9h12M9 3l6 6-6 6" stroke="#0E5C43" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      ROZIC MOVE
+    </a>
+    <div style="flex:1"></div>
+    <a tabindex="0" href="account.html" class="back-btn" title="החשבון שלי" aria-label="החשבון שלי"><svg aria-hidden="true" width="17" height="17" viewBox="0 0 18 18" fill="none"><circle cx="9" cy="5.6" r="3.1" stroke="currentColor" stroke-width="1.7"/><path d="M2.9 15.6c0-3.1 2.7-5 6.1-5s6.1 1.9 6.1 5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg></a>
+  </div>
+
   <main id="main-content" tabindex="-1">
 
   <div class="step-hero">

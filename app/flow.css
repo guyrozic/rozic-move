@@ -1,0 +1,303 @@
+/* ═══════════════════════════════════════════════════════════════════
+   ROZIC MOVE — שפת מסכי ההמשך ("קו ב · במה")
+   ───────────────────────────────────────────────────────────────────
+   נבחר ע"י גיא ב-20.9 אחרי שני סבבים שנפסלו. הטענה: דף הבית פותח על
+   משטח ירוק עמוק, ואין סיבה שהמעבר פנימה ירגיש כמו יציאה מהאתר.
+   הכותרת יושבת על אותה במה, והתוכן צף עליה בכרטיסים לבנים.
+
+   ⚠️ **הקובץ הזה נטען אחרון ודורס את `style-app.css`.** הוא מכוון —
+   `style-app.css` משותף ל-15 מסכים, ועריכה שם הייתה משנה את כולם
+   בבת אחת. כאן השינוי מוגבל לדפים שטוענים את הקובץ הזה במפורש.
+
+   ⚠️ **אין כאן שינוי במזהים ולא במבנה ה-JS.** 127 קריאות
+   `getElementById`/`querySelector` פועלות על הדף הזה, וכולן חייבות
+   להמשיך לעבוד. כל מה שכאן הוא CSS ועטיפות.
+   ═══════════════════════════════════════════════════════════════════ */
+
+/* ⚠️ אין כאן פלטה חדשה — רק כינויים לפלטה של האתר. השרטוט שממנו הקו
+   הזה נבנה החזיק ערכים משלו (#0A4433, #4EDAA9, #DFF3E8…), וכולם כבר
+   קיימים ב-`style.css` תחת שמות מבוקרים, חלקם אחרי כיול נגישות מפורש
+   (ראו ההערות שם על `--green-on-dark` ו-`--text-muted`). העתקה שלהם
+   לכאן הייתה יוצרת פלטה שנייה שמתפצלת מהראשונה בשקט. */
+.flow-b {
+  --fl-deep: var(--green-dark);
+  --fl-mint: var(--green-on-dark);
+  --fl-wash: var(--green-light);
+  --fl-line: var(--border);
+  background: var(--bg);
+}
+
+/* ── הסרגל: ירוק כהה במקום לבן שקוף ──────────────────────────────── */
+.flow-b .app-topbar {
+  background: var(--fl-deep);
+  border-bottom: 0;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+.flow-b .app-topbar .app-logo-link,
+.flow-b .app-topbar .app-topbar-title { color: var(--white); }
+.flow-b .app-topbar .app-logo-link svg path { stroke: var(--fl-mint); }
+.flow-b .app-topbar .back-btn {
+  background: rgba(255,255,255,0.12);
+  color: var(--fl-wash);
+}
+.flow-b .app-topbar .back-btn:hover { background: rgba(255,255,255,0.2); }
+
+/* ── הבמה: הרצועה שמחליפה את הגרדיאנט הירוק-חיוור ────────────────
+   ⚠️ `.step-hero` נצבע ב-`style-app.css` בארבעה גוונים לפי השלב
+   (`.step-2` היה כחול, `.step-4` navy מלא). כאן כל השלבים מקבלים את
+   אותה במה — ההתקדמות מתוקשרת דרך ה-`.stepper` ולא דרך צבע הרקע. */
+.flow-b .step-hero,
+.flow-b .step-hero.step-1,
+.flow-b .step-hero.step-2,
+.flow-b .step-hero.step-3,
+.flow-b .step-hero.step-4 {
+  background:
+    radial-gradient(760px 420px at 82% 0%, rgba(28,133,99,.5) 0%, transparent 66%),
+    var(--fl-deep);
+  padding: 34px 0 96px;
+  margin-bottom: 0;
+  border-radius: 0;
+  position: relative;
+  overflow: hidden;
+}
+/* רשת הנקודות. ⚠️ 0.055 ולא 0.09 — נקודה בקוטר פיקסל היא הפיקסל
+   הבהיר ביותר שמתחת לאות, וב-0.09 טקסט רך יורד מתחת ל-AA. */
+/* ⚠️ הכלל הבסיסי מציב כאן עיגול 480×480 עם `border-radius:50%` בפינה.
+   `inset:0` לבדו לא מבטל אותו — צריך לאפס במפורש גם מידות וגם רדיוס,
+   אחרת נשארת כתם עגול של נקודות בפינה במקום רשת על כל הרצועה. */
+.flow-b .step-hero::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  width: auto;
+  height: auto;
+  border-radius: 0;
+  pointer-events: none;
+  background: none;
+  background-image: radial-gradient(circle at 1px 1px, var(--fl-wash) 1px, transparent 1px);
+  background-size: 15px 15px;
+  opacity: .055;
+  z-index: 0;
+}
+.flow-b .step-hero-inner { position: relative; z-index: 1; }
+/* "→ בחירת שירות" — היה ירוק כהה על רקע בהיר, ועכשיו הרקע כהה.
+   הבסיס פותר את זה רק ל-`.step-hero.step-4`; כאן כל השלבים כהים. */
+.flow-b .step-hero .btn-text { color: rgba(255,255,255,.82); }
+.flow-b .step-hero .btn-text:hover { color: var(--white); }
+.flow-b .step-hero h1 {
+  color: var(--white);
+  font-size: clamp(1.9rem, 4.4vw, 2.75rem);
+  font-weight: 900;
+  letter-spacing: -1.4px;
+  line-height: 1.08;
+}
+.flow-b .step-hero p,
+.flow-b .step-hero #step-desc { color: var(--fl-wash); }
+
+/* הסטפר על הבמה */
+.flow-b .step-hero .stepper .step-dot {
+  background: rgba(255,255,255,.2);
+}
+.flow-b .step-hero .stepper .step-dot.active {
+  background: var(--fl-mint);
+  box-shadow: 0 0 0 4px rgba(78,218,169,.22);
+}
+.flow-b .step-hero .stepper .step-dot.done { background: rgba(78,218,169,.55); }
+
+/* ── הכרטיסים צפים על הבמה ─────────────────────────────────────────
+   ⚠️ **ההרמה חלה על `.app-layout` בלבד — כלומר על שני מסכי האשף.**
+   הניסיון הראשון החיל אותה גם על `.app-container` (11 המסכים הצרים),
+   וזה נכשל: שם הילד הראשון אינו כרטיס אלא משתנה מדף לדף ורובו נוצר
+   בזמן ריצה — ב-`index.html` זו תווית הסעיף "השירותים שלנו", שנחתה
+   ירוק-כהה על ירוק-כהה; ב-9 מסכים אחרים זה `#loading` ואחריו `#content`
+   שתוכנו מגיע מהשרת ולא ניתן לאימות מראש. חפיפה שאי אפשר לאמת על כל
+   הדפים היא חפיפה ששוברת חלק מהם בשקט.
+   הבמה, הסרגל, הכרטיסים והפוטר משותפים לכל 13 המסכים; הציפה עצמה
+   נשארת במקום שבו היא נמדדה מול תוכן אמיתי. */
+.flow-b .app-layout { margin-top: -68px; position: relative; z-index: 2; }
+/* המסכים הצרים: הרצועה נסגרת בריפוד רגיל והתוכן מתחיל מתחתיה. */
+.flow-b .app-container { position: relative; z-index: 2; }
+
+/* ⚠️ 96 הפיקסלים שמתחת לכותרת קיימים כדי שהכרטיסים ייכנסו לתוכם. בדף
+   שאין בו חפיפה הם סתם רצועה ירוקה ריקה, ולכן שם הריפוד קטן.
+   הכיוון חשוב: ברירת המחדל היא הריפוד **הגדול**, וה-`:has()` מקטין
+   אותו. דפדפן שלא תומך ב-`:has()` מקבל רווח ירוק מיותר — לא חפיפה
+   שבולעת תוכן. */
+.flow-b main:has(> .app-container) .step-hero { padding-bottom: 34px; }
+.flow-b .app-card,
+.flow-b .ai-upload-card,
+.flow-b .ai-chat-card {
+  background: var(--white);
+  border: 0;
+  border-radius: 18px;
+  box-shadow: 0 2px 5px rgba(10,68,51,.05), 0 20px 46px -16px rgba(10,68,51,.28);
+  margin-bottom: 16px;
+}
+.flow-b .app-card h2,
+.flow-b .ai-upload-card h2,
+.flow-b .ai-chat-card h2 {
+  font-size: 1.2rem;
+  font-weight: 800;
+  letter-spacing: -.4px;
+  color: var(--text);
+}
+
+/* ── שני מסלולי ה-AI, זה לצד זה ──────────────────────────────────
+   ⚠️ `stretch` ולא `start`. ב-`start` כל כרטיס מקבל את הגובה של התוכן
+   שלו, וכרטיס הסריקה (שיש בו גם אזור תמונות וגם שני כפתורים) יצא גבוה
+   ב-105px מכרטיס הצ׳אט — שתי מדרגות שנראות כמו תקלה ולא כמו בחירה.
+   ⚠️ 1.15fr לסריקה, ולא שליש כמו בשרטוט המקורי: גיא שאל במפורש איך
+   ייראו התמונות אחרי העלאה, ובעמודה צרה הן היו יורדות לתמונות ציפורן.
+   ברוחב הזה נכנסות שש תמונות בשורה בגודל מלא. */
+/* ⚠️ `minmax(0, …)` ולא `1.15fr 1fr`, ו-`min-width: 0` על הפריטים.
+   פריט גריד מקבל `min-width: auto` כברירת מחדל, כלומר הוא לא יורד מתחת
+   לרוחב ה-min-content שלו — ומסלול `1fr` מתרחב כדי להכיל אותו. נמדד
+   ב-390: המכל היה 342px והמסלול יצא 361.5px, והכרטיסים חרגו 20 פיקסלים
+   אל מחוץ לשוליים. במסך צר זה נראה כמו פריסה שבורה, לא כמו כרטיס רחב. */
+.flow-b .routes-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
+  gap: 16px;
+  align-items: stretch;
+}
+.flow-b .routes-row > * { margin-bottom: 0; min-width: 0; }
+
+/* הכפתורים של שני הכרטיסים נצמדים לתחתית, כך שהם יושבים על קו אחד
+   גם כשהטקסט שמעליהם באורך שונה. */
+.flow-b .routes-row .ai-upload-body,
+.flow-b .routes-row .ai-chat-card {
+  display: flex;
+  flex-direction: column;
+}
+.flow-b .routes-row .ai-upload-actions,
+.flow-b .routes-row .ai-chat-input-row { margin-top: auto; }
+/* ⚠️ `white-space: nowrap` הוא העיקר כאן, לא ה-`wrap`. נמדד ב-1440:
+   העמודה 342px ושני הכפתורים ברוחב הטבעי מצטברים ל-337 — נכנסו בחמישה
+   פיקסלים. הניסיון הראשון היה `flex: 1 1 0` (שני חצאים שווים), וזה
+   נראה תקין בדסקטופ ושבר את הטקסט לשתי שורות בתוך הכפתור ב-390.
+   בסיס-תוכן + nowrap מתנהג נכון בשני הקצוות: נכנסים — שורה אחת; לא
+   נכנסים — שתי שורות שלמות, בלי אף כפתור עם טקסט קטוע. */
+.flow-b .ai-upload-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+}
+.flow-b .ai-upload-actions .btn {
+  flex: 1 1 auto;
+  white-space: nowrap;
+  padding-inline: 16px;
+  justify-content: center;
+}
+
+@media (max-width: 860px) {
+  .flow-b .routes-row { grid-template-columns: minmax(0, 1fr); gap: 14px; }
+}
+
+/* ── הרשימה הידנית, מקופלת ────────────────────────────────────────
+   ⚠️ **זה תיקון מוצר ולא רק עיצוב.** נמדד ב-19.9: `#start-list`
+   תפס 14,047 מתוך 15,409 פיקסלים בנייד — 91% מהמסך — כי 64 כרטיסי
+   פריט של קטגוריה אחת נפרסו תמיד. הסריקה והצ׳אט, שני מסלולי ה-AI
+   שהם לב המוצר, קיבלו יחד פחות מ-10%. */
+.flow-b .manual-fold {
+  background: var(--white);
+  border: 0;
+  border-radius: 18px;
+  box-shadow: 0 2px 5px rgba(10,68,51,.05), 0 20px 46px -16px rgba(10,68,51,.28);
+  margin-bottom: 16px;
+  overflow: hidden;
+}
+.flow-b .manual-fold > summary {
+  padding: 18px 22px;
+  cursor: pointer;
+  font-size: 1.1rem;
+  font-weight: 800;
+  letter-spacing: -.3px;
+  color: var(--text);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  list-style: none;
+}
+.flow-b .manual-fold > summary::-webkit-details-marker { display: none; }
+.flow-b .manual-fold > summary .fold-hint {
+  margin-inline-start: auto;
+  font-size: .87rem;
+  font-weight: 600;
+  /* ⚠️ נמדד: #8B9B93 (האפור מהשרטוט) נותן 2.91 על לבן — נופל מ-AA.
+     #5F7169 נותן 5.18 ונשאר אפור-ירקרק דהוי באותה מידה. */
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.flow-b .manual-fold > summary .fold-hint svg {
+  width: 15px; height: 15px;
+  transition: transform .22s ease;
+}
+.flow-b .manual-fold[open] > summary .fold-hint svg { transform: rotate(180deg); }
+.flow-b .manual-fold[open] > summary { border-bottom: 1px solid var(--fl-line); }
+.flow-b .manual-fold > .app-card {
+  box-shadow: none;
+  border-radius: 0;
+  margin-bottom: 0;
+}
+.flow-b .manual-fold > .app-card > h2:first-child,
+.flow-b .manual-fold > .app-card > .app-card-desc { display: none; }
+@media (prefers-reduced-motion: reduce) {
+  .flow-b .manual-fold > summary .fold-hint svg { transition: none; }
+}
+
+/* מד הטנדר ("מובילים בקטנה") — כרטיס דק ששורה אחת בו. בלי איפוס
+   הריפוד הוא מקבל את הריפוד המלא של `.app-card` ונראה כמו כרטיס ריק
+   עם פס אחד בתוכו. */
+.flow-b .van-card { padding: 16px 22px; }
+.flow-b .van-card .form-hint { margin-bottom: 0; }
+
+/* ── טור הסיכום: כרטיס ירוק כהה ────────────────────────────────────
+   הוא היה כרטיס לבן בין כרטיסים לבנים, ולכן לא נקרא כסיכום אלא ככרטיס
+   נוסף. כהה הוא מפריד אותו מהתוכן ומדהד את הבמה שמעליו. */
+.flow-b .app-side .side-summary-card {
+  background: var(--fl-deep);
+  border: 0;
+  border-radius: 18px;
+  box-shadow: 0 14px 36px -18px rgba(10,68,51,.5);
+}
+.flow-b .app-side .side-summary-card h3 { color: var(--fl-mint); }
+.flow-b .app-side .price-line { color: var(--fl-wash); }
+/* ⚠️ `.price-line.discount` הוא `--green-dark` בבסיס — ירוק כהה על ירוק
+   כהה, כלומר שורת ההנחה הייתה נעלמת לגמרי. */
+.flow-b .app-side .price-line.discount { color: var(--fl-mint); }
+.flow-b .app-side .price-total {
+  color: var(--white);
+  border-top-color: rgba(255,255,255,.16);
+}
+.flow-b .app-side .price-total strong { color: var(--fl-mint); }
+
+/* ── הפס התחתון ─────────────────────────────────────────────────── */
+.flow-b .app-bottom-bar {
+  background: rgba(255,255,255,.95);
+  backdrop-filter: blur(12px);
+  border-top: 1px solid var(--fl-line);
+}
+
+/* ── רקע הדף ─────────────────────────────────────────────────────── */
+.flow-b.app-body { background: var(--bg); }
+
+/* ⚠️ מתחת ל-760px כל מכל חוזר לעמודה אחת עם רוחב אוטומטי, במפורש.
+   בלי זה הגריד מחזיק רוחב מינימלי ו-Chrome מרחיב את ה-layout viewport,
+   והתוכן נחתך בצד. נמדד בבדיקת הכיוונים, לא שוער. */
+@media (max-width: 760px) {
+  .flow-b .app-layout { margin-top: -54px; }
+  .flow-b .step-hero,
+  .flow-b .step-hero.step-1,
+  .flow-b .step-hero.step-2,
+  .flow-b .step-hero.step-3,
+  .flow-b .step-hero.step-4 { padding: 26px 0 80px; }
+  /* "כל הפריטים" נשבר לשתי שורות ליד כותרת שגם היא נשברה לשתיים —
+     ארבע שורות בשורת כותרת אחת. החץ לבדו אומר את אותו הדבר. */
+  .flow-b .manual-fold > summary { padding: 16px 18px; font-size: 1.02rem; }
+  .flow-b .manual-fold > summary .fold-hint { font-size: 0; gap: 0; }
+  .flow-b .manual-fold > summary .fold-hint svg { width: 17px; height: 17px; }
+}

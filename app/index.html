@@ -27,9 +27,12 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="../style.css?v=db7f94bd">
+  <link rel="stylesheet" href="../style.css?v=47a00e76">
   <link rel="stylesheet" href="style-app.css?v=53ef95b8">
   <link rel="stylesheet" href="hub.css?v=1">
+  <!-- ⚠️ נטען אחרון בכוונה — `flow.css` דורס את `style-app.css` תחת
+       `.flow-b` בלבד, כך שדף שלא טוען אותו אינו מושפע. -->
+  <link rel="stylesheet" href="flow.css?v=b052cc0a">
   <style>
     /* --- נגישות מקלדת --- */
     /* טבעת מיקוד נראית. `outline` בלבד ומחוץ לקופסה — אינו תופס מקום
@@ -38,8 +41,8 @@
     .app-body button:focus-visible { outline: 3px solid var(--green); outline-offset: 2px; }
   </style>
 </head>
-<body class="app-body">
-<div data-build-stamp class="build-stamp" aria-hidden="true">עודכן 19.09 · 16:07</div>
+<body class="app-body flow-b">
+<div data-build-stamp class="build-stamp" aria-hidden="true">עודכן 20.09 · 01:49</div>
   <!-- ⚠️ 15.9 — "דלג לתוכן המרכזי" (WCAG 2.4.1, רמה A). זהו האלמנט הממוקד
        הראשון בדף: מוסתר מהעין, מופיע בפינה ברגע שמגיעים אליו ב-Tab, ומעביר
        את המיקוד אל <main id="main-content" tabindex="-1">. בלי ה-tabindex
