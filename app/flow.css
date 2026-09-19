@@ -52,6 +52,13 @@
      במקום, רק מכוסה. */
   position: relative;
   background: transparent;
+  /* ⚠️ תיחום, לא הפרדה. מסך הבית מתחם את הניווט בקו שיער יחיד
+     (`box-shadow: 0 1px 0 var(--border)`), וזו המקבילה שלו על רקע
+     כהה: קו לבן בשקיפות נמוכה. `box-shadow` ולא `border-bottom` —
+     גבול היה מוסיף פיקסל לגובה הסרגל ומזיז את כל מה שמתחתיו, בעוד
+     שצל יושב מחוץ לתיבה ואינו משנה את הפריסה.
+     הרצף נשמר: הזוהר ורשת הנקודות ממשיכים לרוץ מתחת לקו. */
+  box-shadow: 0 1px 0 rgba(255,255,255,0.12);
   border-bottom: 0;
   backdrop-filter: none;
   -webkit-backdrop-filter: none;
