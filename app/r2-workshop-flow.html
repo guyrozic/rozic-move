@@ -30,7 +30,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="../style.css?v=db7f94bd">
+  <link rel="stylesheet" href="../style.css?v=47a00e76">
   <link rel="stylesheet" href="style-app.css?v=53ef95b8">
   <link rel="stylesheet" href="address-autocomplete.css?v=aa414fa6">
   <style>
@@ -223,7 +223,7 @@
   <symbol id="rm-giveaway" viewBox="0 0 520 190"><path d="M20 156h480"/><path d="M150 91H240V156H150Z"/><path d="M150 91L165 71H225L240 91"/><path d="M195 91V156"/><path d="M245 114.4H302.6V156H245Z"/><path d="M245 114.4L254.6 101.6H293L302.6 114.4"/><path d="M273.8 114.4V156"/><path d="M195 75c-10.5 -21 -38.5 -21 -38.5 0M195 75c10.5 -21 38.5 -21 38.5 0"/><path d="M330 128C375 108 405 92 452 96"/><path d="M436 85L453 96L437 108"/></symbol>
   <symbol id="rm-generic" viewBox="0 0 520 190"><path d="M20 156h480"/><path d="M210 156V58a8 8 0 0 1 8-8h84a8 8 0 0 1 8 8v98"/><path d="M210 96h100M210 128h100"/></symbol>
 </defs></svg>
-<div data-build-stamp class="build-stamp" aria-hidden="true">עודכן 19.09 · 16:07</div>
+<div data-build-stamp class="build-stamp" aria-hidden="true">עודכן 19.09 · 17:46</div>
   <!-- ⚠️ 15.9 — "דלג לתוכן המרכזי" (WCAG 2.4.1, רמה A). זהו האלמנט הממוקד
        הראשון בדף: מוסתר מהעין, מופיע בפינה ברגע שמגיעים אליו ב-Tab, ומעביר
        את המיקוד אל <main id="main-content" tabindex="-1">. בלי ה-tabindex
@@ -699,7 +699,12 @@
 
     // ⚠️ הטיוטה נטענת כאן, אבל ה**טופס** ממולא רק בסוף הסקריפט — השדות
     // עוד לא קיימים בשלב הזה. שני החצאים חייבים לרוץ, ראו guest-checkout.js.
-    const restoredDraft = loadOrderDraft('apartment');
+    /* ⚠️ מפתח טיוטה נפרד, ולא `'apartment'` כמו במקור.
+       `loadOrderDraft`/`saveOrderDraft` נעולים ל-localStorage בשם
+       `rozic:draft:<serviceType>` — **זהה לטיוטה האמיתית באתר החי**.
+       דף תצוגה שמשאיר את המפתח המקורי יטען, ובשמירה הבאה ידרוס,
+       הזמנה אמיתית של מי שפותח אותו בדפדפן שבו יש לו טיוטה פעילה. */
+    const restoredDraft = loadOrderDraft('apartment-r2-workshop');
     if (restoredDraft) Object.assign(state, restoredDraft);
     /**
      * ⚠️ 15.9 — טיוטה שנדחית נזרקה **בשקט מוחלט**.
@@ -2004,7 +2009,7 @@
       if (!authState.profile.phoneVerified) {
         // ⚠️ 17.9 — שומרים את הטיוטה לפני שהלקוח עוזב לאימות טלפון, אחרת הוא
         // חוזר מ-account.html לאשף ריק. מקביל ל-saveOrderDraft שב-goRegister.
-        saveOrderDraft('apartment', state);
+        saveOrderDraft('apartment-r2-workshop', state);
         errBox.innerHTML = '<div class="alert alert-error">נדרש אימות טלפון לפני אישור הזמנה — המוביל צריך דרך ליצור איתך קשר. <a tabindex="0" href="account.html">לאימות</a></div>';
         return;
       }
@@ -2017,7 +2022,7 @@
        */
       if (!isValidFullName(authState.profile.name)) {
         // ⚠️ 17.9 — כנ"ל: שמירה לפני מעבר ל-edit-profile.html.
-        saveOrderDraft('apartment', state);
+        saveOrderDraft('apartment-r2-workshop', state);
         errBox.innerHTML = `<div class="alert alert-error">${FULL_NAME_ERROR} <a tabindex="0" href="edit-profile.html">לעריכת הפרופיל</a></div>`;
         return;
       }
@@ -2131,7 +2136,7 @@
         // ⚠️ מבטל שמירה שממתינה בתור **לפני** המחיקה. בלי זה הטיימר
         // שנותר מהלחיצה היה נורה וכותב את הטיוטה בחזרה.
         draftAutosave.cancel();
-        clearOrderDraft('apartment');
+        clearOrderDraft('apartment-r2-workshop');
         location.href = `order-status.html?id=${orderId}`;
       } catch (err) {
         clearTimeout(stuckTimer);
@@ -2281,7 +2286,7 @@
      * באמצע השחזור. וב"אין טיוטה" זה גרוע יותר: טופס ריק היה נשמר
      * כטיוטה ודורס את מה שהיה.
      */
-    draftAutosave = attachDraftAutosave('apartment', () => state, () => submitting);
+    draftAutosave = attachDraftAutosave('apartment-r2-workshop', () => state, () => submitting);
     goToStep(1);
   </script>
 
