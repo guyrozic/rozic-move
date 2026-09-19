@@ -84,7 +84,11 @@
     }
     .btn-primary { background: #0E5C43; color: #FFF; }
     .btn-apple { background: #000; color: #FFF; }
-    .btn-android { background: #1D3557; color: #FFF; }
+        /* ⚠️ 19.9 — היה `#1D3557`, כחול מקודד קשיח. דף הבית כבר
+       פתר את זה: `.btn-apple` שחור ו-`.btn-google` לבן עם מסגרת.
+       אותה מוסכמה כאן — השניים נבדלים בלי לצאת מהפלטה.
+       #142A22 על לבן הוא 14.4:1. */
+    .btn-android { background: #FFF; color: #142A22; border: 1.5px solid #D4EDE0; }
     .btn:hover { opacity: 0.9; }
     /* ⚠️ 15.9 ביקורת נגישות — #AAA על לבן נמדד 2.32:1, הרחק מתחת ל-4.5
        הנדרש לטקסט רגיל. #767676 הוא הגוון הכהה ביותר שעדיין נקרא "אפור
@@ -191,7 +195,7 @@
   </style>
 </head>
 <body>
-<div data-build-stamp class="build-stamp" aria-hidden="true">עודכן 19.09 · 15:24</div>
+<div data-build-stamp class="build-stamp" aria-hidden="true">עודכן 19.09 · 16:07</div>
   <!-- ⚠️ 15.9 — "דלג לתוכן המרכזי" (WCAG 2.4.1, רמה A). זהו האלמנט הממוקד
        הראשון בדף: מוסתר מהעין, מופיע בפינה ברגע שמגיעים אליו ב-Tab, ומעביר
        את המיקוד אל <main id="main-content" tabindex="-1">. בלי ה-tabindex

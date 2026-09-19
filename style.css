@@ -648,7 +648,7 @@ img, svg { display: block; }
   width: 1.75rem;
   height: 1.75rem;
   border-radius: 50%;
-  background: linear-gradient(135deg, var(--green), var(--navy));
+  background: linear-gradient(135deg, var(--green), var(--green-dark));
 }
 
 .app-services {
@@ -732,11 +732,11 @@ img, svg { display: block; }
   background: var(--green);
   flex-shrink: 0;
 }
-.track-dot.dest { background: var(--navy); }
+.track-dot.dest { background: var(--orange-deep); }   /* 19.9 — היה --navy */
 .track-line {
   flex: 1;
   height: 2px;
-  background: linear-gradient(90deg, var(--green), var(--navy));
+  background: linear-gradient(90deg, var(--green), var(--orange-deep));
   border-radius: 1px;
 }
 .track-label {
@@ -984,7 +984,7 @@ img, svg { display: block; }
 /* ===== FOR MOVERS ===== */
 .movers-section {
   padding: 90px 0;
-  background: var(--navy);
+  background: var(--green-dark);   /* 19.9 — היה --navy. index.html דורס את זה ב-.mv */
   position: relative;
   overflow: hidden;
 }
@@ -1276,7 +1276,7 @@ img, svg { display: block; }
 /* ===== DOWNLOAD CTA ===== */
 .download-section {
   padding: 90px 0;
-  background: var(--navy);
+  background: var(--green-dark);   /* 19.9 — היה --navy. index.html דורס את זה ב-.mv */
   position: relative;
   overflow: hidden;
   text-align: center;
@@ -1489,8 +1489,21 @@ img, svg { display: block; }
   padding: 20px 24px;
   margin-bottom: 16px;
 }
-.card h2 { color: var(--navy); font-size: 1.15rem; margin-top: 0; }
+/* ⚠️ 19.9 — היה `var(--navy)`. נמדד בדפדפן: 56 כותרות בששה דפים
+   (terms, privacy, accessibility, delete-account, listing, payment-success)
+   הוצגו ב-rgb(29,53,87) — הכחול שהוצא מדף הבית וחי כאן מכלל
+   בודד. `--green-dark` על לבן הוא 11.13:1, ושומר על הכוונה
+   המקורית: כותרת צבועה שנבדלת מגוף הכרטיס. */
+.card h2 { color: var(--green-dark); font-size: 1.15rem; margin-top: 0; }
 .card p, .card li { color: var(--text-body); font-size: 0.95rem; }
+/* ⚠️ 19.9 — לאתר אין כלל גלובלי ל-`a`, ולכן כל קישור בתוך
+   `.card` שאין לו מחלקה משלו קיבל את הכחול הדיפולטי של
+   הדפדפן. נמדד בצילום: כתובת המייל ב-delete-account.html
+   הוצגה ב-rgb(191,191,251). תשעה דפים נושאים קישורים כאלה,
+   וכלל אחד פותר את כולם. `--green` על לבן הוא 7.98:1,
+   והקו התחתון נשאר כדי שההבחנה לא תהיה צבע בלבד (WCAG 1.4.1). */
+.card a { color: var(--green); text-decoration: underline; text-underline-offset: 2px; }
+.card a:hover, .card a:focus-visible { color: var(--green-dark); }
 
 a.back {
   display: inline-block;

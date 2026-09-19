@@ -16,7 +16,7 @@
   min-height: 100vh;
   background:
     radial-gradient(ellipse 900px 500px at 100% -10%, rgba(14,92,67,0.07), transparent 60%),
-    radial-gradient(ellipse 700px 500px at -10% 20%, rgba(29,53,87,0.05), transparent 55%),
+    radial-gradient(ellipse 700px 500px at -10% 20%, rgba(27,127,92,0.05), transparent 55%),   /* 19.9 — היה rgba(29,53,87) */
     var(--bg);
   /* מרווח הנשימה שמתחת לתוכן עבר אל padding-top של הפוטר המשפטי שסוגר
      כל דף כאן; בלי האיפוס הזה נותר פס בהיר מתחת לרקע הכהה של הפוטר. */
@@ -339,18 +339,23 @@
 .service-tile .tile-desc { font-size: 0.8rem; color: var(--text-muted); position: relative; }
 
 /* Per-service color identity — each tile gets its own tint instead of four identical white cards. */
-.service-tile.tile-navy { background: linear-gradient(155deg, var(--white) 0%, #E7EFF7 130%); }
-.service-tile.tile-navy .tile-icon-wrap { background: linear-gradient(155deg, var(--white) 0%, #DCE7F3 100%); color: var(--navy); box-shadow: var(--shadow-1), inset 0 0 0 1px rgba(29,53,87,0.14); }
-.service-tile.tile-navy::before { background: radial-gradient(140px 140px at 85% -10%, rgba(29,53,87,0.12), transparent 70%); }
-.service-tile.tile-navy:hover { box-shadow: 0 4px 14px rgba(29,53,87,0.10), 0 28px 56px -16px rgba(29,53,87,0.26); border-color: rgba(29,53,87,0.25); }
+/* ⚠️ 19.9 — האריח הזה היה כחול (#E7EFF7 + `--navy`) בשער הכניסה
+   החי. הגוון השני נשאר בתוך משפחת הירוק במקום להמציא צבע: שלושת
+   האריחים נבדלים עכשיו ניטרלי ← ירוק-אמצע ← כתום.
+   ⚠️ שם המחלקה `tile-navy` נשאר כדי לא לגעת ב-HTML של דף חי;
+   הוא היסטורי ואינו מתאר עוד את הצבע. */
+.service-tile.tile-navy { background: linear-gradient(155deg, var(--white) 0%, #DFF0E6 130%); }
+.service-tile.tile-navy .tile-icon-wrap { background: linear-gradient(155deg, var(--white) 0%, #D2EADD 100%); color: var(--green-mid); box-shadow: var(--shadow-1), inset 0 0 0 1px rgba(27,127,92,0.18); }
+.service-tile.tile-navy::before { background: radial-gradient(140px 140px at 85% -10%, rgba(27,127,92,0.14), transparent 70%); }
+.service-tile.tile-navy:hover { box-shadow: 0 4px 14px rgba(27,127,92,0.10), 0 28px 56px -16px rgba(27,127,92,0.26); border-color: rgba(27,127,92,0.26); }
 
 .service-tile.tile-orange { background: linear-gradient(155deg, var(--white) 0%, #FBEBDA 130%); }
 .service-tile.tile-orange .tile-icon-wrap { background: linear-gradient(155deg, var(--white) 0%, #F8DFC3 100%); color: var(--orange); box-shadow: var(--shadow-1), inset 0 0 0 1px rgba(245,106,0,0.16); }
 .service-tile.tile-orange::before { background: radial-gradient(140px 140px at 85% -10%, rgba(245,106,0,0.14), transparent 70%); }
 .service-tile.tile-orange:hover { box-shadow: 0 4px 14px rgba(245,106,0,0.10), 0 28px 56px -16px rgba(245,106,0,0.26); border-color: rgba(245,106,0,0.28); }
 
-.service-tile.tile-purple { background: linear-gradient(155deg, var(--white) 0%, #EEE9F9 130%); }
-.service-tile.tile-purple .tile-icon-wrap { background: linear-gradient(155deg, var(--white) 0%, #E1D8F3 100%); color: var(--purple); box-shadow: var(--shadow-1), inset 0 0 0 1px rgba(107,79,160,0.16); }
+/* ⚠️ 19.9 — `.tile-purple` הוסר: אף מסך לא השתמש בו (אומת ב-grep),
+   והוא נשא סגול בתוך גיליון משותף. */
 .service-tile.tile-purple::before { background: radial-gradient(140px 140px at 85% -10%, rgba(107,79,160,0.14), transparent 70%); }
 .service-tile.tile-purple:hover { box-shadow: 0 4px 14px rgba(107,79,160,0.10), 0 28px 56px -16px rgba(107,79,160,0.26); border-color: rgba(107,79,160,0.28); }
 
@@ -624,12 +629,18 @@
    delivery → confirm) instead of one flat background repeated four times,
    echoing how the marketing page alternates section backgrounds (features
    white → how-section green → movers navy → stats solid green). */
-.step-hero.step-2 { background: linear-gradient(160deg, #D8E4F5 0%, #E8EFF9 50%, #F3F6FB 100%); }
-.step-hero.step-2::before { background: radial-gradient(circle, rgba(29,53,87,0.12) 0%, transparent 70%); }
+/* ⚠️ 19.9 — שלב 2 היה גרדיאנט כחול (#D8E4F5) ושלב 4 היה `--navy`
+   מלא. שניהם **חיים**: `apartment.html:2028` מציב את המחלקה דינמית
+   לפי השלב. ההערה שמעל מסבירה שהרעיון היה להדהד את חילופי הרקעים
+   של דף השיווק — אבל דף השיווק כולו ירוק היום, ולכן הדירוג עובר
+   לגווני ירוק: חיוור (1) ← ירוק-אמצע (2) ← כתום (3) ← כהה (4).
+   ההבחנה בין השלבים נשמרת, הכחול יוצא. */
+.step-hero.step-2 { background: linear-gradient(160deg, #CDE9DC 0%, #E2F3EA 50%, #F2FAF6 100%); }
+.step-hero.step-2::before { background: radial-gradient(circle, rgba(27,127,92,0.13) 0%, transparent 70%); }
 .step-hero.step-3 { background: linear-gradient(160deg, #FBE7D2 0%, #FBF0E2 50%, #FBF6EE 100%); }
 .step-hero.step-3::before { background: radial-gradient(circle, rgba(245,106,0,0.14) 0%, transparent 70%); }
 .step-hero.step-4 {
-  background: linear-gradient(160deg, var(--navy) 0%, var(--navy-light) 100%);
+  background: linear-gradient(160deg, var(--green-dark) 0%, var(--green) 100%);
 }
 .step-hero.step-4::before { background: radial-gradient(circle, rgba(14,92,67,0.20) 0%, transparent 70%); }
 .step-hero.step-4 h1, .step-hero.step-4 p { color: var(--white); }
@@ -1009,7 +1020,7 @@
 .track-legend .dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
 .track-legend .dot.from { background: var(--green); }
 .track-legend .dot.to { background: var(--danger); }
-.track-legend .dot.driver { background: var(--navy); }
+.track-legend .dot.driver { background: var(--green-dark); }   /* 19.9 — היה --navy */
 
 /* --- צ'אט עם המוביל (ChatScreen) --- */
 .chat-card { padding: 0; overflow: hidden; display: flex; flex-direction: column; }
