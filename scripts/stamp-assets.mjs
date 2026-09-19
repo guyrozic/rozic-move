@@ -72,7 +72,12 @@ const STAMP = new Intl.DateTimeFormat('he-IL', {
   timeZone: 'Asia/Jerusalem',
 }).format(now).replace(',', ' ·');
 
-const STAMP_HTML = `<div data-build-stamp class="build-stamp" aria-hidden="true">עודכן ${STAMP}</div>`;
+/* ⚠️ החותמת והבודק מוזרקים כיחידה אחת ומחפשים באותו `data-build-stamp`,
+   כדי ששניהם יימחקו יחד לפני השקה לציבור. החותמת לבדה היא פסיבית —
+   היא עוזרת רק למי שחשב לבדוק אותה; `version-check.js` הוא מה שהופך
+   אותה לפעילה (הנימוק המלא בראש הקובץ ההוא). */
+const STAMP_HTML = `<div data-build-stamp class="build-stamp" aria-hidden="true">עודכן ${STAMP}</div>`
+  + `\n<script src="/version-check.js" defer></script>`;
 
 let changed = 0;
 const missing = [];
@@ -99,7 +104,13 @@ for (const page of pages) {
   /* החותמת נכנסת מיד אחרי <body>, ומוחלפת אם כבר קיימת. */
   let withStamp = out;
   if (!CHECK) {
-    const re = /<div data-build-stamp[\s\S]*?<\/div>\n?/;
+    // ⚠️ הרג'קס בולע גם את תגית הסקריפט שאחרי ה-div. בלי זה היא
+    // הייתה משוכפלת בכל הרצה של הסקריפט.
+    // ⚠️ הרג'קס בולע גם את תגית הסקריפט, **כולל `?v=<hash>`** —
+    // הסקריפט הזה עצמו מוסיף את החותמת להפניות בהמשך הריצה, ולכן
+    // בהרצה הבאה התגית כבר אינה בצורתה המקורית. בלי ה-`?v=` האופציונלי
+    // כאן היא שוכפלה בכל הרצה (נתפס בהרצה השנייה).
+    const re = /<div data-build-stamp[\s\S]*?<\/div>\n?(?:\s*<script src="\/version-check\.js(?:\?v=[a-f0-9]+)?" defer><\/script>\n?)*/;
     withStamp = re.test(out)
       ? out.replace(re, STAMP_HTML + '\n')
       : out.replace(/(<body[^>]*>\n?)/i, `$1${STAMP_HTML}\n`);
@@ -117,5 +128,10 @@ if (CHECK) {
   }
   console.log(`  ✓ כל הנכסים ב-${pages.length} דפים נושאים חותמת גרסה עדכנית.`);
 } else {
+  /* ⚠️ מקור האמת ש-`version-check.js` משווה מולו. הוא חייב להיכתב
+     באותה הרצה ובאותו פורמט בדיוק כמו החותמת שבדפים — אחרת ההשוואה
+     מדווחת "יש גרסה חדשה" לנצח. */
+  writeFileSync(join(ROOT, 'version.txt'), STAMP + '\n', 'utf8');
+
   console.log(`  ✓ ${changed} הפניות · חותמת "${STAMP}" ב-${stamped} דפים.`);
 }
