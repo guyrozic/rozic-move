@@ -33,7 +33,7 @@
   <!-- ⚠️ נטען אחרון בכוונה — `flow.css` דורס את `style-app.css` תחת
        `.flow-b` בלבד. 14 המסכים האחרים שחולקים את `style-app.css`
        אינם מושפעים, כי המחלקה יושבת על ה-<body> של הדף הזה. -->
-  <link rel="stylesheet" href="flow.css?v=5e3c626c">
+  <link rel="stylesheet" href="flow.css?v=b4f08038">
   <style>
     /* התווית שליד המחיר בפס התחתון (19.9). */
     .bottom-price-wrap { display: flex; align-items: baseline; gap: 8px; min-width: 0; }
@@ -131,7 +131,7 @@
   </style>
 </head>
 <body class="app-body flow-b">
-<div data-build-stamp class="build-stamp" aria-hidden="true">עודכן 20.09 · 02:08</div>
+<div data-build-stamp class="build-stamp" aria-hidden="true">עודכן 20.09 · 02:14</div>
   <!-- ⚠️ 15.9 — "דלג לתוכן המרכזי" (WCAG 2.4.1, רמה A). זהו האלמנט הממוקד
        הראשון בדף: מוסתר מהעין, מופיע בפינה ברגע שמגיעים אליו ב-Tab, ומעביר
        את המיקוד אל <main id="main-content" tabindex="-1">. בלי ה-tabindex
@@ -275,14 +275,7 @@
                מחיר קטלוגי) — בדיוק כמו freeTextItems בתוך selectedBox
                באפליקציה, לא בכרטיס נפרד. renderSelectedItemsBar() רץ
                בסוף renderItems() וגם מכל נתיב שמשנה freeItems. -->
-          <div class="app-card selected-items-card" id="selected-items-card" style="display:none;">
-            <h2>הפריטים שנבחרו <span id="selected-items-count"></span></h2>
-            <div class="selected-items-list" id="selected-items-list"></div>
-            <!-- ⚠️ 17.9 — "חסר תיאור לפריט" מוצג כאן, בתוך הכרטיס שבו
-                 יושב השדה החסר, ולא בראש הדף: המיקוד עובר לשדה, וההודעה
-                 חייבת להיות במקום שאליו המשתמש הגיע. -->
-            <div id="free-item-error" role="alert"></div>
-          </div>
+
 
           <!-- ⚠️ 20.9 — הקטלוג הידני נכנס ל-<details> סגור. הוא לא הוסר
                ולא הוקטן: `#start-list` והילדים שלו נשארו כמו שהיו, כולל
@@ -539,6 +532,22 @@
 
       </div>
 
+      <!-- ⚠️ 20.9 — **השורה התחתונה.** הטור הצדדי ישב קודם לצד
+           `.app-main` לכל גובה הדף, ולכן שורת שלושת המסלולים קיבלה
+           936px במקום 1188 — נמדד מול המוקאפ. גיא: "אופציה ב הייתה
+           יותר מרווחת לצדדים, הריבוע של התשלום היה משמאל להפריטים
+           שנבחרו". כאן `.app-main` תופס את כל הרוחב, ומתחתיו שורה
+           אחת: הפריטים שנבחרו מימין, הסיכום משמאל — בדיוק כמו
+           `.lower` במוקאפ. -->
+      <div class="app-lower">
+          <div class="app-card selected-items-card" id="selected-items-card" style="display:none;">
+            <h2>הפריטים שנבחרו <span id="selected-items-count"></span></h2>
+            <div class="selected-items-list" id="selected-items-list"></div>
+            <!-- ⚠️ 17.9 — "חסר תיאור לפריט" מוצג כאן, בתוך הכרטיס שבו
+                 יושב השדה החסר, ולא בראש הדף: המיקוד עובר לשדה, וההודעה
+                 חייבת להיות במקום שאליו המשתמש הגיע. -->
+            <div id="free-item-error" role="alert"></div>
+          </div>
       <div class="app-side">
         <div class="side-summary-card">
           <h3>ההזמנה שלך</h3>
@@ -553,6 +562,7 @@
           <button tabindex="0" class="btn btn-primary sum-go" id="side-go-btn">להמשיך לאריזה</button>
         </div>
       </div>
+      </div><!-- /.app-lower -->
     </div>
   </div>
 
@@ -1324,7 +1334,10 @@
       const sel = selectedItems();
       const totalCount = sel.length + state.freeItems.length;
       document.getElementById('selected-items-count').textContent = totalCount ? `(${totalCount})` : '';
-      if (totalCount === 0) { card.style.display = 'none'; listEl.innerHTML = ''; return; }
+      // ⚠️ מאז שהכרטיס יצא מתוך סקשן שלב 1 אל השורה התחתונה, הוא כבר
+      // אינו נסתר אוטומטית עם השלב — `.wizard-step` לא עוטף אותו יותר.
+      // בלי התנאי הזה רשימת הפריטים הייתה נשארת על המסך גם במסך התשלום.
+      if (totalCount === 0 || step !== 1) { card.style.display = 'none'; if (totalCount === 0) listEl.innerHTML = ''; return; }
       card.style.display = 'block';
       const activeEl = document.activeElement;
       const keepFocus = (activeEl && listEl.contains(activeEl) && activeEl.dataset.action)
@@ -2227,6 +2240,8 @@
       if (step === 2) renderPackingOffer();
       if (step === 3) { renderCraneItems(); updateCranePreview(); }
       if (step === 4) renderSummary();
+      // ⚠️ הכרטיס יצא מסקשן שלב 1, ולכן הוא כבר לא נסתר עם השלב מעצמו.
+      renderSelectedItemsBar();
       renderSidePrice();
 
       const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;

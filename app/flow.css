@@ -158,7 +158,38 @@
    הדפים היא חפיפה ששוברת חלק מהם בשקט.
    הבמה, הסרגל, הכרטיסים והפוטר משותפים לכל 13 המסכים; הציפה עצמה
    נשארת במקום שבו היא נמדדה מול תוכן אמיתי. */
-.flow-b .app-layout { margin-top: -68px; position: relative; z-index: 2; }
+/* ⚠️ `.app-layout` היה גריד של [ראשי | 300px], ולכן שורת המסלולים
+   קיבלה רק את העמודה הימנית. עכשיו הוא בלוק פשוט: `.app-main` תופס
+   את כל הרוחב, ו-`.app-lower` מתחתיו הוא הגריד היחיד. נמדד מול
+   המוקאפ: 1188px לשורת המסלולים, לא 936. */
+.flow-b .app-layout {
+  display: block;
+  margin-top: -68px;
+  position: relative;
+  z-index: 2;
+}
+.flow-b .app-lower {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 300px;
+  gap: 20px;
+  align-items: start;
+  margin-top: 4px;
+}
+/* ⚠️ `.app-side` נשאר דביק, אבל מרגע שהוא בשורה תחתונה ה-`top` שלו
+   נמדד מול החלון ולא מול תחילת הדף — ולכן הוא נצמד רק כשגוללים
+   בתוך רשימת פריטים ארוכה, וזו בדיוק ההתנהגות הרצויה. */
+/* ⚠️ `grid-column: 2` במפורש. בלעדיו, ברגע שכרטיס הפריטים מוסתר
+   (וזה המצב ההתחלתי — אין עדיין פריטים), הסיכום הופך לפריט הראשון
+   בגריד ונוחת בעמודה הרחבה: נמדד 952px במקום 300. */
+.flow-b .app-lower .app-side {
+  grid-column: 2;
+  position: sticky;
+  top: calc(var(--nav-h) + 18px);
+}
+/* מתחת ל-900 `.app-side` מוסתר בכלל הבסיסי, והשורה חוזרת לעמודה אחת. */
+@media (max-width: 900px) {
+  .flow-b .app-lower { grid-template-columns: minmax(0, 1fr); }
+}
 /* המסכים הצרים: הרצועה נסגרת בריפוד רגיל והתוכן מתחיל מתחתיה. */
 .flow-b .app-container { position: relative; z-index: 2; }
 
