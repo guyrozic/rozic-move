@@ -27,10 +27,14 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="../style.css?v=db7f94bd">
+  <link rel="stylesheet" href="../style.css?v=47a00e76">
   <link rel="stylesheet" href="style-app.css?v=53ef95b8">
   <link rel="stylesheet" href="address-autocomplete.css?v=aa414fa6">
   <style>
+    /* התווית שליד המחיר בפס התחתון (19.9). */
+    .bottom-price-wrap { display: flex; align-items: baseline; gap: 8px; min-width: 0; }
+    .bottom-price-label { font-size: 0.9rem; font-weight: 700; color: var(--text-mid); }
+    .bottom-price-label[hidden] { display: none; }
     /* ⚠️ 16.9 — "הפריטים שנבחרו" בראש אזור ההזמנה, בדיוק כמו ב-
        SmallMoveItemsScreen באפליקציה (הרשימה שמעל "בחר ידנית"). כללים
        קטנים בלבד, ולכן inline כאן ולא ב-style-app.css המשותף. */
@@ -123,7 +127,7 @@
   </style>
 </head>
 <body class="app-body">
-<div data-build-stamp class="build-stamp" aria-hidden="true">עודכן 19.09 · 16:07</div>
+<div data-build-stamp class="build-stamp" aria-hidden="true">עודכן 20.09 · 00:38</div>
   <!-- ⚠️ 15.9 — "דלג לתוכן המרכזי" (WCAG 2.4.1, רמה A). זהו האלמנט הממוקד
        הראשון בדף: מוסתר מהעין, מופיע בפינה ברגע שמגיעים אליו ב-Tab, ומעביר
        את המיקוד אל <main id="main-content" tabindex="-1">. בלי ה-tabindex
@@ -494,7 +498,13 @@
   </footer>
 
   <div class="app-bottom-bar" id="bottom-bar" style="display:none;">
-    <div class="bottom-price" id="bottom-price">₪0</div>
+    <!-- ⚠️ 19.9 — התווית מופיעה רק משלב 2 ואילך. בשלב 1 הפס מציג
+         `itemsSubtotal` ולא את הסה"כ (ראו `renderSidePrice`), ושם גם יש
+         כפתור שנותן הקשר. הנוסח זהה לעמודה הצדדית, לא חדש. -->
+    <div class="bottom-price-wrap">
+      <span class="bottom-price-label" id="bottom-price-label" hidden>סה"כ</span>
+      <div class="bottom-price" id="bottom-price">₪0</div>
+    </div>
     <button tabindex="0" class="btn btn-primary" id="next-btn">המשך</button>
   </div>
 
@@ -2026,7 +2036,21 @@
       titleEl.textContent = STEP_TITLES[step][0];
       document.getElementById('step-desc').textContent = STEP_TITLES[step][1];
       document.getElementById('step-hero').className = 'step-hero step-' + step;
-      document.getElementById('bottom-bar').style.display = step === 1 ? 'flex' : 'none';
+      /* ⚠️ 19.9 (61.2א) — הפס נשאר בכל השלבים, והכפתור מוסתר.
+
+         עד כה הפס כולו הוסתר בשלבים 2–4. בדסקטופ זה בסדר כי `.app-side`
+         מציג את המחיר — אבל היא `display: none` מתחת ל-900px.
+         התוצאה: **בנייד, בשלבים 2–4, ללקוח אין מחיר על המסך בכלל** —
+         הוא בוחר אריזה, מנוף וקומות בעיוורון ורואה סכום רק בשלב 4.
+         המחיר היה **מחושב** בכל שלב (ראו `renderSidePrice`) — רק לא מוצג.
+
+         ⚠️ **לא מספיק להציג את הפס כמות שהוא.** `#next-btn` שבתוכו
+         קורא ל-`goToStep(2)` ושייך לשלב 1 בלבד; בשלבים 2–4 יש כפתורי
+         המשך אחרים בתוך המסך עצמו. הצגתו הייתה נותנת ללקוח כפתור
+         שמקפיץ אותו אחורה. לכן הכפתור מוסתר והמחיר נשאר. */
+      document.getElementById('bottom-bar').style.display = 'flex';
+      document.getElementById('next-btn').style.display = step === 1 ? '' : 'none';
+      document.getElementById('bottom-price-label').hidden = step === 1;
       if (step === 2) renderPackingOffer();
       if (step === 3) { renderCraneItems(); updateCranePreview(); }
       if (step === 4) renderSummary();
