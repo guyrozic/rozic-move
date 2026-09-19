@@ -283,7 +283,25 @@
    ⚠️ `aspect-ratio` **קובע גובה מועדף בלבד** — תוכן גבוה ממנו פשוט
    גולש מחוץ לכרטיס, בשקט. לכן `min-height: min-content`: הריבוע נשמר
    כשהתוכן נכנס, והכרטיס גדל לגובה במקום לחתוך כשלא. */
-.flow-b .app-shell-wide { max-width: min(1680px, 94vw); }
+.flow-b .app-shell-wide { max-width: min(2280px, 94vw); }
+
+/* ⚠️ כרטיס שגדל בלי שהתוכן בתוכו גדל נראה חלול. הריפוד, האייקון,
+   הכותרת והפסקה גדלים עם רוחב החלון — אבל דרך `clamp`, כך שברוחבים
+   הרגילים שום דבר לא זז מהערכים שנמדדו. */
+@media (min-width: 1720px) {
+  .flow-b .routes-row .rt { padding: clamp(24px, 1.9vw, 44px); }
+  .flow-b .routes-row .rt h2 { font-size: clamp(1.2rem, 1.15vw, 1.7rem); }
+  .flow-b .routes-row .rt > p,
+  .flow-b .routes-row .rt .ai-upload-body > p { font-size: clamp(.94rem, .78vw, 1.12rem); }
+  .flow-b .routes-row .rt-ic {
+    width: clamp(44px, 3vw, 66px);
+    height: clamp(44px, 3vw, 66px);
+    border-radius: clamp(13px, .9vw, 19px);
+  }
+  .flow-b .routes-row .rt-ic svg { width: 52%; height: 52%; }
+  .flow-b .routes-row .rt-drop { padding: clamp(18px, 1.5vw, 34px) 14px; }
+  .flow-b .routes-row .rt .btn { font-size: clamp(.95rem, .72vw, 1.08rem); padding-block: clamp(13px, 1vw, 20px); }
+}
 
 /* ⚠️ **הסף 1600 אינו שרירותי — הוא נגזר ממדידה.** התוכן הגבוה ביותר
    (כרטיס הסריקה) הוא 451px. `aspect-ratio` על פריט גריד קובע את הגובה,
@@ -293,7 +311,7 @@
    התוכן: ב-1600 הכרטיס יוצא 474 והתוכן 451 נכנס בנוחות.
    מתחת לסף הכרטיסים שומרים על הגובה הטבעי — הם עדיין רחבים יותר
    מקודם בזכות המכל, פשוט לא ריבועיים. */
-@media (min-width: 1600px) {
+@media (min-width: 1720px) {
   .flow-b .routes-row .rt { aspect-ratio: 1 / 1; }
 }
 
