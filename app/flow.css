@@ -123,8 +123,36 @@
   z-index: 0;
 }
 .flow-b .step-hero-inner { position: relative; z-index: 1; }
-/* "→ בחירת שירות" — היה ירוק כהה על רקע בהיר, ועכשיו הרקע כהה.
-   הבסיס פותר את זה רק ל-`.step-hero.step-4`; כאן כל השלבים כהים. */
+/* ── קישור החזרה ─────────────────────────────────────────────────
+   גיא: "השורה בחירת שירות נראית ממש לא יפה - צריך לשנות את הכתב או
+   העיצוב והגודל, שינוי החץ."
+   היה `<a class="btn-text">→ בחירת שירות</a>` — גליף חץ חשוף בתוך
+   מחלקת כפתור-טקסט גנרית, בלי משקל ובלי מצב hover אמיתי. עכשיו זה
+   פקד: גלולה שקופה עם צ׳יפ, אייקון וקטורי, ומצב מעבר.
+   ⚠️ החץ מצביע **ימינה**. ב-RTL ההתחלה היא הימין, ולכן "חזרה" היא
+   ימינה — והניסיון הראשון שלי הצביע שמאלה. SVG אינו מתהפך מעצמו
+   לפי `dir`, בניגוד לתכונות לוגיות כמו `inset-inline`. */
+.flow-b .step-hero .step-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  margin-bottom: 14px;
+  padding: 7px 14px 7px 16px;
+  border-radius: 999px;
+  background: rgba(255,255,255,.09);
+  color: var(--fl-wash);
+  font-size: .87rem;
+  font-weight: 700;
+  letter-spacing: -.2px;
+  text-decoration: none;
+  transition: background .18s, color .18s;
+}
+.flow-b .step-hero .step-back svg { width: 14px; height: 14px; flex: none; }
+.flow-b .step-hero .step-back:hover { background: rgba(255,255,255,.17); color: var(--white); }
+.flow-b .step-hero .step-back:focus-visible { outline: 2px solid var(--fl-mint); outline-offset: 2px; }
+@media (prefers-reduced-motion: reduce) { .flow-b .step-hero .step-back { transition: none; } }
+
+/* נשאר בשביל כל `.btn-text` אחר שיושב על הבמה. */
 .flow-b .step-hero .btn-text { color: rgba(255,255,255,.82); }
 .flow-b .step-hero .btn-text:hover { color: var(--white); }
 .flow-b .step-hero h1 {
