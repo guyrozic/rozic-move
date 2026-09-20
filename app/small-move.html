@@ -125,7 +125,7 @@
   </style>
 </head>
 <body class="app-body flow-b">
-<div data-build-stamp class="build-stamp" aria-hidden="true">עודכן 21.09 · 00:38</div>
+<div data-build-stamp class="build-stamp" aria-hidden="true">עודכן 21.09 · 00:57</div>
 <script src="/version-check.js?v=b4f8b2f7" defer></script>
   <!-- ⚠️ 15.9 — "דלג לתוכן המרכזי" (WCAG 2.4.1, רמה A). זהו האלמנט הממוקד
        הראשון בדף: מוסתר מהעין, מופיע בפינה ברגע שמגיעים אליו ב-Tab, ומעביר
@@ -584,8 +584,9 @@
              applyDraftToForm, attachDraftAutosave,
              validateCouponSecure, redeemCouponSecure, getDiscountAmount,
              loadResumeDraft, clearOrderDraftEverywhere, discardOrderDraftEverywhere,
+             shapeOk,
              showDraftDiscardedNotice } from './guest-checkout.js';
-    import { createOrder } from './orders.js';
+    import { createOrder, getOrder, cancelOrder, getCancellationPolicy } from './orders.js';
     import { orderTermsConsent } from './legal.js';
     import { isValidFullName, FULL_NAME_ERROR } from './auth.js';
     import { ALL_ROOMS, findItemAnywhere, getItemPriceAnyCategory, getFullAICatalog, getSizeSiblings, getPackingInfo } from './data/items.js';
@@ -729,17 +730,48 @@
     // ובתיעוד `loadResumeDraft`/`attachDraftAutosave` ב-guest-checkout.js.
     const draftUid = authState?.authUser?.uid ?? null;
 
-    /* ⚠️ `?new=1` מגיע מ"לא, התחל חדשה" בדיאלוג. המחיקה כאן ולא שם —
-       ראו ההערה ליד הכפתור. הפרמטר מוסר מהכתובת מיד כדי שרענון של
-       הדף לא ימחק טיוטה חדשה שהמשתמש בינתיים התחיל.
-       62.3 — `discardOrderDraftEverywhere` מוחקת גם את הטיוטה המרוחקת. */
-    if (new URLSearchParams(location.search).has('new')) {
-      await discardOrderDraftEverywhere('smallMove', draftUid);
+    // (task 3, 21.9) — "ערוך את ההזמנה" מ-order-status.html. ההסבר המלא
+    // (מבנה, בדיקות, למה שלב 4) ב-apartment.html.
+    async function loadEditableOrderPayload(orderId, uid) {
+      if (!uid) return null;
+      let order = null;
+      try { order = await getOrder(orderId); }
+      catch (err) { console.warn('[edit-order] טעינת ההזמנה לעריכה נכשלה', orderId, err && err.message); return null; }
+      const usable = !!order && order.customerId === uid && order.status === 'pending_payment'
+        && order.editablePayload && typeof order.editablePayload === 'object' && shapeOk(order.editablePayload);
+      if (!usable) {
+        if (order) console.warn('[edit-order] קישור עריכה לא תקף', orderId, order.status);
+        return null;
+      }
+      return { state: { ...order.editablePayload }, step: 4 };
+    }
+
+    const editOrderId = new URLSearchParams(location.search).get('edit');
+    if (editOrderId && !draftUid) {
+      location.href = `login.html?next=${encodeURIComponent(location.pathname + location.search)}`;
+    }
+
+    let draftResult = null;
+    let editMode = false;
+    if (editOrderId) {
+      const loaded = draftUid ? await loadEditableOrderPayload(editOrderId, draftUid) : null;
+      if (loaded) { draftResult = { ...loaded, remoteDraftId: null, discarded: false }; editMode = true; }
       history.replaceState(null, '', location.pathname);
     }
-    /* ⚠️ 20.9 (הורחב 62.3, 21.9) — השלב נשמר בתוך הטיוטה. ההסבר המלא
-       ב-`apartment.html`. */
-    const draftResult = await loadResumeDraft('smallMove', draftUid);
+
+    if (!draftResult) {
+      /* ⚠️ `?new=1` מגיע מ"לא, התחל חדשה" בדיאלוג. המחיקה כאן ולא שם —
+         ראו ההערה ליד הכפתור. הפרמטר מוסר מהכתובת מיד כדי שרענון של
+         הדף לא ימחק טיוטה חדשה שהמשתמש בינתיים התחיל.
+         62.3 — `discardOrderDraftEverywhere` מוחקת גם את הטיוטה המרוחקת. */
+      if (new URLSearchParams(location.search).has('new')) {
+        await discardOrderDraftEverywhere('smallMove', draftUid);
+        history.replaceState(null, '', location.pathname);
+      }
+      /* ⚠️ 20.9 (הורחב 62.3, 21.9) — השלב נשמר בתוך הטיוטה. ההסבר המלא
+         ב-`apartment.html`. */
+      draftResult = await loadResumeDraft('smallMove', draftUid);
+    }
     const restoredDraft = draftResult.state;
     const restoredStep = draftResult.step;
     const remoteDraftId = draftResult.remoteDraftId;
@@ -2475,6 +2507,8 @@
           // נקרא אחרי הבדיקה של termsBox למעלה, ולכן לעולם לא נכתבת הסכמה
           // שלא ניתנה בפועל. ראו legal.js.
           ...orderTermsConsent(),
+          // (task 3, 21.9) — ראו ההערה המקבילה ב-apartment.html/orders.js.
+          editablePayload: { ...state },
         });
         clearTimeout(stuckTimer);
         /**
@@ -2504,6 +2538,22 @@
         // 62.3 — ראו ההערה המקבילה ב-apartment.html: `createOrder` יוצרת
         // מסמך חדש, ולא מקדמת את הטיוטה — חובה לנקות את שתיהן בנפרד.
         await clearOrderDraftEverywhere('smallMove', draftAutosave.remoteDraftId());
+        // (task 3) — ראו ההערה המקבילה ב-apartment.html: ביטול ההזמנה
+        // הישנה רק אחרי שהחדשה נוצרה בהצלחה, ונבדק מחדש (לא נסמך על
+        // מה שנטען בעליית הדף) כי היא יכולה להשתנות בינתיים בטאב אחר.
+        if (editOrderId) {
+          try {
+            const oldOrder = await getOrder(editOrderId);
+            if (oldOrder && oldOrder.status === 'pending_payment') {
+              const policy = getCancellationPolicy(oldOrder, 'customer');
+              await cancelOrder(editOrderId, policy.fee);
+            } else {
+              console.warn('[edit-order] ההזמנה הישנה לא בוטלה — הסטטוס השתנה בינתיים', editOrderId, oldOrder?.status);
+            }
+          } catch (err) {
+            console.warn('[edit-order] ביטול ההזמנה הישנה נכשל', editOrderId, err && err.message);
+          }
+        }
         location.href = `order-status.html?id=${orderId}`;
       } catch (err) {
         clearTimeout(stuckTimer);
@@ -2651,7 +2701,7 @@
       renderTimeSlots();
     }
     else if (draftDiscarded) showDraftDiscardedNotice();
-    if (draftHasContent(restoredDraft)) askResumeDraft('smallMove');
+    if (!editMode && draftHasContent(restoredDraft)) askResumeDraft('smallMove');
     /**
      * ⚠️ 18.9 — **אחרי** השחזור, לא לפניו. `applyDraftToForm` ממלא שדות
      * ושולח `input`/`change` ידנית (השורות שמעל), וכל אחד מהם היה

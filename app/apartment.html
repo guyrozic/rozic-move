@@ -142,7 +142,7 @@
   </style>
 </head>
 <body class="app-body flow-b">
-<div data-build-stamp class="build-stamp" aria-hidden="true">עודכן 21.09 · 00:38</div>
+<div data-build-stamp class="build-stamp" aria-hidden="true">עודכן 21.09 · 00:57</div>
 <script src="/version-check.js?v=b4f8b2f7" defer></script>
   <!-- ⚠️ 15.9 — "דלג לתוכן המרכזי" (WCAG 2.4.1, רמה A). זהו האלמנט הממוקד
        הראשון בדף: מוסתר מהעין, מופיע בפינה ברגע שמגיעים אליו ב-Tab, ומעביר
@@ -629,9 +629,9 @@
              applyDraftToForm, attachDraftAutosave,
              validateCouponSecure, redeemCouponSecure, getDiscountAmount,
              normalizeCouponCode, loadResumeDraft, clearOrderDraftEverywhere,
-             discardOrderDraftEverywhere,
+             discardOrderDraftEverywhere, shapeOk,
              showDraftDiscardedNotice } from './guest-checkout.js';
-    import { createOrder } from './orders.js';
+    import { createOrder, getOrder, cancelOrder, getCancellationPolicy } from './orders.js';
     import { orderTermsConsent } from './legal.js';
     import { isValidFullName, FULL_NAME_ERROR } from './auth.js';
     import { ALL_ROOMS, findItemAnywhere, getItemPriceAnyCategory, getFullAICatalog, getSizeSiblings, getPackingInfo } from './data/items.js';
@@ -774,35 +774,87 @@
     // ומכריע איזה מסלול רץ בהמשך (מקומי בלבד / מסונכרן ל-Firestore).
     const draftUid = authState?.authUser?.uid ?? null;
 
-    /* ⚠️ `?new=1` מגיע מ"לא, התחל חדשה" בדיאלוג. המחיקה כאן ולא שם —
-       ראו ההערה ליד הכפתור. הפרמטר מוסר מהכתובת מיד כדי שרענון של
-       הדף לא ימחק טיוטה חדשה שהמשתמש בינתיים התחיל.
-       62.3 — `discardOrderDraftEverywhere` מוחקת גם את הטיוטה המרוחקת
-       (למחוברים) — ראו התיעוד שלה ב-guest-checkout.js למה זה חובה. */
-    if (new URLSearchParams(location.search).has('new')) {
-      await discardOrderDraftEverywhere('apartment', draftUid);
+    /**
+     * ⚠️ (task 3, 21.9) — "ערוך את ההזמנה" מ-`order-status.html` מגיעה
+     * לכאן עם `?edit=<orderId>`. טוענת את `editablePayload` של הזמנה
+     * ב-`pending_payment` ומחזירה `{state, step:4}` — **שלב הסיכום**,
+     * לא שלב 1, כי גיא ביקש להיכנס ישר לפירוט ולא לגרום ללקוח לעבור
+     * שוב את כל האשף. `editOrderId` (המשתנה החיצוני) משמש בהמשך רק
+     * ב"מעבר לתשלום" — כדי לבטל את ההזמנה הישנה **אחרי** שהחדשה נוצרה.
+     *
+     * ⚠️ נכשלת בשקט, לא בקריסה: קישור ישן (היסטוריה/סימנייה) יכול
+     * להגיע לכאן אחרי שההזמנה שולמה, בוטלה, או שייכת למשתמש אחר —
+     * ושלושתם צריכים לנחות על אשף רגיל, לא על דף שבור. `firestore.rules`
+     * חוסמת כבר קריאת הזמנה של לקוח אחר (permission-denied, לא נתונים).
+     *
+     * ⚠️ `shapeOk` — **אותה** בדיקת מבנה שרצה על טיוטה מקומית/מרוחקת
+     * (62.3). `editablePayload` הוא בדיוק אותו `state`, ומסמך שלא עומד
+     * בה יכול להפיל את הדף בדיוק כמו טיוטה פגומה — ראו guest-checkout.js.
+     */
+    async function loadEditableOrderPayload(orderId, uid) {
+      if (!uid) return null;
+      let order = null;
+      try { order = await getOrder(orderId); }
+      catch (err) { console.warn('[edit-order] טעינת ההזמנה לעריכה נכשלה', orderId, err && err.message); return null; }
+      const usable = !!order && order.customerId === uid && order.status === 'pending_payment'
+        && order.editablePayload && typeof order.editablePayload === 'object' && shapeOk(order.editablePayload);
+      if (!usable) {
+        if (order) console.warn('[edit-order] קישור עריכה לא תקף', orderId, order.status);
+        return null;
+      }
+      return { state: { ...order.editablePayload }, step: 4 };
+    }
+
+    const editOrderId = new URLSearchParams(location.search).get('edit');
+    // ⚠️ עריכה דורשת חשבון — ההזמנה שייכת ל-customerId, ואין "טיוטת
+    // אורח" שמזוהה כבעלים. חוזרים לכתובת הזו בדיוק אחרי התחברות, בדיוק
+    // כמו goRegister — רק שאין כאן שום דבר לשמור עדיין.
+    if (editOrderId && !draftUid) {
+      location.href = `login.html?next=${encodeURIComponent(location.pathname + location.search)}`;
+    }
+
+    let draftResult = null;
+    let editMode = false;
+    if (editOrderId) {
+      const loaded = draftUid ? await loadEditableOrderPayload(editOrderId, draftUid) : null;
+      if (loaded) { draftResult = { ...loaded, remoteDraftId: null, discarded: false }; editMode = true; }
+      // מוסר תמיד, גם בכשלון: רענון של הדף לא ינסה לערוך שוב את אותה
+      // הזמנה (ולא ידרוס עריכה שכן התקדמה בינתיים — אותו מרוץ בדיוק
+      // כמו `?new=1`, ראו ההערה למטה).
       history.replaceState(null, '', location.pathname);
     }
-    /* ⚠️ 20.9 (הורחב 62.3, 21.9) — **השלב נשמר בתוך הטיוטה, לא לצידה.**
-       האפליקציה חוזרת לשלב שבו הלקוח היה (`resumeToSavedStep`), והאתר
-       חזר תמיד לשלב 1: לקוח שמילא כתובות, בחר פריטים והגיע לתאריך —
-       מצא את עצמו אחרי רענון בתחילת הטופס, עם כל הנתונים במקום אבל בלי
-       שום סימן לכך. השדה מוברח דרך `attachDraftAutosave` הקיים (בסוף
-       הסקריפט) ולא דרך מפתח localStorage שני, כדי שהשלב והתוכן ייכתבו
-       תמיד יחד — שני מפתחות נפרדים היו יכולים להיפרד ולהחזיר לקוח
-       לשלב 4 של הזמנה שכבר נמחקה.
-       ⚠️ **`loadResumeDraft` מחליטה גם בין טיוטת המכשיר לטיוטת החשבון**
-       (למחוברים) — "כל הטיוטה" של המקור העדכני יותר, לא מיזוג שדות.
-       ראו התיעוד המלא ב-guest-checkout.js, כולל למה אורח לא מושפע. */
-    const draftResult = await loadResumeDraft('apartment', draftUid);
+
+    if (!draftResult) {
+      /* ⚠️ `?new=1` מגיע מ"לא, התחל חדשה" בדיאלוג. המחיקה כאן ולא שם —
+         ראו ההערה ליד הכפתור. הפרמטר מוסר מהכתובת מיד כדי שרענון של
+         הדף לא ימחק טיוטה חדשה שהמשתמש בינתיים התחיל.
+         62.3 — `discardOrderDraftEverywhere` מוחקת גם את הטיוטה המרוחקת
+         (למחוברים) — ראו התיעוד שלה ב-guest-checkout.js למה זה חובה. */
+      if (new URLSearchParams(location.search).has('new')) {
+        await discardOrderDraftEverywhere('apartment', draftUid);
+        history.replaceState(null, '', location.pathname);
+      }
+      /* ⚠️ 20.9 (הורחב 62.3, 21.9) — **השלב נשמר בתוך הטיוטה, לא לצידה.**
+         האפליקציה חוזרת לשלב שבו הלקוח היה (`resumeToSavedStep`), והאתר
+         חזר תמיד לשלב 1: לקוח שמילא כתובות, בחר פריטים והגיע לתאריך —
+         מצא את עצמו אחרי רענון בתחילת הטופס, עם כל הנתונים במקום אבל בלי
+         שום סימן לכך. השדה מוברח דרך `attachDraftAutosave` הקיים (בסוף
+         הסקריפט) ולא דרך מפתח localStorage שני, כדי שהשלב והתוכן ייכתבו
+         תמיד יחד — שני מפתחות נפרדים היו יכולים להיפרד ולהחזיר לקוח
+         לשלב 4 של הזמנה שכבר נמחקה.
+         ⚠️ **`loadResumeDraft` מחליטה גם בין טיוטת המכשיר לטיוטת החשבון**
+         (למחוברים) — "כל הטיוטה" של המקור העדכני יותר, לא מיזוג שדות.
+         ראו התיעוד המלא ב-guest-checkout.js, כולל למה אורח לא מושפע. */
+      draftResult = await loadResumeDraft('apartment', draftUid);
+    }
     const restoredDraft = draftResult.state;
     const restoredStep = draftResult.step;
     // ⚠️ מזהה הטיוטה המרוחקת הנוכחית (או `null`) — מועבר ל-`attachDraftAutosave`
     // בסוף הסקריפט כך שכל כתיבה עוקבת תדרוס את **אותו** מסמך, לא תיצור כפול.
     const remoteDraftId = draftResult.remoteDraftId;
-    // `loadResumeDraft` כבר מחקה את `__step` מהמקורי (או שהוא לא היה שם
-    // בכלל בטיוטה מרוחקת) — מה שנשאר ב-`restoredDraft` הוא שדות ההזמנה
-    // בלבד, ואפשר למזג ישירות ל-`state`. זהה למה שהקוד הישן עשה בעצמו.
+    // `loadResumeDraft`/`loadEditableOrderPayload` כבר מחקו/לא כללו את
+    // `__step` — מה שנשאר ב-`restoredDraft` הוא שדות ההזמנה בלבד, ואפשר
+    // למזג ישירות ל-`state`. זהה למה שהקוד הישן עשה בעצמו.
     if (restoredDraft) Object.assign(state, restoredDraft);
     /**
      * ⚠️ 15.9 — טיוטה שנדחית נזרקה **בשקט מוחלט**.
@@ -2545,6 +2597,9 @@
           // נקרא אחרי הבדיקה של termsBox למעלה, ולכן לעולם לא נכתבת הסכמה
           // שלא ניתנה בפועל. ראו legal.js.
           ...orderTermsConsent(),
+          // (task 3, 21.9) — מצב האשף המלא, לכפתור "ערוך את ההזמנה" על
+          // הזמנה זו בעתיד (אם תישאר ב-pending_payment). ראו orders.js.
+          editablePayload: { ...state },
         });
         clearTimeout(stuckTimer);
         /**
@@ -2576,6 +2631,33 @@
         // מקומית וגם מרוחקת (אחרת היא נשארת יתומה ב-Firestore ומקבלת
         // תזכורת שווא מ-sendDraftReminders על הזמנה שבינתיים שולמה).
         await clearOrderDraftEverywhere('apartment', draftAutosave.remoteDraftId());
+        /**
+         * ⚠️ (task 3) — "ערוך את ההזמנה": ההזמנה החדשה **כבר נוצרה
+         * בהצלחה** (השורה שמעל), ורק עכשיו מבטלים את הישנה. הסדר קריטי —
+         * ביטול לפני שהחדשה קיימת היה משאיר לקוח שנוטש בין השתיים (רשת
+         * שנפלה, טאב שנסגר) בלי אף הזמנה. ביטול ב-`pending_payment` הוא
+         * בלי חיוב (`fee:0`, ראו `getCancellationPolicy`) — אין החזר לחשב.
+         *
+         * ⚠️ נבדק **מחדש**, לא נסמך על מה שנטען בעליית הדף: זמן רב יכול
+         * לעבור בין פתיחת העריכה לרגע הזה, ואם ההזמנה הישנה שולמה או
+         * בוטלה בינתיים (טאב אחר) — אסור לבטל אותה כאילו לא קרה כלום.
+         * כשל כאן לא מפיל את ההזמנה החדשה שכבר נוצרה; הוא רק לא סוגר
+         * את הישנה, ומדווח בקונסול כדי שלא יישאר בלי עקבות (מקרה נדיר,
+         * דורש ניקוי ידני באדמין — ראו דוח 62.3/62.4/task-3).
+         */
+        if (editOrderId) {
+          try {
+            const oldOrder = await getOrder(editOrderId);
+            if (oldOrder && oldOrder.status === 'pending_payment') {
+              const policy = getCancellationPolicy(oldOrder, 'customer');
+              await cancelOrder(editOrderId, policy.fee);
+            } else {
+              console.warn('[edit-order] ההזמנה הישנה לא בוטלה — הסטטוס השתנה בינתיים', editOrderId, oldOrder?.status);
+            }
+          } catch (err) {
+            console.warn('[edit-order] ביטול ההזמנה הישנה נכשל', editOrderId, err && err.message);
+          }
+        }
         location.href = `order-status.html?id=${orderId}`;
       } catch (err) {
         clearTimeout(stuckTimer);
@@ -2723,7 +2805,9 @@
       renderTimeSlots();
     }
     else if (draftDiscarded) showDraftDiscardedNotice();
-    if (draftHasContent(restoredDraft)) askResumeDraft('apartment');
+    // ⚠️ (task 3) — במצב עריכה אין מה לשאול: הלקוח בחר במפורש לערוך
+    // הזמנה קיימת, לא נתקל בטיוטה שהתחילה ברקע.
+    if (!editMode && draftHasContent(restoredDraft)) askResumeDraft('apartment');
     /**
      * ⚠️ 18.9 — **אחרי** השחזור, לא לפניו. `applyDraftToForm` ממלא שדות
      * ושולח `input`/`change` ידנית (השורות שמעל), וכל אחד מהם היה

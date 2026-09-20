@@ -13,6 +13,30 @@ import { db, auth } from './firebase.js';
 import { CANCELLATION_POLICY, getCancellationFee } from './data/pricing.js';
 
 /**
+ * מסירה `undefined` לעומק, לפני כתיבה ל-Firestore.
+ *
+ * ⚠️ עותק מקומי, לא ייבוא מ-`guest-checkout.js` — הקובץ הזה נטען **על
+ * ידי** `guest-checkout.js` (`saveDraftOrder`/`getActiveDraftOrder`/
+ * `clearDraftOrder`, ראו 62.3), וייבוא בכיוון ההפוך היה מעגלי. הכלל
+ * זהה בשני המקומות: `JSON.stringify`/`setDoc` משמיטים מפתח עם ערך
+ * `undefined` בלי שגיאה, ובדפדפן `setDoc` **דוחה את הכתיבה כולה** על
+ * שדה כזה (בניגוד ל-RNFB, לפחות יש כאן `reject`, לא כתיבה חלקית שקטה) —
+ * ראו stripUndefined ב-guest-checkout.js לנימוק המלא.
+ */
+function stripUndefinedDeep(value) {
+  if (Array.isArray(value)) return value.map(stripUndefinedDeep);
+  if (value && typeof value === 'object') {
+    const out = {};
+    for (const [k, v] of Object.entries(value)) {
+      if (v === undefined) continue;
+      out[k] = stripUndefinedDeep(v);
+    }
+    return out;
+  }
+  return value;
+}
+
+/**
  * ⚠️ 17.9 — **חמש מתוך תשע התוויות כאן לא היו אותן תוויות שהלקוח רואה
  * באפליקציה,** ושלוש מהן אף סתרו טקסט אחר באותו מסך עצמו.
  *
@@ -138,6 +162,20 @@ export async function createOrder(input) {
     termsVersion: input.termsVersion ?? null,
     termsAcceptedVia: input.termsAcceptedVia ?? null,
     orderSource: 'web',
+    /**
+     * ⚠️ (task 3, 21.9) — מצב האשף המלא ברגע התשלום, **לא** שדה כספי.
+     * קיים כדי ש-`order-status.html` יוכל להציע "ערוך את ההזמנה" על
+     * הזמנה ב-`pending_payment`: `itemsSummary` הוא מחרוזת לקריאת אדם
+     * ("מיטת יחיד x2") ואי אפשר לשחזר ממנה עגלה בלי ניחוש תוויות שמייצר
+     * מחיר שגוי. זה בדיוק אותו `state` שנשמר לטיוטה (ראו `saveDraftOrder`
+     * ו-`loadResumeDraft` ב-guest-checkout.js) — לא צורה חדשה.
+     *
+     * ⚠️ `firestore.rules`'s `serverOnlyMoneyFields()` הוא רשימת-איסור
+     * (`hasAny`) ולא רשימת-היתר, ולכן שדה חדש שאינו בה עובר בלי שינוי
+     * חוקים — נבדק ואומת (ראו `orderShapeValid`/`allow create`). מטרתו
+     * היא שחזור הטופס בלבד — לא לקרוא ממנו מחיר בשום נתיב.
+     */
+    editablePayload: input.editablePayload ? stripUndefinedDeep(input.editablePayload) : null,
   });
   return ref.id;
 }
