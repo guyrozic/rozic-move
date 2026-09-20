@@ -141,7 +141,7 @@
   </style>
 </head>
 <body class="app-body flow-b">
-<div data-build-stamp class="build-stamp" aria-hidden="true">עודכן 20.09 · 11:19</div>
+<div data-build-stamp class="build-stamp" aria-hidden="true">עודכן 20.09 · 11:21</div>
 <script src="/version-check.js" defer></script>
   <!-- ⚠️ 15.9 — "דלג לתוכן המרכזי" (WCAG 2.4.1, רמה A). זהו האלמנט הממוקד
        הראשון בדף: מוסתר מהעין, מופיע בפינה ברגע שמגיעים אליו ב-Tab, ומעביר
@@ -208,6 +208,7 @@
       subscribeToOrder, cancelOrder, customerTotalOf, STATUS_LABELS,
       ORDER_PROGRESS_STEPS, customerConfirmCompletion, parseItemsSummary,
       CUSTOMER_NO_SHOW_RESPONSES, respondToCustomerNoShow,
+      canReportNoShow, reportDriverNoShow,
       getCancellationPolicy, formatPrice,
     } from './orders.js';
     import { getUserProfile, formatVehicle } from './users.js';
@@ -743,7 +744,19 @@
               `access-control-allow-origin`, כלומר הדפדפן חוסם את הקריאה
               לפני שהיא יוצאת. זהו בדיוק החסם שנפתר עבור `customerCancelOrder`
               (ראו orders.js), ותיקונו דורש שינוי ב-`~/Hovalot/functions`
-              ופריסה מחדש. דווח בנפרד. */''}
+              ופריסה מחדש. דווח בנפרד.
+
+              ⚠️ **20.9 — נסגר.** `reportNoShow.ts:51` כולל היום
+              `applyWebCors`. אומת מול הפונקציה **החיה** ולא מהקוד:
+              `OPTIONS` עם `Origin: https://rozicmove.com` מחזיר 204 עם
+              `access-control-allow-origin: https://rozicmove.com`
+              ו-`Authorization` ברשימת הכותרות המותרות. */''}
+        ${canReportNoShow(order) ? `
+        <div class="app-card">
+          <div class="alert alert-info">חלון הזמן של ההובלה הסתיים. אם המוביל לא הגיע — אפשר לדווח.</div>
+          <button tabindex="0" class="btn btn-secondary btn-block" id="no-show-btn">המוביל לא הגיע</button>
+          <div id="no-show-error" role="alert"></div>
+        </div>` : ''}
         ${!!order.noShowReportedAt && !order.noShowResolvedAt ? `
         <div class="app-card no-show-notice">
           <p>הדיווח התקבל ואנחנו בודקים מול המוביל. נעדכן אותך בהקדם.</p>
@@ -990,6 +1003,25 @@
         } catch (err) {
           btn.disabled = false; btn.textContent = 'אשר סיום הובלה';
           alert('לא הצלחנו לעדכן. נסה שוב.');
+        }
+      });
+
+      /* ⚠️ הנוסח מ-`OrderDetailsScreen.tsx:745`, מילה במילה — כולל
+         המשפט האחרון. לקוח שמדווח חושש שהוא מבטל לעצמו את ההובלה,
+         ובלי המשפט הזה הוא פשוט לא ילחץ. */
+      document.getElementById('no-show-btn')?.addEventListener('click', async (e) => {
+        const btn = e.currentTarget;
+        const box = document.getElementById('no-show-error');
+        if (!confirm('המוביל לא הגיע?\n\nנודיע למוביל מיד ונבדוק מולו. אם הוא בדרך — הוא יוכל לעדכן. '
+          + 'אם לא, ההזמנה תחזור לשוק ותקבל פיצוי.\n\nהדיווח אינו מבטל את ההזמנה.')) return;
+        btn.disabled = true; btn.textContent = 'שולח דיווח...';
+        try {
+          await reportDriverNoShow(order.id);
+          // ההזמנה תתעדכן דרך המנוי החי, ו-render() יציג את הודעת
+          // "הדיווח התקבל" שכבר קיימת מעל — אין צורך להודיע פעמיים.
+        } catch (err) {
+          btn.disabled = false; btn.textContent = 'המוביל לא הגיע';
+          box.innerHTML = '<div class="alert alert-error">לא הצלחנו לשלוח את הדיווח. נסה שוב בעוד רגע.</div>';
         }
       });
 

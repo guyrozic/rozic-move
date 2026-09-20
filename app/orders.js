@@ -574,6 +574,47 @@ export async function saveDraftOrder(customerId, serviceType, step, payload, dra
   return ref.id;
 }
 
+/* ═══════════ "המוביל לא הגיע" ═══════════════════════════════════════
+   תאום ל-`canReportNoShow` + `reportDriverNoShow` באפליקציה
+   (`src/services/orders.ts:1776`).
+
+   ⚠️ **המסלול הזה נעדר מהאתר לגמרי עד 20.9.** הערה ב-
+   `order-status.html` תיעדה את הסיבה: ב-17.9 `reportNoShow` חסמה
+   preflight מ-`rozicmove.com`. אומת מול הייצור עכשיו —
+   `OPTIONS` מחזיר 204 עם `access-control-allow-origin: rozicmove.com`
+   ו-`Authorization` ברשימת הכותרות. החסם כבר לא קיים.
+
+   ⚠️ **התנאים מועתקים מילה במילה** ולא נוסחו מחדש: `assigned` בלבד,
+   לא דווח כבר, ורק אחרי סוף חלון הזמן. בלי חלון — סוף היום, כדי לא
+   לפתוח דיווח על הזמנה שאין לה מועד סיום. */
+const NO_SHOW_URL = 'https://us-central1-hovalot-6cf65.cloudfunctions.net/reportNoShow';
+
+export function canReportNoShow(order) {
+  if (order.status !== 'assigned') return false;
+  if (order.noShowReportedAt) return false;
+  if (!order.scheduledDate) return false;
+  const parts = String(order.scheduledDate).split('/').map(Number);
+  if (parts.length !== 3 || parts.some(Number.isNaN)) return false;
+  const [day, month, year] = parts;
+  const endHour = Number(order.timeSlot?.split('-')[1]?.split(':')[0]);
+  const end = new Date(year, month - 1, day, Number.isNaN(endHour) ? 23 : endHour).getTime();
+  return Date.now() >= end;
+}
+
+export async function reportDriverNoShow(orderId) {
+  const { auth } = await import('./firebase.js');
+  if (!auth.currentUser) throw new Error('NOT_LOGGED_IN');
+  const token = await auth.currentUser.getIdToken();
+  const res = await fetch(NO_SHOW_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+    body: JSON.stringify({ orderId }),
+  });
+  const data = await res.json().catch(() => null);
+  if (!res.ok) throw new Error((data && data.error) || 'NO_SHOW_FAILED');
+  return data;
+}
+
 export async function getDraftOrderById(orderId) {
   const snap = await getDoc(doc(db, 'orders', orderId));
   if (!snap.exists() || snap.data()?.status !== 'draft') return null;
