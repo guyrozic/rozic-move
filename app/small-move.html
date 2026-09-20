@@ -33,7 +33,7 @@
   <!-- ⚠️ נטען אחרון בכוונה — `flow.css` דורס את `style-app.css` תחת
        `.flow-b` בלבד. 14 המסכים האחרים שחולקים את `style-app.css`
        אינם מושפעים, כי המחלקה יושבת על ה-<body> של הדף הזה. -->
-  <link rel="stylesheet" href="flow.css?v=25270de3">
+  <link rel="stylesheet" href="flow.css?v=24a4ec4f">
   <style>
     /* התווית שליד המחיר בפס התחתון (19.9). */
     .bottom-price-wrap { display: flex; align-items: baseline; gap: 8px; min-width: 0; }
@@ -119,7 +119,7 @@
   </style>
 </head>
 <body class="app-body flow-b">
-<div data-build-stamp class="build-stamp" aria-hidden="true">עודכן 20.09 · 11:08</div>
+<div data-build-stamp class="build-stamp" aria-hidden="true">עודכן 20.09 · 11:15</div>
 <script src="/version-check.js" defer></script>
   <!-- ⚠️ 15.9 — "דלג לתוכן המרכזי" (WCAG 2.4.1, רמה A). זהו האלמנט הממוקד
        הראשון בדף: מוסתר מהעין, מופיע בפינה ברגע שמגיעים אליו ב-Tab, ומעביר
@@ -644,6 +644,77 @@
 
     // ⚠️ הטיוטה נטענת כאן, אבל ה**טופס** ממולא רק בסוף הסקריפט — השדות
     // עוד לא קיימים בשלב הזה. שני החצאים חייבים לרוץ, ראו guest-checkout.js.
+
+    /* ═══════════ "להמשיך מאיפה שהפסקת?" ═══════════════════════════
+       ⚠️ **הטיוטה כבר שוחזרה לטופס בשלב הזה**, ובכוונה: `applyDraftToForm`
+       רץ סינכרונית בסוף הסקריפט, ופיצולו לשני מסלולים היה מכפיל את
+       הנתיב שכבר נשבר כאן שוב ושוב (ראו ההערות על שלוש החוליות
+       ב-CLAUDE.md). לכן השאלה נשאלת **מעל** טופס שכבר מלא, ו"התחל
+       חדשה" מנקה וטוען מחדש — מצב נקי ודאי במקום איפוס ידני של
+       עשרים שדות שאפשר לשכוח אחד מהם.
+
+       ⚠️ הנוסח זהה ל-`ApartmentScreen.tsx`. הענף המקל (`savedExplicitly`)
+       לא מיושם כאן כי באתר אין טיוטה "שמורה במפורש" — `guest-checkout`
+       שומר ל-localStorage בלבד, וכל טיוטה כאן היא מהסוג שנמחק. הצגת
+       הנוסח המקל הייתה הבטחה שקרית. */
+    /* ⚠️ **טיוטה ריקה אינה טיוטה.** נמדד: האתר כותב ל-localStorage
+       תוך חצי שנייה מכל טעינה, בלי שהמשתמש נגע בדבר — כלומר בביקור
+       השני כבר "יש טיוטה", והשאלה הייתה קופצת לכל אחד, תמיד. גרוע
+       מזה: "התחל חדשה" מחקה, טענה מחדש, והטעינה יצרה טיוטה חדשה —
+       הדיאלוג חזר מיד והמחיקה נראתה כאילו לא עבדה.
+       לכן השאלה נשאלת רק כשיש **תוכן** — פריט, פריט חופשי, כתובת או
+       תאריך. זו גם הסמנטיקה של האפליקציה: שם נשאלים רק על טיוטה
+       שבאמת התחילה. */
+    function draftHasContent(d) {
+      if (!d) return false;
+      const items = d.items && Object.values(d.items).some(q => Number(q) > 0);
+      const free = Array.isArray(d.freeItems) && d.freeItems.length > 0;
+      return !!(items || free || d.fromAddress || d.toAddress || d.scheduledDate);
+    }
+
+    function askResumeDraft(serviceType) {
+      const box = document.createElement('div');
+      box.className = 'draft-ask';
+      box.innerHTML = `
+        <div class="draft-ask-box" role="dialog" aria-modal="true" aria-labelledby="draft-ask-title" tabindex="-1">
+          <h2 id="draft-ask-title">להמשיך מאיפה שהפסקת?</h2>
+          <p>יש לך הזמנה בתהליך מסוג זה. אפשר להמשיך אותה, או להתחיל חדשה —
+             שים לב: התחלת הזמנה חדשה תמחק את הקודמת.</p>
+          <div class="draft-ask-actions">
+            <button tabindex="0" class="btn btn-primary" id="draft-yes">כן, המשך</button>
+            <button tabindex="0" class="btn btn-secondary" id="draft-no">לא, התחל חדשה</button>
+          </div>
+        </div>`;
+      document.body.appendChild(box);
+      const dialog = box.querySelector('[role="dialog"]');
+      const yes = box.querySelector('#draft-yes');
+      const no = box.querySelector('#draft-no');
+      const close = () => box.remove();
+      yes.addEventListener('click', close);
+      no.addEventListener('click', () => {
+        /* ⚠️ **המחיקה קורית בטעינה הבאה, לא כאן** — וזה לא ניסוח, זה
+           תיקון של מרוץ שנמדד. מחיקה כאן ואז `location.replace` נכשלה:
+           השמירה האוטומטית מתוזמנת (debounce) ויורה **אחרי** המחיקה
+           ולפני שהניווט תפס, ומחזירה את הטיוטה מתוך ה-`state` שעדיין
+           בזיכרון. בבדיקה זה נראה כאילו "התחל חדשה" לא עובד בכלל.
+           פרמטר בכתובת מעביר את המחיקה אל **אחרי** שהדף מת, כלומר אין
+           שום כתיבה שיכולה להתחרות בה. */
+        location.replace(location.pathname + '?new=1');
+      });
+      // Escape = להמשיך. ברירת המחדל הלא-הרסנית, כמו `destructive: false`
+      // ב-`showConfirmDialog` של האפליקציה.
+      box.addEventListener('keydown', (e) => { if (e.key === 'Escape') close(); });
+      dialog.focus();
+      yes.focus();
+    }
+
+    /* ⚠️ `?new=1` מגיע מ"לא, התחל חדשה" בדיאלוג. המחיקה כאן ולא שם —
+       ראו ההערה ליד הכפתור. הפרמטר מוסר מהכתובת מיד כדי שרענון של
+       הדף לא ימחק טיוטה חדשה שהמשתמש בינתיים התחיל. */
+    if (new URLSearchParams(location.search).has('new')) {
+      clearOrderDraft('smallMove');
+      history.replaceState(null, '', location.pathname);
+    }
     const restoredDraft = loadOrderDraft('smallMove');
     if (restoredDraft) Object.assign(state, restoredDraft);
     /**
@@ -2395,6 +2466,7 @@
       renderTimeSlots();
     }
     else if (draftDiscarded) showDraftDiscardedNotice();
+    if (draftHasContent(restoredDraft)) askResumeDraft('smallMove');
     /**
      * ⚠️ 18.9 — **אחרי** השחזור, לא לפניו. `applyDraftToForm` ממלא שדות
      * ושולח `input`/`change` ידנית (השורות שמעל), וכל אחד מהם היה
