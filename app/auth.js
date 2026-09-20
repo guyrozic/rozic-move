@@ -7,10 +7,11 @@ import {
   onAuthStateChanged, updateProfile as fbUpdateProfile, sendEmailVerification,
   RecaptchaVerifier, PhoneAuthProvider, updatePhoneNumber,
   GoogleAuthProvider, OAuthProvider, signInWithPopup,
-  EmailAuthProvider, reauthenticateWithCredential, updatePassword as fbUpdatePassword,
+  EmailAuthProvider, reauthenticateWithCredential, reauthenticateWithPopup,
+  updatePassword as fbUpdatePassword, deleteUser,
   sendPasswordResetEmail,
 } from 'https://www.gstatic.com/firebasejs/12.16.0/firebase-auth.js';
-import { doc, setDoc, getDoc, updateDoc, onSnapshot, serverTimestamp } from 'https://www.gstatic.com/firebasejs/12.16.0/firebase-firestore.js';
+import { doc, setDoc, getDoc, updateDoc, deleteDoc, onSnapshot, serverTimestamp } from 'https://www.gstatic.com/firebasejs/12.16.0/firebase-firestore.js';
 import { auth, db } from './firebase.js';
 import { TERMS_VERSION } from './legal.js';
 
@@ -450,4 +451,62 @@ export async function changePassword(currentPassword, newPassword) {
   const credential = EmailAuthProvider.credential(auth.currentUser.email, currentPassword);
   await reauthenticateWithCredential(auth.currentUser, credential);
   await fbUpdatePassword(auth.currentUser, newPassword);
+}
+
+/**
+ * מזהה ספק ההתחברות של המשתמש הנוכחי (`password` / `google.com` /
+ * `apple.com`). קובע אם צריך שדה סיסמה או חלון אימות מחדש מול הספק.
+ */
+export function currentProviderId() {
+  return auth.currentUser?.providerData?.[0]?.providerId || 'password';
+}
+
+/**
+ * מחיקת חשבון לצמיתות — מראה של `deleteAccount` ב-`AuthContext.tsx:772`.
+ *
+ * ## למה זה קיים באתר ולא רק באפליקציה
+ * `delete-account.html` הפנה לקוח **שהזמין רק מהאתר** לשתי דרכים בלבד:
+ * להתקין את האפליקציה, או לשלוח מייל ולחכות. כלומר הזכות למחוק חשבון
+ * הייתה תלויה בהתקנת אפליקציה או בטיפול ידני של אדם — וזו חובה
+ * רגולטורית, לא נוחות.
+ *
+ * ## סדר הפעולות, ולמה דווקא הוא
+ * 1. **אימות מחדש.** Firebase דורש אישור טרי למחיקה, ובצדק — בלעדיו
+ *    מי שמשיג מכשיר פתוח מוחק חשבון של אחר. סיסמה לחשבון רגיל, חלון
+ *    ספק ל-Google/Apple (`reauthenticateWithPopup`, המקבילה בדפדפן
+ *    ל-`GoogleSignin.signIn()` שהאפליקציה מריצה לפני אותה קריאה).
+ * 2. **`deleteDoc` על `users/{uid}` לפני `deleteUser`.** זה הסדר
+ *    באפליקציה, והוא לא שרירותי: `cleanupDeletedUser` הוא טריגר על
+ *    **מחיקת מסמך המשתמש**, והוא זה שמנקה את כל השאר בשרת. מחיקת
+ *    חשבון ה-Auth קודם הייתה שוללת את ההרשאה למחוק את המסמך, והטריגר
+ *    לא היה נורה כלל — כלומר נתוני הלקוח היו נשארים.
+ *
+ * ⚠️ **אין כאן בדיקת הזמנות פעילות.** היא באחריות הקורא, לפני שהוא
+ * מגיע לכאן — בדיוק כמו ב-`DeleteAccountScreen.tsx:40`. ראו
+ * `hasActiveOrders` ב-`orders.js` ואת הנימוק הכספי שם.
+ *
+ * @param {string} [currentPassword] נדרש רק כשספק ההתחברות הוא `password`.
+ */
+export async function deleteAccount(currentPassword) {
+  const user = auth.currentUser;
+  if (!user) throw new Error('NOT_LOGGED_IN');
+  const providerId = currentProviderId();
+
+  if (providerId === 'google.com' || providerId === 'apple.com') {
+    let provider;
+    if (providerId === 'google.com') {
+      provider = new GoogleAuthProvider();
+      provider.setCustomParameters({ prompt: 'select_account' });
+    } else {
+      provider = new OAuthProvider('apple.com');
+      provider.setCustomParameters({ locale: 'he_IL' });
+    }
+    await reauthenticateWithPopup(user, provider);
+  } else {
+    if (!currentPassword || !user.email) throw new Error('NEEDS_PASSWORD');
+    await reauthenticateWithCredential(user, EmailAuthProvider.credential(user.email, currentPassword));
+  }
+
+  await deleteDoc(doc(db, 'users', user.uid));
+  await deleteUser(user);
 }

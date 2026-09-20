@@ -2689,3 +2689,14 @@ body.hp-home .nav:not(.scrolled) :is(a, button, summary, [tabindex]):focus-visib
 }
 .build-stamp-btn:hover { background: rgba(255,255,255,0.12); }
 .build-stamp-btn:focus-visible { outline: 2px solid var(--green-on-dark); outline-offset: -3px; }
+
+/* ⚠️ אישור מחיקת חשבון בעמוד הבית (`?deleted=1`). ירוק ולא אדום בכוונה:
+   הפעולה **הצליחה**, וזו ההודעה היחידה שהמשתמש יקבל עליה — אין לו יותר
+   חשבון להיכנס אליו ולבדוק. */
+.hp-deleted-notice {
+  background: var(--green-light);
+  border: 1px solid var(--green);
+  color: var(--green-dark);
+  border-radius: 12px; padding: 13px 16px; margin-bottom: 18px;
+  font-size: 0.9rem; font-weight: 600; line-height: 1.55; max-width: 560px;
+}

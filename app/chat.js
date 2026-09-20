@@ -11,21 +11,38 @@ import { db } from './firebase.js';
 /**
  * כמה הודעות יורדות בפתיחת הצ'אט — מראה CHAT_PAGE_SIZE ב-chat.ts.
  *
- * ⚠️ פישוט מכוון מול האפליקציה: אין כאן "טען עוד" לגלילה להיסטוריה ישנה
- * יותר (hasOlder/windowSize שם) — האתר מציג רק את 50 ההודעות האחרונות.
- * שיחת הובלה טיפוסית קצרה בהרבה מזה, ולכן ברוב המקרים אין בכלל הבדל.
+ * ⚠️ 20.9 — **ה"פישוט המכוון" שהיה מתועד כאן בוטל.** הטקסט הקודם אמר
+ * שאין באתר "טען עוד" כי "שיחת הובלה טיפוסית קצרה בהרבה מ-50". זה נכון
+ * לרוב השיחות ולא עוזר בכלל לשיחה שכן חורגת: שם ההתחלה נחתכה **בלי שום
+ * סימן**, כלומר הלקוח לא ידע שחסר לו מידע. `ChatScreen.tsx:73` מגדיל
+ * שם את החלון בגלילה לראש הרשימה.
  */
-const CHAT_PAGE_SIZE = 50;
+export const CHAT_PAGE_SIZE = 50;
 
-export function subscribeToMessages(orderId, callback) {
+/**
+ * מנוי על הודעות הצ'אט בחלון נגלל.
+ *
+ * ⚠️ **שאילתה אחת לשני הקוראים.** בסבב הקודם היא שוכפלה בתוך
+ * `order-chat.html` כי הקובץ הזה היה נעול לעריכה מקבילית — וזו בדיוק
+ * משפחת הבאג של שאלת המזרון: שני עותקים כתובים ביד שאף קומפיילר לא
+ * רואה. אוחד לכאן ברגע שהקובץ התפנה.
+ *
+ * @param {number} [windowSize] כמה הודעות אחרונות לטעון.
+ * @param {(messages: object[], hasOlder: boolean) => void} callback
+ *   `hasOlder` הוא `snap.size >= windowSize` — כלומר **"ייתכן שיש עוד"**
+ *   ולא "בוודאות יש". בשיחה שאורכה בדיוק כגודל החלון הכפתור יופיע
+ *   ולחיצה עליו לא תוסיף דבר. זו אותה הערכה שבאפליקציה, והחלופה
+ *   (שאילתת ספירה נוספת בכל סנאפשוט) יקרה הרבה יותר מכפתור מיותר.
+ */
+export function subscribeToMessages(orderId, callback, windowSize = CHAT_PAGE_SIZE) {
   const q = query(
     collection(db, 'orders', orderId, 'messages'),
     orderBy('timestamp', 'asc'),
-    limitToLast(CHAT_PAGE_SIZE),
+    limitToLast(windowSize),
   );
   return onSnapshot(q, (snap) => {
-    callback(snap.docs.map(d => ({ id: d.id, ...d.data() })));
-  }, () => callback([]));
+    callback(snap.docs.map(d => ({ id: d.id, ...d.data() })), snap.size >= windowSize);
+  }, () => callback([], false));
 }
 
 /**

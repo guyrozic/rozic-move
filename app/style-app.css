@@ -1245,3 +1245,15 @@
 }
 .wallet-amount-label { font-size: 0.95rem; color: var(--text-muted); margin-top: 4px; }
 .wallet-hint { margin-bottom: 0; }
+
+/* ⚠️ תיבת האזהרה של מחיקת חשבון — מקבילה ל-`warningBox` ב-
+   `DeleteAccountScreen.tsx`. אדומה ובולטת בכוונה: זה המסך היחיד באתר
+   שבו פעולה אחת מוחקת הכול ואי אפשר לחזור ממנה. */
+.delete-warn {
+  /* אותם ערכים כמו `.alert-error` שכבר בקובץ — לא פלטה חדשה למסך אחד. */
+  background: #FCE9E9;
+  border: 1px solid #F3C6C6;
+  border-radius: 12px; padding: 14px 16px; margin-bottom: 16px;
+}
+.delete-warn strong { display: block; color: var(--danger); font-size: 0.95rem; margin-bottom: 6px; }
+.delete-warn p { margin: 0; font-size: 0.86rem; color: var(--text); line-height: 1.55; }

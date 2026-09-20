@@ -30,7 +30,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="style.css?v=cece2f2d">
+  <link rel="stylesheet" href="style.css?v=bd1d383b">
 
   <!--
     Structured data (JSON-LD). Kept deliberately free of prices, ratings and review
@@ -1420,7 +1420,7 @@
      שיחליף אותם; בלי הסימון הזה הם נעלמו גם בחמשת הדפים המשפטיים,
      בלי שום דרך להגיע אליהם (WCAG 1.4.4). -->
 <body class="has-nav-menu hp-home">
-<div data-build-stamp class="build-stamp" aria-hidden="true">עודכן 20.09 · 11:41</div>
+<div data-build-stamp class="build-stamp" aria-hidden="true">עודכן 20.09 · 23:56</div>
 <script src="/version-check.js" defer></script>
   <!-- ⚠️ 15.9 — "דלג לתוכן המרכזי" (WCAG 2.4.1, רמה A). זהו האלמנט הממוקד
        הראשון בדף: מוסתר מהעין, מופיע בפינה ברגע שמגיעים אליו ב-Tab, ומעביר
@@ -1603,6 +1603,13 @@
              הכרטיס כשהנתיב הוא `/` או `/index.html`. הוא **בזרימה** ודוחף
              את הכותרת למטה — לא שכבה צפה שמכסה אותה. -->
         <div class="hp-banner-slot" data-pilot-banner-slot></div>
+        <!-- ⚠️ 20.9 — אישור מחיקת חשבון. `app/settings.html` מנווט לכאן עם
+             `?deleted=1` אחרי מחיקה מוצלחת, ובלי ההודעה הזאת הלקוח נוחת על
+             עמוד הבית **בלי שום סימן** שהפעולה הסופית שביצע הצליחה. אין
+             לו דרך אחרת לדעת: החשבון נמחק, אז אין לאן להיכנס ולבדוק. -->
+        <div id="account-deleted-notice" class="hp-deleted-notice" role="status" hidden>
+          החשבון נמחק לצמיתות. תודה שהיית איתנו — ואם תרצה לחזור, אפשר להירשם מחדש בכל עת.
+        </div>
 
         <p class="hp-kicker">הובלות · עוברים דירה</p>
         <!-- ⚠️ 59.2 — הכותרת רוככה. הנוסח הקודם היה «מחיר כאן ועכשיו» עם
@@ -2457,6 +2464,20 @@
        חזר (59.1): "מעבר דירה" מציג את הכלי, ושני האחרים מציגים פאנל
        מוסבר עם כפתור אל הזרימה שלהם.
        ══════════════════════════════════════════════════════════════════ -->
+  <script>
+    /* ⚠️ לא `type="module"` ובלי שום ייבוא — ההודעה חייבת להופיע גם אם
+       רשת ה-CDN של Firebase איטית או חסומה. אין כאן מה לטעון. */
+    (function () {
+      var params = new URLSearchParams(location.search);
+      if (!params.has('deleted')) return;
+      var el = document.getElementById('account-deleted-notice');
+      if (el) el.hidden = false;
+      /* ⚠️ מנקה את הפרמטר מיד: רענון של הדף לא אמור להציג שוב "החשבון
+         נמחק", ובוודאי לא שיתוף הקישור לאחר. */
+      history.replaceState(null, '', location.pathname);
+    })();
+  </script>
+
   <script type="module">
     /* מספר הפריטים בפס העובדות — מהקטלוג האמיתי, לא מודבק.
        אם הייבוא נכשל — נשאר המספר הסטטי שב-HTML, ללא נפילה. */

@@ -15,14 +15,14 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="../style.css?v=cece2f2d">
-  <link rel="stylesheet" href="style-app.css?v=8b1aedc7">
+  <link rel="stylesheet" href="../style.css?v=bd1d383b">
+  <link rel="stylesheet" href="style-app.css?v=11f45894">
   <!-- ⚠️ נטען אחרון בכוונה — `flow.css` דורס את `style-app.css` תחת
        `.flow-b` בלבד, כך שדף שלא טוען אותו אינו מושפע. -->
   <link rel="stylesheet" href="flow.css?v=24a4ec4f">
 </head>
 <body class="app-body flow-b">
-<div data-build-stamp class="build-stamp" aria-hidden="true">עודכן 20.09 · 11:41</div>
+<div data-build-stamp class="build-stamp" aria-hidden="true">עודכן 20.09 · 23:56</div>
 <script src="/version-check.js" defer></script>
   <a class="skip-link" href="#main-content">דלג לתוכן המרכזי</a>
   <script type="module" src="pilot-banner.js?v=14a0e537"></script>
@@ -105,31 +105,9 @@
     import { requireAuth } from './auth.js';
     import { subscribeToOrder } from './orders.js';
     import { getUserProfile } from './users.js';
-    import { sendChatMessage, markChatRead } from './chat.js';
-    import {
-      collection, limitToLast, onSnapshot, orderBy, query,
-    } from 'https://www.gstatic.com/firebasejs/12.16.0/firebase-firestore.js';
-    import { db } from './firebase.js';
-
-    /**
-     * ⚠️ שכפול מכוון של השאילתה ב-chat.js, במקום קריאה ל-subscribeToMessages
-     * שלו: chat.js הוגדר כקובץ חסום לעריכה בריצת הלילה הזו (עריכה מקבילית
-     * שם). הזהה ל-subscribeToMessages ב-Hovalot's src/services/chat.ts —
-     * windowSize/hasOlder, בדיוק כמו שכבר נוסף ל-support.js/support-chat.html.
-     * לאחד את שני המקורות בסבב הבא כש-chat.js פנוי, בדיוק לפי התבנית שכבר
-     * קיימת שם (SUPPORT_PAGE_SIZE export).
-     */
-    const CHAT_PAGE_SIZE = 50; // זהה ל-CHAT_PAGE_SIZE ב-chat.ts וב-chat.js
-    function subscribeToMessagesWindow(orderId, callback, windowSize) {
-      const q = query(
-        collection(db, 'orders', orderId, 'messages'),
-        orderBy('timestamp', 'asc'),
-        limitToLast(windowSize),
-      );
-      return onSnapshot(q, (snap) => {
-        callback(snap.docs.map(d => ({ id: d.id, ...d.data() })), snap.size >= windowSize);
-      }, () => callback([], false));
-    }
+    // ⚠️ השאילתה **אינה** משוכפלת כאן. היא הייתה, לשעה אחת, כי `chat.js`
+    // היה נעול לעריכה מקבילית — ואוחדה לשם ברגע שהתפנה. מקור אחד.
+    import { subscribeToMessages, sendChatMessage, markChatRead, CHAT_PAGE_SIZE } from './chat.js';
 
     const esc = (v) => String(v ?? '')
       .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
@@ -208,7 +186,7 @@
 
       function subscribeMessages() {
         if (unsubMessages) { unsubMessages(); unsubMessages = null; }
-        unsubMessages = subscribeToMessagesWindow(orderId, (msgs, older) => {
+        unsubMessages = subscribeToMessages(orderId, (msgs, older) => {
           messages = msgs;
           hasOlder = older;
           renderThread();

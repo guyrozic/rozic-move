@@ -698,3 +698,41 @@ export async function respondToCustomerNoShow(orderId, response) {
     customerNoShowRespondedAt: serverTimestamp(),
   });
 }
+
+/**
+ * האם למשתמש יש הזמנה פעילה כרגע. תאום ל-`hasActiveOrders`
+ * ב-`orders.ts:1026`, כולל רשימות הסטטוסים.
+ *
+ * ⚠️ **הבדיקה הזו נוספה באפליקציה ב-21.8 כהגנה על כסף, לא כנוחות.**
+ * הנימוק שם, מילה במילה: *"אצל מוביל זו הייתה דרך מלאה להתחמק מהמחיר
+ * של ביטול — לוקחים הזמנה, מוחקים חשבון, ואין קנס פיקדון, אין סטרייק
+ * ואין השעיה. אצל לקוח זה משאיר מוביל בדרך להזמנה של אף אחד."*
+ *
+ * ⚠️ **הרשימה ללקוח רחבה מזו של המוביל בכוונה.** לקוח עם הזמנה
+ * ב-`pending_payment` או `pending_pricing` הוא לקוח שיש לו התחייבות
+ * פתוחה מולנו; מוביל באותם סטטוסים אינו משובץ לכלום.
+ *
+ * ⚠️ האתר הוא ממשק לקוח בלבד, אבל השאילתה כוללת גם `driverId` —
+ * **אותו משתמש יכול להיות מוביל שנכנס מהדפדפן.** בדיקה שמסתכלת רק על
+ * `customerId` הייתה משאירה בדיוק את חור-הבריחה שהאפליקציה סגרה.
+ */
+/**
+ * ⚠️ **לא רשימה חדשה.** `ACTIVE_CUSTOMER_STATUSES` הצר (שורה 63) הוא
+ * "יש הזמנה פעילה" לצורך נעילת מתג ההתראות, ואינו כולל את השלבים שלפני
+ * התשלום — כלומר לקוח שההזמנה שלו ממתינה לתשלום היה עובר את הבדיקה
+ * ומוחק חשבון עם התחייבות פתוחה. `OPEN_CUSTOMER_STATUSES` הוא בדיוק
+ * הקבוצה ש-`orders.ts:1030` בודק מולה, ולכן הוא זה שנמצא בשימוש כאן.
+ *
+ * ההכרזה הראשונה שכתבתי כאן הייתה `ACTIVE_CUSTOMER_STATUSES` — שם שכבר
+ * תפוס בקובץ הזה. זו הייתה הכרזה כפולה שמפילה את **כל** דף שמייבא את
+ * המודול, לא רק את המחיקה.
+ */
+const DELETION_BLOCKING_DRIVER_STATUSES = ['assigned', 'en_route', 'in_progress'];
+
+export async function hasActiveOrders(uid) {
+  const [asDriver, asCustomer] = await Promise.all([
+    getDocs(query(collection(db, 'orders'), where('driverId', '==', uid), where('status', 'in', DELETION_BLOCKING_DRIVER_STATUSES))),
+    getDocs(query(collection(db, 'orders'), where('customerId', '==', uid), where('status', 'in', OPEN_CUSTOMER_STATUSES))),
+  ]);
+  return !asDriver.empty || !asCustomer.empty;
+}

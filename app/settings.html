@@ -7,14 +7,14 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="../style.css?v=cece2f2d">
-  <link rel="stylesheet" href="style-app.css?v=8b1aedc7">
+  <link rel="stylesheet" href="../style.css?v=bd1d383b">
+  <link rel="stylesheet" href="style-app.css?v=11f45894">
   <!-- ⚠️ נטען אחרון בכוונה — `flow.css` דורס את `style-app.css` תחת
        `.flow-b` בלבד, כך שדף שלא טוען אותו אינו מושפע. -->
   <link rel="stylesheet" href="flow.css?v=24a4ec4f">
 </head>
 <body class="app-body flow-b">
-<div data-build-stamp class="build-stamp" aria-hidden="true">עודכן 20.09 · 11:41</div>
+<div data-build-stamp class="build-stamp" aria-hidden="true">עודכן 20.09 · 23:56</div>
 <script src="/version-check.js" defer></script>
   <a class="skip-link" href="#main-content">דלג לתוכן המרכזי</a>
   <script type="module" src="pilot-banner.js?v=14a0e537"></script>
@@ -100,10 +100,35 @@
         </div>
       </div>
 
+      <!-- ⚠️ 20.9 — עד כה היה כאן **קישור להסבר בלבד**, ו-delete-account.html
+           הציע שתי דרכים: להתקין את האפליקציה, או לשלוח מייל ולחכות. כלומר
+           לקוח שהזמין רק מהאתר לא יכול היה למחוק את החשבון שלו בלי להתקין
+           אפליקציה או להמתין לטיפול ידני של אדם. זו חובה רגולטורית ולא
+           נוחות. הזרימה כאן מראה את DeleteAccountScreen.tsx באפליקציה. -->
       <div class="app-card">
         <h2>מחיקת חשבון</h2>
-        <p class="app-card-desc">מחיקת חשבון היא פעולה סופית ובלתי הפיכה — לא ניתן לשחזר אותה.</p>
-        <a tabindex="0" href="/delete-account.html" class="btn btn-danger btn-block">איך מוחקים את החשבון לצמיתות</a>
+        <div class="delete-warn">
+          <strong>שים לב — פעולה בלתי הפיכה</strong>
+          <p>מחיקת החשבון מוחקת לצמיתות את הפרופיל, היסטוריית ההזמנות, הכתובות
+             השמורות והמודעות שפרסמת. לא ניתן לשחזר אותם, וגם לא לפתוח מחדש את
+             אותו חשבון.</p>
+        </div>
+        <div id="delete-error" role="alert"></div>
+        <div id="delete-form">
+          <!-- מוצג רק לחשבון עם סיסמה. חשבון Google/Apple מאומת בחלון של
+               הספק, בדיוק כמו באפליקציה. -->
+          <div class="form-group" id="delete-password-group" style="display:none;">
+            <label for="delete-password">סיסמה נוכחית</label>
+            <input id="delete-password" type="password" autocomplete="current-password">
+            <p class="form-hint">נדרשת כדי לוודא שזה באמת אתה. Firebase לא מאפשר מחיקה בלי אימות טרי.</p>
+          </div>
+          <p class="form-hint" id="delete-oauth-note" style="display:none;"></p>
+          <button tabindex="0" type="button" class="btn btn-danger btn-block" id="delete-account-btn">מחק את החשבון לצמיתות</button>
+        </div>
+        <p class="form-hint">
+          מעדיף שנטפל בזה במקומך? אפשר גם
+          <a tabindex="0" href="/delete-account.html">לבקש מחיקה במייל</a>.
+        </p>
       </div>
 
     </div>
@@ -135,9 +160,9 @@
   </footer>
 
   <script type="module">
-    import { requireAuth, changePassword } from './auth.js';
+    import { requireAuth, changePassword, deleteAccount, currentProviderId } from './auth.js';
     import { setNotificationPreference, subscribeToBlockedUsers, unblockUser } from './account.js';
-    import { subscribeToUserOrders, ACTIVE_CUSTOMER_STATUSES } from './orders.js';
+    import { subscribeToUserOrders, ACTIVE_CUSTOMER_STATUSES, hasActiveOrders } from './orders.js';
     import { auth } from './firebase.js';
 
     const esc = (v) => String(v ?? '')
@@ -193,6 +218,86 @@
        עם EmailAuthProvider ייכשל) — ראו changePassword ב-auth.js. */
     const isPasswordAccount = auth.currentUser?.providerData?.[0]?.providerId === 'password';
     document.getElementById(isPasswordAccount ? 'password-card' : 'oauth-password-note').style.display = 'block';
+
+    /* ═══════════ מחיקת חשבון לצמיתות ═══════════════════════════════
+       מראה של `DeleteAccountScreen.tsx`. שלושה שלבים בסדר הזה בדיוק,
+       ואף אחד מהם אינו קישוט:
+       1. סיסמה (רק לחשבון עם סיסמה) — אחרת אין מה לאמת מולו.
+       2. **הזמנה פעילה חוסמת.** הנימוק כספי ומתועד ב-`hasActiveOrders`.
+       3. אישור מפורש, אחרון, עם המילה "לצמיתות".
+       ─────────────────────────────────────────────────────────────── */
+    {
+      const providerId = currentProviderId();
+      const needsPassword = providerId === 'password';
+      const deleteBtn = document.getElementById('delete-account-btn');
+      const deleteErr = document.getElementById('delete-error');
+      const passwordGroup = document.getElementById('delete-password-group');
+      const oauthNote = document.getElementById('delete-oauth-note');
+
+      if (needsPassword) {
+        passwordGroup.style.display = 'block';
+      } else {
+        oauthNote.style.display = 'block';
+        oauthNote.textContent = `החשבון שלך מחובר דרך ${providerId === 'apple.com' ? 'Apple' : 'Google'} — ייפתח חלון אימות של הספק לפני המחיקה.`;
+      }
+
+      const fail = (html) => { deleteErr.innerHTML = `<div class="alert alert-error">${html}</div>`; };
+
+      deleteBtn.addEventListener('click', async () => {
+        deleteErr.innerHTML = '';
+        const pwInput = document.getElementById('delete-password');
+        if (needsPassword && !pwInput.value) {
+          // הנוסח מ-`DeleteAccountScreen.tsx:33`.
+          fail('יש להזין את הסיסמה הנוכחית כדי לאשר');
+          pwInput.focus();
+          return;
+        }
+
+        deleteBtn.disabled = true;
+        const restore = (label) => { deleteBtn.disabled = false; deleteBtn.textContent = label; };
+        deleteBtn.textContent = 'בודק...';
+        try {
+          if (await hasActiveOrders(state.authUser.uid)) {
+            // הנוסח מ-`DeleteAccountScreen.tsx:43`.
+            fail('יש לך הזמנה פעילה כרגע. יש להשלים או לבטל אותה לפני מחיקת החשבון.');
+            restore('מחק את החשבון לצמיתות');
+            return;
+          }
+        } catch {
+          /* ⚠️ כשל בבדיקה **אינו חוסם** — אותה הכרעה כמו באפליקציה
+             (`DeleteAccountScreen.tsx:47`): "זו זכות של המשתמש; השרת
+             עדיין מנקה". תקלת רשת לא הופכת מחיקת חשבון לבלתי אפשרית. */
+        }
+
+        // ⚠️ האישור **אחרי** בדיקת ההזמנה הפעילה, לא לפניה: אין טעם
+        // לגרום למישהו לאשר פעולה סופית ואז לומר לו שהיא חסומה.
+        const confirmText = needsPassword
+          ? 'פעולה זו תמחק את החשבון שלך ואת כל הנתונים שלו לצמיתות. לא ניתן לשחזר את הפעולה. האם אתה בטוח שברצונך להמשיך?'
+          : `פעולה זו תמחק את החשבון שלך ואת כל הנתונים שלו לצמיתות. לא ניתן לשחזר את הפעולה. תתבקש/י לאמת שוב את הזהות מול ${providerId === 'apple.com' ? 'Apple' : 'Google'}. האם אתה בטוח שברצונך להמשיך?`;
+        if (!confirm(confirmText)) { restore('מחק את החשבון לצמיתות'); return; }
+
+        deleteBtn.textContent = 'מוחק...';
+        try {
+          await deleteAccount(needsPassword ? pwInput.value : undefined);
+          // אין כאן `restore` בכוונה — החשבון נמחק, וכל מאזין על
+          // `users/{uid}` בדף הזה כבר מאבד הרשאה. ניווט מלא (ולא
+          // `replaceState`) סוגר את כל המנויים החיים במכה אחת.
+          location.replace('/?deleted=1');
+        } catch (err) {
+          const code = err?.code || '';
+          fail(
+            code === 'auth/wrong-password' || code === 'auth/invalid-credential'
+              ? 'הסיסמה שהוזנה שגויה.'
+              : code === 'auth/popup-closed-by-user' || code === 'auth/cancelled-popup-request'
+                ? 'חלון האימות נסגר לפני שהושלם. החשבון לא נמחק.'
+                : code === 'auth/too-many-requests'
+                  ? 'יותר מדי ניסיונות. נסה שוב בעוד כמה דקות.'
+                  : 'לא הצלחנו למחוק את החשבון. אפשר לנסות שוב, או <a href="/delete-account.html">לבקש מחיקה במייל</a>.'
+          );
+          restore('מחק את החשבון לצמיתות');
+        }
+      });
+    }
 
     if (isPasswordAccount) {
       const pwError = document.getElementById('password-error');
