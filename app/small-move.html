@@ -119,7 +119,7 @@
   </style>
 </head>
 <body class="app-body flow-b">
-<div data-build-stamp class="build-stamp" aria-hidden="true">עודכן 20.09 · 11:37</div>
+<div data-build-stamp class="build-stamp" aria-hidden="true">עודכן 20.09 · 11:41</div>
 <script src="/version-check.js" defer></script>
   <!-- ⚠️ 15.9 — "דלג לתוכן המרכזי" (WCAG 2.4.1, רמה A). זהו האלמנט הממוקד
        הראשון בדף: מוסתר מהעין, מופיע בפינה ברגע שמגיעים אליו ב-Tab, ומעביר
@@ -1175,7 +1175,26 @@
       pendingQuestions = pendingQuestions.filter(q => q.id !== question.id);
       const insertAt = at < 0 ? pendingQuestions.length : at;
       const queue = (q) => { if (q) pendingQuestions.splice(insertAt, 0, q); };
-      const addItem = (key, qty) => { state.items[key] = (state.items[key] || 0) + qty; };
+      /**
+       * ⚠️ **עובר דרך תקרת נפח הטנדר, לא כתיבה ישירה ל-`state.items`.**
+       *
+       * זה היה הנתיב שדרכו אפשר היה למלא את הטנדר מעל התקרה בלי שום
+       * התנגדות. האפליקציה סגרה אותו ב-22.8 עם הנימוק המדויק הזה
+       * (`SmallMoveItemsScreen.tsx:668`): *"כולל דרך תשובה לשאלת המשך
+       * ('כמה כיסאות?' → 8), שנראית למשתמש כאישור ולכן הכי מפתיעה."*
+       * ב-`AIItemChat.tsx:153` **כל** תשובת-כפתור עוברת שם דרך
+       * `applyItems` → `onItemsChanged` → `applyChanges`.
+       *
+       * התיקון מ-17.9 באתר כיסה את **נתיב הסריקה** בלבד; תשובות
+       * הכפתורים נשארו מחוץ לו. כאן זה נסגר במקום אחד, ולכן זה חל על
+       * כל הענפים ב-`answerQuestion` ולא רק על זה שנגעתי בו.
+       *
+       * `channel: 'chat'` ולא alert — בדיוק כמו באפליקציה, שם החסימה
+       * חוזרת כהודעה בשרשור ולא כחלון קופץ על תשובה שהמשתמש בחר.
+       */
+      const addItem = (key, qty) => {
+        applyAIItemChanges([{ itemKey: key, qty, action: 'add' }], { channel: 'chat' });
+      };
       const getQty = (key) => state.items[key] || 0;
       const done = () => { renderQuestions(); renderItems(); updateItemsHeader(); };
 
