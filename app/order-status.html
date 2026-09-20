@@ -28,7 +28,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="../style.css?v=cece2f2d">
-  <link rel="stylesheet" href="style-app.css?v=53ef95b8">
+  <link rel="stylesheet" href="style-app.css?v=8b1aedc7">
   <!-- ⚠️ נטען אחרון בכוונה — `flow.css` דורס את `style-app.css` תחת
        `.flow-b` בלבד, כך שדף שלא טוען אותו אינו מושפע. -->
   <link rel="stylesheet" href="flow.css?v=24a4ec4f">
@@ -141,7 +141,7 @@
   </style>
 </head>
 <body class="app-body flow-b">
-<div data-build-stamp class="build-stamp" aria-hidden="true">עודכן 20.09 · 11:29</div>
+<div data-build-stamp class="build-stamp" aria-hidden="true">עודכן 20.09 · 11:37</div>
 <script src="/version-check.js" defer></script>
   <!-- ⚠️ 15.9 — "דלג לתוכן המרכזי" (WCAG 2.4.1, רמה A). זהו האלמנט הממוקד
        הראשון בדף: מוסתר מהעין, מופיע בפינה ברגע שמגיעים אליו ב-Tab, ומעביר
@@ -1020,8 +1020,23 @@
           // ההזמנה תתעדכן דרך המנוי החי, ו-render() יציג את הודעת
           // "הדיווח התקבל" שכבר קיימת מעל — אין צורך להודיע פעמיים.
         } catch (err) {
+          /**
+           * ⚠️ 20.9 — **הקוד מהשרת נבלע.** `reportDriverNoShow` ב-`orders.js`
+           * מעביר את `data.error` הגולמי (`too early`/`already reported`/
+           * `not reportable`) כ-`Error.message`, אבל עד היום ה-`catch` כאן
+           * התעלם ממנו והציג "נסה שוב" גם ל-`already reported` — הזמנה
+           * שנפתחה בשני טאבים והדיווח בשני כבר הצליח. הנוסחים כאן הם
+           * `reportDriverNoShow` ב-`orders.ts:1808-1813` באפליקציה,
+           * מילה במילה — אין ניסוח שני של אותה שגיאה.
+           */
+          const messages = {
+            'too early': 'עדיין מוקדם מדי לדווח — אפשר לדווח רק אחרי שחלון הזמן של ההובלה הסתיים.',
+            'already reported': 'כבר דיווחת על ההזמנה הזו, אנחנו מטפלים.',
+            'not reportable': 'לא ניתן לדווח על ההזמנה במצבה הנוכחי.',
+          };
+          const msg = messages[err?.message] ?? 'לא הצלחנו לשלוח את הדיווח. נסה שוב בעוד רגע.';
           btn.disabled = false; btn.textContent = 'המוביל לא הגיע';
-          box.innerHTML = '<div class="alert alert-error">לא הצלחנו לשלוח את הדיווח. נסה שוב בעוד רגע.</div>';
+          box.innerHTML = `<div class="alert alert-error">${msg}</div>`;
         }
       });
 
