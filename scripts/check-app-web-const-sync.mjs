@@ -110,6 +110,32 @@ class SkipError extends Error {}
  * ------------------------------------------------------------------ */
 
 const ENTRIES = [
+  /* ⚠️ 20.9 — שני קבועים **כספיים** שהיו מסונכרנים ביד בלי שום בדיקה,
+     ושתי ההערות בקוד האתר הצהירו על כך במפורש: `orders.js:324` כותב
+     "check-app-web-const-sync אינו מכיר אותו היום", ו-`guest-checkout.js:429`
+     כותב "שינוי כאן בלי שינוי שם — פיצול שקט בין שני המשטחים".
+
+     ⚠️ **הכותרת של הקובץ הזה אומרת שהוא לא בודק תמחור/ביטולים**, וזה
+     נכון: את מדרג הביטולים עצמו בודקת `check-web-pricing-sync` בריפו
+     האפליקציה. אבל שני אלה נפלו **בין שתי הבדיקות** — הם לא בטבלת
+     התמחור ולא כאן — וזו בדיוק התבנית שיצרה את שישה הפערים הכספיים
+     שנמצאו ב-15.9. שניהם משנים סכום שהלקוח משלם. */
+  {
+    name: 'ביטול בזמן שהמוביל בדרך — שיעור החיוב',
+    kind: 'inline-literal',
+    app: () => Number(extract(HOVALOT_ROOT, 'src/services/cancellation.ts',
+      /EN_ROUTE_CANCELLATION_RATE\s*=\s*([\d.]+)/, 'EN_ROUTE_CANCELLATION_RATE')[1]),
+    web: () => Number(extract(WEB_ROOT, 'app/orders.js',
+      /EN_ROUTE_CANCELLATION_RATE\s*=\s*([\d.]+)/, 'EN_ROUTE_CANCELLATION_RATE')[1]),
+  },
+  {
+    name: 'מחיר מינימלי אחרי קופון',
+    kind: 'inline-literal',
+    app: () => Number(extract(HOVALOT_ROOT, 'src/services/coupons.ts',
+      /MIN_ORDER_PRICE_AFTER_COUPON\s*=\s*(\d+)/, 'MIN_ORDER_PRICE_AFTER_COUPON')[1]),
+    web: () => Number(extract(WEB_ROOT, 'app/guest-checkout.js',
+      /MIN_ORDER_PRICE_AFTER_COUPON\s*=\s*(\d+)/, 'MIN_ORDER_PRICE_AFTER_COUPON')[1]),
+  },
   {
     name: 'סיסמה — אורך מינימלי בהרשמה',
     kind: 'inline-literal',
