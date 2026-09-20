@@ -131,7 +131,7 @@
   </style>
 </head>
 <body class="app-body flow-b">
-<div data-build-stamp class="build-stamp" aria-hidden="true">עודכן 20.09 · 11:16</div>
+<div data-build-stamp class="build-stamp" aria-hidden="true">עודכן 20.09 · 11:19</div>
 <script src="/version-check.js" defer></script>
   <!-- ⚠️ 15.9 — "דלג לתוכן המרכזי" (WCAG 2.4.1, רמה A). זהו האלמנט הממוקד
        הראשון בדף: מוסתר מהעין, מופיע בפינה ברגע שמגיעים אליו ב-Tab, ומעביר
@@ -470,6 +470,15 @@
             </div>
             <div class="form-group">
               <label><input type="checkbox" id="has-packing"> שירות אריזה <span id="packing-price-label"></span></label>
+            </div>
+            <!-- ⚠️ 20.9 — מתג המנוף. `SummaryScreen.tsx:524` מציג אותו
+                 לצד ביטוח ואריזה, כלומר שלוש התוספות ניתנות להחלטה עד
+                 השנייה האחרונה. באתר המנוף נבחר בשלב 3 בלבד, ומי
+                 שהתחרט היה צריך לחזור שלב אחורה — בזמן ששתי התוספות
+                 האחרות לידו ניתנות לכיבוי במקום. `display:none`
+                 כשהמנוף לא נבחר: אין טעם להציע לכבות משהו שלא נבחר. -->
+            <div class="form-group" id="crane-toggle-row" style="display:none;">
+              <label><input type="checkbox" id="has-crane"> מנוף הרמה <span id="crane-price-label"></span></label>
             </div>
             <div class="form-group">
               <label for="notes">הערות למוביל (לא חובה)</label>
@@ -1777,6 +1786,39 @@
     });
     document.getElementById('crane-floor').addEventListener('change', (e) => { state.craneFloor = e.target.value; updateCranePreview(); });
 
+    /* ═══════════ מתג המנוף בשלב הסיכום ═══════════════════════════════
+       ⚠️ **מקור אמת אחד.** שני הפקדים כותבים לאותו `state.needsCrane`,
+       ומסונכרנים זה לזה — פקד שני עם דגל משלו היה יוצר מצב שבו הסיכום
+       אומר דבר אחד והשלב הקודם דבר אחר, וההזמנה נשלחת עם השלישי. */
+    const craneToggleRow = document.getElementById('crane-toggle-row');
+    const hasCraneBox = document.getElementById('has-crane');
+
+    function syncCraneToggle() {
+      if (!craneToggleRow) return;
+      // מוצג רק כשהמנוף נבחר — אין טעם להציע לכבות משהו שלא נבחר.
+      craneToggleRow.style.display = state.needsCrane ? 'block' : 'none';
+      if (hasCraneBox) hasCraneBox.checked = !!state.needsCrane;
+      const lbl = document.getElementById('crane-price-label');
+      if (lbl) {
+        const c = state.needsCrane ? craneCostFor(state.craneFloor) : 0;
+        lbl.textContent = c ? `— ₪${formatPrice(c)}` : '';
+      }
+    }
+
+    hasCraneBox?.addEventListener('change', (e) => {
+      state.needsCrane = e.target.checked;
+      // הפקד בשלב 3 הוא אותו מצב — מסונכרן מיד, כולל שדות המנוף שתלויים בו.
+      const src = document.getElementById('needs-crane');
+      if (src) src.checked = state.needsCrane;
+      const fields = document.getElementById('crane-fields');
+      if (fields) fields.style.display = state.needsCrane ? 'block' : 'none';
+      renderCraneItems();
+      updateCranePreview();
+      renderSummary();
+      renderSidePrice();
+      syncCraneToggle();
+    });
+
     function renderCraneItems() {
       const box = document.getElementById('crane-items');
       box.innerHTML = '';
@@ -2418,7 +2460,7 @@
       document.getElementById('bottom-price-label').hidden = step === 1;
       if (step === 2) renderPackingOffer();
       if (step === 3) { renderCraneItems(); updateCranePreview(); }
-      if (step === 4) renderSummary();
+      if (step === 4) { syncCraneToggle(); renderSummary(); }
       // ⚠️ הכרטיס יצא מסקשן שלב 1, ולכן הוא כבר לא נסתר עם השלב מעצמו.
       renderSelectedItemsBar();
       renderSidePrice();
