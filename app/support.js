@@ -101,6 +101,29 @@ export async function markUserRead(ticketId) {
 }
 
 /**
+ * כותב ל-appFeedback — מקביל ל-submitAppFeedback ב-src/services/appFeedback.ts
+ * (נקרא מ-AppFeedbackScreen.tsx, שם ה-CTA "שתף אותנו במשוב קצר" מוביל אליו).
+ * אותו collection ואותו מבנה שדות בדיוק, כדי שהמשוב מהאתר יופיע במסכי
+ * האדמין בלי שום שינוי בצד שלהם.
+ *
+ * ⚠️ 21.9 — גרסה מקוצרת בכוונה: כוכבים + טקסט חופשי בלבד, בלי המדדים
+ * המשניים (pricingScore/matchingScore/supportScore) ובלי דירוג בחנות
+ * (expo-store-review אינו קיים בדפדפן). האתר הוא צד-לקוח בלבד (ראו
+ * auth.js) — userType קבוע ל-'customer', לא מועבר כפרמטר.
+ *
+ * `undefined` מפיל את הכתיבה כולה (בדיוק כמו RNFB) — לא לשלוח שדה אלא
+ * אם יש לו ערך, בדיוק כמו appFeedback.ts.
+ */
+export async function submitAppFeedback(userId, source, { ticketId, overallScore, text } = {}) {
+  await addDoc(collection(db, 'appFeedback'), {
+    userId, userType: 'customer', source, overallScore,
+    ...(ticketId ? { ticketId } : {}),
+    ...(text?.trim() ? { text: text.trim() } : {}),
+    createdAt: serverTimestamp(),
+  });
+}
+
+/**
  * מאזין להודעות פנייה — חלון של האחרונות, לא כל ההיסטוריה. זהה ל-
  * subscribeToTicketMessages (SUPPORT_PAGE_SIZE) באפליקציה.
  */

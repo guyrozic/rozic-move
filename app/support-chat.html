@@ -20,9 +20,21 @@
   <!-- ⚠️ נטען אחרון בכוונה — `flow.css` דורס את `style-app.css` תחת
        `.flow-b` בלבד, כך שדף שלא טוען אותו אינו מושפע. -->
   <link rel="stylesheet" href="flow.css?v=24a4ec4f">
+  <!-- CTA "שתף אותנו במשוב קצר" (ראו renderThread) — אין לו מקבילה
+       בגיליון המשותף, ולכן סגנון עצמאי לדף הזה, מטוקנים בלבד. -->
+  <style>
+    .support-feedback-cta {
+      display: inline-flex; align-self: flex-start; margin-top: 4px;
+      padding: 8px 14px; border-radius: 14px;
+      background: var(--green-tint); border: 1px solid var(--border);
+      color: var(--green); font-size: 0.88rem; font-weight: 600;
+      text-decoration: none;
+    }
+    .support-feedback-cta:hover { background: var(--green-line); }
+  </style>
 </head>
 <body class="app-body flow-b">
-<div data-build-stamp class="build-stamp" aria-hidden="true">עודכן 20.09 · 23:56</div>
+<div data-build-stamp class="build-stamp" aria-hidden="true">עודכן 21.09 · 00:32</div>
 <script src="/version-check.js" defer></script>
   <a class="skip-link" href="#main-content">דלג לתוכן המרכזי</a>
   <script type="module" src="pilot-banner.js?v=14a0e537"></script>
@@ -253,7 +265,13 @@
         threadEl.innerHTML = messages.map(m => {
           const mine = m.role === 'user';
           const roleLabel = m.role === 'ai' ? 'רוני' : (m.role === 'admin' ? 'נציג תמיכה' : '');
-          return `<div class="chat-msg ${mine ? 'mine' : 'other'}">${roleLabel ? `<strong>${esc(roleLabel)}</strong><br>` : ''}${esc(m.text)}<span class="chat-msg-time">${esc(formatTime(m.timestamp))}</span></div>`;
+          const bubble = `<div class="chat-msg ${mine ? 'mine' : 'other'}">${roleLabel ? `<strong>${esc(roleLabel)}</strong><br>` : ''}${esc(m.text)}<span class="chat-msg-time">${esc(formatTime(m.timestamp))}</span></div>`;
+          // זהה ל-msg.promptFeedback ב-SupportChatScreen.tsx:585-593 —
+          // אותו נוסח CTA מילה במילה, מוביל למסך המשוב המקוצר באתר.
+          const cta = m.promptFeedback
+            ? `<a href="feedback.html?ticketId=${encodeURIComponent(ticketId)}" class="support-feedback-cta">★ שתף אותנו במשוב קצר</a>`
+            : '';
+          return bubble + cta;
         }).join('');
         if (sending) threadEl.innerHTML += '<div class="chat-msg other typing">רוני מקליד...</div>';
       }
@@ -306,7 +324,10 @@
             .map(m => ({ role: m.role, text: m.text }))
             .concat([{ role: 'user', text: msg }]);
           const result = await chatSupportAgent(msg, history, authState.profile?.name || '');
-          await sendSupportMessage(ticketId, 'ai', result.reply || 'אני כאן לעזור! במה אוכל לסייע לך היום?');
+          // זהה ל-SupportChatScreen.tsx:309 — הדגל עולה מ-chatSupportAgent
+          // (requestRating) ונשמר על ההודעה כדי שהכפתור "שתף אותנו במשוב
+          // קצר" יופיע מתחתיה (ראו renderThread).
+          await sendSupportMessage(ticketId, 'ai', result.reply || 'אני כאן לעזור! במה אוכל לסייע לך היום?', { promptFeedback: result.requestRating });
           if (result.questions.length > 0) {
             const prefix = `q-${Date.now()}-`;
             pendingQuestions = pendingQuestions.concat(result.questions.map(q => ({ ...q, id: `${prefix}${q.id}` })));

@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ROZIC MOVE — משוב</title>
+  <meta name="robots" content="noindex, follow">
+
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="ROZIC MOVE">
+  <meta property="og:locale" content="he_IL">
+  <meta property="og:title" content="משוב — ROZIC MOVE">
+  <meta property="og:description" content="נשמח לשמוע מה חשבת על השימוש ב-ROZIC MOVE.">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../style.css?v=bd1d383b">
+  <link rel="stylesheet" href="style-app.css?v=11f45894">
+  <!-- ⚠️ נטען אחרון בכוונה — `flow.css` דורס את `style-app.css` תחת
+       `.flow-b` בלבד, כך שדף שלא טוען אותו אינו מושפע. -->
+  <link rel="stylesheet" href="flow.css?v=24a4ec4f">
+</head>
+<body class="app-body flow-b">
+<div data-build-stamp class="build-stamp" aria-hidden="true">עודכן 21.09 · 00:32</div>
+<script src="/version-check.js" defer></script>
+  <a class="skip-link" href="#main-content">דלג לתוכן המרכזי</a>
+  <script type="module" src="pilot-banner.js?v=14a0e537"></script>
+  <script type="module" src="offline-banner.js?v=96b835df"></script>
+  <!-- ⚠️ support-unread.js לא נטען כאן, בדיוק כמו ב-support-chat.html
+       (ראו ההערה שם): המשתמש הגיע לכאן מתוך הודעת התמיכה עצמה שהוא כבר
+       קרא — "קיבלת תשובה" מעליה כאן הוא רעש על מה שכבר נראה. -->
+  <!-- ⚠️ 20.9 — הסרגל נוסף כחלק מהחלת קו העיצוב. המבנה זהה בדיוק לזה
+       שב-`app/index.html`, כדי שהסרגל יישאר אחד בכל המסכים. -->
+  <div class="app-topbar">
+    <a tabindex="0" href="index.html" class="app-logo-link">
+      <svg aria-hidden="true" width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M3 9h12M9 3l6 6-6 6" stroke="#0E5C43" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      ROZIC MOVE
+    </a>
+    <div style="flex:1"></div>
+    <a tabindex="0" href="account.html" class="back-btn" title="החשבון שלי" aria-label="החשבון שלי"><svg aria-hidden="true" width="17" height="17" viewBox="0 0 18 18" fill="none"><circle cx="9" cy="5.6" r="3.1" stroke="currentColor" stroke-width="1.7"/><path d="M2.9 15.6c0-3.1 2.7-5 6.1-5s6.1 1.9 6.1 5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg></a>
+  </div>
+
+  <main id="main-content" tabindex="-1">
+
+  <div class="step-hero">
+    <div class="step-hero-inner">
+      <a href="support-chat.html" id="hero-back-link" class="btn-text" style="padding:0; margin-bottom:10px; display:inline-block;">→ צ'אט תמיכה</a>
+      <h1 id="hero-title">המשוב שלך חשוב לנו</h1>
+      <p>המשוב שלך עוזר לנו לשמור על חוויה טובה לכולם.</p>
+    </div>
+  </div>
+
+  <div class="app-container">
+    <div id="loading" class="center-loading" role="status"><span class="spinner"></span><span class="sr-only">טוען...</span></div>
+
+    <!--
+      גרסה מקוצרת של AppFeedbackScreen.tsx (הכרעת גיא 62.2א): כוכבים +
+      טקסט חופשי בלבד. בלי המדדים המשניים (pricingScore/matchingScore/
+      supportScore — שאלות שרק עומדות בפני עצמן בתוך המסך המלא, בזרימת
+      אפליקציה מלאה שיש בה גם דירוג מוביל, תגיות וכו') ובלי שלב "storePrompt"
+      (expo-store-review הוא API נייטיבי, אין לו מקבילה בדפדפן).
+    -->
+    <div id="content" style="display:none;">
+      <div class="app-card">
+        <h2 id="stars-overall-title">איך היה השימוש הכללי באתר?</h2>
+        <div class="star-row" role="radiogroup" aria-labelledby="stars-overall-title" id="stars-overall"></div>
+
+        <div class="form-group" style="margin-top:14px;">
+          <label for="feedback-text">יש לך רעיון לשיפור? (לא חובה)</label>
+          <textarea id="feedback-text" rows="3" maxlength="1000" placeholder="נשמח לשמוע..."></textarea>
+        </div>
+
+        <button class="btn btn-primary btn-block" id="submit-btn" disabled style="margin-top:6px;">שלח משוב</button>
+        <p class="rating-submit-hint" id="submit-hint">כדי לשלוח, בחר קודם כמה כוכבים</p>
+      </div>
+    </div>
+
+    <div id="thanks-box" class="app-card" style="display:none; text-align:center;">
+      <h2>תודה על המשוב!</h2>
+      <p class="app-card-desc">זה עוזר לנו להשתפר ולשמור על חוויה טובה לכולם.</p>
+      <a class="btn btn-primary" href="index.html" aria-label="סיום וחזרה למסך הבית">סיום</a>
+    </div>
+  </div>
+
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner container">
+      <div class="footer-brand">
+        <div class="footer-logo">ROZIC MOVE</div>
+        <p class="footer-tagline">מזיזים אותך קדימה</p>
+        <p class="footer-copy">ROZIC MOVE © 2026</p>
+      </div>
+      <div class="footer-links">
+        <div class="footer-col">
+          <div class="footer-col-title">משפטי</div>
+          <a tabindex="0" href="/privacy.html">מדיניות פרטיות</a>
+          <a tabindex="0" href="/terms.html">תנאי שימוש</a>
+          <a tabindex="0" href="/accessibility.html">הצהרת נגישות</a>
+          <a tabindex="0" href="/delete-account.html">מחיקת חשבון</a>
+        </div>
+      </div>
+    </div>
+    <div class="footer-divider"></div>
+    <div class="footer-bottom container">
+      <p>כל הזכויות שמורות · מדינת ישראל</p>
+    </div>
+  </footer>
+
+  <script type="module">
+    import { requireAuth } from './auth.js';
+    import { submitAppFeedback } from './support.js';
+
+    const authState = await requireAuth();
+    // מגיע מ-support-chat.html (feedback.html?ticketId=…) — נכתב ל-appFeedback
+    // רק אם קיים, בדיוק כמו ticketId?: string ב-AppFeedbackInput.
+    const ticketId = new URLSearchParams(location.search).get('ticketId') || undefined;
+
+    const loadingEl = document.getElementById('loading');
+    const contentEl = document.getElementById('content');
+    loadingEl.style.display = 'none';
+    contentEl.style.display = 'block';
+
+    /**
+     * זהה ל-buildStarRow ב-order-rate.html — אותו widget בדיוק (roving
+     * tabindex + חצים לפי WAI-ARIA Radio Group Pattern, RTL: שמאלה=הבא).
+     */
+    function buildStarRow(containerId, onChange) {
+      const el = document.getElementById(containerId);
+      el.innerHTML = [1, 2, 3, 4, 5].map(s =>
+        `<button type="button" role="radio" aria-checked="false" tabindex="-1" aria-label="${s === 1 ? 'כוכב אחד מתוך 5' : `${s} כוכבים מתוך 5`}" data-value="${s}">★</button>`
+      ).join('');
+      const buttons = Array.from(el.querySelectorAll('button'));
+      buttons[0].tabIndex = 0; // אף כוכב לא נבחר עדיין — עצירת ה-Tab הראשונה ברירת המחדל
+      let value = 0;
+      function select(v, focus) {
+        value = v;
+        paint();
+        onChange(value);
+        if (focus) buttons[v - 1].focus();
+      }
+      function paint() {
+        buttons.forEach(btn => {
+          const v = Number(btn.dataset.value);
+          const checked = v === value;
+          btn.classList.toggle('filled', v <= value);
+          btn.setAttribute('aria-checked', String(checked));
+          btn.tabIndex = checked ? 0 : -1;
+        });
+      }
+      buttons.forEach((btn, i) => {
+        btn.addEventListener('click', () => select(Number(btn.dataset.value), false));
+        btn.addEventListener('keydown', (e) => {
+          let target = null;
+          if (e.key === 'ArrowLeft') target = buttons[(i + 1) % buttons.length];
+          else if (e.key === 'ArrowRight') target = buttons[(i - 1 + buttons.length) % buttons.length];
+          else if (e.key === 'Home') target = buttons[0];
+          else if (e.key === 'End') target = buttons[buttons.length - 1];
+          if (target) {
+            e.preventDefault();
+            select(Number(target.dataset.value), true);
+          }
+        });
+      });
+    }
+
+    let overallScore = 0;
+    const submitBtn = document.getElementById('submit-btn');
+    const submitHint = document.getElementById('submit-hint');
+
+    buildStarRow('stars-overall', (v) => {
+      overallScore = v;
+      submitBtn.disabled = overallScore === 0;
+      submitHint.style.display = overallScore === 0 ? 'block' : 'none';
+    });
+
+    submitBtn.addEventListener('click', async () => {
+      if (!overallScore) return;
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'שולח...';
+      try {
+        await submitAppFeedback(authState.authUser.uid, 'support', {
+          ticketId,
+          overallScore,
+          text: document.getElementById('feedback-text').value,
+        });
+        contentEl.style.display = 'none';
+        document.getElementById('hero-title').textContent = 'תודה!';
+        document.getElementById('thanks-box').style.display = 'block';
+      } catch (err) {
+        // 18.9 — לא לבלוע: מה שהמשתמש מילא נשאר על המסך (אין ניווט ואין
+        // איפוס), בדיוק כמו הודעת הכשל ב-AppFeedbackScreen.tsx.
+        console.warn('[feedback] שליחת משוב נכשלה', err);
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'שלח משוב';
+        alert('המשוב לא נשלח. אין כרגע חיבור לשרת — מה שמילאת נשאר על המסך, בדוק את חיבור האינטרנט ולחץ שוב על "שלח משוב".');
+      }
+    });
+  </script>
+</body>
+</html>
