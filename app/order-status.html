@@ -141,8 +141,8 @@
   </style>
 </head>
 <body class="app-body flow-b">
-<div data-build-stamp class="build-stamp" aria-hidden="true">עודכן 20.09 · 23:56</div>
-<script src="/version-check.js" defer></script>
+<div data-build-stamp class="build-stamp" aria-hidden="true">עודכן 21.09 · 00:38</div>
+<script src="/version-check.js?v=b4f8b2f7" defer></script>
   <!-- ⚠️ 15.9 — "דלג לתוכן המרכזי" (WCAG 2.4.1, רמה A). זהו האלמנט הממוקד
        הראשון בדף: מוסתר מהעין, מופיע בפינה ברגע שמגיעים אליו ב-Tab, ומעביר
        את המיקוד אל <main id="main-content" tabindex="-1">. בלי ה-tabindex
@@ -616,6 +616,41 @@
       const wasCharged = order.paymentStatus === 'paid';
       const cancelledNoCharge = order.status === 'cancelled' && !wasCharged;
 
+      /**
+       * היעד של ״ערוך את ההזמנה״, או `null` כשאי-אפשר לערוך.
+       *
+       * ⚠️ **מותנה ב-`editablePayload` ולא רק בסטטוס**, וזו הנקודה:
+       * ההזמנה שומרת את הפריטים כ-`itemsSummary` — מחרוזת לקריאת אדם
+       * (`"מיטת יחיד x2, ספה x1"`). אי-אפשר לשחזר ממנה עגלה בלי להתאים
+       * תוויות לקטלוג בניחוש, וניחוש כזה מייצר **מחיר שגוי**. לכן
+       * הכפתור מופיע רק כשיש מצב אשף אמיתי לשחזר ממנו.
+       *
+       * ⚠️ המשמעות המעשית: **הזמנות שנוצרו לפני 21.9 לא יקבלו את
+       * הכפתור.** מוטב כך מכפתור שיפתח אשף ריק ויאבד ללקוח את העגלה —
+       * הכישלון הזה נראה בדיוק כמו ״האתר מחק לי את ההזמנה״.
+       *
+       * ## למה החלפה ולא עריכה במקום
+       * `firestore.rules` חוסם שינוי שדות כסף על הזמנה קיימת
+       * (`customerMoneyFieldsSafe`), ולכן שינוי מחיר במקום דורש שינוי
+       * חוקים. במקום זה האשף יוצר הזמנה **חדשה**, והישנה מתבטלת רק
+       * **אחרי** שהחדשה נוצרה בהצלחה — נטישה באמצע לא משאירה את הלקוח
+       * בלי כלום. ביטול הזמנה שלא שולמה הוא בלי חיוב.
+       *
+       * גם באפליקציה אין את הפעולה הזו (`OrderDetailsScreen.tsx:1210`
+       * מציע ״השלם תשלום״ בלבד) — כלומר זו תוספת ולא יישור.
+       *
+       * ⚠️ **ההערה הזו יושבת כאן ולא ליד הכפתור בכוונה.** בניסיון
+       * הראשון היא נכתבה בתוך ה-`innerHTML`, שהוא template literal,
+       * והגרשיים האחוריים שבה סגרו אותו — `SyntaxError` שהרג את הדף
+       * כולו בכל סטטוס. נתפס בבדיקת התרחישים לפני פריסה.
+       */
+      const EDIT_PAGES = { apartment: 'apartment.html', smallMove: 'small-move.html' };
+      const editHref = order.status === 'pending_payment'
+        && order.editablePayload
+        && EDIT_PAGES[order.serviceType]
+        ? `${EDIT_PAGES[order.serviceType]}?edit=${encodeURIComponent(order.id)}`
+        : null;
+
       contentEl.innerHTML = `
         <div class="app-card">
           <div class="order-title-row">
@@ -665,6 +700,10 @@
           <div class="alert alert-info">ההזמנה נוצרה — נשאר רק לשלם כדי שמוביל יוכל לקחת אותה.</div>
           <button class="btn btn-primary btn-block" id="pay-btn">שלם עכשיו — ₪${esc(total)}</button>
           <div id="pay-error" role="alert"></div>
+          ${editHref ? `
+          <a class="btn btn-secondary btn-block" id="edit-order-btn" href="${esc(editHref)}">ערוך את ההזמנה</a>
+          <p class="form-hint">עריכה תיצור הזמנה מעודכנת, וההזמנה הזו תבוטל — בלי חיוב.</p>
+          ` : ''}
         </div>` : ''}
 
         <div class="app-card">
