@@ -125,7 +125,7 @@
   </style>
 </head>
 <body class="app-body flow-b">
-<div data-build-stamp class="build-stamp" aria-hidden="true">עודכן 21.09 · 00:57</div>
+<div data-build-stamp class="build-stamp" aria-hidden="true">עודכן 21.09 · 02:31</div>
 <script src="/version-check.js?v=b4f8b2f7" defer></script>
   <!-- ⚠️ 15.9 — "דלג לתוכן המרכזי" (WCAG 2.4.1, רמה A). זהו האלמנט הממוקד
        הראשון בדף: מוסתר מהעין, מופיע בפינה ברגע שמגיעים אליו ב-Tab, ומעביר
@@ -2541,20 +2541,32 @@
         // (task 3) — ראו ההערה המקבילה ב-apartment.html: ביטול ההזמנה
         // הישנה רק אחרי שהחדשה נוצרה בהצלחה, ונבדק מחדש (לא נסמך על
         // מה שנטען בעליית הדף) כי היא יכולה להשתנות בינתיים בטאב אחר.
+        /* ⚠️ **כשל בביטול כאן הוא נתיב לחיוב כפול, ולכן הוא אינו שקט.**
+           אם הישנה נשארת `pending_payment`, הלקוח רואה **שתי** הזמנות
+           שבשתיהן כתוב "שלם עכשיו" — ויכול לשלם על אותה הובלה פעמיים.
+           `console.warn` בייצור פירושו שאיש לא יידע: לא הלקוח, ולא מי
+           שיכול לתקן. לכן: ניסיון חוזר אחד (כשל רשת חולף), ואם עדיין
+           נכשל — מעבירים את המזהה לדף ההזמנה החדשה, ששם מוצגת הודעה
+           עם קישור. הלקוח הוא זה שנפגע, והוא גם היחיד שיכול לסגור את
+           זה בלחיצה אחת — כפתור הביטול כבר שם. */
+        let staleOrderId = null;
         if (editOrderId) {
-          try {
-            const oldOrder = await getOrder(editOrderId);
-            if (oldOrder && oldOrder.status === 'pending_payment') {
+          for (let attempt = 0; attempt < 2; attempt++) {
+            try {
+              const oldOrder = await getOrder(editOrderId);
+              if (!oldOrder || oldOrder.status !== 'pending_payment') { staleOrderId = null; break; }
               const policy = getCancellationPolicy(oldOrder, 'customer');
               await cancelOrder(editOrderId, policy.fee);
-            } else {
-              console.warn('[edit-order] ההזמנה הישנה לא בוטלה — הסטטוס השתנה בינתיים', editOrderId, oldOrder?.status);
+              staleOrderId = null;
+              break;
+            } catch (err) {
+              staleOrderId = editOrderId;
+              console.warn(`[edit-order] ביטול ההזמנה הישנה נכשל (ניסיון ${attempt + 1})`, editOrderId, err && err.message);
             }
-          } catch (err) {
-            console.warn('[edit-order] ביטול ההזמנה הישנה נכשל', editOrderId, err && err.message);
           }
         }
-        location.href = `order-status.html?id=${orderId}`;
+        location.href = `order-status.html?id=${orderId}`
+          + (staleOrderId ? `&stale=${encodeURIComponent(staleOrderId)}` : '');
       } catch (err) {
         clearTimeout(stuckTimer);
         clearInterval(phraseTimer);

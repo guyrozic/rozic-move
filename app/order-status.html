@@ -141,7 +141,7 @@
   </style>
 </head>
 <body class="app-body flow-b">
-<div data-build-stamp class="build-stamp" aria-hidden="true">עודכן 21.09 · 00:38</div>
+<div data-build-stamp class="build-stamp" aria-hidden="true">עודכן 21.09 · 02:31</div>
 <script src="/version-check.js?v=b4f8b2f7" defer></script>
   <!-- ⚠️ 15.9 — "דלג לתוכן המרכזי" (WCAG 2.4.1, רמה A). זהו האלמנט הממוקד
        הראשון בדף: מוסתר מהעין, מופיע בפינה ברגע שמגיעים אליו ב-Tab, ומעביר
@@ -644,6 +644,18 @@
        * והגרשיים האחוריים שבה סגרו אותו — `SyntaxError` שהרג את הדף
        * כולו בכל סטטוס. נתפס בבדיקת התרחישים לפני פריסה.
        */
+      /**
+       * ⚠️ הזמנה קודמת שלא הצליחה להתבטל בעריכה — **נתיב לחיוב כפול.**
+       *
+       * ״ערוך את ההזמנה״ יוצר הזמנה חדשה ואז מבטל את הישנה. אם הביטול
+       * נכשל (רשת שנפלה אחרי שתי ניסיונות), הלקוח נשאר עם **שתי**
+       * הזמנות שבשתיהן כתוב ״שלם עכשיו״, ויכול לשלם על אותה הובלה
+       * פעמיים. האשף מעביר לכאן את המזהה במקום לכתוב לקונסול, כי
+       * הלקוח הוא גם הנפגע וגם היחיד שיכול לסגור את זה — כפתור
+       * הביטול כבר קיים בדף ההוא.
+       */
+      const staleOrderId = new URLSearchParams(location.search).get('stale');
+
       const EDIT_PAGES = { apartment: 'apartment.html', smallMove: 'small-move.html' };
       const editHref = order.status === 'pending_payment'
         && order.editablePayload
@@ -692,6 +704,16 @@
             ההזמנה נשמרה. הוספת פריט שאין לו מחיר אוטומטי, ולכן עוד אין סכום סופי לחיוב —
             הצוות שלנו יתמחר אותו בקרוב, וברגע שזה יקרה יופיע כאן כפתור תשלום עם הסכום המלא.
             הסכום למטה הוא ביניים ואינו כולל את הפריט שממתין לתמחור.
+          </div>
+        </div>` : ''}
+
+        ${staleOrderId && staleOrderId !== order.id ? `
+        <div class="app-card">
+          <div class="alert alert-error">
+            <strong>ההזמנה הקודמת לא בוטלה.</strong>
+            יצרנו את ההזמנה המעודכנת הזו, אבל לא הצלחנו לסגור את הקודמת —
+            והיא עדיין מופיעה כממתינה לתשלום. <strong>אל תשלם אותה.</strong>
+            <a href="order-status.html?id=${esc(staleOrderId)}">פתח אותה וסגור אותה כאן</a>, בלי חיוב.
           </div>
         </div>` : ''}
 
