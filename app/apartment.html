@@ -28,7 +28,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="../style.css?v=cece2f2d">
-  <link rel="stylesheet" href="style-app.css?v=53ef95b8">
+  <link rel="stylesheet" href="style-app.css?v=8b1aedc7">
   <link rel="stylesheet" href="address-autocomplete.css?v=aa414fa6">
   <!-- ⚠️ נטען אחרון בכוונה — `flow.css` דורס את `style-app.css` תחת
        `.flow-b` בלבד. 14 המסכים האחרים שחולקים את `style-app.css`
@@ -131,7 +131,7 @@
   </style>
 </head>
 <body class="app-body flow-b">
-<div data-build-stamp class="build-stamp" aria-hidden="true">עודכן 20.09 · 11:29</div>
+<div data-build-stamp class="build-stamp" aria-hidden="true">עודכן 20.09 · 11:36</div>
 <script src="/version-check.js" defer></script>
   <!-- ⚠️ 15.9 — "דלג לתוכן המרכזי" (WCAG 2.4.1, רמה A). זהו האלמנט הממוקד
        הראשון בדף: מוסתר מהעין, מופיע בפינה ברגע שמגיעים אליו ב-Tab, ומעביר
@@ -625,7 +625,7 @@
     import { ALL_ROOMS, findItemAnywhere, getItemPriceAnyCategory, getFullAICatalog, getSizeSiblings } from './data/items.js';
     import { BED_ITEM_KEYS, buildMattressFollowUpQuestion, hasMattressOptions,
              buildBeddingBoxFollowUpQuestion, diningChairsFollowUpFor,
-             longestCommonPrefix } from './data/followups.js';
+             buildDuplicateCheckQuestion, longestCommonPrefix } from './data/followups.js';
     import { BASE_PRICE, PRICE_PER_KM, FLOOR_SURCHARGE_PER_FLOOR, getVolumeDiscount, getSurgePricing, calculatePackingFromItems, getBoxSizeFromKey, INSURANCE_PRICE_APARTMENT } from './data/pricing.js';
     import { loadRemotePricingConfig } from './pricing-config.js';
     import { FLOORS, craneCostFor, distanceAndCoords, formatDateApp, parseDateApp } from './geo.js';
@@ -926,6 +926,37 @@
     let aiPhotos = [];
     let pendingQuestions = [];
 
+    /**
+     * תמונות שכבר נותחו. תאום ל-`p.analyzed` ב-`AIRoomScanScreen.tsx:254`.
+     *
+     * ⚠️ **בלי זה כל לחיצה על "נתח" שולחת מחדש גם את התמונות הישנות,
+     * והפריטים שבהן נוספים שוב.** הממשק מזמין את זה: "+ הוסף תמונות"
+     * יושב ליד "נתח עם AI", ולקוח שמוסיף זווית נוספת לחדר שכבר נסרק
+     * קיבל עד עכשיו את כל החדר פעמיים.
+     *
+     * `Set` של אובייקטי `File` ולא מערך אינדקסים — הסרת תמונה מהרשימה
+     * מזיזה אינדקסים, והסימון היה נדבק לתמונה השגויה.
+     */
+    let analyzedPhotos = new Set();
+
+    /**
+     * כמה סריקות רצו בהזמנה הזאת. תאום ל-`isTopUpScan`, אבל **שורד
+     * רענון**: `analyzedPhotos` מחזיק הפניות ל-`File` שנעלמות בטעינה
+     * מחדש, בעוד הפריטים כן חוזרים מהטיוטה. בלי המונה הזה, לקוח
+     * שסרק, רענן, ולחץ "נתח" שוב היה סופר את הכול פעמיים — כלומר
+     * בדיוק הבאג, רק במסלול ארוך יותר.
+     */
+    let aiScanCount = Number(restoredDraft?.aiScanCount) || 0;
+
+    /**
+     * ⚠️ `geminiProxy.ts:17` — `MAX_PARTS = 12`, כולל חלק הטקסט של
+     * הפרומפט. כלומר 11 תמונות הן התקרה בשרת, ומעליה הבקשה נדחית.
+     * האפליקציה מגבילה ב-`selectionLimit: 6` לכל בחירה; באתר
+     * `<input multiple>` מאפשר לסמן עשרות בבת אחת בבורר של מערכת
+     * ההפעלה. בלי תקרה כאן הלקוח היה מגלה את זה רק ככשל מהשרת.
+     */
+    const MAX_SCAN_PHOTOS = 10;
+
     // ⚠️ 15.9 — ההודעה הייתה "סריקת AI תהיה זמינה בקרוב", וזה לא נכון:
     // הפיצ'ר קיים ועובד, פשוט דורש התחברות. אורח שקרא את זה לא ידע
     // שיש לו מה לעשות. ראו isAIConfigured ב-ai-vision.js.
@@ -1009,31 +1040,64 @@
         off(e);
         const files = [...(e.dataTransfer?.files || [])].filter(f => f.type.startsWith('image/'));
         if (!files.length) return;
-        // אותן שתי שורות בדיוק כמו במאזין ה-change של בורר הקבצים —
-        // נתיב אחד, לא שניים שיכולים להתפצל.
-        aiPhotos.push(...files);
-        renderAIPhotos();
+        // נתיב אחד לשני מקורות הקלט, לא שניים שיכולים להתפצל.
+        addScanPhotos(files);
       });
     })();
 
     document.getElementById('ai-photo-input').addEventListener('change', (e) => {
-      aiPhotos.push(...Array.from(e.target.files || []));
+      addScanPhotos(Array.from(e.target.files || []));
       e.target.value = '';
-      renderAIPhotos();
     });
+
+    /**
+     * הוספת תמונות לסריקה, עם התקרה. נספרות רק תמונות **שטרם נותחו** —
+     * תמונה שכבר נסרקה לא נשלחת שוב ולכן אינה תופסת מקום בבקשה הבאה.
+     */
+    function addScanPhotos(files) {
+      if (!files.length) return;
+      const errBox = document.getElementById('ai-error');
+      const pending = aiPhotos.filter(f => !analyzedPhotos.has(f)).length;
+      const room = Math.max(0, MAX_SCAN_PHOTOS - pending);
+      const accepted = files.slice(0, room);
+      aiPhotos.push(...accepted);
+      if (accepted.length < files.length) {
+        // הודעה שאומרת מה קרה ומה לעשות — ולא כישלון מהשרת שנראה
+        // כמו תקלת רשת.
+        errBox.innerHTML = `<div class="alert alert-error">אפשר לנתח עד ${MAX_SCAN_PHOTOS} תמונות בבת אחת.
+          ${accepted.length ? `נוספו ${accepted.length}, ` : ''}${files.length - accepted.length} לא נוספו —
+          אפשר לנתח את אלה שכאן ואז להוסיף את השאר.</div>`;
+      } else {
+        errBox.innerHTML = '';
+      }
+      renderAIPhotos();
+    }
 
     function renderAIPhotos() {
       const box = document.getElementById('ai-photo-thumbs');
-      box.innerHTML = aiPhotos.map((file, i) => `
-        <div class="ai-thumb">
-          <img src="${URL.createObjectURL(file)}" alt="תמונה ${i + 1} לניתוח">
+      box.innerHTML = aiPhotos.map((file, i) => {
+        const done = analyzedPhotos.has(file);
+        return `
+        <div class="ai-thumb${done ? ' is-analyzed' : ''}">
+          <img src="${URL.createObjectURL(file)}" alt="תמונה ${i + 1}${done ? ' — כבר נותחה' : ' לניתוח'}">
+          ${done ? '<span class="ai-thumb-tag">נותחה</span>' : ''}
           <button tabindex="0" class="ai-thumb-remove" data-i="${i}" aria-label="הסר תמונה ${i + 1}">✕</button>
-        </div>
-      `).join('');
+        </div>`;
+      }).join('');
       box.querySelectorAll('.ai-thumb-remove').forEach(btn => btn.addEventListener('click', () => {
-        aiPhotos.splice(Number(btn.dataset.i), 1); renderAIPhotos();
+        // ⚠️ הסרה מ-`analyzedPhotos` יחד עם התמונה. `Set` של `File`
+        // מחזיק הפניה חיה, ובלי הניקוי הזה הוא היה תופח לאורך הזמנה
+        // ארוכה ומחזיק בזיכרון תמונות שכבר לא על המסך.
+        const [removed] = aiPhotos.splice(Number(btn.dataset.i), 1);
+        analyzedPhotos.delete(removed);
+        renderAIPhotos();
       }));
-      document.getElementById('ai-analyze-btn').disabled = aiPhotos.length === 0 || !isAIConfigured();
+      // ⚠️ הכפתור נשען על **תמונות שטרם נותחו**, לא על כמות התמונות:
+      // אחרי סריקה התמונות נשארות על המסך (הן העדות למה שנספר), ולחיצה
+      // חוזרת בלי תמונה חדשה לא אמורה לשלוח בקשה — היא הייתה חוזרת עם
+      // אותם פריטים ומייצרת שאלות כפילות על כלום.
+      const fresh = aiPhotos.filter(f => !analyzedPhotos.has(f)).length;
+      document.getElementById('ai-analyze-btn').disabled = fresh === 0 || !isAIConfigured();
     }
 
     document.getElementById('ai-analyze-btn').addEventListener('click', async () => {
@@ -1057,24 +1121,56 @@
         progressText.textContent = progress < 30 ? 'מוריד תמונות...' : progress < 60 ? 'מנתח תוכן...' : progress < 85 ? 'מזהה פריטים...' : 'כמעט מוכן...';
       }, 200);
       try {
+        // רק תמונות שטרם נותחו. תאום ל-`toAnalyze` ב-AIRoomScanScreen.
+        const toAnalyze = aiPhotos.filter(f => !analyzedPhotos.has(f));
+        // האם זו סריקה **חוזרת**: או שיש כבר תמונה מנותחת בסשן הזה, או
+        // שרצה סריקה בהזמנה הזאת לפני רענון. בשני המקרים ה-AI רואה עכשיו
+        // רק את החדש, ולכן פריט שכבר קיים ברשימה הוא דו-משמעי.
+        const isTopUpScan = aiScanCount > 0 || aiPhotos.some(f => analyzedPhotos.has(f));
         const images = [];
-        for (const file of aiPhotos) {
+        for (const file of toAnalyze) {
           images.push({ base64: await resizeImageToBase64(file), mimeType: 'image/jpeg' });
         }
         const catalog = getFullAICatalog();
         const result = await analyzeImagesWithCatalog(catalog, 'הדירה', images);
-        result.items.forEach(it => { state.items[it.itemKey] = (state.items[it.itemKey] || 0) + it.qty; });
-        pendingQuestions = pendingQuestions.concat(result.questions);
+        toAnalyze.forEach(f => analyzedPhotos.add(f));
+        aiScanCount += 1;
+        state.aiScanCount = aiScanCount;
+        /* ⚠️ **פיצול במקום הוספה עיוורת.** פריט שכבר קיים ברשימה
+           בסריקה חוזרת אינו נוסף אוטומטית — הלקוח נשאל אם זה אותו אחד
+           מזווית אחרת או פריט נוסף. שתי ההכרעות האוטומטיות שגויות:
+           הוספה שקטה מנפחת את המחיר, והשמטה שקטה מחסירה פריט אמיתי
+           מההובלה. תאום ל-`AIRoomScanScreen.tsx:337-347`. */
+        const appliedItems = [];
+        const dupCheckQuestions = [];
+        for (const it of result.items) {
+          if (isTopUpScan && (state.items[it.itemKey] || 0) > 0) {
+            const label = findItemAnywhere(it.itemKey)?.label || it.itemKey;
+            dupCheckQuestions.push(buildDuplicateCheckQuestion(it.itemKey, it.qty, label));
+          } else {
+            appliedItems.push(it);
+          }
+        }
+        appliedItems.forEach(it => { state.items[it.itemKey] = (state.items[it.itemKey] || 0) + it.qty; });
+        pendingQuestions = pendingQuestions.concat(result.questions, dupCheckQuestions);
         // ⚠️ 17.9 — מקביל ל-successBox/aiDone באפליקציה: בלי זה הסריקה
         // מסתיימת בשקט, והלקוח לא יודע אם היא בכלל מצאה משהו עד שהוא
         // גולל וחיפש. סופרים לפי התוצאה של הסריקה הזו בלבד.
-        const scannedQty = result.items.reduce((s, it) => s + it.qty, 0);
-        scanResultBox.textContent = scannedQty === 0 && result.questions.length === 0
+        // ⚠️ נספר לפי `appliedItems` ולא `result.items`: פריט שממתין
+        // לאישור כפילות **טרם נוסף**, והכרזה עליו כ"זוהה" הייתה אומרת
+        // ללקוח שמשהו נספר בזמן שהשאלה עליו עוד פתוחה למטה.
+        const scannedQty = appliedItems.reduce((s, it) => s + it.qty, 0);
+        const pendingDup = dupCheckQuestions.length;
+        scanResultBox.textContent = scannedQty === 0 && result.questions.length === 0 && pendingDup === 0
           ? 'לא זוהו פריטים בבטחה — אפשר לענות על שאלות ההבהרה למטה, או לבחור ידנית'
           : scannedQty === 1 ? 'זוהה פריט אחד — פירוט ב״הפריטים שנבחרו״ למטה'
           : scannedQty > 1 ? `זוהו ${scannedQty} פריטים — פירוט ב״הפריטים שנבחרו״ למטה`
+          : pendingDup > 0 ? 'זיהינו פריטים שכבר ברשימה — יש שאלת אישור למטה'
           : 'יש שאלת הבהרה על מה שזוהה בתמונה — למטה';
-        aiPhotos = [];
+        // ⚠️ **התמונות נשארות.** קודם הן נמחקו אחרי כל ניתוח, ולכן
+        // "הוסף תמונות" תמיד נראה כמו התחלה נקייה — והסריקה הבאה שלחה
+        // מחדש גם את מה שכבר נספר. הן גם העדות היחידה של הלקוח למה
+        // שנספר, ומסומנות כעת כ"נותחה".
         renderAIPhotos();
         renderQuestions();
         renderItems();
@@ -1089,7 +1185,11 @@
         clearInterval(tick);
         progressFill.style.width = '100%';
         setTimeout(() => { progressWrap.style.display = 'none'; progressText.style.display = 'none'; progressFill.style.width = '0%'; }, 400);
-        btn.disabled = aiPhotos.length === 0 || !isAIConfigured();
+        // ⚠️ **אותו תנאי כמו ב-`renderAIPhotos`, ולא "יש תמונות".**
+        // מאז שהתמונות נשארות על המסך אחרי ניתוח, `aiPhotos.length` אינו
+        // אומר שיש מה לנתח — והכפתור נשאר דלוק על תמונות שכולן כבר
+        // נספרו. לחיצה חוזרת עליו הייתה שולחת בקשה ריקה מתוכן חדש.
+        btn.disabled = aiPhotos.filter(f => !analyzedPhotos.has(f)).length === 0 || !isAIConfigured();
       }
     });
 
@@ -1177,6 +1277,26 @@
       const addItem = (key, qty) => { state.items[key] = (state.items[key] || 0) + qty; };
       const getQty = (key) => state.items[key] || 0;
       const done = () => { renderQuestions(); renderItems(); updateItemsHeader(); };
+
+      /* ⚠️ אישור כפילות מסריקה חוזרת. ה-`itemKey` כאן הוא כבר הווריאנט
+         המדויק שהסריקה הקודמת קבעה — ולא סוג גנרי שממתין לבחירת גודל —
+         ולכן הוא **מדלג על ירידת הגודל** למטה, שאחרת הייתה שואלת "איזה
+         גודל?" על פריט שגודלו כבר ידוע. הוא כן ממשיך לשאלות ההמשך:
+         מיטה שאושרה כנוספת היא מיטה אמיתית שמגיעה לה שאלת מזרון.
+         תאום ל-`AIItemChat.tsx:202-212`. */
+      if (question.id.includes('dup-check-')) {
+        if (option.itemKey) {
+          addItem(option.itemKey, option.qty);
+          if (BED_ITEM_KEYS.has(option.itemKey) && !pendingQuestions.some(hasMattressOptions)) {
+            queue(buildMattressFollowUpQuestion(option.itemKey, option.qty));
+          }
+          queue(diningChairsFollowUpFor(option.itemKey, option.qty, {
+            getQty, existingQuestions: pendingQuestions,
+          }));
+        }
+        done();
+        return;
+      }
 
       /* ⚠️ שאלת המזרון **שלנו** משרשרת לשאלת ארגז המצעים — לכל כיוון
          של התשובה. מזוהה לפי ה-id; שאלת מזרון שה-AI ייצר בעצמו נושאת

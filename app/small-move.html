@@ -28,7 +28,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="../style.css?v=cece2f2d">
-  <link rel="stylesheet" href="style-app.css?v=53ef95b8">
+  <link rel="stylesheet" href="style-app.css?v=8b1aedc7">
   <link rel="stylesheet" href="address-autocomplete.css?v=aa414fa6">
   <!-- ⚠️ נטען אחרון בכוונה — `flow.css` דורס את `style-app.css` תחת
        `.flow-b` בלבד. 14 המסכים האחרים שחולקים את `style-app.css`
@@ -119,7 +119,7 @@
   </style>
 </head>
 <body class="app-body flow-b">
-<div data-build-stamp class="build-stamp" aria-hidden="true">עודכן 20.09 · 11:29</div>
+<div data-build-stamp class="build-stamp" aria-hidden="true">עודכן 20.09 · 11:36</div>
 <script src="/version-check.js" defer></script>
   <!-- ⚠️ 15.9 — "דלג לתוכן המרכזי" (WCAG 2.4.1, רמה A). זהו האלמנט הממוקד
        הראשון בדף: מוסתר מהעין, מופיע בפינה ברגע שמגיעים אליו ב-Tab, ומעביר
@@ -584,7 +584,7 @@
     import { ALL_ROOMS, findItemAnywhere, getItemPriceAnyCategory, getFullAICatalog, getSizeSiblings } from './data/items.js';
     import { BED_ITEM_KEYS, buildMattressFollowUpQuestion, hasMattressOptions,
              buildBeddingBoxFollowUpQuestion, diningChairsFollowUpFor,
-             longestCommonPrefix } from './data/followups.js';
+             buildDuplicateCheckQuestion, longestCommonPrefix } from './data/followups.js';
     import { PRICE_PER_KM, FLOOR_SURCHARGE_PER_FLOOR, getSurgePricing, calculatePackingFromItems, INSURANCE_PRICE_SMALL_MOVE, SMALL_MOVE_BASE_PRICE } from './data/pricing.js';
     import { loadRemotePricingConfig } from './pricing-config.js';
     import { BOX_ITEMS, MAX_VOLUME, estimateVolume, applyWithinCapacity } from './data/smallMoveItems.js';
@@ -877,6 +877,12 @@
     let aiPhotos = [];
     let pendingQuestions = [];
 
+    /* ⚠️ מעקב אחרי תמונות שנותחו, תקרת תמונות, ואישור כפילות בסריקה
+       חוזרת. ההסבר המלא — `apartment.html`, אותו מנגנון בדיוק. */
+    let analyzedPhotos = new Set();
+    let aiScanCount = Number(restoredDraft?.aiScanCount) || 0;
+    const MAX_SCAN_PHOTOS = 10;
+
     // ⚠️ 15.9 — ההודעה הייתה "סריקת AI תהיה זמינה בקרוב", וזה לא נכון:
     // הפיצ'ר קיים ועובד, פשוט דורש התחברות. אורח שקרא את זה לא ידע
     // שיש לו מה לעשות. ראו isAIConfigured ב-ai-vision.js.
@@ -955,29 +961,51 @@
         off(e);
         const files = [...(e.dataTransfer?.files || [])].filter(f => f.type.startsWith('image/'));
         if (!files.length) return;
-        aiPhotos.push(...files);
-        renderAIPhotos();
+        addScanPhotos(files);
       });
     })();
 
     document.getElementById('ai-photo-input').addEventListener('change', (e) => {
-      aiPhotos.push(...Array.from(e.target.files || []));
+      addScanPhotos(Array.from(e.target.files || []));
       e.target.value = '';
-      renderAIPhotos();
     });
+
+    /** הוספת תמונות עם התקרה. נספרות רק תמונות שטרם נותחו. */
+    function addScanPhotos(files) {
+      if (!files.length) return;
+      const errBox = document.getElementById('ai-error');
+      const pending = aiPhotos.filter(f => !analyzedPhotos.has(f)).length;
+      const room = Math.max(0, MAX_SCAN_PHOTOS - pending);
+      const accepted = files.slice(0, room);
+      aiPhotos.push(...accepted);
+      if (accepted.length < files.length) {
+        errBox.innerHTML = `<div class="alert alert-error">אפשר לנתח עד ${MAX_SCAN_PHOTOS} תמונות בבת אחת.
+          ${accepted.length ? `נוספו ${accepted.length}, ` : ''}${files.length - accepted.length} לא נוספו —
+          אפשר לנתח את אלה שכאן ואז להוסיף את השאר.</div>`;
+      } else {
+        errBox.innerHTML = '';
+      }
+      renderAIPhotos();
+    }
 
     function renderAIPhotos() {
       const box = document.getElementById('ai-photo-thumbs');
-      box.innerHTML = aiPhotos.map((file, i) => `
-        <div class="ai-thumb">
-          <img src="${URL.createObjectURL(file)}" alt="תמונה ${i + 1} לניתוח">
+      box.innerHTML = aiPhotos.map((file, i) => {
+        const done = analyzedPhotos.has(file);
+        return `
+        <div class="ai-thumb${done ? ' is-analyzed' : ''}">
+          <img src="${URL.createObjectURL(file)}" alt="תמונה ${i + 1}${done ? ' — כבר נותחה' : ' לניתוח'}">
+          ${done ? '<span class="ai-thumb-tag">נותחה</span>' : ''}
           <button tabindex="0" class="ai-thumb-remove" data-i="${i}" aria-label="הסר תמונה ${i + 1}">✕</button>
-        </div>
-      `).join('');
+        </div>`;
+      }).join('');
       box.querySelectorAll('.ai-thumb-remove').forEach(btn => btn.addEventListener('click', () => {
-        aiPhotos.splice(Number(btn.dataset.i), 1); renderAIPhotos();
+        const [removed] = aiPhotos.splice(Number(btn.dataset.i), 1);
+        analyzedPhotos.delete(removed);
+        renderAIPhotos();
       }));
-      document.getElementById('ai-analyze-btn').disabled = aiPhotos.length === 0 || !isAIConfigured();
+      const fresh = aiPhotos.filter(f => !analyzedPhotos.has(f)).length;
+      document.getElementById('ai-analyze-btn').disabled = fresh === 0 || !isAIConfigured();
     }
 
     document.getElementById('ai-analyze-btn').addEventListener('click', async () => {
@@ -1001,29 +1029,52 @@
         progressText.textContent = progress < 30 ? 'מוריד תמונות...' : progress < 60 ? 'מנתח תוכן...' : progress < 85 ? 'מזהה פריטים...' : 'כמעט מוכן...';
       }, 200);
       try {
+        // רק תמונות שטרם נותחו — ראו `apartment.html`.
+        const toAnalyze = aiPhotos.filter(f => !analyzedPhotos.has(f));
+        const isTopUpScan = aiScanCount > 0 || aiPhotos.some(f => analyzedPhotos.has(f));
         const images = [];
-        for (const file of aiPhotos) {
+        for (const file of toAnalyze) {
           images.push({ base64: await resizeImageToBase64(file), mimeType: 'image/jpeg' });
         }
         const result = await analyzeImagesWithCatalog(AI_CATALOG, 'ההובלה', images);
+        toAnalyze.forEach(f => analyzedPhotos.add(f));
+        aiScanCount += 1;
+        state.aiScanCount = aiScanCount;
+        /* ⚠️ פיצול לפני `applyAIItemChanges`, לא אחריו: פריט שממתין
+           לאישור כפילות לא נכנס לחישוב נפח הטנדר, אחרת סריקה חוזרת
+           הייתה "ממלאת" את הטנדר בפריטים שאולי כלל אינם קיימים —
+           וחוסמת פריטים אמיתיים שנוספו אחריהם. */
+        const appliedItems = [];
+        const dupCheckQuestions = [];
+        for (const it of result.items) {
+          if (isTopUpScan && (state.items[it.itemKey] || 0) > 0) {
+            const label = findItemAnywhere(it.itemKey)?.label || it.itemKey;
+            dupCheckQuestions.push(buildDuplicateCheckQuestion(it.itemKey, it.qty, label));
+          } else {
+            appliedItems.push(it);
+          }
+        }
         // 17.9 — עובר דרך applyAIItemChanges: קודם לכן זה כתב ישירות ל-state.items
         // בלי לבדוק את תקרת נפח הטנדר (ראו applyWithinCapacity ב-data/smallMoveItems.js
         // ותזכיר 60.4 — הכפתורים הידניים כבר בדקו את זה, נתיבי ה-AI לא).
-        const blocked = applyAIItemChanges(result.items);
-        pendingQuestions = pendingQuestions.concat(result.questions);
+        const blocked = applyAIItemChanges(appliedItems);
+        pendingQuestions = pendingQuestions.concat(result.questions, dupCheckQuestions);
         // ⚠️ 17.9 — מקביל ל-successBox/aiDone באפליקציה: בלי זה הסריקה
         // מסתיימת בשקט, והלקוח לא יודע אם היא בכלל מצאה משהו עד שהוא
         // גולל וחיפש. כשהטנדר חסם פריטים, ה-alert המפורט כבר ב-ai-error
         // (showCapacityBlockedAlert) — לא כופלים אותו כאן.
         if (!blocked || blocked.length === 0) {
-          const scannedQty = result.items.reduce((s, it) => s + it.qty, 0);
-          scanResultBox.textContent = scannedQty === 0 && result.questions.length === 0
+          // נספר לפי appliedItems — פריט שממתין לאישור טרם נוסף.
+          const scannedQty = appliedItems.reduce((s, it) => s + it.qty, 0);
+          const pendingDup = dupCheckQuestions.length;
+          scanResultBox.textContent = scannedQty === 0 && result.questions.length === 0 && pendingDup === 0
             ? 'לא זוהו פריטים בבטחה — אפשר לענות על שאלות ההבהרה למטה, או לבחור ידנית'
             : scannedQty === 1 ? 'זוהה פריט אחד — פירוט ב״הפריטים שנבחרו״ למטה'
             : scannedQty > 1 ? `זוהו ${scannedQty} פריטים — פירוט ב״הפריטים שנבחרו״ למטה`
+            : pendingDup > 0 ? 'זיהינו פריטים שכבר ברשימה — יש שאלת אישור למטה'
             : 'יש שאלת הבהרה על מה שזוהה בתמונה — למטה';
         }
-        aiPhotos = [];
+        // ⚠️ התמונות נשארות ומסומנות כ"נותחה" — ראו `apartment.html`.
         renderAIPhotos();
         renderQuestions();
         renderItems();
@@ -1038,7 +1089,8 @@
         clearInterval(tick);
         progressFill.style.width = '100%';
         setTimeout(() => { progressWrap.style.display = 'none'; progressText.style.display = 'none'; progressFill.style.width = '0%'; }, 400);
-        btn.disabled = aiPhotos.length === 0 || !isAIConfigured();
+        // אותו תנאי כמו ב-renderAIPhotos — "יש תמונות" אינו "יש מה לנתח".
+        btn.disabled = aiPhotos.filter(f => !analyzedPhotos.has(f)).length === 0 || !isAIConfigured();
       }
     });
 
@@ -1126,6 +1178,30 @@
       const addItem = (key, qty) => { state.items[key] = (state.items[key] || 0) + qty; };
       const getQty = (key) => state.items[key] || 0;
       const done = () => { renderQuestions(); renderItems(); updateItemsHeader(); };
+
+      /* ⚠️ אישור כפילות מסריקה חוזרת. ה-`itemKey` כבר סופי ולכן מדלג
+         על ירידת הגודל, אבל כן ממשיך לשאלות ההמשך. ההסבר המלא
+         ב-`apartment.html`; תאום ל-`AIItemChat.tsx:202-212`.
+
+         ⚠️ **מוסיף דרך `addItem` ולא דרך `applyAIItemChanges`** — כלומר
+         בלי בדיקת נפח הטנדר. זו אינה החלטה חדשה: כל תשובת-כפתור בקובץ
+         הזה מוסיפה כך (שורה 1178), והתיקון מ-17.9 כיסה את **נתיב
+         הסריקה** בלבד. התאמת שני הנתיבים היא שינוי נפרד, ולא משהו
+         שנכון להבליע בתוך תיקון הספירה הכפולה.
+      */
+      if (question.id.includes('dup-check-')) {
+        if (option.itemKey) {
+          addItem(option.itemKey, option.qty);
+          if (BED_ITEM_KEYS.has(option.itemKey) && !pendingQuestions.some(hasMattressOptions)) {
+            queue(buildMattressFollowUpQuestion(option.itemKey, option.qty));
+          }
+          queue(diningChairsFollowUpFor(option.itemKey, option.qty, {
+            getQty, existingQuestions: pendingQuestions,
+          }));
+        }
+        done();
+        return;
+      }
 
       /* ⚠️ שאלת המזרון **שלנו** משרשרת לשאלת ארגז המצעים — לכל כיוון
          של התשובה. מזוהה לפי ה-id; שאלת מזרון שה-AI ייצר בעצמו נושאת

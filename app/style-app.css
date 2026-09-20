@@ -743,6 +743,16 @@
   position: absolute; top: -6px; left: -6px; width: 20px; height: 20px; border-radius: 50%;
   background: rgba(0,0,0,0.6); color: #fff; border: none; font-size: 0.7rem; cursor: pointer;
 }
+/* ⚠️ תמונה שכבר נותחה נשארת על המסך כעדות למה שנספר, ולכן היא חייבת
+   להיראות שונה — אחרת שורת התמונות נראית כמו תור שממתין לניתוח, והלקוח
+   לוחץ "נתח" שוב ומצפה שמשהו יקרה. `opacity` לבדה לא מספיקה כסימן
+   (היא נקראת כ"מושבת"), ולכן גם תווית טקסט. */
+.ai-photo-thumbs .ai-thumb.is-analyzed img { opacity: 0.55; }
+.ai-photo-thumbs .ai-thumb-tag {
+  position: absolute; bottom: 0; inset-inline: 0; text-align: center;
+  background: rgba(10,68,51,0.82); color: #fff; font-size: 0.56rem; font-weight: 700;
+  padding: 2px 0; border-radius: 0 0 10px 10px; letter-spacing: 0.02em;
+}
 .ai-upload-progress { max-width: 360px; margin: 0 0 10px; height: 6px; background: var(--white); border-radius: 3px; overflow: hidden; }
 .ai-upload-progress-fill { height: 100%; background: var(--green); transition: width 0.2s ease; }
 
