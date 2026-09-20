@@ -86,7 +86,27 @@ let stamped = 0;
 for (const page of pages) {
   const file = join(ROOT, page);
   const src = readFileSync(file, 'utf8');
-  const out = src.replace(
+
+  /* ⚠️ 21.9 — **בלוק החותמת מוחלף לפני מעבר החותמות, לא אחריו.**
+     בסדר ההפוך הסקריפט מחק בעצמו את מה שהוסיף: מעבר החותמות הוסיף
+     `?v=<hash>` גם ל-`/version-check.js`, ואז ה-block-replace דרס את
+     כל הבלוק ב-`STAMP_HTML` הקשיח — שאין בו `?v=`. התוצאה: `--check`
+     נכשל על הנכס הזה **בכל 26 הדפים, בכל הרצה**, וזה נראה כמו סחף
+     ישן שאי-אפשר לתקן. כאן הבלוק נכנס קודם, ומעבר החותמות שאחריו
+     חותם גם אותו — כלומר `version-check.js` מקבל סוף-סוף מבטל-מטמון
+     כמו כל נכס אחר. */
+  let base = src;
+  if (!CHECK) {
+    // ⚠️ הרג'קס בולע גם את תגית הסקריפט, **כולל `?v=<hash>`** שהוסף
+    // בהרצה קודמת. בלעדיו היא שוכפלה בכל הרצה (נתפס בהרצה השנייה).
+    const re = /<div data-build-stamp[\s\S]*?<\/div>\n?(?:\s*<script src="\/version-check\.js(?:\?v=[a-f0-9]+)?" defer><\/script>\n?)*/;
+    base = re.test(src)
+      ? src.replace(re, STAMP_HTML + '\n')
+      : src.replace(/(<body[^>]*>\n?)/i, `$1${STAMP_HTML}\n`);
+    if (base !== src) stamped++;
+  }
+
+  const out = base.replace(
     /(\s(?:href|src)=")([^"]+\.(?:css|js))(\?v=[0-9a-f]{8})?(")/g,
     (full, pre, href, oldStamp, post) => {
       const asset = resolveAsset(href, page);
@@ -101,22 +121,7 @@ for (const page of pages) {
       return want;
     },
   );
-  /* החותמת נכנסת מיד אחרי <body>, ומוחלפת אם כבר קיימת. */
-  let withStamp = out;
-  if (!CHECK) {
-    // ⚠️ הרג'קס בולע גם את תגית הסקריפט שאחרי ה-div. בלי זה היא
-    // הייתה משוכפלת בכל הרצה של הסקריפט.
-    // ⚠️ הרג'קס בולע גם את תגית הסקריפט, **כולל `?v=<hash>`** —
-    // הסקריפט הזה עצמו מוסיף את החותמת להפניות בהמשך הריצה, ולכן
-    // בהרצה הבאה התגית כבר אינה בצורתה המקורית. בלי ה-`?v=` האופציונלי
-    // כאן היא שוכפלה בכל הרצה (נתפס בהרצה השנייה).
-    const re = /<div data-build-stamp[\s\S]*?<\/div>\n?(?:\s*<script src="\/version-check\.js(?:\?v=[a-f0-9]+)?" defer><\/script>\n?)*/;
-    withStamp = re.test(out)
-      ? out.replace(re, STAMP_HTML + '\n')
-      : out.replace(/(<body[^>]*>\n?)/i, `$1${STAMP_HTML}\n`);
-    if (withStamp !== out) stamped++;
-  }
-  if (!CHECK && withStamp !== src) writeFileSync(file, withStamp);
+  if (!CHECK && out !== src) writeFileSync(file, out);
 }
 
 if (CHECK) {
