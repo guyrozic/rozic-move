@@ -131,7 +131,7 @@
   </style>
 </head>
 <body class="app-body flow-b">
-<div data-build-stamp class="build-stamp" aria-hidden="true">עודכן 20.09 · 11:22</div>
+<div data-build-stamp class="build-stamp" aria-hidden="true">עודכן 20.09 · 11:29</div>
 <script src="/version-check.js" defer></script>
   <!-- ⚠️ 15.9 — "דלג לתוכן המרכזי" (WCAG 2.4.1, רמה A). זהו האלמנט הממוקד
        הראשון בדף: מוסתר מהעין, מופיע בפינה ברגע שמגיעים אליו ב-Tab, ומעביר
@@ -766,7 +766,21 @@
       history.replaceState(null, '', location.pathname);
     }
     const restoredDraft = loadOrderDraft('apartment');
-    if (restoredDraft) Object.assign(state, restoredDraft);
+    /* ⚠️ 20.9 — **השלב נשמר בתוך הטיוטה, לא לצידה.** האפליקציה חוזרת
+       לשלב שבו הלקוח היה (`resumeToSavedStep`), והאתר חזר תמיד לשלב 1:
+       לקוח שמילא כתובות, בחר פריטים והגיע לתאריך — מצא את עצמו אחרי
+       רענון בתחילת הטופס, עם כל הנתונים במקום אבל בלי שום סימן לכך.
+       השדה מוברח דרך `attachDraftAutosave` הקיים (בסוף הסקריפט) ולא
+       דרך מפתח localStorage שני, כדי שהשלב והתוכן ייכתבו תמיד יחד —
+       שני מפתחות נפרדים היו יכולים להיפרד ולהחזיר לקוח לשלב 4 של
+       הזמנה שכבר נמחקה. */
+    const restoredStep = Math.min(4, Math.max(1, Number(restoredDraft?.__step) || 1));
+    if (restoredDraft) {
+      // `__step` הוא מטא-נתון של הטופס ולא שדה הזמנה — הוא נמחק כאן כדי
+      // שלא יזלוג ל-`state` ומשם למסמך ההזמנה ב-Firestore.
+      delete restoredDraft.__step;
+      Object.assign(state, restoredDraft);
+    }
     /**
      * ⚠️ 15.9 — טיוטה שנדחית נזרקה **בשקט מוחלט**.
      *
@@ -2535,8 +2549,8 @@
      * באמצע השחזור. וב"אין טיוטה" זה גרוע יותר: טופס ריק היה נשמר
      * כטיוטה ודורס את מה שהיה.
      */
-    draftAutosave = attachDraftAutosave('apartment', () => state, () => submitting);
-    goToStep(1);
+    draftAutosave = attachDraftAutosave('apartment', () => ({ ...state, __step: step }), () => submitting);
+    goToStep(restoredStep);
   </script>
 </body>
 </html>
