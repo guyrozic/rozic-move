@@ -90,6 +90,17 @@
       color: var(--green-ink); font-weight: 700;
     }
 
+    /* ⚠️ 62.4 (21.9) — פירוט "מה נארז ומה לא" בתוך #packing-preview
+       (`.alert.alert-info`). בלי `color` משלהן בכוונה: הן יורשות את
+       `var(--info)` מ-`.alert-info` שכבר עומד ב-AA על הרקע הזה
+       (6.25:1) — הצהרת הנגישות מבטיחה את זה, וצבע חדש (או `opacity`,
+       שמדלל בדיוק כמו צבע בהיר יותר) היה עוקף את הבדיקה בלי לעדכן אותה.
+       הפירוט הוא הרחבת השורה הקיימת בלבד — לא מסך שני (`PackingOfferScreen`
+       ב-Hovalot, `step==='breakdown'`), ואינו מחשב מחיר; המחיר מגיע
+       תמיד מ-`packingCalc.total`. */
+    .packing-preview-summary { margin: 0 0 4px; font-weight: 700; }
+    .packing-preview-detail { margin: 4px 0 0; font-size: 0.85rem; }
+
     /* ⚠️ 17.9 — חלון זמן שהשעה שלו כבר עברה. מקבילה ל-`chipPast` ב-
        `TimeSlotPicker.tsx` באפליקציה, כולל ההכרעה שם: **מעומעם ולא
        מוסתר** — חלון שנעלם משאיר את הלקוח בלי להבין למה נשארו שלושה,
@@ -623,7 +634,7 @@
     import { createOrder } from './orders.js';
     import { orderTermsConsent } from './legal.js';
     import { isValidFullName, FULL_NAME_ERROR } from './auth.js';
-    import { ALL_ROOMS, findItemAnywhere, getItemPriceAnyCategory, getFullAICatalog, getSizeSiblings } from './data/items.js';
+    import { ALL_ROOMS, findItemAnywhere, getItemPriceAnyCategory, getFullAICatalog, getSizeSiblings, getPackingInfo } from './data/items.js';
     import { BED_ITEM_KEYS, buildMattressFollowUpQuestion, hasMattressOptions,
              buildBeddingBoxFollowUpQuestion, diningChairsFollowUpFor,
              buildDuplicateCheckQuestion, longestCommonPrefix } from './data/followups.js';
@@ -1754,8 +1765,27 @@
     renderItems();
 
     // ---------- Step 2: packing ----------
+    /**
+     * ⚠️ 62.4 (21.9) — סיווג תצוגה בלבד ל"מה נארז ומה לא", מתחת לשורת
+     * המחיר הקיימת. **לא מחשב שום מחיר** — אותו סיווג בדיוק שכבר רץ
+     * בתוך `calculatePackingFromItems`/`classifyRoomItemForPacking`
+     * ב-`data/pricing.js`, כדי שהרשימה כאן לא תוכל להיפרד מהמספר שכבר
+     * מוצג. גיא בחר במפורש לא לבנות מסך שני (`PackingOfferScreen` ב-
+     * Hovalot, `step==='breakdown'`) — זו הרחבה של השורה, לא מסך נוסף.
+     */
+    function classifyForPackingPreview(item, countCustomerBoxes) {
+      if (getBoxSizeFromKey(item.key)) return countCustomerBoxes ? 'box' : 'none';
+      const catalogItem = findItemAnywhere(item.key);
+      return catalogItem ? getPackingInfo(catalogItem).packingType : 'none';
+    }
+    /** "תווית ×כמות, תווית ×כמות ועוד N" — קצר בכוונה, לא רשימה מלאה כמו במסך השני באפליקציה. */
+    function summarizePackingLabels(items, max = 3) {
+      if (!items.length) return '';
+      const names = items.map(i => (i.qty > 1 ? `${i.label} ×${i.qty}` : i.label));
+      return names.length <= max ? names.join(', ') : `${names.slice(0, max).join(', ')} ועוד ${names.length - max}`;
+    }
     function renderPackingOffer() {
-      const { packingCalc, boxesQty, hasCustomerBoxes } = computePrice();
+      const { packingCalc, boxesQty, hasCustomerBoxes, selected } = computePrice();
       const boxesCard = document.getElementById('boxes-packed-card');
       boxesCard.style.display = hasCustomerBoxes ? '' : 'none';
       if (hasCustomerBoxes) {
@@ -1774,9 +1804,24 @@
       const parts = [];
       if (packingCalc.totalBoxes > 0) parts.push(`כ-${Math.ceil(packingCalc.totalBoxes)} ארגזים`);
       if (packingCalc.wrapCount > 0) parts.push(`${packingCalc.wrapCount} פריטי ריהוט עטופים`);
-      document.getElementById('packing-preview').textContent = parts.length
-        ? `הצוות יארוז: ${parts.join(' + ')} — +₪${formatPrice(packingCalc.total)}`
-        : 'לא בחרת פריטים, ולכן אין מה לארוז. אפשר לחזור ולהוסיף פריטים, או להמשיך.';
+      const previewEl = document.getElementById('packing-preview');
+      if (!parts.length) {
+        previewEl.textContent = 'לא בחרת פריטים, ולכן אין מה לארוז. אפשר לחזור ולהוסיף פריטים, או להמשיך.';
+      } else {
+        // 62.4 — "מה נארז ומה לא", מתחת לשורת המחיר. countCustomerBoxes
+        // זהה לחישוב ב-computePrice (60.2) — לא ערך חדש, רק נגזר כאן שוב
+        // כדי לסווג תצוגה בלבד.
+        const countCustomerBoxes = hasCustomerBoxes && !state.boxesAlreadyPacked;
+        const packed = [];
+        const excluded = [];
+        selected.forEach(i => {
+          (classifyForPackingPreview(i, countCustomerBoxes) === 'none' ? excluded : packed).push(i);
+        });
+        const lines = [`<p class="packing-preview-summary">הצוות יארוז: ${parts.join(' + ')} — +₪${formatPrice(packingCalc.total)}</p>`];
+        if (packed.length) lines.push(`<p class="packing-preview-detail">כולל: ${escHtml(summarizePackingLabels(packed))}</p>`);
+        if (excluded.length) lines.push(`<p class="packing-preview-detail">לא כלול בשירות האריזה: ${escHtml(summarizePackingLabels(excluded))} — אלה עוברים כמו שהם.</p>`);
+        previewEl.innerHTML = lines.join('');
+      }
       /**
        * ⚠️ 17.9 — **אין מה לארוז ⇒ אין כפתור "הוסף שירות אריזה".**
        *
