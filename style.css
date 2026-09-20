@@ -1750,15 +1750,26 @@ textarea:focus-visible,
    ⚠️ `position:fixed` ולא `absolute`: ב-absolute הוא היה נצבע בראש
    **המסמך**, ומי שלוחץ Tab אחרי שגלל למטה לא היה רואה אותו כלל.
    ⚠️ `inset-inline-start` ולא `left`: הדף RTL, והפינה ההתחלתית היא ימין. */
+/* ⚠️ 20.9 — גיא ביקש להסיר את הקישור הזה כי הוא "נראה לא יפה".
+   אי אפשר: WCAG 2.4.1 ברמה A (עקיפת בלוקים), והצהרת הנגישות שלנו —
+   מסמך פומבי לפי תקנה 35ה — מתחייבת לתקן. גם `check-a11y` אוכף אותו.
+   מה שכן — הוא נראה כמו גוף זר: ירוק ישן, פינות מרובעות, ובלי שום
+   קשר לשפה של שאר האתר. עוצב מחדש כפקד: גלולה, אייקון, ומשקל.
+   ⚠️ הוא עדיין **מופיע רק במיקוד מקלדת** — `top: -120px` בברירת
+   מחדל. נמדד על הייצור: בטעינה, אחרי קליק ואחרי גלילה הוא מחוץ
+   למסך; רק Tab מביא אותו. */
 .skip-link {
   position: fixed;
   top: -120px;
   inset-inline-start: 16px;
   z-index: 10000;
-  padding: 12px 22px;
-  border-radius: 0 0 var(--radius-sm) var(--radius-sm);
-  background: var(--green);
-  color: var(--white);            /* 7.98:1 על --green */
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 11px 20px;
+  border-radius: 0 0 999px 999px;
+  background: var(--green-dark);
+  color: var(--white);            /* 11.13:1 על --green-dark */
   font-family: inherit;
   font-size: 0.95rem;
   font-weight: 700;
@@ -1766,6 +1777,16 @@ textarea:focus-visible,
   text-decoration: none;
   box-shadow: var(--shadow-md);
   transition: top var(--transition);
+}
+.skip-link::before {
+  content: '';
+  width: 15px; height: 15px;
+  flex: none;
+  background: currentColor;
+  /* חץ למטה — "דלג אל התוכן". `mask` ולא <svg> כי הקישור מוזרק
+     כטקסט בלבד ב-42 דפים, ותגית פנימית הייתה דורשת נגיעה בכולם. */
+  -webkit-mask: center/contain no-repeat url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none'%3E%3Cpath d='M8 3v10M3.5 8.5 8 13l4.5-4.5' stroke='%23fff' stroke-width='1.9' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  mask: center/contain no-repeat url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none'%3E%3Cpath d='M8 3v10M3.5 8.5 8 13l4.5-4.5' stroke='%23fff' stroke-width='1.9' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
 }
 .skip-link:focus { top: 0; }
 
