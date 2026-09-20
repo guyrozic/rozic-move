@@ -30,6 +30,29 @@ export async function startGrowCheckout(orderId) {
   location.href = data.url;
 }
 
+/**
+ * שינוי מועד להזמנה שטרם שולמה.
+ *
+ * ⚠️ הסכום **לא** נשלח ולא מחושב כאן. השרת מוודא שהמועד החדש נמצא
+ * באותה מדרגת תוספת (שבת +50% · שישי +25% · שאר הימים 0), ולכן המחיר
+ * זהה מעצם ההגדרה. מדרגה שונה מוחזרת כשגיאה `surge tier changed`
+ * ולא נכתבת בשקט — ראו `functions/src/customerRescheduleOrder.ts`.
+ */
+const RESCHEDULE_URL = 'https://us-central1-hovalot-6cf65.cloudfunctions.net/customerRescheduleOrder';
+
+export async function rescheduleOrder(orderId, scheduledDate, timeSlot) {
+  if (!auth.currentUser) throw new Error('NOT_LOGGED_IN');
+  const token = await auth.currentUser.getIdToken();
+  const res = await fetch(RESCHEDULE_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+    body: JSON.stringify({ orderId, scheduledDate, timeSlot: timeSlot || null }),
+  });
+  const data = await res.json().catch(() => null);
+  if (!res.ok) throw new Error((data && data.error) || 'RESCHEDULE_FAILED');
+  return data;
+}
+
 /* ──────────────────────────── טיפ למוביל ──────────────────────────── */
 
 /**

@@ -141,7 +141,7 @@
   </style>
 </head>
 <body class="app-body flow-b">
-<div data-build-stamp class="build-stamp" aria-hidden="true">עודכן 20.09 · 10:26</div>
+<div data-build-stamp class="build-stamp" aria-hidden="true">עודכן 20.09 · 10:43</div>
 <script src="/version-check.js" defer></script>
   <!-- ⚠️ 15.9 — "דלג לתוכן המרכזי" (WCAG 2.4.1, רמה A). זהו האלמנט הממוקד
        הראשון בדף: מוסתר מהעין, מופיע בפינה ברגע שמגיעים אליו ב-Tab, ומעביר
@@ -242,7 +242,7 @@
       .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
       .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
 
-    import { startGrowCheckout, startTipCheckout, TIP_PERCENT_OPTIONS, TIP_FIXED_OPTIONS, TIP_MAX } from './payments.js';
+    import { startGrowCheckout, rescheduleOrder, startTipCheckout, TIP_PERCENT_OPTIONS, TIP_FIXED_OPTIONS, TIP_MAX } from './payments.js';
     import { isValidFullName, FULL_NAME_ERROR } from './auth.js';
 
     const authState = await requireAuth();
@@ -1019,10 +1019,150 @@
         try {
           await startGrowCheckout(order.id);
         } catch (err) {
-          payErrBox.innerHTML = '<div class="alert alert-error">פתיחת התשלום נכשלה. נסה שוב.</div>';
+          /* ⚠️ **"נסה שוב" היה תשובה שגויה לחלק מהמקרים.** כשהשרת
+             חוסם כי מועד ההובלה חלף (`schedule passed`), שום ניסיון
+             חוזר לא יכול להצליח — וזה בדיוק מה שקרה לגיא ב-20.9:
+             הזמנה מ-19.9 לאותו יום, כניסה לשלם למחרת, וקיר.
+             לכן המקרה הזה מקבל הסבר אמיתי ומסלול קדימה. */
+          if (String(err?.message) === 'schedule passed') {
+            renderRescheduleBox();
+          } else {
+            payErrBox.innerHTML = '<div class="alert alert-error">פתיחת התשלום נכשלה. נסה שוב.</div>';
+          }
           btn.disabled = false; btn.textContent = `שלם עכשיו — ₪${total}`;
         }
       });
+
+      /* ═══════════ בחירת מועד חדש להזמנה שמועדה חלף ═══════════════
+         ⚠️ **המחיר לא מחושב כאן ולא נשלח.** הרכיב היחיד בתמחור שתלוי
+         בתאריך הוא התוספת: שבת +50%, שישי +25%, שאר הימים 0. הבורר
+         מסמן מראש תאריך שמדרגתו שונה מזו של המועד המקורי, והשרת
+         דוחה אותו בכל מקרה — כלומר אי אפשר להגיע למצב שבו המועד
+         משתנה והמחיר נשאר ישן. אין כאן מנוע תמחור בשרת, וזו החלטה
+         מתועדת (ראו flagSuspiciousOrderPrice.ts).
+         ────────────────────────────────────────────────────────── */
+      /* ⚠️ שלוש עזר מקומיות. הן קיימות ב-`apartment.html` בתוך היקף
+         המודול שלו ואינן מיוצאות, והשימוש בהן כאן בלי להגדיר היה
+         קורס בדיוק ברגע שהלקוח נתקל בשגיאה — כלומר באג שמופיע רק
+         בנתיב הכושל. הועתקו מילה במילה משם. */
+      function activateOnKey(el, handler) {
+        el.addEventListener('keydown', (ev) => {
+          if (ev.key === 'Enter' || ev.key === ' ' || ev.key === 'Spacebar') {
+            ev.preventDefault();
+            handler();
+          }
+        });
+      }
+      function makeChipAccessible(chip, pressed) {
+        chip.tabIndex = 0;
+        chip.setAttribute('role', 'button');
+        chip.setAttribute('aria-pressed', pressed ? 'true' : 'false');
+      }
+      const escHtml = (v) => String(v ?? '')
+        .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+
+      const RESCHEDULE_SLOTS = ['08:00-11:00', '11:00-14:00', '14:00-17:00', '17:00-20:00'];
+
+      /** אותן שלוש שורות של getSurgePricing — יום בשבוע בלבד. */
+      function surgeTierOfDate(d) {
+        const dow = d.getDay();
+        return dow === 6 ? 'שבת' : dow === 5 ? 'שישי' : null;
+      }
+      function parseDMY(str) {
+        const p = String(str || '').split('/').map(Number);
+        return p.length === 3 ? new Date(p[2], p[1] - 1, p[0]) : null;
+      }
+
+      function renderRescheduleBox() {
+        const oldDate = parseDMY(order.scheduledDate);
+        const oldTier = oldDate ? surgeTierOfDate(oldDate) : null;
+        // מינימום מחר: היום עצמו כבר עבר או עומד לעבור, והזמנה לאותו
+        // יום דרך המסך הזה היא בדיוק המקרה שיצר את המבוי הסתום.
+        const min = new Date(); min.setDate(min.getDate() + 1);
+        const iso = (d) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+        const max = new Date(); max.setDate(max.getDate() + 120);
+
+        payErrBox.innerHTML = `
+          <div class="alert alert-error" style="margin-bottom:12px;">
+            מועד ההובלה שבחרת (${escHtml(order.scheduledDate || '')}) כבר עבר, ולכן אי אפשר לשלם עליו.
+            בחר מועד חדש כדי להמשיך.
+          </div>
+          <div class="app-card" style="margin-bottom:12px;">
+            <div class="form-group">
+              <label for="rs-date">מועד חדש</label>
+              <input type="date" id="rs-date" min="${iso(min)}" max="${iso(max)}">
+              <div class="form-hint" id="rs-warn" role="alert"></div>
+            </div>
+            <div class="form-group">
+              <label id="rs-slot-label">שעה מועדפת (לא חובה)</label>
+              <div class="room-tabs" id="rs-slots" role="group" aria-labelledby="rs-slot-label"></div>
+            </div>
+            <button tabindex="0" class="btn btn-primary" id="rs-save" disabled>עדכן מועד והמשך לתשלום</button>
+          </div>`;
+
+        let slot = '';
+        const slotsEl = document.getElementById('rs-slots');
+        RESCHEDULE_SLOTS.forEach((s) => {
+          const chip = document.createElement('div');
+          chip.className = 'room-tab';
+          chip.textContent = s;
+          const pick = () => {
+            slot = slot === s ? '' : s;
+            [...slotsEl.children].forEach((c) => {
+              const on = c.textContent === slot;
+              c.classList.toggle('active', on);
+              c.setAttribute('aria-pressed', on ? 'true' : 'false');
+            });
+          };
+          makeChipAccessible(chip, false);
+          chip.addEventListener('click', pick);
+          activateOnKey(chip, pick);
+          slotsEl.appendChild(chip);
+        });
+
+        const dateEl = document.getElementById('rs-date');
+        const warnEl = document.getElementById('rs-warn');
+        const saveBtn = document.getElementById('rs-save');
+        dateEl.addEventListener('change', () => {
+          const v = dateEl.value;
+          if (!v) { saveBtn.disabled = true; warnEl.textContent = ''; return; }
+          const picked = new Date(`${v}T00:00:00`);
+          const tier = surgeTierOfDate(picked);
+          if (tier !== oldTier) {
+            // ⚠️ נחסם מראש ולא נשלח כדי ליפול בשרת: כך הלקוח מקבל את
+            // הסיבה האמיתית במקום שגיאה גנרית.
+            warnEl.innerHTML = tier
+              ? `<span style="color:var(--danger)">התאריך שבחרת הוא ${tier}, ולכן המחיר כולל תוספת שאינה בהזמנה הנוכחית. בחר יום אחר, או הזמן מחדש כדי לקבל את המחיר המעודכן.</span>`
+              : '<span style="color:var(--danger)">ההזמנה הנוכחית מתומחרת ליום עם תוספת. מעבר ליום רגיל משנה את המחיר — צריך להזמין מחדש.</span>';
+            saveBtn.disabled = true;
+            return;
+          }
+          warnEl.textContent = '';
+          saveBtn.disabled = false;
+        });
+
+        saveBtn.addEventListener('click', async () => {
+          const v = dateEl.value;
+          if (!v) return;
+          const [y, m, d] = v.split('-').map(Number);
+          saveBtn.disabled = true; saveBtn.textContent = 'מעדכן...';
+          try {
+            await rescheduleOrder(order.id, `${d}/${m}/${y}`, slot);
+            // המועד עודכן — ממשיכים ישר לתשלום, בלי לבקש מהלקוח
+            // ללחוץ פעם נוספת על כפתור שכבר לחץ עליו.
+            await startGrowCheckout(order.id);
+          } catch (e) {
+            const code = String(e?.message || '');
+            saveBtn.disabled = false; saveBtn.textContent = 'עדכן מועד והמשך לתשלום';
+            warnEl.innerHTML = `<span style="color:var(--danger)">${
+              code === 'surge tier changed' ? 'התאריך שבחרת משנה את מחיר ההזמנה. בחר יום אחר או הזמן מחדש.'
+              : code === 'driver assigned' ? 'כבר שובץ מוביל להזמנה — פנה לתמיכה כדי לשנות מועד.'
+              : code === 'already paid' ? 'ההזמנה כבר שולמה.'
+              : 'עדכון המועד נכשל. נסה שוב או פנה לתמיכה.'}</span>`;
+          }
+        });
+      }
 
       /**
        * ⚠️ 15.9 — **הלקוח לא ידע שייגבו ממנו דמי ביטול.**
