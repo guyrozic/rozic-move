@@ -381,6 +381,57 @@
   .flow-b .routes-row .rt { min-height: clamp(380px, 26vw, 470px); }
 }
 
+/* ── מסך בחירת השירות ─────────────────────────────────────────────
+   גיא: "כאשר חוזרים ממסך בחירת שירות שלב אחורנית מגיעים למסך מבולגן
+   ולא מעוצב ולא לפי התצורה החדשה."
+
+   ⚠️ הסיבה נמדדה: `.app-container.wide` נעצר ב-980px. במסך 2558 זה
+   **38% מהרוחב** — עמודה צרה של תוכן מתחת לבמה שתופסת 100%. המסך לא
+   היה "לא מעוצב", הוא פשוט נשאר ברוחב הישן בזמן שכל השאר גדל.
+   כאן הוא מקבל את אותו רוחב, אותו מקצב מרווחים ואותו שלד כרטיס
+   כמו שאר המסכים. */
+.flow-b .app-container.wide { max-width: min(1580px, 94vw); }
+/* המסכים הצרים (טפסים) מתרחבים במידה — רוחב שורה קריא חשוב שם יותר
+   מניצול המסך, ולכן לא עד הסוף. */
+.flow-b .app-container:not(.wide) { max-width: min(860px, 94vw); }
+
+.flow-b .hub-section { margin-bottom: var(--fl-gap); }
+.flow-b .hub-section-title {
+  font-size: 1.15rem;
+  font-weight: 800;
+  letter-spacing: -.4px;
+  text-transform: none;
+  color: var(--text);
+  margin-bottom: 18px;
+}
+.flow-b .service-tiles,
+.flow-b .account-links { gap: var(--fl-gap); }
+.flow-b .service-tiles { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+@media (max-width: 860px) {
+  .flow-b .service-tiles { grid-template-columns: minmax(0, 1fr); }
+}
+/* אותו שלד כרטיס של מסלולי ההזמנה: אותו רדיוס, אותו צל, ואותו
+   גובה מינימלי — כדי ששלושת השירותים ייקראו כמו שלושת המסלולים. */
+.flow-b .service-tile {
+  border: 0;
+  border-radius: 18px;
+  padding: clamp(24px, 1.9vw, 34px);
+  box-shadow: 0 2px 5px rgba(10,68,51,.05), 0 20px 46px -16px rgba(10,68,51,.28);
+  display: flex;
+  flex-direction: column;
+}
+@media (min-width: 1080px) {
+  .flow-b .service-tile { min-height: clamp(220px, 15vw, 300px); }
+}
+.flow-b .service-tile .tile-icon-wrap { margin-bottom: auto; }
+.flow-b .service-tile .tile-name { font-size: 1.2rem; letter-spacing: -.4px; margin-top: 18px; }
+.flow-b .service-tile .tile-desc { font-size: .92rem; }
+.flow-b .account-link {
+  border: 0;
+  border-radius: 18px;
+  box-shadow: 0 2px 5px rgba(10,68,51,.05), 0 20px 46px -16px rgba(10,68,51,.28);
+}
+
 /* ── רכיבי כרטיס המסלול ───────────────────────────────────────────
    שלושת הכרטיסים חולקים עכשיו את אותו שלד: אייקון בריבוע, כותרת,
    משפט, אזור תוכן שנצמד לתחתית, וכפתור אחד ברוחב מלא. */
