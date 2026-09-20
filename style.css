@@ -2661,37 +2661,31 @@ body.hp-home .nav:not(.scrolled) :is(a, button, summary, [tabindex]):focus-visib
   user-select: none;
 }
 
-/* ── "יש גרסה חדשה" ────────────────────────────────────────────────
-   נלווה ל-`version-check.js`. ⚠️ שניהם נמחקים יחד עם חותמת הבנייה
-   לפני השקה לציבור — החיפוש: `data-build-stamp`.
-   ⚠️ הרצועה **אינה** `position: fixed`: היא דוחפת את התוכן במקום
-   לכסות אותו, בדיוק כמו `offline-banner`. רצועה שמכסה יכולה להסתיר
-   את השורה הראשונה של טופס בלי שאיש ישים לב. */
-.version-bar {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 14px;
-  flex-wrap: wrap;
-  padding: 10px 18px;
-  /* ניגודיות נמדדה: --text על --green-light = 12.9 */
-  background: var(--green-light);
-  color: var(--text);
-  font-size: 0.9rem;
-  font-weight: 600;
-  text-align: center;
-  border-bottom: 1px solid rgba(20,42,34,0.12);
+/* ── חותמת הבנייה במצב "גרסה חדשה" ────────────────────────────────
+   נלווה ל-`version-check.js`. ⚠️ שניהם נמחקים יחד לפני השקה לציבור —
+   החיפוש: `data-build-stamp`.
+   ⚠️ **ההתראה היא אותה חותמת, לא אלמנט חדש.** הגרסה הראשונה הוסיפה
+   רצועה ברוחב מלא, ובדף הבית היא נדחפה מתחת ל-`nav` שהוא
+   `position: fixed` ורצה מעל קישורי הניווט. אלמנט שכבר `position:
+   fixed` בפינה לא יכול להתנגש בכלום. */
+.build-stamp.is-stale {
+  padding: 0;
+  background: var(--green-dark);
+  border-radius: 0 0 0 10px;
+  box-shadow: 0 6px 18px rgba(10,68,51,0.35);
 }
-.version-bar-btn {
+.build-stamp-btn {
   font: inherit;
+  font-size: 11px;
   font-weight: 800;
-  background: var(--green);
-  color: var(--white);
+  line-height: 1.4;
+  padding: 6px 12px;
+  background: none;
   border: 0;
-  border-radius: 999px;
-  padding: 7px 20px;
+  border-radius: inherit;
+  color: var(--green-light);    /* 12.1:1 על --green-dark */
   cursor: pointer;
-  flex-shrink: 0;
+  white-space: nowrap;
 }
-.version-bar-btn:hover { background: var(--green-dark); }
-.version-bar-btn:focus-visible { outline: 2px solid var(--text); outline-offset: 2px; }
+.build-stamp-btn:hover { background: rgba(255,255,255,0.12); }
+.build-stamp-btn:focus-visible { outline: 2px solid var(--green-on-dark); outline-offset: -3px; }
