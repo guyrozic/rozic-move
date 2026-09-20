@@ -41,8 +41,8 @@
   </style>
 </head>
 <body class="app-body flow-b">
-<div data-build-stamp class="build-stamp" aria-hidden="true">עודכן 20.09 · 23:56</div>
-<script src="/version-check.js" defer></script>
+<div data-build-stamp class="build-stamp" aria-hidden="true">עודכן 21.09 · 00:57</div>
+<script src="/version-check.js?v=b4f8b2f7" defer></script>
   <!-- ⚠️ 15.9 — "דלג לתוכן המרכזי" (WCAG 2.4.1, רמה A). זהו האלמנט הממוקד
        הראשון בדף: מוסתר מהעין, מופיע בפינה ברגע שמגיעים אליו ב-Tab, ומעביר
        את המיקוד אל <main id="main-content" tabindex="-1">. בלי ה-tabindex
@@ -112,8 +112,23 @@
 
       <!-- 16.9 — קוד הפניה, פאזה 2 של האזור האישי. נוצר ב-auth.js
            (generateReferralCode) ולא הוצג עד היום בשום מקום, לא באתר
-           ולא באפליקציה. -->
-      <div class="app-card" id="referral">
+           ולא באפליקציה.
+
+           ⚠️ 21.9 — **הכרטיס הזה היה חשוף בייצור בזמן שהתוכנית כבויה.**
+           `REFERRAL_PROGRAM_ENABLED` הוא `false` גם ב-`login.html:498`
+           וגם ב-`~/Hovalot/src/constants/pilotMode.ts`, אחרי שגיא כיבה
+           את התוכנית ב-16.9 (תזכיר #43 פריט 5) — כי היא **יוצרת
+           התחייבות ולא מוסרת אותה**: `referralReward` רושם קופון ₪50
+           שאין מסך שקורא אותו.
+
+           אבל השדה שחוסם הוא רק שדה ה**הזנה** ב-`login.html`. כאן
+           המשיכה להופיע ההבטחה עצמה — "שתף את הקוד... תקבל ₪50" — לכל
+           משתמש מחובר. כלומר האתר ביקש מלקוחות להפנות חברים לתוכנית
+           שכבויה, והחבר שקיבל את הקוד לא מצא בכלל איפה להזין אותו.
+
+           ⚠️ **הגידור כאן חייב להישאר קשור לאותו דגל.** הדלקה עתידית
+           היא בשלושת המקומות באותו קומיט, בדיוק כמו `PILOT_MODE`. -->
+      <div class="app-card" id="referral" hidden>
         <h2>הזמן חברים</h2>
         <p class="app-card-desc">שתף את הקוד האישי שלך. כשחבר יזין אותו בהרשמה לאפליקציה ויבצע איתנו הובלה ראשונה, תקבל ₪50 — זיכוי לארנק למובילים, קופון ללקוחות.</p>
         <div class="referral-code-box">
@@ -257,6 +272,18 @@
     document.getElementById('loading').style.display = 'none';
     document.getElementById('content').style.display = 'block';
     render(state.profile);
+    /**
+     * ⚠️ תאום ל-`REFERRAL_PROGRAM_ENABLED` ב-`login.html:498`
+     * ו-`~/Hovalot/src/constants/pilotMode.ts` — **שלושתם חייבים להשתנות
+     * באותו קומיט.** הנימוק המלא מתועד ב-`login.html`.
+     *
+     * ⚠️ **מוכרז כאן ולא ליד הפונקציה שמשתמשת בו.** `const` אינו מורם,
+     * ולכן הכרזה מתחת לנקודת הקריאה זורקת `ReferenceError` (TDZ). זה
+     * גם לא נראה כמו תקלה: הכרטיס נשאר מוסתר — כי הפונקציה קרסה, לא
+     * כי הגידור עבד. נתפס בבדיקה שאימתה גם ש**שאר הדף** עדיין עובד.
+     */
+    const REFERRAL_PROGRAM_ENABLED = false;
+
     renderReferralCode(state.profile, state.authUser.uid);
     renderFavoriteDrivers(state.profile);
     subscribeWallet(state.authUser.uid);
@@ -304,6 +331,12 @@
 
     /** מציג את קוד ההפניה, ומשלים אותו לחשבונות ישנים שנוצרו לפני שהוא נוסף. */
     function renderReferralCode(profile, uid) {
+      /* ⚠️ יוצא **לפני** יצירת הקוד, לא רק לפני התצוגה. חשבון ותיק
+         שנכנס לדף היה מקבל `referralCode` חדש שנכתב ל-Firestore — כלומר
+         התוכנית הכבויה ממשיכה לייצר נתונים בשקט. כשהיא תודלק, הקוד
+         ייווצר אז. */
+      if (!REFERRAL_PROGRAM_ENABLED) return;
+      document.getElementById('referral').hidden = false;
       let code = profile.referralCode;
       if (!code) {
         // אותה נוסחה בדיוק כמו auth.js — חשבון ותיק שנוצר לפני קוד ההפניה

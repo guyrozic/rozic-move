@@ -28,8 +28,8 @@
   </style>
 </head>
 <body class="app-body flow-b">
-<div data-build-stamp class="build-stamp" aria-hidden="true">עודכן 20.09 · 23:56</div>
-<script src="/version-check.js" defer></script>
+<div data-build-stamp class="build-stamp" aria-hidden="true">עודכן 21.09 · 00:57</div>
+<script src="/version-check.js?v=b4f8b2f7" defer></script>
   <a class="skip-link" href="#main-content">דלג לתוכן המרכזי</a>
   <script type="module" src="pilot-banner.js?v=14a0e537"></script>
   <script type="module" src="offline-banner.js?v=96b835df"></script>
@@ -76,8 +76,13 @@
         <div id="add-form-wrap" style="margin-top:16px;">
           <div class="inline-form-row">
             <div class="form-group">
-              <label for="new-address-input">הוספת כתובת</label>
-              <input id="new-address-input" type="text" placeholder="לדוגמה: הגבעה 42, כפר האורנים">
+              <!-- ⚠️ 21.9 — ה-placeholder היה **כתובת המגורים של גיא**
+                 ("הגבעה 42, כפר האורנים"). היא מופיעה בדפים המשפטיים
+                 כחובת גילוי של עוסק מורשה, וזה במקומה — אבל דוגמה בשדה
+                 קלט אינה גילוי נאות, היא סתם חשיפה נוספת שאיש לא ביקש.
+                 דוגמה גנרית עושה את אותה עבודה בדיוק. -->
+            <label for="new-address-input">הוספת כתובת</label>
+              <input id="new-address-input" type="text" placeholder="לדוגמה: הרצל 12, תל אביב">
             </div>
             <button tabindex="0" type="button" class="btn btn-primary" id="add-address-btn">הוסף</button>
           </div>
