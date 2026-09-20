@@ -39,6 +39,12 @@
 import { subscribeToAuth } from './auth.js';
 import { auth } from './firebase.js';
 import { parseDateApp } from './geo.js';
+// 62.3 (21.9) — הטיוטה של מחובר נוסעת עם החשבון, לא עם המכשיר. שלוש הפונקציות
+// האלה כבר קיימות ב-orders.js ומראות מילה במילה את saveDraftOrder/
+// getActiveDraftOrder/clearDraftOrder באפליקציה (Hovalot/src/services/orders.ts) —
+// ראו את הפונקציות למטה (loadResumeDraft, attachDraftAutosave) למה עד עכשיו
+// שום מסך לא קרא להן.
+import { saveDraftOrder, getActiveDraftOrder, clearDraftOrder } from './orders.js';
 
 /** כמה זמן טיוטת אורח נשארת רלוונטית. מעבר לזה — מחירים ותאריכים מתיישנים. */
 const DRAFT_TTL_MS = 24 * 60 * 60 * 1000;
@@ -244,7 +250,15 @@ const ARRAY_ELEMENT_OK = {
   craneItems: (v) => typeof v === 'string',
 };
 
-function shapeOk(state) {
+/**
+ * ⚠️ 62.3 (21.9) — מיוצאת כדי ש-`loadResumeDraft` תוכל להפעיל **את אותה**
+ * בדיקה על טיוטה מרוחקת (`draftPayload` שנקרא מ-Firestore). הסכנה זהה
+ * במדויק: מסמך טיוטה שנכתב בגרסת קוד אחרת (או, במקרה החדש הזה, ע"י
+ * מקור אחר שכותב לאותו אוסף `orders` עם `status:'draft'`) יכול להכיל
+ * `items:null` או `freeItems:[null]` ולהפיל את הדף — בדיוק כמו טיוטה
+ * מקומית פגומה. אין לרכך את הבדיקה כדי "לקבל יותר" ממקור מרוחק.
+ */
+export function shapeOk(state) {
   if (!state || typeof state !== 'object' || Array.isArray(state)) return false;
   for (const [key, kind] of Object.entries(DRAFT_SHAPE)) {
     if (!(key in state)) continue;              // שדה חסר — ברירת המחדל תופסת
@@ -273,9 +287,20 @@ function shapeOk(state) {
 let lastDraftDiscarded = false;
 export function draftWasDiscarded() { return lastDraftDiscarded; }
 
+/**
+ * מתי הטיוטה **המקומית** האחרונה שנקראה נשמרה (מ"ש, `Date.now()`), או
+ * `null` אם לא הייתה טיוטה תקינה. ⚠️ 62.3 — קיים כדי ש-`loadResumeDraft`
+ * יוכל להשוות מול `draftUpdatedAt` (Firestore `Timestamp`) ולהכריע איזה
+ * מקור עדכני יותר. בלי זה אין דרך לדעת את `savedAt` בלי לפרק שוב את
+ * ה-JSON הגולמי מ-`localStorage` — `loadOrderDraft` כבר עשתה את זה.
+ */
+let lastDraftSavedAt = null;
+export function draftSavedAt() { return lastDraftSavedAt; }
+
 /** מחזירה את הטיוטה אם היא קיימת, טרייה ובמבנה תקין; אחרת `null` (ומנקה). */
 export function loadOrderDraft(serviceType) {
   lastDraftDiscarded = false;
+  lastDraftSavedAt = null;
   try {
     const raw = localStorage.getItem(draftKey(serviceType));
     if (!raw) return null;
@@ -299,6 +324,7 @@ export function loadOrderDraft(serviceType) {
       lastDraftDiscarded = true;
       return null;
     }
+    lastDraftSavedAt = savedAt;
     return state;
   } catch {
     // JSON פגום — לנקות, אחרת הוא ייקרא שוב בכל טעינה.
@@ -328,6 +354,168 @@ export function showDraftDiscardedNotice() {
 /** ⚠️ לקרוא אחרי יצירת הזמנה מוצלחת — אחרת הטיוטה תצוף שוב בהזמנה הבאה. */
 export function clearOrderDraft(serviceType) {
   try { localStorage.removeItem(draftKey(serviceType)); } catch { /* ראו למעלה */ }
+}
+
+/**
+ * ⚠️ 62.3 (21.9) — מוחקת גם את הטיוטה **המרוחקת**, לא רק המקומית.
+ *
+ * מאז שיש מקור שני (Firestore, למחוברים), כל מקום שקרא ל-`clearOrderDraft`
+ * לבדו הפך לחצי-מחיקה: הטיוטה נעלמת מהמכשיר הזה, אבל `getActiveDraftOrder`
+ * עדיין מוצא אותה בפעם הבאה (מכשיר אחר, או אותו מכשיר אחרי שה-localStorage
+ * נוקה) ומחזיר אותה. שני מקומות קוראים לזה: אחרי `createOrder` מוצלח
+ * (ראו `apartment.html`/`small-move.html`) ובנתיב "התחל חדשה" (`?new=1`).
+ *
+ * `remoteDraftId` הוא `null` לאורח או למחובר שעדיין אין לו טיוטה מרוחקת —
+ * במקרה כזה אין קריאת רשת בכלל.
+ *
+ * ⚠️ כשל במחיקה המרוחקת **לא נבלע בשקט**: מדווח בקונסול, ולא חוסם את
+ * ההמשך (המחיקה המקומית כבר קרתה, וזו רשת הביטחון החשובה יותר ללקוח
+ * שממול המסך; טיוטה מרוחקת שנשארה יתומה תפוג רק בזמן שהלקוח כבר בהזמנה
+ * חדשה — לא נזק חסר-תיקון).
+ */
+export async function clearOrderDraftEverywhere(serviceType, remoteDraftId) {
+  clearOrderDraft(serviceType);
+  if (!remoteDraftId) return;
+  try {
+    await clearDraftOrder(remoteDraftId);
+  } catch (err) {
+    console.warn('[draft] מחיקת טיוטה מרוחקת נכשלה', serviceType, remoteDraftId, err && err.message);
+  }
+}
+
+/**
+ * ⚠️ 62.3 (21.9) — "התחל חדשה" (`?new=1`) חייבת למחוק את **שתי** הטיוטות,
+ * לא רק המקומית. בלי זה `loadResumeDraft` בטעינה הבאה מוצא את הטיוטה
+ * המרוחקת (שלא נמחקה), רואה אותה "עדכנית יותר" מהמקומית הריקה שהתחלפה,
+ * ומחזיר אותה — "התחל חדשה" היה נראה כאילו לא עשה כלום.
+ *
+ * שונה מ-`clearOrderDraftEverywhere`: כאן אין מזהה טיוטה מרוחקת מוכן
+ * (הדף עדיין לא טען אחת, זה תחילת הטעינה), אז הפונקציה מחפשת אותה לפי
+ * `uid` בעצמה. `uid` חסר (אורח) מדלג על השאילתה לרשת לגמרי — בדיוק
+ * ההתנהגות הישנה, בלי שינוי.
+ */
+export async function discardOrderDraftEverywhere(serviceType, uid) {
+  clearOrderDraft(serviceType);
+  if (!uid) return;
+  try {
+    const existing = await getActiveDraftOrder(uid, serviceType);
+    if (existing) await clearDraftOrder(existing.id);
+  } catch (err) {
+    console.warn('[draft] מחיקת טיוטה מרוחקת נכשלה (התחל חדשה)', serviceType, err && err.message);
+  }
+}
+
+/**
+ * ⚠️ 62.3 (21.9) — **טיוטה מסונכרנת ל-Firestore, למחוברים בלבד.**
+ *
+ * ## למה זה קיים
+ * עד עכשיו הטיוטה באתר הייתה של **המכשיר**: `localStorage`, בלי שום גיבוי
+ * בשרת. לקוח שהתחיל הזמנה בטלפון והמשיך במחשב לא מצא שום דבר — וגם
+ * `sendDraftReminders` (הפונקציה המתוזמנת שמזכירה טיוטה שנשארה יומיים)
+ * לא מצאה טיוטות מהאתר, כי מעולם לא נכתבה אחת ל-Firestore. `saveDraftOrder`/
+ * `getActiveDraftOrder`/`clearDraftOrder` ב-`orders.js` היו קיימות ולא
+ * נקראו משום מקום — התיעוד ב-`account.html` (סעיף "בתהליך") הסביר את
+ * ההחלטה המקורית לא לכתוב אליהן. ההחלטה ההיא התהפכה כאן.
+ *
+ * ## למה זה **בלבד** למחוברים
+ * טיוטה מרוחקת חייבת `customerId` אמיתי (`getActiveDraftOrder` שואלת
+ * `where('customerId','==', uid)`) — אין דבר כזה "טיוטת אורח בשרת" בלי
+ * לשנות את המודל. אורח ממשיך על `localStorage` בדיוק כמו היום, בלי שום
+ * שינוי בהתנהגות שלו. זו הכרעה מפורשת של גיא, לא פשרה טכנית.
+ *
+ * ## המיזוג בין שני המקורות, ולמה **לא** מיזוג-שדות
+ * מחובר יכול להגיע לכאן עם שני מקורות שונים בזמן: טיוטת המכשיר הזה
+ * (`localStorage`, אם נשארה מדפדפן קודם) וטיוטת החשבון (Firestore, אם
+ * נכתבה ממכשיר אחר). ההכרעה כאן היא **"כל הטיוטה" ולא מיזוג שדה-שדה**:
+ * המקור העדכני יותר (לפי `draftUpdatedAt` המרוחק מול `savedAt` המקומי,
+ * שניהם מנורמלים למילישניות) מנצח **בשלמותו**. מיזוג שדות היה דורש
+ * להחליט, לכל שדה, איזה "חלק" של איזו הזמנה נכון — ואין דרך לדעת אם
+ * הלקוח התחיל לתקן משהו במכשיר אחד בזמן שהשני "קפא" באמצע. טיוטה שלמה
+ * אחת, גם אם היא לא העדכנית ביותר בכל שדה בנפרד, היא מצב עקבי; מיזוג
+ * חלקי הוא בדיוק המתכון ל"למה יש לי כתובת מוצא ממכשיר אחד ותאריך
+ * ממכשיר שני שכבר לא רלוונטי לכתובת הזאת".
+ *
+ * ## מבנה שונה, לא רק מקור שונה
+ * הטיוטה המקומית שומרת את השלב בתוך ה-JSON עצמו (`state.__step`, ראו
+ * `apartment.html`). הטיוטה המרוחקת שומרת אותו בשדה נפרד על המסמך
+ * (`draftStep`, כמו באפליקציה) — נקי יותר, ולכן אין `__step` בתוך
+ * `draftPayload` בכלל. שני המקורות מוחזרים כאן **מיושרים לאותה צורה**
+ * (`{ state, step }`) כך שהקורא (`apartment.html`/`small-move.html`) לא
+ * צריך לדעת מאיפה הגיעה הטיוטה.
+ *
+ * ## ⚠️ אימות מבנה על **שני** המקורות
+ * `draftPayload` מרוחק עובר את `shapeOk` בדיוק כמו טיוטה מקומית, ומאותה
+ * סיבה: מסמך פגום (או, במקרה הזה, מסמך שנכתב ע"י מקור אחר לאותו אוסף —
+ * ראו הדוח על הסיכון הצולב בין האתר לאפליקציה) יכול להפיל את הדף בדיוק
+ * כמו טיוטה מקומית פגומה. טיוטה מרוחקת שנפסלה **עדיין** מחזירה את
+ * `remoteDraftId` שלה — כתיבות עתידיות ידרסו אותה במקום ליצור כפולה.
+ *
+ * ## מה שלא נאמת כאן, ולמה
+ * הפונקציה מסתמכת על `getActiveDraftOrder` (קריאת Firestore ישירה, לא
+ * פונקציית ענן) — ולכן **כן** ניתנת לבדיקה מקומית, בניגוד לגאוקוד
+ * ולהשלמת כתובות. מה שלא נבדק: מכשיר שני אמיתי (שני דפדפנים, אותו
+ * חשבון) — הבדיקה שבוצעה השתמשה בשני "מקורות" מדומים (שתילה ידנית
+ * ב-localStorage מול כתיבה ידנית ל-Firestore) על אותו דפדפן. ראו דוח
+ * הסיום למה שכן אומת ומה לא.
+ *
+ * @param {string} serviceType
+ * @param {string|null} uid `null` = אורח, מפעיל את הנתיב הישן בלבד
+ * @returns {Promise<{state: object|null, step: number, remoteDraftId: string|null, discarded: boolean, source: 'local'|'remote'|'none'}>}
+ */
+export async function loadResumeDraft(serviceType, uid) {
+  const local = loadOrderDraft(serviceType);
+  const localDiscarded = draftWasDiscarded();
+  const localSavedAt = draftSavedAt();
+
+  const finalizeLocal = () => {
+    if (!local) return { state: null, step: 1, discarded: localDiscarded, source: 'none' };
+    const step = Math.min(4, Math.max(1, Number(local.__step) || 1));
+    delete local.__step;
+    return { state: local, step, discarded: localDiscarded, source: 'local' };
+  };
+
+  if (!uid) {
+    // אורח — בלי שום שינוי מההתנהגות הקיימת. ראו ההערה למעלה למה.
+    return { ...finalizeLocal(), remoteDraftId: null };
+  }
+
+  let remote = null;
+  try {
+    remote = await getActiveDraftOrder(uid, serviceType);
+  } catch (err) {
+    // בלי רשת (או קריאה שנכשלה) — לא נתקעים, ממשיכים עם המקומית בלבד.
+    // אין `catch` ריק: זה בדיוק הכשל השקט שהכלל באפליקציה נכתב עליו.
+    console.warn('[draft] טעינת טיוטה מרוחקת נכשלה — ממשיכים עם המקומית בלבד', serviceType, err && err.message);
+  }
+
+  const remoteDraftId = remote ? remote.id : null;
+  const remoteStateOk = !!remote && remote.draftPayload && typeof remote.draftPayload === 'object' && shapeOk(remote.draftPayload);
+  if (remote && !remoteStateOk) {
+    console.warn('[draft] טיוטה מרוחקת במבנה לא תקין — נזרקת כמו טיוטה מקומית פגומה', serviceType, remote.id);
+  }
+
+  if (!remoteStateOk) {
+    return { ...finalizeLocal(), remoteDraftId };
+  }
+  if (!local) {
+    const step = Math.min(4, Math.max(1, Number(remote.draftStep) || 1));
+    // מיישר את המקומי לתוכן המרוחק שניצח — כדי ש"בתהליך" ב-account.html
+    // (קורא localStorage בלבד, לא נגעתי בו בסבב הזה) לא יישאר על טיוטה
+    // ישנה או ריקה בזמן שהאשף כבר ממשיך מהטיוטה החדשה.
+    saveOrderDraft(serviceType, { ...remote.draftPayload, __step: step });
+    return { state: remote.draftPayload, step, remoteDraftId, discarded: false, source: 'remote' };
+  }
+
+  // שני מקורות — המנצח הוא העדכני, "כל הטיוטה" ולא מיזוג שדות (ראו למעלה).
+  // ⚠️ `draftUpdatedAt` הוא Firestore `Timestamp`, `savedAt` הוא מ"ש גולמיות —
+  // `.toMillis()` מנרמל את שניהם לפני ההשוואה, אחרת אין דרך לדעת מי מוקדם.
+  const remoteMs = remote.draftUpdatedAt?.toMillis?.() ?? 0;
+  if (remoteMs > (localSavedAt ?? 0)) {
+    const step = Math.min(4, Math.max(1, Number(remote.draftStep) || 1));
+    saveOrderDraft(serviceType, { ...remote.draftPayload, __step: step });
+    return { state: remote.draftPayload, step, remoteDraftId, discarded: false, source: 'remote' };
+  }
+  return { ...finalizeLocal(), remoteDraftId };
 }
 
 /**
@@ -364,18 +552,53 @@ export function clearOrderDraft(serviceType) {
  * הבדיקה ברגע הכתיבה סוגרת את זה בלי להסתמך על תזמון: ברגע שהדגל
  * עולה, כל שמירה שממתינה בתור מתה איתו.
  *
+ * ## ⚠️ 62.3 (21.9) — נוספה כתיבה מרוחקת, ל**מחוברים** בלבד
+ * `remote` (רביעי, אופציונלי) הוא `{ uid, draftId }` — `draftId` הוא מזהה
+ * הטיוטה המרוחקת הקיימת (מ-`loadResumeDraft`) או `null` אם עדיין אין
+ * אחת. הכתיבה המקומית (`writeLocal`) והמרוחקת (`writeRemote`) רצות
+ * **שתיהן** בכל `writeNow` — הראשונה היא רשת הביטחון הקיימת, השנייה היא
+ * הסנכרון החדש. אורח (`remote` חסר או `remote.uid` חסר) מקבל רק את
+ * הראשונה, בדיוק כמו היום.
+ *
+ * ⚠️ **הכתיבה המרוחקת היא "שיגור ולא נעילה".** `writeNow`/`flush` לא
+ * מחכים לה — אם היו מחכים, טיוטה שמתעכבת ברשת הייתה חוסמת גם את
+ * ה-debounce הבא בתור. `remoteDraftId` (המשתנה הפרטי) מתעדכן רק אחרי
+ * הצלחה; כתיבה שנכשלת משאירה אותו כמו שהיה, כך שהניסיון הבא עדיין
+ * מכוון לאותו מסמך (או יוצר אחד, אם עדיין אין). כשל **לא** נבלע בשקט —
+ * מדווח בקונסול, מאותה סיבה שהכלל הזה חוזר בכל הקובץ.
+ *
+ * ⚠️ **ואין `stripUndefined` בתוך `saveDraftOrder` עצמה** (בניגוד
+ * לגרסת האפליקציה) — לכן היא מוחלת כאן, לפני הקריאה. בלעדיה, שדה
+ * `undefined` בודד (למשל קואורדינטה לפני גאוקוד) היה מפיל את **כל**
+ * כתיבת הטיוטה המרוחקת בכל debounce, עד שהשדה מתמלא.
+ *
  * @param {string} serviceType
- * @param {() => object} getState מחזירה את ה-`state` החי
+ * @param {() => object} getState מחזירה את ה-`state` החי, כולל `__step`
  * @param {() => boolean} shouldSkip `true` = אל תכתוב (שליחה/תשלום בעיצומם)
+ * @param {{uid: string, draftId: string|null}|null} [remote] מחובר בלבד
  */
-export function attachDraftAutosave(serviceType, getState, shouldSkip) {
+export function attachDraftAutosave(serviceType, getState, shouldSkip, remote) {
   const DEBOUNCE_MS = 700;
   let timer = null;
+  let remoteDraftId = remote?.draftId ?? null;
+
+  const writeLocal = (snapshot) => saveOrderDraft(serviceType, snapshot);
+
+  const writeRemote = (snapshot) => {
+    if (!remote?.uid) return;
+    const { __step, ...rest } = snapshot;
+    const step = Math.min(4, Math.max(1, Number(__step) || 1));
+    saveDraftOrder(remote.uid, serviceType, step, stripUndefined(rest), remoteDraftId)
+      .then((id) => { remoteDraftId = id; })
+      .catch((err) => console.warn('[draft] שמירה מרוחקת נכשלה', serviceType, err && err.message));
+  };
 
   const writeNow = () => {
     timer = null;
     if (shouldSkip && shouldSkip()) return;
-    saveOrderDraft(serviceType, getState());
+    const snapshot = getState();
+    writeLocal(snapshot);
+    writeRemote(snapshot);
   };
 
   const schedule = () => {
@@ -395,17 +618,29 @@ export function attachDraftAutosave(serviceType, getState, shouldSkip) {
    * מהדפדפנים, והוא גם אינו נורה באופן אמין בסגירת טאב בנייד. בלי
    * ההשטחה הזאת, שינוי שנעשה פחות מ-700 מ"ש לפני רענון פשוט אובד —
    * וזה בדיוק החלון שבו לקוח לוחץ משהו ומיד מרענן כי "זה נתקע".
+   *
+   * ⚠️ 62.3 — **מקומית בלבד, בכוונה.** כתיבה ל-Firestore היא בקשת רשת
+   * אסינכרונית בלי הבטחת סיום, וברגע ש-`pagehide` נורה הדף עשוי להיהרס
+   * תוך מילישניות — אין `keepalive` שמכסה את ה-SDK של Firestore (הוא
+   * לא `fetch` גולמי). כתיבה שלא מובטח שתסתיים לפני שהדף נעלם עשויה
+   * להתחיל ולא להיגמר, וזה לא עדיף על לא לכתוב. **המגבלה בפועל:** אם
+   * הלקוח עוזב פחות מ-700 מ"ש אחרי השינוי האחרון בלי אינטראקציה נוספת,
+   * המצב נשמר מקומית (סינכרוני, בטוח) אבל לא מגיע לחשבון עד שמכשיר כלשהו
+   * יפתח את הדף בשנית ויריץ `debounce` נוסף.
    */
   window.addEventListener('pagehide', () => {
     if (timer) { clearTimeout(timer); timer = null; }
-    writeNow();
+    if (shouldSkip && shouldSkip()) return;
+    writeLocal(getState());
   });
 
   return {
-    /** מבטלת שמירה שממתינה בתור. לקרוא לפני `clearOrderDraft`. */
+    /** מבטלת שמירה שממתינה בתור. לקרוא לפני `clearOrderDraftEverywhere`. */
     cancel() { if (timer) { clearTimeout(timer); timer = null; } },
-    /** כתיבה מיידית (עדיין כפופה ל-`shouldSkip`). */
+    /** כתיבה מיידית (עדיין כפופה ל-`shouldSkip`) — מקומית **וגם** מרוחקת. */
     flush() { if (timer) { clearTimeout(timer); } writeNow(); },
+    /** מזהה הטיוטה המרוחקת הנוכחי, או `null`. לקרוא לפני ניקוי אחרי הזמנה מוצלחת. */
+    remoteDraftId() { return remoteDraftId; },
   };
 }
 

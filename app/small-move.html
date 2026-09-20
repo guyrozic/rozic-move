@@ -119,8 +119,8 @@
   </style>
 </head>
 <body class="app-body flow-b">
-<div data-build-stamp class="build-stamp" aria-hidden="true">עודכן 20.09 · 23:56</div>
-<script src="/version-check.js" defer></script>
+<div data-build-stamp class="build-stamp" aria-hidden="true">עודכן 21.09 · 00:38</div>
+<script src="/version-check.js?v=b4f8b2f7" defer></script>
   <!-- ⚠️ 15.9 — "דלג לתוכן המרכזי" (WCAG 2.4.1, רמה A). זהו האלמנט הממוקד
        הראשון בדף: מוסתר מהעין, מופיע בפינה ברגע שמגיעים אליו ב-Tab, ומעביר
        את המיקוד אל <main id="main-content" tabindex="-1">. בלי ה-tabindex
@@ -574,9 +574,10 @@
 
   <script type="module">
     import { getAuthOptional, isDriverAccount, showDriverBlockAndHalt,
-             loadOrderDraft, clearOrderDraft, saveOrderDraft, goRegister,
-             applyDraftToForm, draftWasDiscarded, attachDraftAutosave,
+             saveOrderDraft, goRegister,
+             applyDraftToForm, attachDraftAutosave,
              validateCouponSecure, redeemCouponSecure, getDiscountAmount,
+             loadResumeDraft, clearOrderDraftEverywhere, discardOrderDraftEverywhere,
              showDraftDiscardedNotice } from './guest-checkout.js';
     import { createOrder } from './orders.js';
     import { orderTermsConsent } from './legal.js';
@@ -717,29 +718,34 @@
       yes.focus();
     }
 
+    // 62.3 (21.9) — `uid` נגזר כאן, לפני שום קריאת טיוטה: `null` לאורח.
+    // ההסבר המלא (מיזוג "כל הטיוטה" מקומי מול מרוחק) ב-`apartment.html`
+    // ובתיעוד `loadResumeDraft`/`attachDraftAutosave` ב-guest-checkout.js.
+    const draftUid = authState?.authUser?.uid ?? null;
+
     /* ⚠️ `?new=1` מגיע מ"לא, התחל חדשה" בדיאלוג. המחיקה כאן ולא שם —
        ראו ההערה ליד הכפתור. הפרמטר מוסר מהכתובת מיד כדי שרענון של
-       הדף לא ימחק טיוטה חדשה שהמשתמש בינתיים התחיל. */
+       הדף לא ימחק טיוטה חדשה שהמשתמש בינתיים התחיל.
+       62.3 — `discardOrderDraftEverywhere` מוחקת גם את הטיוטה המרוחקת. */
     if (new URLSearchParams(location.search).has('new')) {
-      clearOrderDraft('smallMove');
+      await discardOrderDraftEverywhere('smallMove', draftUid);
       history.replaceState(null, '', location.pathname);
     }
-    const restoredDraft = loadOrderDraft('smallMove');
-    /* ⚠️ 20.9 — השלב נשמר בתוך הטיוטה. ההסבר המלא ב-`apartment.html`. */
-    const restoredStep = Math.min(4, Math.max(1, Number(restoredDraft?.__step) || 1));
-    if (restoredDraft) {
-      delete restoredDraft.__step;
-      Object.assign(state, restoredDraft);
-    }
+    /* ⚠️ 20.9 (הורחב 62.3, 21.9) — השלב נשמר בתוך הטיוטה. ההסבר המלא
+       ב-`apartment.html`. */
+    const draftResult = await loadResumeDraft('smallMove', draftUid);
+    const restoredDraft = draftResult.state;
+    const restoredStep = draftResult.step;
+    const remoteDraftId = draftResult.remoteDraftId;
+    if (restoredDraft) Object.assign(state, restoredDraft);
     /**
      * ⚠️ 15.9 — טיוטה שנדחית נזרקה **בשקט מוחלט**.
      *
      * הלקוח שראה "ההזמנה שלך נשמרה" לפני ההרשמה חזר לטופס ריק בלי
-     * שום מילה, ומבחינתו זה פשוט לא עבד. נקרא **מיד** אחרי
-     * `loadOrderDraft` כי הדגל מתאפס בכל קריאה, ומוצג בסוף הסקריפט —
-     * שם כבר יש DOM להיתלות עליו.
+     * שום מילה, ומבחינתו זה פשוט לא עבד. `loadResumeDraft` מחזירה את
+     * הדגל הזה ישירות. מוצג בסוף הסקריפט — שם כבר יש DOM להיתלות עליו.
      */
-    const draftDiscarded = draftWasDiscarded();
+    const draftDiscarded = draftResult.discarded;
 
     let step = 1;
 
@@ -2460,7 +2466,9 @@
         // ⚠️ מבטל שמירה שממתינה בתור **לפני** המחיקה. בלי זה הטיימר
         // שנותר מהלחיצה היה נורה וכותב את הטיוטה בחזרה.
         draftAutosave.cancel();
-        clearOrderDraft('smallMove');
+        // 62.3 — ראו ההערה המקבילה ב-apartment.html: `createOrder` יוצרת
+        // מסמך חדש, ולא מקדמת את הטיוטה — חובה לנקות את שתיהן בנפרד.
+        await clearOrderDraftEverywhere('smallMove', draftAutosave.remoteDraftId());
         location.href = `order-status.html?id=${orderId}`;
       } catch (err) {
         clearTimeout(stuckTimer);
@@ -2616,7 +2624,9 @@
      * באמצע השחזור. וב"אין טיוטה" זה גרוע יותר: טופס ריק היה נשמר
      * כטיוטה ודורס את מה שהיה.
      */
-    draftAutosave = attachDraftAutosave('smallMove', () => ({ ...state, __step: step }), () => submitting);
+    // 62.3 — ראו ההערה המקבילה ב-apartment.html.
+    draftAutosave = attachDraftAutosave('smallMove', () => ({ ...state, __step: step }), () => submitting,
+      draftUid ? { uid: draftUid, draftId: remoteDraftId } : null);
     goToStep(restoredStep);
   </script>
 </body>
