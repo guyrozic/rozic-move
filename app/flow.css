@@ -571,6 +571,44 @@
 .flow-b .routes-row .ai-upload-actions { width: 100%; }
 .flow-b .routes-row #open-catalog-btn { justify-content: center; }
 
+/* ── חפיסת שאלות ההמשך ───────────────────────────────────────────
+   שאלה אחת גלויה, השאר מוסתרות ב-DOM. ⚠️ `hidden` ולא הסרה: מעבר בין
+   שאלות לא בונה אלמנטים מחדש, וקורא המסך מקבל `aria-live` על אזור
+   קבוע אחד במקום רשימה שמשתנה תחתיו. */
+.flow-b .q-deck { margin-top: 12px; }
+.flow-b .q-nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+.flow-b .q-count {
+  font-size: .8rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+}
+.flow-b .q-arrow {
+  width: 30px; height: 30px;
+  flex: none;
+  display: flex; align-items: center; justify-content: center;
+  border: 1px solid var(--fl-line);
+  border-radius: 50%;
+  background: var(--white);
+  color: var(--text-mid);
+  cursor: pointer;
+  transition: border-color .18s, color .18s;
+}
+.flow-b .q-arrow svg { width: 14px; height: 14px; }
+.flow-b .q-arrow:hover { border-color: var(--green); color: var(--green); }
+.flow-b .q-arrow:focus-visible { outline: 2px solid var(--green); outline-offset: 2px; }
+.flow-b .q-deck .question-card { margin-bottom: 0; }
+@media (prefers-reduced-motion: reduce) {
+  .flow-b .q-arrow { transition: none; }
+  .flow-b .q-deck .question-card { animation: none; }
+}
+
 /* ── הרשימה הידנית, מקופלת ────────────────────────────────────────
    ⚠️ **זה תיקון מוצר ולא רק עיצוב.** נמדד ב-19.9: `#start-list`
    תפס 14,047 מתוך 15,409 פיקסלים בנייד — 91% מהמסך — כי 64 כרטיסי

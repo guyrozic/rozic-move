@@ -33,7 +33,7 @@
   <!-- ⚠️ נטען אחרון בכוונה — `flow.css` דורס את `style-app.css` תחת
        `.flow-b` בלבד. 14 המסכים האחרים שחולקים את `style-app.css`
        אינם מושפעים, כי המחלקה יושבת על ה-<body> של הדף הזה. -->
-  <link rel="stylesheet" href="flow.css?v=26d8a713">
+  <link rel="stylesheet" href="flow.css?v=25270de3">
   <style>
     /* התווית שליד המחיר בפס התחתון (19.9). */
     .bottom-price-wrap { display: flex; align-items: baseline; gap: 8px; min-width: 0; }
@@ -119,7 +119,7 @@
   </style>
 </head>
 <body class="app-body flow-b">
-<div data-build-stamp class="build-stamp" aria-hidden="true">עודכן 20.09 · 10:02</div>
+<div data-build-stamp class="build-stamp" aria-hidden="true">עודכן 20.09 · 10:16</div>
 <script src="/version-check.js" defer></script>
   <!-- ⚠️ 15.9 — "דלג לתוכן המרכזי" (WCAG 2.4.1, רמה A). זהו האלמנט הממוקד
        הראשון בדף: מוסתר מהעין, מופיע בפינה ברגע שמגיעים אליו ב-Tab, ומעביר
@@ -573,6 +573,9 @@
     import { orderTermsConsent } from './legal.js';
     import { isValidFullName, FULL_NAME_ERROR } from './auth.js';
     import { ALL_ROOMS, findItemAnywhere, getItemPriceAnyCategory, getFullAICatalog, getSizeSiblings } from './data/items.js';
+    import { BED_ITEM_KEYS, buildMattressFollowUpQuestion, hasMattressOptions,
+             buildBeddingBoxFollowUpQuestion, diningChairsFollowUpFor,
+             longestCommonPrefix } from './data/followups.js';
     import { PRICE_PER_KM, FLOOR_SURCHARGE_PER_FLOOR, getSurgePricing, calculatePackingFromItems, INSURANCE_PRICE_SMALL_MOVE, SMALL_MOVE_BASE_PRICE } from './data/pricing.js';
     import { loadRemotePricingConfig } from './pricing-config.js';
     import { BOX_ITEMS, MAX_VOLUME, estimateVolume, applyWithinCapacity } from './data/smallMoveItems.js';
@@ -954,16 +957,49 @@
       }
     });
 
+    /* ═══════════ תצוגת השאלות: אחת גלויה, מעבר ביניהן ═══════════════
+       גיא (20.9): "ממש כמו שקלוד שואל אותי נניח ארבע שאלות אפשר לעבור
+       בינהן אבל כולן נמצאות אחת על השנייה ואז הדף לא נהיה ארוך בטירוף
+       כלפי מטה באופן מוזר."
+
+       ⚠️ **כל השאלות נשארות ב-DOM** ורק אחת גלויה. הסתרה ולא מחיקה,
+       כדי שמעבר בין שאלות לא יאבד מצב ולא ייצור אלמנטים מחדש בכל
+       לחיצה — וכדי שקורא מסך יקבל `aria-live` על אזור קבוע אחד.
+       ─────────────────────────────────────────────────────────────── */
+    let questionIdx = 0;
+
     function renderQuestions() {
       const box = document.getElementById('ai-questions');
-      box.innerHTML = pendingQuestions.map(q => `
-        <div class="question-card">
-          <div class="question-text">${q.text}</div>
-          <div class="question-options">
-            ${q.options.map((o, i) => `<button tabindex="0" class="question-option" data-qid="${q.id}" data-oi="${i}">${o.label}</button>`).join('')}
+      if (!pendingQuestions.length) { box.innerHTML = ''; questionIdx = 0; return; }
+      // אחרי שנענתה שאלה התור מתקצר — המדד נשאר בטווח ומצביע על הבאה
+      // במקום לקפוץ להתחלה.
+      if (questionIdx > pendingQuestions.length - 1) questionIdx = pendingQuestions.length - 1;
+      if (questionIdx < 0) questionIdx = 0;
+
+      const many = pendingQuestions.length > 1;
+      box.innerHTML = `
+        <div class="q-deck">
+          ${many ? `
+          <div class="q-nav">
+            <button tabindex="0" type="button" class="q-arrow" data-nav="prev" aria-label="השאלה הקודמת">
+              <svg viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M6 3.5 10.5 8 6 12.5" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </button>
+            <span class="q-count">שאלה ${questionIdx + 1} מתוך ${pendingQuestions.length}</span>
+            <button tabindex="0" type="button" class="q-arrow" data-nav="next" aria-label="השאלה הבאה">
+              <svg viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M10 3.5 5.5 8l4.5 4.5" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </button>
+          </div>` : ''}
+          <div class="q-stack" role="group" aria-live="polite">
+            ${pendingQuestions.map((q, i) => `
+              <div class="question-card" data-qi="${i}"${i === questionIdx ? '' : ' hidden'}>
+                <div class="question-text">${escHtml(q.text)}</div>
+                <div class="question-options">
+                  ${q.options.map((o, oi) => `<button tabindex="0" class="question-option" data-qid="${q.id}" data-oi="${oi}">${escHtml(o.label)}</button>`).join('')}
+                </div>
+              </div>`).join('')}
           </div>
-        </div>
-      `).join('');
+        </div>`;
+
       box.querySelectorAll('.question-option').forEach(btn => {
         btn.addEventListener('click', () => {
           const q = pendingQuestions.find(qq => qq.id === btn.dataset.qid);
@@ -971,24 +1007,79 @@
           answerQuestion(q, q.options[Number(btn.dataset.oi)]);
         });
       });
+      box.querySelectorAll('[data-nav]').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const n = pendingQuestions.length;
+          // מעגלי: מהאחרונה קדימה חוזרים לראשונה. בתור של שתיים-שלוש
+          // שאלות זה מונע מצב שבו חץ נראה לחיץ ולא עושה כלום.
+          questionIdx = btn.dataset.nav === 'next'
+            ? (questionIdx + 1) % n
+            : (questionIdx - 1 + n) % n;
+          renderQuestions();
+        });
+      });
     }
 
+    /* ═══════════ תשובה לשאלת המשך ═══════════════════════════════════
+       ⚠️ **סדר התור:** שאלה שנולדת מתשובה נכנסת **במקום שבו ישבה
+       השאלה שנענתה**, ולא בסוף. גיא (20.9): "אם ביקשתי כמה פריטים
+       השאלה המשנית מגיעה לסוף התור" — כלומר מי שהוסיף שלושה פריטים
+       נשאל על סוג השולחן, ואז על עוד שני פריטים, ורק בסוף על גודל
+       השולחן. `insertAt` שומר על השרשרת צמודה לשאלה שיצרה אותה.
+       ─────────────────────────────────────────────────────────────── */
     function answerQuestion(question, option) {
       // ⚠️ 16.9 — שומרים את השאלה והבחירה בתוך השיחה, בדיוק כמו
       // AIItemChat באפליקציה (שורה 171): טקסט השאלה כבועת AI, והתשובה
       // שנבחרה כבועת משתמש. עד כה התשובה נעלמה ולא נשאר לה זכר.
-      // (אותו תיקון כמו ב-apartment.html)
       chatHistory.push({ role: 'assistant', text: question.text }, { role: 'user', text: option.label });
       renderChatThread();
+
+      const at = pendingQuestions.findIndex(q => q.id === question.id);
       pendingQuestions = pendingQuestions.filter(q => q.id !== question.id);
+      const insertAt = at < 0 ? pendingQuestions.length : at;
+      const queue = (q) => { if (q) pendingQuestions.splice(insertAt, 0, q); };
+      const addItem = (key, qty) => { state.items[key] = (state.items[key] || 0) + qty; };
+      const getQty = (key) => state.items[key] || 0;
+      const done = () => { renderQuestions(); renderItems(); updateItemsHeader(); };
+
+      /* ⚠️ שאלת המזרון **שלנו** משרשרת לשאלת ארגז המצעים — לכל כיוון
+         של התשובה. מזוהה לפי ה-id; שאלת מזרון שה-AI ייצר בעצמו נושאת
+         id אקראי ונופלת להוספה רגילה, בדיוק כמו באפליקציה. */
+      if (question.id.includes('mattress-followup-')) {
+        if (option.itemKey) addItem(option.itemKey, option.qty);
+        queue(buildBeddingBoxFollowUpQuestion());
+        done();
+        return;
+      }
+
+      // שאלת הכיסאות שלנו — ה-itemKey כבר סופי, אין מה לפרק לגדלים
+      // ובוודאי אין לשרשר ממנה שאלת כיסאות נוספת.
+      if (question.id.includes('dining-chairs-followup-')) {
+        if (option.itemKey) addItem(option.itemKey, option.qty);
+        // "מספר אחר" מעביר לצ׳אט במקום להוסיף — אותה התנהגות כמו באפליקציה.
+        if (option.isChat) {
+          const input = document.getElementById('ai-chat-input');
+          if (input) { input.value = 'רוצה להוסיף כיסאות אוכל, כמות: '; input.focus(); }
+        }
+        done();
+        return;
+      }
+
       if (option.itemKey === null) { renderQuestions(); return; }
+
+      /* ⚠️ אם לפריט שנבחר יש אחים בגודל שהשאלה הזאת לא שאלה עליהם —
+         יורדים לשאלת גודל במקום לבחור גודל ברירת מחדל בשקט. */
       const siblings = getSizeSiblings(option.itemKey);
       const questionItemKeys = new Set(question.options.map(o => o.itemKey));
       const alreadyAskedSize = siblings.length > 0 && siblings.every(s => questionItemKeys.has(s.key));
       if (siblings.length > 0 && !alreadyAskedSize) {
         const pickedItem = findItemAnywhere(option.itemKey);
-        const baseLabel = pickedItem.label.replace(/\s*\(.*\)\s*$/, '');
-        pendingQuestions.push({
+        /* ⚠️ `longestCommonPrefix` ולא חיתוך סוגריים. החיתוך השאיר את
+           מילת הגודל עצמה, והשאלה יצאה "איזה גודל ארון בינוני?" —
+           באג אמיתי שתוקן באפליקציה ונשאר כאן עד עכשיו. */
+        const baseLabel = longestCommonPrefix([pickedItem.label, ...siblings.map(s => s.label)])
+          || pickedItem.label.replace(/\s*\(.*\)\s*$/, '');
+        queue({
           id: `size-${Date.now()}`,
           text: `איזה גודל ${baseLabel}?`,
           options: [
@@ -1000,12 +1091,25 @@
         renderQuestions();
         return;
       }
-      // 17.9 — עובר דרך applyAIItemChanges (ראו שם) כמו כל הוספה אחרת מה-AI —
-      // זו בדיוק שאלת ההמשך ("כמה כיסאות?") שהבאג המקורי דווח דרכה.
-      applyAIItemChanges([{ itemKey: option.itemKey, qty: option.qty, action: 'add' }], { channel: 'chat' });
-      renderQuestions();
-      renderItems();
-      updateItemsHeader();
+
+      addItem(option.itemKey, option.qty);
+
+      /* ⚠️ **הרשת התחתונה של המזרון.** כלל 7 בפרומפט מורה ל-AI לשאול
+         על מזרון בכל פעם שנוספה מיטה — אבל פריט שנוסף בלחיצת כפתור
+         לא עובר דרך ה-AI כלל, ולכן מי שכתב "מיטה" ולחץ על גודל לא
+         נשאל מעולם. נבדק מול **התור החי** ולא מול השאלה הנוכחית:
+         סריקה שייצרה גם שאלת-גודל וגם שאלת-מזרון באותה מנה גרמה
+         באפליקציה לספירה כפולה (11.8). */
+      if (BED_ITEM_KEYS.has(option.itemKey) && !pendingQuestions.some(hasMattressOptions)) {
+        queue(buildMattressFollowUpQuestion(option.itemKey, option.qty));
+      }
+
+      // המקבילה לשולחן אוכל — שלוש ההגנות מפני כפילות יושבות בפונקציה.
+      queue(diningChairsFollowUpFor(option.itemKey, option.qty, {
+        getQty, existingQuestions: pendingQuestions,
+      }));
+
+      done();
     }
 
     // ---------- AI chat-to-add-items ----------
