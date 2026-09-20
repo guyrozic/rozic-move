@@ -14,7 +14,7 @@
   <link rel="stylesheet" href="flow.css?v=24a4ec4f">
 </head>
 <body class="app-body flow-b">
-<div data-build-stamp class="build-stamp" aria-hidden="true">עודכן 20.09 · 11:15</div>
+<div data-build-stamp class="build-stamp" aria-hidden="true">עודכן 20.09 · 11:16</div>
 <script src="/version-check.js" defer></script>
   <a class="skip-link" href="#main-content">דלג לתוכן המרכזי</a>
   <script type="module" src="pilot-banner.js?v=14a0e537"></script>
@@ -257,6 +257,9 @@
         </div>`).join('');
       list.querySelectorAll('.settings-row-remove').forEach(btn => {
         btn.addEventListener('click', async () => {
+          // ⚠️ `BlockedUsersScreen.tsx:37` מסביר באישור **מה המשמעות**:
+          // ביטול חסימה מחזיר חשיפה הדדית. זו לא פעולה טכנית.
+          if (!confirm('לבטל את החסימה? מרגע זה שניכם תוכלו לראות זה את זה וליצור קשר.')) return;
           btn.disabled = true; btn.textContent = 'מבטל...';
           try {
             await unblockUser(state.authUser.uid, btn.dataset.uid);

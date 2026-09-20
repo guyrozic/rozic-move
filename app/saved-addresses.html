@@ -28,7 +28,7 @@
   </style>
 </head>
 <body class="app-body flow-b">
-<div data-build-stamp class="build-stamp" aria-hidden="true">עודכן 20.09 · 11:15</div>
+<div data-build-stamp class="build-stamp" aria-hidden="true">עודכן 20.09 · 11:16</div>
 <script src="/version-check.js" defer></script>
   <a class="skip-link" href="#main-content">דלג לתוכן המרכזי</a>
   <script type="module" src="pilot-banner.js?v=14a0e537"></script>
@@ -149,6 +149,10 @@
           </div>`).join('');
         list.querySelectorAll('.settings-row-remove').forEach(btn => {
           btn.addEventListener('click', async () => {
+            // ⚠️ `SavedAddressesScreen.tsx:35` מציג אישור לפני מחיקה.
+            // הפעולה הפיכה, אבל היא נמחקת בלחיצה אחת ובלי דרך חזרה
+            // לערך שהוקלד — ולכן אותה שאלה נשאלת גם כאן.
+            if (!confirm(`למחוק את הכתובת "${btn.dataset.addr}"?`)) return;
             btn.disabled = true; btn.textContent = 'מוחק...';
             try {
               await removeSavedAddress(state.authUser.uid, btn.dataset.addr);

@@ -160,6 +160,37 @@ export async function sendPasswordReset(email) {
   resetAttempts.set(key, (resetAttempts.get(key) ?? 0) + 1);
 }
 
+/* ═══════════ צינון על שליחת קוד SMS ═══════════════════════════════
+   ⚠️ **כל שליחה עולה כסף אמיתי.** האתר מנע רק לחיצה כפולה בזמן
+   הבקשה עצמה, ולכן לחיצות חוזרות — בטעות או בכוונה — היו שליחות
+   ממומנות בלי שום רסן. `PhoneVerificationScreen.tsx:57` באפליקציה
+   מחזיק `useSendCooldown('sms', { cooldownSeconds: 45, maxPerTarget: 5 })`,
+   וזו אותה מדיניות. המבנה מועתק מ-`getPasswordResetCooldown` שמעליו
+   ולא נכתב מחדש, כדי ששני הצינונים לא יתפצלו.
+
+   ⚠️ זו הגנה בצד הלקוח בלבד — היא מונעת בזבוז, לא תוקף. Firebase
+   מגביל בצד השרת, וההודעה שלו גנרית; זו נותנת ללקוח מספר שניות
+   ומסלול מוצא אמיתי. */
+const SMS_COOLDOWN_MS = 45_000;
+const SMS_MAX_PER_TARGET = 5;
+const smsAttempts = new Map();
+const smsNextAllowedAt = new Map();
+
+const smsKey = (phone) => String(phone ?? '').replace(/\D/g, '');
+
+export function getSmsCooldown(phone) {
+  const key = smsKey(phone);
+  const secondsLeft = Math.max(0, Math.ceil(((smsNextAllowedAt.get(key) ?? 0) - Date.now()) / 1000));
+  const exhausted = (smsAttempts.get(key) ?? 0) >= SMS_MAX_PER_TARGET;
+  return { canSend: !exhausted && secondsLeft === 0, secondsLeft, exhausted };
+}
+
+export function noteSmsSent(phone) {
+  const key = smsKey(phone);
+  smsNextAllowedAt.set(key, Date.now() + SMS_COOLDOWN_MS);
+  smsAttempts.set(key, (smsAttempts.get(key) ?? 0) + 1);
+}
+
 export function logout() {
   return signOut(auth);
 }

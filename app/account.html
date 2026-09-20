@@ -41,7 +41,7 @@
   </style>
 </head>
 <body class="app-body flow-b">
-<div data-build-stamp class="build-stamp" aria-hidden="true">עודכן 20.09 · 11:15</div>
+<div data-build-stamp class="build-stamp" aria-hidden="true">עודכן 20.09 · 11:16</div>
 <script src="/version-check.js" defer></script>
   <!-- ⚠️ 15.9 — "דלג לתוכן המרכזי" (WCAG 2.4.1, רמה A). זהו האלמנט הממוקד
        הראשון בדף: מוסתר מהעין, מופיע בפינה ברגע שמגיעים אליו ב-Tab, ומעביר
@@ -229,7 +229,7 @@
   </footer>
 
   <script type="module">
-    import { requireAuth, resendVerificationEmail, refreshEmailVerified, sendPhoneVerificationCode, confirmPhoneVerificationCode, logout, generateReferralCode } from './auth.js';
+    import { requireAuth, resendVerificationEmail, refreshEmailVerified, sendPhoneVerificationCode, confirmPhoneVerificationCode, logout, generateReferralCode, getSmsCooldown, noteSmsSent } from './auth.js';
     import { subscribeToUserOrders, customerTotalOf, STATUS_LABELS, OPEN_CUSTOMER_STATUSES, HISTORY_STATUSES } from './orders.js';
     import { clearAllOrderDrafts, loadOrderDraft, clearOrderDraft } from './guest-checkout.js';
     import { doc, updateDoc, onSnapshot } from 'https://www.gstatic.com/firebasejs/12.16.0/firebase-firestore.js';
@@ -457,9 +457,25 @@
       const btn = document.getElementById('send-code-btn');
       const phone = document.getElementById('phone-input').value.trim();
       if (!phone) return;
+      /* ⚠️ **כל שליחה עולה כסף.** עד כה הכפתור מנע רק לחיצה כפולה
+         בזמן הבקשה, ולחיצות חוזרות היו שליחות ממומנות בלי רסן.
+         `PhoneVerificationScreen.tsx:57` מחזיק 45 שניות ו-5 ניסיונות,
+         וזו אותה מדיניות — כולל מסלול המוצא לתמיכה כשהניסיונות נגמרו,
+         שהוא ההבדל בין "נסה שוב" למשהו שאפשר לעשות איתו משהו. */
+      const cd = getSmsCooldown(phone);
+      if (cd.exhausted) {
+        phoneError.innerHTML = '<div class="alert alert-error">שלחנו כבר כמה קודים למספר הזה. '
+          + '<a tabindex="0" href="support-chat.html">פנה לתמיכה</a> ונאמת אותך ידנית.</div>';
+        return;
+      }
+      if (!cd.canSend) {
+        phoneError.innerHTML = `<div class="alert alert-info">אפשר לשלוח קוד נוסף בעוד ${cd.secondsLeft} שניות.</div>`;
+        return;
+      }
       btn.disabled = true; btn.textContent = 'שולח...';
       try {
         verificationId = await sendPhoneVerificationCode(phone, 'recaptcha-container');
+        noteSmsSent(phone);
         document.getElementById('phone-step-number').style.display = 'none';
         document.getElementById('phone-step-code').style.display = 'block';
       } catch (err) {
@@ -508,6 +524,10 @@
     });
 
     document.getElementById('logout-btn').addEventListener('click', async () => {
+      // ⚠️ `ProfileScreen.tsx:300` שואל לפני התנתקות. הפעולה אינה
+      // הרסנית, אבל היא **כן** מוחקת את טיוטת ההזמנה מהמכשיר (ראו
+      // מיד למטה) — ולכן לחיצה בטעות עולה למשתמש בעבודה שהוא עשה.
+      if (!confirm('להתנתק מהחשבון?')) return;
       /**
        * ⚠️ 15.9 — **התנתקות לא ניקתה את טיוטת ההזמנה.**
        *

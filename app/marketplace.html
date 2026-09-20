@@ -84,7 +84,7 @@
   </style>
 </head>
 <body class="app-body flow-b">
-<div data-build-stamp class="build-stamp" aria-hidden="true">עודכן 20.09 · 11:15</div>
+<div data-build-stamp class="build-stamp" aria-hidden="true">עודכן 20.09 · 11:16</div>
 <script src="/version-check.js" defer></script>
   <!-- ⚠️ 15.9 — "דלג לתוכן המרכזי" (WCAG 2.4.1, רמה A). זהו האלמנט הממוקד
        הראשון בדף: מוסתר מהעין, מופיע בפינה ברגע שמגיעים אליו ב-Tab, ומעביר
@@ -407,7 +407,12 @@
       // אינו ב-hiddenUserIds (אי אפשר לחסום את עצמך), אז אין צורך לחרוג עבורו.
       let filtered = allListings.filter(l => !hiddenUserIds.has(l.userId));
       if (activeCategory !== 'all') filtered = filtered.filter(l => l.category === activeCategory);
-      if (searchQuery) filtered = filtered.filter(l => l.title?.toLowerCase().includes(searchQuery) || l.city?.toLowerCase().includes(searchQuery));
+      // ⚠️ 20.9 — התיאור נוסף. `GiveawayScreen.tsx:90` מחפש בשלושה
+      // שדות, והאתר חיפש בשניים — מילה שמופיעה רק בתיאור החזירה
+      // "אין תוצאות" באתר ותוצאה באפליקציה, על אותו לוח בדיוק.
+      if (searchQuery) filtered = filtered.filter(l => l.title?.toLowerCase().includes(searchQuery)
+        || l.city?.toLowerCase().includes(searchQuery)
+        || l.description?.toLowerCase().includes(searchQuery));
 
       const grid = document.getElementById('listing-grid');
       const isEmpty = filtered.length === 0;

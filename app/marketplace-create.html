@@ -67,7 +67,7 @@
   </style>
 </head>
 <body class="app-body flow-b">
-<div data-build-stamp class="build-stamp" aria-hidden="true">עודכן 20.09 · 11:15</div>
+<div data-build-stamp class="build-stamp" aria-hidden="true">עודכן 20.09 · 11:16</div>
 <script src="/version-check.js" defer></script>
   <!-- ⚠️ 15.9 — "דלג לתוכן המרכזי" (WCAG 2.4.1, רמה A). זהו האלמנט הממוקד
        הראשון בדף: מוסתר מהעין, מופיע בפינה ברגע שמגיעים אליו ב-Tab, ומעביר
@@ -299,7 +299,11 @@
     const MAX_PHOTOS = 4;
     let photos = []; // File objects
     let category = 'furniture';
-    let condition = null;
+    /* ⚠️ 20.9 — היה `null`. `CreateGiveawayScreen.tsx:89` מאתחל
+       ל-`'good'`, ולכן שם שורת "מצב:" מופיעה תמיד בתיאור ובאתר היא
+       נעדרה לגמרי ממודעות שבהן לא נבחר מצב — אותו פריט נראה אחרת
+       לפי המקום שממנו פורסם. */
+    let condition = 'good';
     let guidingQuestions = [];
 
     const CONDITION_OPTIONS = [
@@ -573,6 +577,14 @@
       const fromAddress = document.getElementById('from-address').value.trim();
       if (!title) { errBox.innerHTML = '<div class="alert alert-error">יש להוסיף כותרת.</div>'; return; }
       if (photos.length === 0) { errBox.innerHTML = '<div class="alert alert-error">יש להוסיף לפחות תמונה אחת.</div>'; return; }
+      /* ⚠️ 20.9 — **כתובת האיסוף לא נאכפה כאן כלל**, בזמן ש-
+         `CreateGiveawayScreen.tsx:189` חוסם שליחה בלעדיה. התוצאה:
+         אפשר היה לפרסם מודעה בלי עיר ובלי כתובת, ומי שרצה את הפריט
+         ראה שדה ריק ולא ידע לאן לגשת — כלומר מודעה שאי אפשר לממש.
+         שני השדות באתר הם טקסט חופשי (אין Places בדפדפן, מתועד
+         ב-`geo.js`), ולכן הבדיקה היא על תוכן ולא על מבנה. */
+      if (!city) { errBox.innerHTML = '<div class="alert alert-error">יש להוסיף עיר — בלעדיה אי אפשר לדעת מאיפה לאסוף.</div>'; document.getElementById('city').focus(); return; }
+      if (!fromAddress) { errBox.innerHTML = '<div class="alert alert-error">יש להוסיף כתובת לאיסוף.</div>'; document.getElementById('from-address').focus(); return; }
 
       /**
        * ⚠️ **כאן, ורק כאן, ההרשמה נדרשת** — ואחרי האימותים, לא לפניהם:
