@@ -22,7 +22,7 @@
   <link rel="stylesheet" href="flow.css?v=24a4ec4f">
 </head>
 <body class="app-body flow-b">
-<div data-build-stamp class="build-stamp" aria-hidden="true">עודכן 20.09 · 11:37</div>
+<div data-build-stamp class="build-stamp" aria-hidden="true">עודכן 20.09 · 11:41</div>
 <script src="/version-check.js" defer></script>
   <a class="skip-link" href="#main-content">דלג לתוכן המרכזי</a>
   <script type="module" src="pilot-banner.js?v=14a0e537"></script>
@@ -61,6 +61,11 @@
             <div class="chat-header-role">מוביל</div>
           </div>
         </div>
+        <!-- זהה ל-hasOlder ב-ChatScreen.tsx: מופיע רק כשהחלון מלא
+             (שיחה ארוכה מ-CHAT_PAGE_SIZE). באפליקציה הטעינה קורית בגלילה
+             לראש הרשימה; כאן — כמו ב-support-chat.html — כפתור מפורש. -->
+        <button tabindex="0" type="button" class="btn-text" id="load-older-btn" style="display:none; margin:0 auto 8px;">טען הודעות קודמות</button>
+
         <div id="chat-thread" class="chat-thread" role="log" aria-live="polite" aria-label="הודעות הצ'אט"></div>
         <form id="chat-form" class="chat-input-row">
           <label class="sr-only" for="chat-text">הודעה</label>
@@ -100,7 +105,31 @@
     import { requireAuth } from './auth.js';
     import { subscribeToOrder } from './orders.js';
     import { getUserProfile } from './users.js';
-    import { subscribeToMessages, sendChatMessage, markChatRead } from './chat.js';
+    import { sendChatMessage, markChatRead } from './chat.js';
+    import {
+      collection, limitToLast, onSnapshot, orderBy, query,
+    } from 'https://www.gstatic.com/firebasejs/12.16.0/firebase-firestore.js';
+    import { db } from './firebase.js';
+
+    /**
+     * ⚠️ שכפול מכוון של השאילתה ב-chat.js, במקום קריאה ל-subscribeToMessages
+     * שלו: chat.js הוגדר כקובץ חסום לעריכה בריצת הלילה הזו (עריכה מקבילית
+     * שם). הזהה ל-subscribeToMessages ב-Hovalot's src/services/chat.ts —
+     * windowSize/hasOlder, בדיוק כמו שכבר נוסף ל-support.js/support-chat.html.
+     * לאחד את שני המקורות בסבב הבא כש-chat.js פנוי, בדיוק לפי התבנית שכבר
+     * קיימת שם (SUPPORT_PAGE_SIZE export).
+     */
+    const CHAT_PAGE_SIZE = 50; // זהה ל-CHAT_PAGE_SIZE ב-chat.ts וב-chat.js
+    function subscribeToMessagesWindow(orderId, callback, windowSize) {
+      const q = query(
+        collection(db, 'orders', orderId, 'messages'),
+        orderBy('timestamp', 'asc'),
+        limitToLast(windowSize),
+      );
+      return onSnapshot(q, (snap) => {
+        callback(snap.docs.map(d => ({ id: d.id, ...d.data() })), snap.size >= windowSize);
+      }, () => callback([], false));
+    }
 
     const esc = (v) => String(v ?? '')
       .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
@@ -151,9 +180,19 @@
       const threadEl = document.getElementById('chat-thread');
       const textEl = document.getElementById('chat-text');
       const sendBtn = document.getElementById('chat-send-btn');
+      const loadOlderBtn = document.getElementById('load-older-btn');
       const myUid = authState.authUser.uid;
 
-      subscribeToMessages(orderId, (messages) => {
+      let messages = [];
+      let windowSize = CHAT_PAGE_SIZE;
+      let hasOlder = false;
+      // זהה ל-loadingOlderRef ב-ChatScreen.tsx: "טען הודעות קודמות" לא
+      // גולל בחזרה לסוף — אחרת הלחיצה הייתה מחזירה את המשתמש בדיוק
+      // למקום שממנו ביקש לצאת.
+      let loadingOlder = false;
+      let unsubMessages = null;
+
+      function renderThread() {
         if (!messages.length) {
           threadEl.innerHTML = '<div class="chat-empty">שלח הודעה ראשונה</div>';
         } else {
@@ -162,8 +201,25 @@
             return `<div class="chat-msg ${mine ? 'mine' : 'other'}">${esc(m.text)}<span class="chat-msg-time">${esc(formatTime(m.timestamp))}</span></div>`;
           }).join('');
         }
-        threadEl.scrollTop = threadEl.scrollHeight;
+        if (loadingOlder) { loadingOlder = false; } else { threadEl.scrollTop = threadEl.scrollHeight; }
+        loadOlderBtn.style.display = hasOlder ? 'block' : 'none';
         markChatRead(orderId);
+      }
+
+      function subscribeMessages() {
+        if (unsubMessages) { unsubMessages(); unsubMessages = null; }
+        unsubMessages = subscribeToMessagesWindow(orderId, (msgs, older) => {
+          messages = msgs;
+          hasOlder = older;
+          renderThread();
+        }, windowSize);
+      }
+      subscribeMessages();
+
+      loadOlderBtn.addEventListener('click', () => {
+        loadingOlder = true;
+        windowSize += CHAT_PAGE_SIZE;
+        subscribeMessages();
       });
 
       function updateSendState() {
