@@ -141,7 +141,7 @@
   </style>
 </head>
 <body class="app-body flow-b">
-<div data-build-stamp class="build-stamp" aria-hidden="true">עודכן 20.09 · 10:43</div>
+<div data-build-stamp class="build-stamp" aria-hidden="true">עודכן 20.09 · 11:08</div>
 <script src="/version-check.js" defer></script>
   <!-- ⚠️ 15.9 — "דלג לתוכן המרכזי" (WCAG 2.4.1, רמה A). זהו האלמנט הממוקד
        הראשון בדף: מוסתר מהעין, מופיע בפינה ברגע שמגיעים אליו ב-Tab, ומעביר
@@ -1025,7 +1025,7 @@
              הזמנה מ-19.9 לאותו יום, כניסה לשלם למחרת, וקיר.
              לכן המקרה הזה מקבל הסבר אמיתי ומסלול קדימה. */
           if (String(err?.message) === 'schedule passed') {
-            renderRescheduleBox();
+            renderRescheduleBox(order, payErrBox);
           } else {
             payErrBox.innerHTML = '<div class="alert alert-error">פתיחת התשלום נכשלה. נסה שוב.</div>';
           }
@@ -1074,7 +1074,13 @@
         return p.length === 3 ? new Date(p[2], p[1] - 1, p[0]) : null;
       }
 
-      function renderRescheduleBox() {
+      /* ⚠️ `order` ו-`payErrBox` מגיעים כפרמטרים ולא מההיקף.
+         `payErrBox` מוגדר **בתוך** מאזין הלחיצה, והפונקציה הזאת יושבת
+         בהיקף החיצוני — כלומר הקריאה זרקה `ReferenceError`, ה-`catch`
+         מת באמצע, והכפתור נשאר `disabled` עם "מעביר לתשלום...".
+         גיא: "זה פשוט נתקע כאילו זה לחוץ וזהו." בדיוק זה.
+         הבדיקה שלי בדקה את **השרת** ולא את **הדף**, ולכן לא תפסה. */
+      function renderRescheduleBox(order, payErrBox) {
         const oldDate = parseDMY(order.scheduledDate);
         const oldTier = oldDate ? surgeTierOfDate(oldDate) : null;
         // מינימום מחר: היום עצמו כבר עבר או עומד לעבור, והזמנה לאותו
