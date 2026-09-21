@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>אימות מספר טלפון · ROZIC MOVE</title>
+
+<!--
+  עמוד מתווך לאימות טלפון ידני — 21.9.2026
+
+  ⚠️ העמוד הזה **אינו מאמת דבר ואינו פודה דבר.** כל תפקידו להעביר את
+  הטוקן מהקישור אל האפליקציה, שם הפדיון קורה בקריאה מאומתת אל
+  `redeemManualPhoneVerification`.
+
+  זו לא החמרה מיותרת אלא הכרח: וואטסאפ מושכת כל קישור https כדי לייצר
+  תצוגה מקדימה. אילו עצם הכניסה לכתובת הייתה פודה את הטוקן, הזחלן של
+  וואטסאפ היה שורף אותו לפני שהמשתמש בכלל לחץ — והמשתמש היה מקבל
+  "הקוד כבר נוצל" על קישור שמעולם לא פתח.
+
+  מסיבה זהה אין כאן שום קריאת רשת. הדף סטטי לחלוטין.
+
+  למה בכלל עמוד ולא קישור ישיר לאפליקציה: וואטסאפ הופכת ללחיץ רק
+  http(s). `rozicmove://` מופיע כטקסט רגיל ולא ניתן ללחיצה.
+-->
+
+<style>
+  :root {
+    --pine: #0E5C43;
+    --pine-light: #00A651;
+    --ink: #1a1a1a;
+    --muted: #5b6b64;
+    --tint: #E7F3ED;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    background: #fff;
+    color: var(--ink);
+    font-family: "Heebo", -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif;
+    line-height: 1.6;
+  }
+  .card {
+    width: 100%;
+    max-width: 420px;
+    text-align: center;
+  }
+  .mark {
+    width: 72px; height: 72px;
+    margin: 0 auto 20px;
+    border-radius: 18px;
+    background: var(--tint);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 34px;
+  }
+  h1 { font-size: 24px; margin: 0 0 10px; color: var(--pine); }
+  p  { margin: 0 0 14px; color: var(--muted); font-size: 16px; }
+  .btn {
+    display: inline-block;
+    width: 100%;
+    padding: 15px 20px;
+    margin-top: 8px;
+    border: 0; border-radius: 12px;
+    background: var(--pine);
+    color: #fff;
+    font-size: 17px; font-weight: 600;
+    text-decoration: none;
+    cursor: pointer;
+    font-family: inherit;
+  }
+  .btn.secondary {
+    background: #fff;
+    color: var(--pine);
+    border: 1.5px solid var(--pine-light);
+  }
+  .stores { margin-top: 22px; font-size: 15px; }
+  .stores a { color: var(--pine); }
+  .bad { color: #CE2E3B; }
+  @media (prefers-color-scheme: dark) {
+    body { background: #121614; color: #eaf2ee; }
+    p { color: #a9bdb4; }
+    h1 { color: #7fd3b2; }
+    .mark { background: #1b2a24; }
+    .btn.secondary { background: transparent; color: #7fd3b2; }
+  }
+</style>
+</head>
+<body>
+  <main class="card">
+    <div class="mark" aria-hidden="true">📱</div>
+    <h1 id="title">פותח את האפליקציה…</h1>
+    <p id="msg">אם האפליקציה לא נפתחת מעצמה, לחץ על הכפתור.</p>
+
+    <a class="btn" id="open" href="#">פתח את ROZIC MOVE</a>
+
+    <div class="stores" id="stores" hidden>
+      <p>עדיין אין לך את האפליקציה?</p>
+      <p>
+        <a href="https://apps.apple.com/il/app/id6783814838">להורדה לאייפון</a>
+        &nbsp;·&nbsp;
+        <a href="https://play.google.com/store/apps/details?id=com.rozicmove.app">להורדה לאנדרואיד</a>
+      </p>
+    </div>
+  </main>
+
+<script>
+(function () {
+  var params = new URLSearchParams(location.search);
+  var token = params.get('t');
+
+  var title = document.getElementById('title');
+  var msg   = document.getElementById('msg');
+  var open  = document.getElementById('open');
+  var stores = document.getElementById('stores');
+
+  if (!token) {
+    title.textContent = 'קישור לא תקין';
+    title.className = 'bad';
+    msg.textContent = 'הקישור חסר או נקטע. בקשו מהתמיכה לשלוח אותו שוב.';
+    open.hidden = true;
+    stores.hidden = false;
+    return;
+  }
+
+  // הטוקן מועבר כמו שהוא לאפליקציה. שום דבר כאן לא מפרש אותו ולא שולח
+  // אותו לשרת — ראו ההערה בראש הקובץ.
+  var deepLink = 'rozicmove://verify?t=' + encodeURIComponent(token);
+  open.setAttribute('href', deepLink);
+
+  // ניסיון פתיחה מיידי. אם האפליקציה מותקנת, הדפדפן עובר אליה ומה שלמטה
+  // כבר לא נראה. אם לא — אחרי רגע מציגים את קישורי החנויות.
+  location.href = deepLink;
+
+  setTimeout(function () {
+    if (document.hidden) return;   // עברנו לאפליקציה — לא להחליף טקסט מאחור
+    title.textContent = 'לחץ כדי להמשיך';
+    msg.textContent = 'האימות מתבצע בתוך האפליקציה.';
+    stores.hidden = false;
+  }, 1800);
+})();
+</script>
+</body>
+</html>
