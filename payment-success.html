@@ -225,10 +225,17 @@
 
     <div class="divider"></div>
 
+    <!-- ⚠️ 21.9 — קישורי ההורדה יושבים במיכל נפרד כדי שניתן יהיה
+         **להסתיר אותם** כשמגיעים לכאן מתוך האפליקציה.
+         בודק שסיים תשלום באפליקציה נחת בדיוק כאן וראה "הורד ל-iPhone"
+         ו"הורד לאנדרואיד" — לאדם שהאפליקציה פתוחה אצלו ברגע זה. זה מה
+         שגרם לדף להיראות כדף שאינו מקושר לאפליקציה בכלל. -->
     <div id="app-buttons">
-      <button tabindex="0" class="btn btn-primary" onclick="openApp()">פתח באפליקציה</button>
-      <a tabindex="0" class="btn btn-apple" href="https://apps.apple.com/app/id6783814838">הורד ל-iPhone</a>
-      <a tabindex="0" class="btn btn-android" href="https://play.google.com/store/apps/details?id=com.rozicmove.app">הורד לאנדרואיד</a>
+      <button tabindex="0" class="btn btn-primary" onclick="openApp()">חזרה לאפליקציה</button>
+      <div id="store-buttons">
+        <a tabindex="0" class="btn btn-apple" href="https://apps.apple.com/app/id6783814838">הורד ל-iPhone</a>
+        <a tabindex="0" class="btn btn-android" href="https://play.google.com/store/apps/details?id=com.rozicmove.app">הורד לאנדרואיד</a>
+      </div>
     </div>
     <div id="web-buttons" style="display:none;">
       <a tabindex="0" class="btn btn-primary" id="order-status-link" href="#">צפה בהזמנה שלך</a>
@@ -332,6 +339,39 @@
         document.getElementById('opening').textContent = 'אפשר לבדוק את מצב ההזמנה בעמוד ההזמנות.';
       }
     } else {
+      /**
+       * ⚠️ 21.9 — **הענף הזה היה מבוי סתום כשהקפיצה לאפליקציה נחסמה.**
+       *
+       * הוא עשה דבר אחד: ניסה `openApp()` אחרי 400ms. זהו ניווט יזום
+       * ע"י סקריפט **בלי מחוות משתמש**, ודפדפנים חוסמים מעבר לסכמה
+       * חיצונית בלי מחווה כזו. וכשזה נחסם, מה שנשאר על המסך היה
+       * "מאשרים את התשלום…" **לנצח** — הדף לא בדק דבר בענף הזה — עם
+       * שני כפתורי "הורד את האפליקציה" מתחתיו.
+       *
+       * שלושת התיקונים, וכל אחד מהם עומד בפני עצמו:
+       * 1. קישורי ההורדה מוסתרים. מי שהגיע לכאן שילם מתוך האפליקציה.
+       * 2. הטקסט אומר את האמת ונעצר — במקום "מאשרים…" שלא מוביל לשום
+       *    מקום. ראו מיד למה **אין כאן סקירת מצב** כמו בנתיב האתר.
+       * 3. הקפיצה האוטומטית נשארת, והכפתור "חזרה לאפליקציה" הוא
+       *    הפעולה הראשית. **מגע של המשתמש אינו נחסם לעולם.**
+       *
+       * ⚠️ **ובמכוון אין כאן `verifyPayment`.** הדפדפן הפנימי אינו
+       * חולק את סשן ההזדהות של האפליקציה, ולכן `getDoc` כאן נדחה על
+       * הרשאה כמעט תמיד — סקירה כזו הייתה נגמרת ב"לא הצלחנו לאמת",
+       * כלומר שתים-עשרה שניות המתנה כדי להציג הודעת כשל על תשלום תקין.
+       * **האפליקציה היא שמחזיקה את התשובה האמיתית**, דרך `growNotify`
+       * ו-Firestore, ולשם אנחנו מחזירים אותו.
+       *
+       * ובמקביל האפליקציה מושכת את עצמה לחזית ברגע שהאישור מגיע —
+       * ראו `returnToForeground` ב-`growCheckoutSession.ts`.
+       * שתי הרשתות נחוצות: אף אחת מהן אינה אמינה לבדה.
+       */
+      document.getElementById('store-buttons').style.display = 'none';
+      setStatus('התשלום נשלח', 'חוזרים לאפליקציה');
+      document.getElementById('opening').textContent =
+        'מחזירים אותך לאפליקציה — מצב ההזמנה המעודכן יופיע שם.';
+      document.getElementById('note').textContent =
+        'לא חזרת אוטומטית? לחץ על "חזרה לאפליקציה" למעלה ↑';
       setTimeout(openApp, 400);
     }
 
