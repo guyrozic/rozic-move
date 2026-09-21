@@ -60,7 +60,7 @@
           crossorigin="anonymous"></script>
 </head>
 <body class="app-body flow-b">
-<div data-build-stamp class="build-stamp" aria-hidden="true">עודכן 21.09 · 12:09</div>
+<div data-build-stamp class="build-stamp" aria-hidden="true">עודכן 21.09 · 12:25</div>
 <script src="/version-check.js?v=b4f8b2f7" defer></script>
   <a class="skip-link" href="#main-content">דלג לתוכן המרכזי</a>
   <script type="module" src="pilot-banner.js?v=14a0e537"></script>
@@ -130,7 +130,7 @@
 
   <script type="module">
     import { requireAuth } from './auth.js';
-    import { subscribeToOrder, subscribeToDriverLocation, locationFreshness, formatLocationAge } from './orders.js';
+    import { subscribeToOrder, subscribeToDriverLocation, locationFreshness, formatLocationAge, getOrderContact } from './orders.js';
 
     const esc = (v) => String(v ?? '')
       .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
@@ -208,7 +208,26 @@
       setInterval(updatePanel, 10_000);
 
       let sawOrderOnce = false;
-      subscribeToOrder(orderId, (order) => {
+      /* ⚠️ 21.9 (63.5) — הקואורדינטות והכתובת המלאה ירדו מהמסמך הראשי
+         אל `orders/{id}/private/contact`. **המפה כאן אינה יכולה לעבוד
+         בלעדיהן** — בלי המיזוג הזה מסך המעקב היה מציג "אין עדיין מה
+         להציג על המפה" על כל הזמנה חדשה.
+
+         נטען **פעם אחת** ולא בכל snapshot: הכתובת אינה משתנה במהלך
+         ההובלה, ואילו המיקום החי מגיע ממנוי נפרד. */
+      let contact = {};
+      getOrderContact(orderId).then((c) => { contact = c; });
+
+      subscribeToOrder(orderId, (rawOrder) => {
+        const order = rawOrder ? {
+          ...rawOrder,
+          fromAddress: contact.fromAddress ?? rawOrder.fromAddress ?? null,
+          toAddress: contact.toAddress ?? rawOrder.toAddress ?? null,
+          fromLat: contact.fromLat ?? rawOrder.fromLat ?? null,
+          fromLng: contact.fromLng ?? rawOrder.fromLng ?? null,
+          toLat: contact.toLat ?? rawOrder.toLat ?? null,
+          toLng: contact.toLng ?? rawOrder.toLng ?? null,
+        } : rawOrder;
         if (!order) { showError('<div class="empty-icon">🚫</div>ההזמנה לא נמצאה, או שאין לך הרשאה לצפות בה.'); return; }
         if (order.customerId !== authState.authUser.uid) { showError('<div class="empty-icon">🚫</div>אין לך הרשאה לצפות בהזמנה זו.'); return; }
 

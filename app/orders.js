@@ -4,8 +4,7 @@
 // screens with zero changes on that side.
 import {
   collection, deleteDoc, doc, getDoc, getDocs, onSnapshot,
-  query, serverTimestamp, setDoc, updateDoc, where, writeBatch,
-} from 'https://www.gstatic.com/firebasejs/12.16.0/firebase-firestore.js';
+  query, serverTimestamp, setDoc, updateDoc, where, writeBatch,, deleteField } from 'https://www.gstatic.com/firebasejs/12.16.0/firebase-firestore.js';
 import { db, auth } from './firebase.js';
 // מדרג הביטולים **אינו** מועתק לכאן ביד — הוא נגזר מהקובץ המקומפל מ-
 // `~/Hovalot/src/data/pricing.ts`, שעליו `check-web-pricing-sync.ts` אוכף
@@ -145,19 +144,22 @@ export async function createOrder(input) {
     driverId: null,
     serviceType: input.serviceType,
     title: input.title,
-    fromAddress: input.fromAddress ?? null,
-    toAddress: input.toAddress ?? null,
+    /**
+     * ⚠️ 21.9 — הכתובת המלאה והקואורדינטות **אינן נכתבות כאן יותר**.
+     * הן ב-`orders/{id}/private/contact` בלבד (הכרעת גיא 63.5).
+     *
+     * ⚠️ ההערה שישבה כאן הזהירה שבלי הקואורדינטות
+     * `flagSuspiciousOrderPrice` "יוצאת מיד ולא בודקת כלום" — וזה היה
+     * נכון. הפונקציה **עודכנה באותו יום** לקרוא אותן מתת-המסמך (היא
+     * רצה ב-Admin SDK, החוקים אינם חלים עליה), וכך גם
+     * `reportCustomerNoShow` ו-`notifyAdminsOnNewOrder`. בלי שלושת
+     * השינויים האלה ההסרה כאן הייתה שוברת אותם.
+     */
     // עיר/רחוב בלבד — מה שהלוח הפתוח מציג לפני שיבוץ. ראו הערת הפונקציה.
     fromCity: input.fromCity ?? null,
     fromStreet: input.fromStreet ?? null,
     toCity: input.toCity ?? null,
     toStreet: input.toStreet ?? null,
-    // ⚠️ בלי ארבעת אלה `flagSuspiciousOrderPrice` יוצאת מיד ולא בודקת
-    // כלום. ראו `distanceAndCoords` ב-geo.js לנימוק המלא.
-    fromLat: input.fromLat ?? null,
-    fromLng: input.fromLng ?? null,
-    toLat: input.toLat ?? null,
-    toLng: input.toLng ?? null,
     scheduledDate: input.scheduledDate ?? null,
     timeSlot: input.timeSlot ?? null,
     notes: input.notes ?? null,
@@ -244,6 +246,47 @@ export function subscribeToUserOrders(uid, callback) {
 
 /** קריאה חד-פעמית, לא מנוי חי — לדפים כמו order-rate.html שבהם מנוי חי
  *  היה מסכן למחוק בחירות באמצע מילוי טופס אם המסמך יתעדכן משום סיבה אחרת. */
+/**
+ * הכתובת המלאה והקואורדינטות של הזמנה — מ-`orders/{id}/private/contact`.
+ *
+ * ⚠️ 21.9 (63.5) — הן ירדו מהמסמך הראשי, כי כל מוביל קורא אותו לפני
+ * שיבוץ. תת-המסמך נקרא ע"י הלקוח, המוביל המשובץ והאדמין בלבד.
+ *
+ * ⚠️ **הנפילה חזרה למסמך הראשי אינה שריד — היא נדרשת.** הזמנות
+ * שנוצרו לפני 21.9 עדיין נושאות את השדות שם, ובלי הנפילה מסך המעקב
+ * ועמוד הבית היו מציגים הזמנה בלי כתובת ובלי מפה.
+ *
+ * מחזירה `{}` בכשל קריאה — הקורא נופל למסמך הראשי, ואם גם שם אין,
+ * מציג בלי כתובת. **לא זורקת**: אין טעם להפיל מסך שלם בגלל שורת כתובת.
+ */
+export async function getOrderContact(orderId) {
+  try {
+    const snap = await getDoc(doc(db, 'orders', orderId, 'private', 'contact'));
+    return snap.exists() ? snap.data() : {};
+  } catch {
+    return {};
+  }
+}
+
+/**
+ * ממזגת הזמנה עם תת-המסמך הפרטי שלה, כך שהקורא מקבל אובייקט אחד
+ * בדיוק בצורה שהייתה לפני 21.9. זו הדרך המומלצת לכל מסך לקוח.
+ */
+export async function getOrderWithContact(orderId) {
+  const order = await getOrder(orderId);
+  if (!order) return order;
+  const c = await getOrderContact(orderId);
+  return {
+    ...order,
+    fromAddress: c.fromAddress ?? order.fromAddress ?? null,
+    toAddress: c.toAddress ?? order.toAddress ?? null,
+    fromLat: c.fromLat ?? order.fromLat ?? null,
+    fromLng: c.fromLng ?? order.fromLng ?? null,
+    toLat: c.toLat ?? order.toLat ?? null,
+    toLng: c.toLng ?? order.toLng ?? null,
+  };
+}
+
 export async function getOrder(orderId) {
   const snap = await getDoc(doc(db, 'orders', orderId));
   return snap.exists() ? { id: snap.id, ...snap.data() } : null;
@@ -776,8 +819,18 @@ export async function promoteDraftToOrder(orderId, finalFields) {
   const batch = writeBatch(db);
   batch.update(ref, {
     title: finalFields.title,
-    fromAddress: finalFields.fromAddress ?? null,
-    toAddress: finalFields.toAddress ?? null,
+    /**
+     * ⚠️ **מחיקה מפורשת ולא השמטה.** קידום טיוטה הוא `update` על מסמך
+     * קיים, ולכן שדה שלא נכתב כאן פשוט **נשאר** — וטיוטה שנוצרה לפני
+     * 21.9 עלולה לשאת את הכתובת המלאה, שהייתה נחשפת ברגע שההזמנה
+     * הופכת ל-`pending`.
+     */
+    fromAddress: deleteField(),
+    toAddress: deleteField(),
+    fromLat: deleteField(),
+    fromLng: deleteField(),
+    toLat: deleteField(),
+    toLng: deleteField(),
     fromCity: finalFields.fromCity ?? null,
     fromStreet: finalFields.fromStreet ?? null,
     toCity: finalFields.toCity ?? null,

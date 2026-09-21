@@ -62,7 +62,7 @@
   </style>
 </head>
 <body class="app-body flow-b">
-<div data-build-stamp class="build-stamp" aria-hidden="true">עודכן 21.09 · 12:09</div>
+<div data-build-stamp class="build-stamp" aria-hidden="true">עודכן 21.09 · 12:25</div>
 <script src="/version-check.js?v=b4f8b2f7" defer></script>
   <!-- ⚠️ 15.9 — "דלג לתוכן המרכזי" (WCAG 2.4.1, רמה A). זהו האלמנט הממוקד
        הראשון בדף: מוסתר מהעין, מופיע בפינה ברגע שמגיעים אליו ב-Tab, ומעביר
@@ -263,8 +263,17 @@
       if (!wrap) return;
       if (!order) { wrap.innerHTML = ''; return; }
       const title = order.title || 'הזמנה';
-      const routeRow = (order.fromAddress && order.toAddress)
-        ? `<div class="next-order-route">${esc(order.fromAddress)} ← ${esc(order.toAddress)}</div>` : '';
+      /* ⚠️ 21.9 (63.5) — הכתובת המלאה ירדה מהמסמך הראשי ויושבת בתת-מסמך
+         פרטי. כאן מוצגת **עיר/רחוב**: זו כרטיסייה מצומצמת בעמוד הבית,
+         והבאת תת-מסמך נוסף רק בשבילה אינה מוצדקת. הנפילה חזרה
+         ל-`fromAddress` נדרשת להזמנות שנוצרו לפני 21.9 ועדיין נושאות
+         אותו. הכתובת המלאה מוצגת ב-order-status וב-order-track. */
+      const areaOf = (city, street, full) =>
+        city ? (street ? `${street}, ${city}` : city) : (full || '');
+      const fromArea = areaOf(order.fromCity, order.fromStreet, order.fromAddress);
+      const toArea = areaOf(order.toCity, order.toStreet, order.toAddress);
+      const routeRow = (fromArea && toArea)
+        ? `<div class="next-order-route">${esc(fromArea)} ← ${esc(toArea)}</div>` : '';
       // אותו נוסח בדיוק כמו order-status.html: תאריך + ' · ' + חלון זמן.
       const dateRow = order.scheduledDate
         ? `<div class="next-order-date">${esc(order.scheduledDate)}${order.timeSlot ? ' · ' + esc(order.timeSlot) : ''}</div>` : '';
