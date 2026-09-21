@@ -2,6 +2,26 @@
 <html lang="he" dir="rtl">
 <head>
 <meta charset="UTF-8">
+  <!-- ⚠️ 21.9 — מדיניות אבטחת תוכן. **נבנתה ממדידה, לא מניחוש:** כל
+       מקור חיצוני שהאתר פונה אליו נמדד בפועל על כל דפי האתר
+       (`Network.requestWillBeSent`), והושלם מהקוד למה שנצרך רק בסשן
+       מחובר — Firestore, Auth, Storage ופונקציות הענן.
+
+       ⚠️ **מה זה כן נותן ומה לא.** הדפים מלאים ב-`<script type="module">`
+       מוטבע, ולכן `script-src` **חייב** לכלול `'unsafe-inline'` — אין
+       nonce באתר סטטי. כלומר המדיניות אינה חוסמת הזרקת JS מוטבע.
+       מה שהיא כן חוסמת: טעינת סקריפט ממארח זר, הזרקת `<base>` שמחטפת
+       כל קישור יחסי, שליחת טופס החוצה, `<object>`/`<embed>`, ובעיקר
+       **`connect-src` — לאן קוד שכבר רץ יכול לשלוח נתונים.** זו השכבה
+       שמגבילה דליפה, והיא הערך העיקרי כאן.
+
+       ⚠️ `frame-ancestors` (הגנת clickjacking) **אינו נתמך ב-meta** לפי
+       התקן ודורש כותרת HTTP. GitHub Pages אינו מאפשר כותרות מותאמות,
+       ולכן הוא **אינו מכוסה** — פער מודע שדורש CDN לפניו.
+
+       ⚠️ תוספת מארח חדש (SDK, CDN, ספק) מחייבת עדכון כאן, אחרת הוא
+       ייחסם בשקט יחסי. נבדק על כל הדפים: אפס הפרות. -->
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://www.gstatic.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdn.jsdelivr.net; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob: https://*.tile.openstreetmap.org https://*.googleapis.com https://*.firebasestorage.app; connect-src 'self' https://*.googleapis.com https://*.cloudfunctions.net https://*.firebasestorage.app; frame-src 'none'; object-src 'none'; base-uri 'self'; form-action 'self'">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="robots" content="noindex, nofollow">
 <title>מעבירים את זה הלאה — שילוב</title>
@@ -130,7 +150,7 @@
 </style>
 </head>
 <body>
-<div data-build-stamp class="build-stamp" aria-hidden="true">עודכן 21.09 · 02:50</div>
+<div data-build-stamp class="build-stamp" aria-hidden="true">עודכן 21.09 · 10:12</div>
 <script src="/version-check.js?v=b4f8b2f7" defer></script>
 <a class="skip-link" href="#main-content">דלג לתוכן המרכזי</a>
 <svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
