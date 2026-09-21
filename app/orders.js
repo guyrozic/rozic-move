@@ -3,8 +3,8 @@
 // orders created from the web show up correctly in the mobile app's admin/driver
 // screens with zero changes on that side.
 import {
-  addDoc, collection, deleteDoc, doc, getDoc, getDocs, onSnapshot,
-  query, serverTimestamp, setDoc, updateDoc, where,
+  collection, deleteDoc, doc, getDoc, getDocs, onSnapshot,
+  query, serverTimestamp, setDoc, updateDoc, where, writeBatch,
 } from 'https://www.gstatic.com/firebasejs/12.16.0/firebase-firestore.js';
 import { db, auth } from './firebase.js';
 // מדרג הביטולים **אינו** מועתק לכאן ביד — הוא נגזר מהקובץ המקומפל מ-
@@ -114,15 +114,44 @@ function computeInitialOrderStatus(manualPricingItems) {
   return 'pending_payment';
 }
 
-/** Creates a submitted order (not a draft) — mirrors createOrder() in orders.ts field-for-field. */
+/**
+ * Creates a submitted order (not a draft) — mirrors createOrder() in orders.ts field-for-field.
+ *
+ * ⚠️ 63.5 — הכרעת גיא: מוביל שרואה הזמנה פתוחה בלוח רואה רק עיר/רחוב/
+ * תאריך/שעה, לא מספר בית ולא נ"צ מדויקים. אלה נחשפים לו רק אחרי
+ * שיבוץ. **שלב זה additive בלבד**: המסמך הראשי ממשיך לשאת גם את
+ * `fromAddress`/`toAddress`/lat/lng כרגיל (ההסרה שלב נפרד) — ובנוסף,
+ * `fromCity`/`fromStreet`/`toCity`/`toStreet` נכתבים כאן, ו**אותם ארבעת
+ * השדות הרגישים** (`fromAddress`/`toAddress`/lat/lng) נכתבים גם לתת-מסמך
+ * `orders/{id}/private/contact`, שעליו ייסגרו החוקים בהמשך.
+ *
+ * `fromCity`/`fromStreet`/`toCity`/`toStreet` מגיעים מ-
+ * `getAddressCityStreet` ב-`address-autocomplete.js` (מפורק מ-
+ * `address_components` של Google, לא רגקס על המחרוזת) — `null` כשלא
+ * נבחרה הצעה מאומתת מהרשימה החיה (הקלדה חופשית / צ'יפ מועדף-אחרון /
+ * `address_components` חסר). עדיף `null` על ניחוש: כרטיס בלוח בלי עיר
+ * לא שימושי, אבל עיר שגויה מטעה.
+ *
+ * ⚠️ **כתיבה אטומית.** `writeBatch` יחיד למסמך ההזמנה ולתת-המסמך —
+ * הזמנה בלי `private/contact` פירושה מוביל משובץ שאין לו כתובת לנסוע
+ * אליה, ולכן אסור ששתי הכתיבות ייפרדו לשתי בקשות נפרדות.
+ */
 export async function createOrder(input) {
-  const ref = await addDoc(collection(db, 'orders'), {
+  const ref = doc(collection(db, 'orders'));
+  const contactRef = doc(db, 'orders', ref.id, 'private', 'contact');
+  const batch = writeBatch(db);
+  batch.set(ref, {
     customerId: input.customerId,
     driverId: null,
     serviceType: input.serviceType,
     title: input.title,
     fromAddress: input.fromAddress ?? null,
     toAddress: input.toAddress ?? null,
+    // עיר/רחוב בלבד — מה שהלוח הפתוח מציג לפני שיבוץ. ראו הערת הפונקציה.
+    fromCity: input.fromCity ?? null,
+    fromStreet: input.fromStreet ?? null,
+    toCity: input.toCity ?? null,
+    toStreet: input.toStreet ?? null,
     // ⚠️ בלי ארבעת אלה `flagSuspiciousOrderPrice` יוצאת מיד ולא בודקת
     // כלום. ראו `distanceAndCoords` ב-geo.js לנימוק המלא.
     fromLat: input.fromLat ?? null,
@@ -177,6 +206,17 @@ export async function createOrder(input) {
      */
     editablePayload: input.editablePayload ? stripUndefinedDeep(input.editablePayload) : null,
   });
+  // אותם ארבעת השדות הרגישים בדיוק, בתת-מסמך שרק צד השרת/מוביל-משובץ
+  // יכול לקרוא אחרי שהחוקים ייסגרו. ראו הערת הפונקציה למעלה.
+  batch.set(contactRef, {
+    fromAddress: input.fromAddress ?? null,
+    toAddress: input.toAddress ?? null,
+    fromLat: input.fromLat ?? null,
+    fromLng: input.fromLng ?? null,
+    toLat: input.toLat ?? null,
+    toLng: input.toLng ?? null,
+  });
+  await batch.commit();
   return ref.id;
 }
 
@@ -712,12 +752,26 @@ export async function clearDraftOrder(orderId) {
   await deleteDoc(doc(db, 'orders', orderId));
 }
 
-/** Turns a draft into a submitted order — mirrors promoteDraftToOrder() in orders.ts. */
+/**
+ * Turns a draft into a submitted order — mirrors promoteDraftToOrder() in orders.ts.
+ *
+ * ⚠️ 63.5 — אותה תוספת בדיוק כמו ב-`createOrder` למעלה, ומאותו נימוק:
+ * `fromCity`/`fromStreet`/`toCity`/`toStreet` על המסמך הראשי,
+ * ו-`fromAddress`/`toAddress`/lat/lng אל `orders/{id}/private/contact`
+ * ב-`writeBatch` יחיד. ראו שם לפירוט המלא.
+ */
 export async function promoteDraftToOrder(orderId, finalFields) {
-  await updateDoc(doc(db, 'orders', orderId), {
+  const ref = doc(db, 'orders', orderId);
+  const contactRef = doc(db, 'orders', orderId, 'private', 'contact');
+  const batch = writeBatch(db);
+  batch.update(ref, {
     title: finalFields.title,
     fromAddress: finalFields.fromAddress ?? null,
     toAddress: finalFields.toAddress ?? null,
+    fromCity: finalFields.fromCity ?? null,
+    fromStreet: finalFields.fromStreet ?? null,
+    toCity: finalFields.toCity ?? null,
+    toStreet: finalFields.toStreet ?? null,
     scheduledDate: finalFields.scheduledDate ?? null,
     timeSlot: finalFields.timeSlot ?? null,
     notes: finalFields.notes ?? null,
@@ -748,6 +802,15 @@ export async function promoteDraftToOrder(orderId, finalFields) {
     draftServiceType: null, draftPayload: null, draftStep: null,
     draftUpdatedAt: null, draftReminderSent: null,
   });
+  batch.set(contactRef, {
+    fromAddress: finalFields.fromAddress ?? null,
+    toAddress: finalFields.toAddress ?? null,
+    fromLat: finalFields.fromLat ?? null,
+    fromLng: finalFields.fromLng ?? null,
+    toLat: finalFields.toLat ?? null,
+    toLng: finalFields.toLng ?? null,
+  });
+  await batch.commit();
 }
 
 /**

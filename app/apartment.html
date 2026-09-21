@@ -162,7 +162,7 @@
   </style>
 </head>
 <body class="app-body flow-b">
-<div data-build-stamp class="build-stamp" aria-hidden="true">עודכן 21.09 · 10:58</div>
+<div data-build-stamp class="build-stamp" aria-hidden="true">עודכן 21.09 · 12:03</div>
 <script src="/version-check.js?v=b4f8b2f7" defer></script>
   <!-- ⚠️ 15.9 — "דלג לתוכן המרכזי" (WCAG 2.4.1, רמה A). זהו האלמנט הממוקד
        הראשון בדף: מוסתר מהעין, מופיע בפינה ברגע שמגיעים אליו ב-Tab, ומעביר
@@ -668,7 +668,7 @@
              mountGuestQuotaPanel, saveScanPhotos, restoreScanPhotos, scanPhotosNotice,
              GUEST_QUOTA_TEXT } from './ai-guest-quota.js';
     import { resizeImageToBase64 } from './image-resize.js';
-    import { mountAddressField } from './address-autocomplete.js';
+    import { mountAddressField, getAddressCityStreet } from './address-autocomplete.js';
 
     // 14.9 — אורח רשאי לבנות הזמנה ולראות מחיר בלי חשבון. ההרשמה
     // נדרשת רק לפני התשלום. ראו guest-checkout.js לנימוק המלא.
@@ -689,6 +689,10 @@
       // "עדיין לא ארוזים" ונכנסים לחישוב שירות האריזה (countCustomerBoxes).
       boxesAlreadyPacked: false,
       fromAddress: '', toAddress: '',
+      // ⚠️ 63.5 — עיר/רחוב שחולצו מ-address_components, ל-createOrder
+      // בלבד (ללוח המובילים לפני שיבוץ). `null` כשלא נבחרה הצעה מאומתת
+      // מהרשימה החיה — ראו getAddressCityStreet ב-address-autocomplete.js.
+      fromCity: null, fromStreet: null, toCity: null, toStreet: null,
       fromFloor: 'קרקע', toFloor: 'קרקע', fromElevator: true, toElevator: true,
       needsCrane: false, craneFloor: 'קרקע', craneItems: [],
       distance: 0,
@@ -2146,6 +2150,14 @@
       errBox.innerHTML = '';
       state.fromAddress = document.getElementById('from-address').value.trim();
       state.toAddress = document.getElementById('to-address').value.trim();
+      // ⚠️ 63.5 — נקרא כאן, ברגע שהכתובת ננעלת לשלב הזה, לא בזמן ה-createOrder
+      // עצמו: אם המשתמש חוזר לשדה ומקליד מחדש בלי לבחור הצעה, ה-dataset מתנקה.
+      const fromCityStreet = getAddressCityStreet('from-address');
+      const toCityStreet = getAddressCityStreet('to-address');
+      state.fromCity = fromCityStreet?.city ?? null;
+      state.fromStreet = fromCityStreet?.street ?? null;
+      state.toCity = toCityStreet?.city ?? null;
+      state.toStreet = toCityStreet?.street ?? null;
       /* ⚠️ 15.9 — WCAG 3.3.1. ההודעה הייתה אחת לשני השדות, לא אמרה איזה מהם
          ריק, השדה עצמו לא סומן כשגוי, והמיקוד נשאר על כפתור ההמשך. התבנית
          הנכונה כבר קיימת באותו קובץ על `terms-accept` — aria-invalid,
@@ -2601,6 +2613,8 @@
           title: 'הובלת דירה',
           fromAddress: state.fromAddress,
           toAddress: state.toAddress,
+          fromCity: state.fromCity, fromStreet: state.fromStreet,
+          toCity: state.toCity,     toStreet: state.toStreet,
           fromLat: state.fromLat, fromLng: state.fromLng,
           toLat: state.toLat,     toLng: state.toLng,
           scheduledDate: state.date,

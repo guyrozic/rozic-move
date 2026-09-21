@@ -40,6 +40,12 @@
  * בולעת כשל ל-`null`, `renderPredictions` מציגה "לא נמצאו הצעות —
  * אפשר להמשיך להקליד את הכתובת המלאה", והשדה עצמו נשאר טקסט חופשי רגיל
  * (`required` בלבד, לא תלוי ב-badge/lat/lng — ראו apartment.html/small-move.html).
+ *
+ * ⚠️ **63.5 — עיר/רחוב ללוח המובילים הפתוח.** בבחירת הצעה מהרשימה
+ * (לא צ'יפ, לא הקלדה חופשית) `placeDetails` מבקשת גם `address_components`,
+ * ו-`getAddressCityStreet(prefix)` מחזירה `{city, street}`/`null` לקורא
+ * (apartment.html/small-move.html), שמעביר אותם ל-`fromCity`/`fromStreet`/
+ * `toCity`/`toStreet` ב-`createOrder`. ראו `parseCityStreet` למטה.
  */
 import { doc, getDoc, setDoc } from 'https://www.gstatic.com/firebasejs/12.16.0/firebase-firestore.js';
 import { db } from './firebase.js';
@@ -103,10 +109,45 @@ function placeAutocomplete(authUser, input, sessionToken) {
 }
 
 function placeDetails(authUser, placeId, sessionToken) {
-  const params = { place_id: placeId, fields: 'geometry,formatted_address', language: 'he', sessiontoken: sessionToken };
+  // `address_components` נוסף ב-63.5 כדי לחלץ עיר/רחוב ללוח המובילים
+  // הפתוח (ראו parseCityStreet למטה) — בלי מספר בית, שיושב רק ב-
+  // `orders/{id}/private/contact` אחרי שיבוץ מוביל.
+  const params = { place_id: placeId, fields: 'geometry,formatted_address,address_components', language: 'he', sessiontoken: sessionToken };
   return authUser
     ? callMapsProxy(authUser, 'placeDetails', params)
     : callPlacesAutocompleteGuest('placeDetails', params);
+}
+
+/**
+ * מפרקת `address_components` של Google Place Details לעיר/רחוב — פורט
+ * 1:1 מ-`parseGoogleAddressComponents` ב-
+ * `Hovalot/src/utils/googleAddressComponents.ts` (לא מיפוי `types` עצמאי).
+ * מספר הבית (`street_number`/`premise` שם) לא מחולץ כאן בכוונה: הוא לא
+ * נכתב לשום מקום באתר היום — המסמך הראשי מקבל רק עיר/רחוב (הכרעת גיא
+ * 63.5), והכתובת המלאה (כולל מספר) ממשיכה להגיע כמחרוזת חופשית אל
+ * `orders/{id}/private/contact`.
+ */
+function parseCityStreet(comps) {
+  const get = (type) => comps.find((c) => c.types?.includes(type))?.long_name ?? '';
+  return {
+    city: get('locality') || get('administrative_area_level_2') || get('sublocality_level_1'),
+    street: get('route'),
+  };
+}
+
+/**
+ * עיר/רחוב שחולצו מ-`address_components` בבחירת ההצעה האחרונה מהרשימה
+ * החיה, או `null`. **בכוונה `null` ולא ניחוש** — כתובת שהוקלדה חופשי,
+ * נבחרה מצ'יפ מועדף/אחרון, או ש-Google לא סיפק רכיבים, אינן ניתנות
+ * לפירוק אמין (רגקס על "רחוב מספר, עיר" נשבר על שמות רחוב מרובי-מילים
+ * וישובים בלי רחוב). ראו המשימה ב-CLAUDE.md, סעיף ⚠️ הכרעת "אין
+ * address_components".
+ */
+export function getAddressCityStreet(prefix) {
+  const input = document.getElementById(prefix);
+  const city = input?.dataset.city;
+  if (!city) return null;
+  return { city, street: input.dataset.street || null };
 }
 
 /**
@@ -286,6 +327,18 @@ export function mountAddressField({ prefix, authState }) {
         if (loc && input.value.trim() === p.description.trim()) {
           input.dataset.lat = String(loc.lat);
           input.dataset.lng = String(loc.lng);
+          // עיר בלי רחוב עדיין שימושית ללוח (יישוב בלי שם רחוב, למשל
+          // קדש ברנע) — רחוב בלי עיר לא, ולכן התנאי הוא על עיר בלבד.
+          const comps = details?.result?.address_components;
+          const parsed = comps ? parseCityStreet(comps) : null;
+          if (parsed?.city) {
+            input.dataset.city = parsed.city;
+            if (parsed.street) input.dataset.street = parsed.street;
+            else delete input.dataset.street;
+          } else {
+            delete input.dataset.city;
+            delete input.dataset.street;
+          }
           setBadge('ok', 'כתובת מאומתת');
         } else {
           setBadge('warn', 'נבחרה כתובת — לא אומתה במדויק, אפשר להמשיך בכל זאת');
@@ -308,6 +361,8 @@ export function mountAddressField({ prefix, authState }) {
     const text = input.value.trim();
     delete input.dataset.lat;
     delete input.dataset.lng;
+    delete input.dataset.city;
+    delete input.dataset.street;
     if (!text) { hideDropdown(); return; }
     onInputDebounced(text);
   });
