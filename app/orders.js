@@ -377,12 +377,47 @@ const EN_ROUTE_CANCELLATION_RATE = 0.75;
  * `scheduledDate` נשמר כטקסט "D/M/YYYY" ו-`timeSlot` כטווח "08:00-11:00".
  * מחשבים מול *תחילת* חלון הזמן. ערך שלילי = המועד כבר עבר.
  *
- * ⚠️ `new Date(y, m-1, d, h)` בדפדפן משתמש באזור הזמן של **המכשיר**,
- * בדיוק כמו ב-React Native — כלומר הפורט נאמן למקור גם בסטייה הזאת.
- * זו בדיוק הסיבה ש-`customerCancelOrder` מחשבת בשעון ישראל ושהיא זו
- * שקובעת את החיוב בפועל; מה שמחושב כאן הוא **תצוגה בלבד**, ו-`shownFee`
- * הוא מה שמאפשר לשרת לרשום ללוג פער בין השניים.
+ * ⚠️ **21.9 — מחושב בשעון ישראל, לא בשעון המכשיר.**
+ *
+ * עד כאן השתמשנו ב-`new Date(y, m-1, d, h)`, שמפרש את השעה באזור הזמן
+ * של **הדפדפן**. ההערה הקודמת כאן הגנה על זה בטענה ש"הפורט נאמן למקור"
+ * ושזו "תצוגה בלבד" — אבל התצוגה היא מה שהלקוח מחליט לפיו.
+ *
+ * נמדד על הזמנה ל-22/09 09:00, באותו רגע בדיוק:
+ * ישראל 22.4 שעות · סידני 15.4 · ניו-יורק 29.4. זה **חוצה את גבול
+ * 24 השעות**, כלומר מדרג ביטול אחר לגמרי. `customerCancelOrder`
+ * מתעד את התוצאה: לקוח בסידני על הזמנה של ₪3,000 רואה **₪0**
+ * ("ביטול חינם") ומחויב **₪1,500**.
+ *
+ * ⚠️ **החיוב עצמו לא השתנה ואינו יכול להשתנות מכאן** — הוא נקבע
+ * בשרת, ותמיד היה נכון. מה שהשתנה הוא שהמספר שמוצג הפסיק לשקר.
+ *
+ * הלוגיקה מועתקת מ-`functions/src/israelTime.ts` (`timeZoneOffsetMs`
+ * + `israelLocalToEpoch`), כולל שתי האיטרציות שמכסות מעבר שעון קיץ.
+ * ⚠️ שני עותקים של חשבון שעון-קיץ הם מפעל באגים — ההערה שם אומרת זאת
+ * במפורש — ולכן `check-israel-time-sync` אוכף שהם מסכימים.
  */
+
+/** ההיסט של אזור זמן ברגע נתון, כולל שעון קיץ. מראה `timeZoneOffsetMs`. */
+function timeZoneOffsetMs(utcMs, timeZone) {
+  const parts = new Intl.DateTimeFormat('en-US', {
+    timeZone, hour12: false,
+    year: 'numeric', month: '2-digit', day: '2-digit',
+    hour: '2-digit', minute: '2-digit', second: '2-digit',
+  }).formatToParts(new Date(utcMs));
+  const get = (type) => Number(parts.find(p => p.type === type)?.value ?? 0);
+  // hour מוחזר כ-24 בחצות בחלק מהמימושים — %24 מנרמל.
+  const asIfUtc = Date.UTC(get('year'), get('month') - 1, get('day'), get('hour') % 24, get('minute'), get('second'));
+  return asIfUtc - utcMs;
+}
+
+/** שעה מקומית ישראלית ל-epoch. מראה `israelLocalToEpoch`. */
+export function israelLocalToEpoch(year, month, day, hour) {
+  let guess = Date.UTC(year, month - 1, day, hour);
+  for (let i = 0; i < 2; i++) guess = Date.UTC(year, month - 1, day, hour) - timeZoneOffsetMs(guess, 'Asia/Jerusalem');
+  return guess;
+}
+
 function hoursUntilPickup(order) {
   if (!order.scheduledDate) return null;
   const parts = String(order.scheduledDate).split('/').map(Number);
@@ -391,10 +426,10 @@ function hoursUntilPickup(order) {
 
   // תחילת חלון הזמן; בלי timeSlot נופלים לתחילת היום.
   const startHour = Number(order.timeSlot?.split('-')[0]?.split(':')[0]);
-  const pickup = new Date(year, month - 1, day, Number.isNaN(startHour) ? 0 : startHour, 0, 0, 0);
-  if (Number.isNaN(pickup.getTime())) return null;
+  const pickupMs = israelLocalToEpoch(year, month, day, Number.isNaN(startHour) ? 0 : startHour);
+  if (Number.isNaN(pickupMs)) return null;
 
-  return (pickup.getTime() - Date.now()) / (1000 * 60 * 60);
+  return (pickupMs - Date.now()) / (1000 * 60 * 60);
 }
 
 /**
@@ -635,8 +670,13 @@ export function canReportNoShow(order) {
   if (parts.length !== 3 || parts.some(Number.isNaN)) return false;
   const [day, month, year] = parts;
   const endHour = Number(order.timeSlot?.split('-')[1]?.split(':')[0]);
-  const end = new Date(year, month - 1, day, Number.isNaN(endHour) ? 23 : endHour).getTime();
-  return Date.now() >= end;
+  /* ⚠️ 21.9 — בשעון ישראל, מאותה סיבה כמו `hoursUntilPickup`: הכפתור
+     "המוביל לא הגיע" נפתח בסוף חלון הזמן, ולקוח שמכשירו אינו על שעון
+     ישראל היה רואה אותו נפתח שעות מוקדם מדי או מאוחר מדי. `reportNoShow`
+     בשרת בודק את אותו תנאי בשעון ישראל, ולכן לחיצה מוקדמת הייתה נדחית
+     עם `too early` — שגיאה שנראית כמו תקלה ואינה כזו. */
+  const endMs = israelLocalToEpoch(year, month, day, Number.isNaN(endHour) ? 23 : endHour);
+  return Date.now() >= endMs;
 }
 
 export async function reportDriverNoShow(orderId) {
