@@ -4,7 +4,7 @@
 // screens with zero changes on that side.
 import {
   collection, deleteDoc, doc, getDoc, getDocs, onSnapshot,
-  query, serverTimestamp, setDoc, updateDoc, where, writeBatch,, deleteField } from 'https://www.gstatic.com/firebasejs/12.16.0/firebase-firestore.js';
+  query, serverTimestamp, setDoc, updateDoc, where, writeBatch, deleteField } from 'https://www.gstatic.com/firebasejs/12.16.0/firebase-firestore.js';
 import { db, auth } from './firebase.js';
 // מדרג הביטולים **אינו** מועתק לכאן ביד — הוא נגזר מהקובץ המקומפל מ-
 // `~/Hovalot/src/data/pricing.ts`, שעליו `check-web-pricing-sync.ts` אוכף
