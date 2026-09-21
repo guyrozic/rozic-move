@@ -208,7 +208,17 @@ export async function createOrder(input) {
   });
   // אותם ארבעת השדות הרגישים בדיוק, בתת-מסמך שרק צד השרת/מוביל-משובץ
   // יכול לקרוא אחרי שהחוקים ייסגרו. ראו הערת הפונקציה למעלה.
+  /**
+   * ⚠️ `customerId` נשמר **גם** בתת-המסמך, וזו אינה כפילות מיותרת.
+   * ההזמנה ותת-המסמך נכתבים ב-`writeBatch` אחד, וכל הכתיבות ב-batch
+   * נבדקות מול מצב הבסיס **שלפני** ה-batch — כלומר `get()` על ההזמנה
+   * מתוך החוק של תת-המסמך מחזיר מסמך שאינו קיים עדיין, וכל ה-batch
+   * נדחה. לכן `allow create` בודק בעלות על המסמך עצמו.
+   * נמדד על האמולטור: החלפת התנאי לבדיקה מול ההורה מפילה בדיוק את
+   * הבדיקה "הזמנה + private/contact נכתבים ב-batch אחד".
+   */
   batch.set(contactRef, {
+    customerId: input.customerId,
     fromAddress: input.fromAddress ?? null,
     toAddress: input.toAddress ?? null,
     fromLat: input.fromLat ?? null,
@@ -802,7 +812,12 @@ export async function promoteDraftToOrder(orderId, finalFields) {
     draftServiceType: null, draftPayload: null, draftStep: null,
     draftUpdatedAt: null, draftReminderSent: null,
   });
+  // ⚠️ `customerId` מגיע מהמשתמש המחובר ולא מ-`finalFields` — הוא
+  // מושמט שם בכוונה, כי ההזמנה כבר קיימת ובעליה לא משתנים בקידום.
+  // ראו ההערה ב-`createOrder` למה תת-המסמך בכל זאת חייב אותו.
+  if (!auth.currentUser) throw new Error('NOT_LOGGED_IN');
   batch.set(contactRef, {
+    customerId: auth.currentUser.uid,
     fromAddress: finalFields.fromAddress ?? null,
     toAddress: finalFields.toAddress ?? null,
     fromLat: finalFields.fromLat ?? null,
