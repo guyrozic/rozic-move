@@ -24,12 +24,35 @@
 -->
 
 <style>
+  /* ⚠️ כל צבע טקסט בדף חייב לבוא מטוקן, כולל במצב כהה —
+     `check-a11y.mjs` (raw-color) אוכף את זה, כי ניגודיות נמדדת על
+     הפלטה ולא על ערכים שפזורים בגיליון. לכן המצב הכהה מגדיר מחדש
+     את **הטוקנים** ולא את הכללים. */
   :root {
     --pine: #0E5C43;
     --pine-light: #00A651;
     --ink: #1a1a1a;
     --muted: #5b6b64;
     --tint: #E7F3ED;
+    --page-bg: #ffffff;
+    /* ⚠️ `--pine` הוא **מילוי** (רקע הכפתור) ו-`--brand-text` הוא
+       טקסט מותגי. הם נפרדים כי במצב כהה הטקסט חייב להתבהר בעוד רקע
+       הכפתור נשאר ירוק כהה — איחוד שלהם היה צובע כפתור ירוק-בהיר
+       בטקסט לבן. */
+    --brand-text: #0E5C43;
+    --btn-secondary-bg: #ffffff;
+    --danger: #CE2E3B;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --page-bg: #121614;
+      --ink: #eaf2ee;
+      --muted: #a9bdb4;
+      --brand-text: #7fd3b2;
+      --tint: #1b2a24;
+      --btn-secondary-bg: transparent;
+      --danger: #ff8d97;
+    }
   }
   * { box-sizing: border-box; }
   body {
@@ -39,7 +62,7 @@
     align-items: center;
     justify-content: center;
     padding: 24px;
-    background: #fff;
+    background: var(--page-bg);
     color: var(--ink);
     font-family: "Heebo", -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif;
     line-height: 1.6;
@@ -57,7 +80,7 @@
     display: flex; align-items: center; justify-content: center;
     font-size: 34px;
   }
-  h1 { font-size: 24px; margin: 0 0 10px; color: var(--pine); }
+  h1 { font-size: 24px; margin: 0 0 10px; color: var(--brand-text); }
   p  { margin: 0 0 14px; color: var(--muted); font-size: 16px; }
   .btn {
     display: inline-block;
@@ -73,24 +96,31 @@
     font-family: inherit;
   }
   .btn.secondary {
-    background: #fff;
-    color: var(--pine);
+    background: var(--btn-secondary-bg);
+    color: var(--brand-text);
     border: 1.5px solid var(--pine-light);
   }
   .stores { margin-top: 22px; font-size: 15px; }
-  .stores a { color: var(--pine); }
-  .bad { color: #CE2E3B; }
-  @media (prefers-color-scheme: dark) {
-    body { background: #121614; color: #eaf2ee; }
-    p { color: #a9bdb4; }
-    h1 { color: #7fd3b2; }
-    .mark { background: #1b2a24; }
-    .btn.secondary { background: transparent; color: #7fd3b2; }
+  .stores a { color: var(--brand-text); }
+  .bad { color: var(--danger); }
+  /* קישור הדילוג — מוסתר עד שהוא מקבל מיקוד מהמקלדת. */
+  .skip-link {
+    position: absolute;
+    right: 8px; top: -48px;
+    padding: 10px 16px; border-radius: 10px;
+    background: var(--pine); color: #fff;
+    text-decoration: none; z-index: 10;
+    transition: top .15s ease-in-out;
+  }
+  .skip-link:focus { top: 8px; }
+  @media (prefers-reduced-motion: reduce) {
+    .skip-link { transition: none; }
   }
 </style>
 </head>
 <body>
-  <main class="card">
+  <a class="skip-link" href="#main-content">דלג לתוכן המרכזי</a>
+  <main class="card" id="main-content" tabindex="-1">
     <div class="mark" aria-hidden="true">📱</div>
     <h1 id="title">פותח את האפליקציה…</h1>
     <p id="msg">אם האפליקציה לא נפתחת מעצמה, לחץ על הכפתור.</p>
