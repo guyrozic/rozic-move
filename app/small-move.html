@@ -145,7 +145,7 @@
   </style>
 </head>
 <body class="app-body flow-b">
-<div data-build-stamp class="build-stamp" aria-hidden="true">עודכן 21.09 · 10:12</div>
+<div data-build-stamp class="build-stamp" aria-hidden="true">עודכן 21.09 · 10:46</div>
 <script src="/version-check.js?v=b4f8b2f7" defer></script>
   <!-- ⚠️ 15.9 — "דלג לתוכן המרכזי" (WCAG 2.4.1, רמה A). זהו האלמנט הממוקד
        הראשון בדף: מוסתר מהעין, מופיע בפינה ברגע שמגיעים אליו ב-Tab, ומעביר
@@ -1444,7 +1444,12 @@
       // ⚠️ `m.html` קיים רק להודעות שאנחנו בונים (פאנל מכסת האורח), ו-`m.text`
       // הוא מה שנשלח ל-AI כהיסטוריה. שמירת שני השדות בנפרד מונעת מ-HTML
       // של כפתורים לזלוג לתוך הפרומפט של הקריאה הבאה.
-      box.innerHTML = chatHistory.map(m => `<div class="ai-chat-msg ${m.role === 'user' ? 'user' : 'ai'}">${m.html || m.text}</div>`).join('')
+      /* ⚠️ 21.9 — `m.text` עובר בריחה ו-`m.html` לא, וזו ההבחנה כולה:
+         `html` נבנה **בקוד שלנו** (`guestQuotaPanelHTML`) ולכן הוא HTML
+         מכוון; `text` הוא מה שהמשתמש הקליד או מה שה-AI החזיר.
+         ⚠️ זה self-XSS בלבד — הצ'אט מקומי לאשף ואינו מוצג לאיש אחר —
+         אבל בריחה לא עולה דבר, ובלעדיה גם תו `<` תמים שובר את הפריסה. */
+      box.innerHTML = chatHistory.map(m => `<div class="ai-chat-msg ${m.role === 'user' ? 'user' : 'ai'}">${m.html || escHtml(m.text)}</div>`).join('')
         + (chatThinking ? `<div class="ai-chat-msg ai typing">${CHAT_LOADING_PHRASES[chatLoadingPhraseIdx]}</div>` : '');
       box.scrollTop = box.scrollHeight;
     }

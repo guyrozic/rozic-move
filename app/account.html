@@ -61,7 +61,7 @@
   </style>
 </head>
 <body class="app-body flow-b">
-<div data-build-stamp class="build-stamp" aria-hidden="true">עודכן 21.09 · 10:12</div>
+<div data-build-stamp class="build-stamp" aria-hidden="true">עודכן 21.09 · 10:46</div>
 <script src="/version-check.js?v=b4f8b2f7" defer></script>
   <!-- ⚠️ 15.9 — "דלג לתוכן המרכזי" (WCAG 2.4.1, רמה A). זהו האלמנט הממוקד
        הראשון בדף: מוסתר מהעין, מופיע בפינה ברגע שמגיעים אליו ב-Tab, ומעביר
@@ -340,7 +340,7 @@
       const phoneBox = document.getElementById('phone-status');
       const phoneCard = document.getElementById('phone-verify-card');
       if (profile.phoneVerified) {
-        phoneBox.innerHTML = `<div class="alert alert-success">✓ טלפון מאומת (${profile.phone})</div>`;
+        phoneBox.innerHTML = `<div class="alert alert-success">✓ טלפון מאומת (${esc(profile.phone)})</div>`;
         phoneCard.style.display = 'none';
       } else {
         phoneBox.innerHTML = '<div class="alert alert-info">הטלפון עדיין לא אומת.</div>';

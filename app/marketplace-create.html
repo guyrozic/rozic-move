@@ -87,7 +87,7 @@
   </style>
 </head>
 <body class="app-body flow-b">
-<div data-build-stamp class="build-stamp" aria-hidden="true">עודכן 21.09 · 10:12</div>
+<div data-build-stamp class="build-stamp" aria-hidden="true">עודכן 21.09 · 10:46</div>
 <script src="/version-check.js?v=b4f8b2f7" defer></script>
   <!-- ⚠️ 15.9 — "דלג לתוכן המרכזי" (WCAG 2.4.1, רמה A). זהו האלמנט הממוקד
        הראשון בדף: מוסתר מהעין, מופיע בפינה ברגע שמגיעים אליו ב-Tab, ומעביר
@@ -294,6 +294,19 @@
     import { analyzeListingPhoto, askListingAI, isAIConfigured, friendlyAIError } from './ai-vision.js';
     import { isGuestQuotaError, guestQuotaPanelHTML, attachGuestQuotaHandlers,
              mountGuestQuotaPanel, GUEST_QUOTA_TEXT } from './ai-guest-quota.js';
+
+    /**
+     * בריחת HTML — זהה למימוש ב-`apartment.html` וב-`small-move.html`.
+     *
+     * ⚠️ 21.9 — היא **נוספה כאן אחרי שנכתבה כאן קריאה אליה שלא הייתה
+     * מוגדרת.** שני הקבצים האחרים הגדירו אותה, הדף הזה לא, והבדיקה
+     * `check-xss` עברה בירוק כי היא מחפשת את **שם** הפונקציה ואינה
+     * שואלת אם יש לה הגדרה. בלי השורות האלה `renderListingChat` היה
+     * נופל ב-`ReferenceError` וכל צ'אט המודעה היה מת.
+     */
+    const escHtml = (v) => String(v ?? '')
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
 
     /**
      * ⚠️ 16.9 — **הדף הזה קרא `requireAuth()` בשורה הראשונה.**
@@ -545,7 +558,7 @@
       // ⚠️ `m.html` קיים רק להודעות שאנחנו בונים (פאנל מכסת האורח), ו-`m.text`
       // הוא הטקסט הרגיל. שני שדות נפרדים כדי שלא ייווצר פיתוי להזריק HTML
       // לתוך תוכן שמגיע מה-AI.
-      box.innerHTML = listingChatHistory.map(m => `<div class="ai-chat-msg ${m.role === 'user' ? 'user' : 'ai'}">${m.html || m.text}</div>`).join('')
+      box.innerHTML = listingChatHistory.map(m => `<div class="ai-chat-msg ${m.role === 'user' ? 'user' : 'ai'}">${m.html || escHtml(m.text)}</div>`).join('')
         + (listingChatThinking ? '<div class="ai-chat-msg ai typing">חושב...</div>' : '');
       box.scrollTop = box.scrollHeight;
     }
