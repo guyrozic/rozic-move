@@ -730,7 +730,12 @@ export async function saveDraftOrder(customerId, serviceType, step, payload, dra
   const ref = doc(collection(db, 'orders'));
   await setDoc(ref, {
     customerId, driverId: null, serviceType, title: '',
-    fromAddress: null, toAddress: null, scheduledDate: null, timeSlot: null,
+    /* ⚠️ 21.9 — `fromAddress`/`toAddress` הוסרו. הם היו תמיד `null`
+       בטיוטה ולא הדליפו דבר, אבל `addressNotWritten()` בחוקים בודק
+       **קיום מפתח** ולא ערך — ניסוח של ביטוי אחד, אחרי שגרסה שבדקה
+       ערכים שרפה את תקציב הביטויים של Firestore ודחתה 48 פעולות
+       לגיטימיות. */
+    scheduledDate: null, timeSlot: null,
     notes: null, itemsSummary: null, price: 0, status: 'draft',
     createdAt: serverTimestamp(),
     draftServiceType: serviceType, draftPayload: payload, draftStep: step,
