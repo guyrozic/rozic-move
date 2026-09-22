@@ -298,6 +298,30 @@ export function mountAddressField({ prefix, authState }) {
     if (!text.trim()) { setBadge(null); return; }
     const result = await geocode(text);
     if (input.value.trim() !== text.trim()) return; // המשתמש כבר המשיך הלאה
+    /**
+     * ⚠️ 22.9 — **כאן נגזרים העיר והרחוב, ולא רק ה-badge.**
+     *
+     * עד היום הפונקציה הזאת עשתה דבר אחד: לצבוע badge. `dataset.city`/
+     * `dataset.street` נכתבו **רק** במסלול השני, של בחירה מההצעות
+     * (`renderPredictions` → `placeDetails` → `parseCityStreet`).
+     * המשמעות: מי שבחר כתובת מצ'יפ שמור יצר הזמנה שבה אותו צד
+     * (`fromCity`/`fromStreet` או `toCity`/`toStreet`) **null**.
+     *
+     * נמדד על הזמנה אמיתית מהאתר (#834268, 22.9): היעד הוקלד ונבחר
+     * מההצעות ויצא מלא, המוצא נבחר מצ'יפ ויצא ריק — וכרטיס ההזמנה
+     * בשוק המובילים הופיע **בלי שורת "מוצא" בכלל**.
+     *
+     * ההערה שמעל הפונקציה כבר ציינה ש"אין lat/lng משם", אבל לא הבחינה
+     * שגם העיר והרחוב חסרים. עכשיו `geocode` מחזיר את
+     * `address_components` ואותו `parseCityStreet` בדיוק רץ על שניהם,
+     * כך שאין שני מסלולים שגוזרים אחרת.
+     */
+    const parsed = result?.components ? parseCityStreet(result.components) : null;
+    if (parsed?.city) {
+      input.dataset.city = parsed.city;
+      if (parsed.street) input.dataset.street = parsed.street;
+      else delete input.dataset.street;
+    }
     setBadge(result ? 'ok' : 'warn', result ? 'כתובת אומתה' : 'לא הצלחנו לאמת אוטומטית — אפשר להמשיך בכל זאת');
   }, DEBOUNCE_MS);
 

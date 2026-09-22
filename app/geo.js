@@ -76,7 +76,11 @@ export async function geocode(address) {
     if (!res.ok) return null;
     const data = await res.json();
     if (typeof data?.lat !== 'number' || typeof data?.lng !== 'number') return null;
-    return { lat: data.lat, lon: data.lng };
+    // `components` מועבר הלאה כדי ש-`verifyInBackground` יוכל לגזור ממנו
+    // עיר ורחוב לכתובת שנבחרה מצ'יפ שמור — ראו הנימוק המלא ב-
+    // `functions/src/geocodeAddress.ts`. השדות הקיימים לא השתנו, וקורא
+    // שאינו צריך אותו פשוט מתעלם.
+    return { lat: data.lat, lon: data.lng, components: data.addressComponents ?? null };
   } catch {
     return null;
   } finally {
