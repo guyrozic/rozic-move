@@ -35,7 +35,7 @@ import { serverTimestamp } from 'https://www.gstatic.com/firebasejs/12.16.0/fire
  * ותת-סעיף הפליה בסעיף 9 (שימוש אסור). ראו את ההערה המלאה
  * ב-`Hovalot/src/constants/legal.ts`.
  */
-export const TERMS_VERSION = '2026-09-3';
+export const TERMS_VERSION = '2026-09-4';
 
 /**
  * בונה את ראיית ההסכמה שמוצמדת להזמנה חדשה באתר — מראה של
