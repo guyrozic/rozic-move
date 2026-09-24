@@ -49,7 +49,7 @@
   </style>
 </head>
 <body class="app-body flow-b">
-<div data-build-stamp class="build-stamp" aria-hidden="true">עודכן 25.09 · 02:16</div>
+<div data-build-stamp class="build-stamp" aria-hidden="true">עודכן 25.09 · 02:27</div>
 <script src="/version-check.js?v=b4f8b2f7" defer></script>
   <a class="skip-link" href="#main-content">דלג לתוכן המרכזי</a>
   <script type="module" src="pilot-banner.js?v=14a0e537"></script>
@@ -123,14 +123,39 @@
 
   </main>
 
+  <!-- פוטר משותף — מקור האמת הוא index.html. אל תערוך כאן ביד:
+       node scripts/check-footer-sync.mjs מייצר את הבלוק הזה מחדש
+       מהמקור, וכל עריכה ידנית תידרס או תיתפס כפער בבדיקה. -->
   <footer class="footer">
     <div class="footer-inner container">
       <div class="footer-brand">
-        <div class="footer-logo">ROZIC MOVE</div>
+        <div class="footer-logo">
+          <svg width="16" height="16" viewBox="0 0 18 18" fill="none" aria-hidden="true">
+            <!-- ⚠️ 18.9 — היה `stroke="#0E5C43"` על רקע הפוטר `#1C4035`:
+                 **1.43:1**, כלומר החץ היה בלתי-נראה בפועל. הוא הועתק
+                 מהלוגו שבניווט, שם הרקע לבן. `currentColor` יורש את
+                 הלבן של `.footer-logo` — 11.45:1 — והוא גם מה שימנע
+                 את החזרה אם צבע הפוטר ישתנה שוב. -->
+            <path d="M3 9h12M9 3l6 6-6 6" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+          ROZIC MOVE
+        </div>
         <p class="footer-tagline">מזיזים אותך קדימה</p>
         <p class="footer-copy">ROZIC MOVE © 2026</p>
       </div>
       <div class="footer-links">
+        <div class="footer-col">
+          <div class="footer-col-title">שירותים</div>
+          <a tabindex="0" href="/index.html#features">מובילים בקטנה</a>
+          <a tabindex="0" href="/index.html#features">עוברים דירה</a>
+        </div>
+        <div class="footer-col">
+          <div class="footer-col-title">חברה</div>
+          <a tabindex="0" href="/index.html#how-it-works">איך זה עובד</a>
+          <a tabindex="0" href="/index.html#for-movers">למובילים</a>
+          <a tabindex="0" href="/index.html#faq">שאלות נפוצות</a>
+          <a tabindex="0" href="/index.html#download">הורד את האפליקציה</a>
+        </div>
         <div class="footer-col">
           <div class="footer-col-title">משפטי</div>
           <a tabindex="0" href="/privacy.html">מדיניות פרטיות</a>
@@ -138,10 +163,20 @@
           <a tabindex="0" href="/accessibility.html">הצהרת נגישות</a>
           <a tabindex="0" href="/delete-account.html">מחיקת חשבון</a>
         </div>
+        <!-- 15.9 — עמודת יצירת קשר. אינה קישוט: תקנה 34(א)(3) לתקנות שוויון
+             זכויות לאנשים עם מוגבלות (התאמות נגישות לשירות) מחייבת שאפשר יהיה
+             לפנות אלינו בטלפון, בדואר או בדואר אלקטרוני — ועד היום מספר הטלפון
+             הופיע באתר רק בתוך הצהרת הנגישות. -->
+        <div class="footer-col">
+          <div class="footer-col-title">יצירת קשר</div>
+          <a tabindex="0" href="tel:+972508811085">טלפון: 050-881-1085</a>
+          <a tabindex="0" href="mailto:support@rozicmove.com">support@rozicmove.com</a>
+        </div>
       </div>
     </div>
     <div class="footer-divider"></div>
     <div class="footer-bottom container">
+      <p class="footer-business">ROZIC MOVE, גיא רוזיק, עוסק מורשה 212942577, הגבעה 42 כפר האורנים, support@rozicmove.com</p>
       <p>כל הזכויות שמורות · מדינת ישראל</p>
     </div>
   </footer>
