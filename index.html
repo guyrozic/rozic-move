@@ -847,6 +847,9 @@
     padding: 15px 38px;
     cursor: default;
     box-shadow: var(--shadow-green);
+    /* ⚠️ זה `<a>`, לא `<button>`, ולכן ברירת המחדל של הדפדפן מוסיפה קו
+       תחתון לטקסט (אותה תקלה שתוקנה ב-`.btn-text`, f061150). */
+    text-decoration: none;
   }
   .jr-cta:focus-visible {
     outline: 3px solid var(--green-dark);
@@ -1440,7 +1443,7 @@
      שיחליף אותם; בלי הסימון הזה הם נעלמו גם בחמשת הדפים המשפטיים,
      בלי שום דרך להגיע אליהם (WCAG 1.4.4). -->
 <body class="has-nav-menu hp-home">
-<div data-build-stamp class="build-stamp" aria-hidden="true">עודכן 25.09 · 00:03</div>
+<div data-build-stamp class="build-stamp" aria-hidden="true">עודכן 25.09 · 01:14</div>
 <script src="/version-check.js?v=b4f8b2f7" defer></script>
   <!-- ⚠️ 15.9 — "דלג לתוכן המרכזי" (WCAG 2.4.1, רמה A). זהו האלמנט הממוקד
        הראשון בדף: מוסתר מהעין, מופיע בפינה ברגע שמגיעים אליו ב-Tab, ומעביר
