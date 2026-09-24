@@ -263,7 +263,7 @@
       .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
       .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
 
-    import { startGrowCheckout, rescheduleOrder, startTipCheckout, TIP_PERCENT_OPTIONS, TIP_FIXED_OPTIONS, TIP_MAX } from './payments.js';
+    import { startGrowCheckout, startLoadGapCheckout, declineLoadGap, rescheduleOrder, startTipCheckout, TIP_PERCENT_OPTIONS, TIP_FIXED_OPTIONS, TIP_MAX } from './payments.js';
     import { isValidFullName, FULL_NAME_ERROR } from './auth.js';
 
     const authState = await requireAuth();
@@ -737,6 +737,30 @@
           </div>
         </div>` : ''}
 
+        ${/* ══ פער בין המוזמן למובל ══════════════════════════════════
+              24.9 (98.2א). מראה של הבלוק `!isDriver && loadGapStatus ===
+              'pending'` ב-`OrderDetailsScreen.tsx`, כולל אותו נוסח בדיוק.
+
+              ⚠️ **יושב מעל כרטיס התשלום ולא מתחתיו** — המוביל עומד בבית
+              הלקוח והבקשה הזאת חוסמת אותו. היא לא אמורה להידרש לגלילה.
+
+              ⚠️ הוא מוצג בכל סטטוס ולא רק ב-`unloading`: המוביל שולח את
+              הבקשה בפריקה, אבל הלקוח עשוי לפתוח את הדף רגע אחר כך
+              כשהסטטוס כבר התקדם. התנאי היחיד הוא שהבקשה עדיין ממתינה —
+              בדיוק כמו באפליקציה. */''}
+        ${order.loadGapStatus === 'pending' && order.loadGapAmount > 0 ? `
+        <div class="app-card" id="loadgap-card">
+          <h2>המוביל מצא פריטים נוספים</h2>
+          <p class="form-hint">פריטים שנמצאו בבית ולא היו בהזמנה המקורית. ההובלה ממשיכה כרגיל בכל מקרה.</p>
+          ${(order.loadGapItems ?? []).map(it =>
+            `<div class="price-line"><span>${esc(it.label ?? '')}${it.qty > 1 ? ` × ${esc(it.qty)}` : ''}</span><span>₪${esc(it.price ?? 0)}</span></div>`
+          ).join('')}
+          <div class="price-total"><span>תוספת</span><strong>₪${esc(order.loadGapAmount)}</strong></div>
+          <button class="btn btn-primary btn-block" id="loadgap-pay-btn" style="margin-top:10px;">אשר ושלם ₪${esc(order.loadGapAmount)}</button>
+          <button type="button" class="btn-text" id="loadgap-decline-btn" style="margin-top:8px;">דחה את התוספת</button>
+          <div id="loadgap-error" role="alert"></div>
+        </div>` : ''}
+
         ${order.status === 'pending_payment' ? `
         <div class="app-card">
           <div class="alert alert-info">ההזמנה נוצרה — נשאר רק לשלם כדי שמוביל יוכל לקחת אותה.</div>
@@ -1118,6 +1142,52 @@
           const msg = messages[err?.message] ?? 'לא הצלחנו לשלוח את הדיווח. נסה שוב בעוד רגע.';
           btn.disabled = false; btn.textContent = 'המוביל לא הגיע';
           box.innerHTML = `<div class="alert alert-error">${msg}</div>`;
+        }
+      });
+
+      /* ══════════ פער בין המוזמן למובל — אישור או דחייה ══════════════
+         24.9 (98.2א). מראה של `handleApproveLoadGap`/`handleDeclineLoadGap`
+         ב-`OrderDetailsScreen.tsx`.
+
+         ⚠️ **אין כאן את שני השערים שיש ב-`pay-btn`** (טלפון מאומת, שם
+         מלא תקין), וזו לא השמטה: הלקוח הזה כבר שילם על ההזמנה עצמה,
+         כלומר הוא כבר עבר את שניהם. שער נוסף כאן היה חוסם אותו באמצע
+         הובלה שכבר רצה, כשהמוביל עומד אצלו בבית — בדיוק המצב שבו
+         חסימה היא הנזק. אותו שיקול כמו באפליקציה, שגם שם אין שערים
+         בענף הזה. */
+      document.getElementById('loadgap-pay-btn')?.addEventListener('click', async (e) => {
+        const btn = e.target;
+        const box = document.getElementById('loadgap-error');
+        box.innerHTML = '';
+        btn.disabled = true; btn.textContent = 'מעביר לתשלום...';
+        try {
+          await startLoadGapCheckout(order.id);
+        } catch (err) {
+          /* `no pending load-gap charge` = הלקוח כבר ענה, או שהמוביל
+             ביטל, ובדיוק כמו ב-`schedule passed` בכרטיס התשלום —
+             "נסה שוב" כאן הוא שקר. הדף יתרענן מעצמו מה-snapshot. */
+          box.innerHTML = String(err?.message) === 'no pending load-gap charge'
+            ? '<div class="alert alert-info">הבקשה כבר נסגרה. רענן את הדף כדי לראות את המצב העדכני.</div>'
+            : '<div class="alert alert-error">פתיחת התשלום נכשלה. נסה שוב.</div>';
+          btn.disabled = false; btn.textContent = `אשר ושלם ₪${order.loadGapAmount}`;
+        }
+      });
+
+      document.getElementById('loadgap-decline-btn')?.addEventListener('click', async (e) => {
+        const btn = e.target;
+        const box = document.getElementById('loadgap-error');
+        box.innerHTML = '';
+        if (!confirm('דחיית התוספת\n\nההובלה תמשיך כרגיל, והבקשה תועבר לבדיקה ידנית של הצוות.')) return;
+        btn.disabled = true; btn.textContent = 'שולח...';
+        try {
+          await declineLoadGap(order.id);
+          /* ⚠️ אין כאן `sendPushToUser` למוביל, בשונה מהאפליקציה — שליחת
+             פוש מהדפדפן אינה אפשרית. הטריגר `notifyAdminsOnLoadGapDeclined`
+             רץ ב-Admin SDK על אותו שינוי ומודיע לצוות בכל מקרה, והמוביל
+             רואה את השינוי ב-snapshot החי של ההזמנה. */
+        } catch {
+          box.innerHTML = '<div class="alert alert-error">לא הצלחנו לשלוח את התשובה. נסה שוב.</div>';
+          btn.disabled = false; btn.textContent = 'דחה את התוספת';
         }
       });
 

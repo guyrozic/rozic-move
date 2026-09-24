@@ -11,10 +11,11 @@
 // עצמו — `tipAmount` על ההזמנה נכתב רק ע"י `growNotify` ב-Admin SDK.
 import { auth, db } from './firebase.js';
 import {
-  doc, setDoc, serverTimestamp,
+  doc, setDoc, updateDoc, serverTimestamp,
 } from 'https://www.gstatic.com/firebasejs/12.16.0/firebase-firestore.js';
 
 const CREATE_CHECKOUT_URL = 'https://us-central1-hovalot-6cf65.cloudfunctions.net/createGrowCheckout';
+const CREATE_LOAD_GAP_CHECKOUT_URL = 'https://us-central1-hovalot-6cf65.cloudfunctions.net/createLoadGapCheckout';
 
 /** Redirects the browser to the Grow hosted payment page for this order. */
 export async function startGrowCheckout(orderId) {
@@ -128,4 +129,71 @@ export async function startTipCheckout(orderId, customerId, driverId, amount) {
   });
 
   await startGrowCheckout(tipId);
+}
+
+/* ══════════ פער בין המוזמן למובל — תוספת פריטים שהתגלתה בשטח ══════════
+
+   ⚠️ **24.9 (98.2א) — זה נבנה כי בלעדיו לא הייתה שום דרך.**
+
+   המוביל מדווח בשלב הפריקה על פריטים שיש בבית ולא הוזמנו
+   (`LoadGapItemsScreen` באפליקציה), והלקוח מאשר ומשלם. עד היום הצד
+   של הלקוח היה קיים **רק באפליקציה**: לא היה באתר אזכור אחד של
+   `loadGap`, וההתראה נשלחת ב-`sendPushToUser` — שאין לה נמען אצל
+   לקוח שהזמין מהאתר ואין לו אפליקציה.
+
+   התוצאה, ולא בתיאוריה: המוביל עומד בבית הלקוח, שולח בקשה, **והלקוח
+   לא רואה אותה בשום מקום ולא יכול לאשר.** זה נמצא בהרצה של הזמנה
+   #834268, שנוצרה ושולמה באתר.
+
+   הזרימה כאן היא מראה של `useLoadGapCheckout` + `handleDeclineLoadGap`
+   ב-`OrderDetailsScreen.tsx`, עם ההבדל היחיד שמתחייב מהמשטח:
+   באפליקציה נפתח דפדפן חיצוני והמסך ממתין; כאן `location.href` **הורס
+   את הדף**, ולכן אין למי להמתין ואין מה להאזין — בדיוק אותו סייג
+   שכבר מתועד ב-`startTipCheckout` למעלה. `growNotifyLoadGap` מסיימת
+   את העבודה בשרת בלי קשר לאיזה דף פתוח אצל הלקוח.
+   ─────────────────────────────────────────────────────────────────── */
+
+/**
+ * מעביר את הלקוח לדף הסליקה של Grow עבור תוספת הפריטים.
+ *
+ * ⚠️ **`fromWeb: true` אינו קישוט.** בלעדיו `createLoadGapCheckout` בונה
+ * כתובת חזרה שמנסה deep-link אל האפליקציה — כלומר בדיוק הלקוח שבשבילו
+ * המסך הזה נבנה היה חוזר לדף שמציע לו להוריד אפליקציה. אותה אמנה
+ * בדיוק כמו `startGrowCheckout` למעלה.
+ *
+ * הסכום **אינו נשלח מכאן**: השרת קורא את `loadGapAmount` מההזמנה עצמה
+ * ומוודא ש-`loadGapStatus === 'pending'`, כך שאי אפשר לפתוח סליקה
+ * שנייה על אותה בקשה ואי אפשר לשנות את הסכום מהדפדפן.
+ */
+export async function startLoadGapCheckout(orderId) {
+  if (!auth.currentUser) throw new Error('NOT_LOGGED_IN');
+  const token = await auth.currentUser.getIdToken();
+  const res = await fetch(CREATE_LOAD_GAP_CHECKOUT_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+    body: JSON.stringify({ orderId, fromWeb: true }),
+  });
+  const data = await res.json().catch(() => null);
+  if (!res.ok || !data?.url) throw new Error((data && data.error) || 'CHECKOUT_FAILED');
+  location.href = data.url;
+}
+
+/**
+ * הלקוח מסרב לתוספת.
+ *
+ * ⚠️ **אין כאן שום תנועת כסף**, ולכן זו כתיבת קליינט ישירה ולא קריאה
+ * לפונקציה — בדיוק כמו `respondToLoadGapCharge` ב-
+ * `src/services/orders.ts`, ותחת אותו חוק Firestore. ההובלה ממשיכה
+ * כרגיל (הכרעת 92.3), והרישום לאדמין נכתב ע"י הטריגר
+ * `notifyAdminsOnLoadGapDeclined` ב-Admin SDK.
+ *
+ * שני השדות נכתבים יחד ובאותם שמות כמו באפליקציה — שדה שיחסר כאן
+ * ייראה למוביל כבקשה שעדיין ממתינה.
+ */
+export async function declineLoadGap(orderId) {
+  if (!auth.currentUser) throw new Error('NOT_LOGGED_IN');
+  await updateDoc(doc(db, 'orders', orderId), {
+    loadGapStatus: 'declined',
+    loadGapRespondedAt: serverTimestamp(),
+  });
 }
