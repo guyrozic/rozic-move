@@ -56,7 +56,11 @@
   border-top: 1px solid var(--border);
 }
 .next-order-price { font-size: 1.2rem; font-weight: 900; color: var(--text); }
-.next-order-link { font-size: 0.88rem; font-weight: 700; color: var(--green-dark); white-space: nowrap; }
+/* ⚠️ 25.9 — "למעבר להזמנה ←" היה טקסט צבוע בלבד בלי מסגרת, בדיוק
+   הדוגמה שגיא הצביע עליה במפורש כשביקש "מסגרת ירוקה שמקיפה, קצוות
+   עגולים". המראה (רקע+מסגרת+טקסט) עבר ל-`.pill-link` המשותף
+   (`style.css`) — נשארה כאן רק ההתאמה שלא היה בו: לא לשבור שורה. */
+.next-order-link { white-space: nowrap; }
 
 @media (max-width: 480px) {
   .next-order-body { padding: 18px 18px; }

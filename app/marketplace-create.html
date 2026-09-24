@@ -47,8 +47,8 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="../style.css?v=bd1d383b">
-  <link rel="stylesheet" href="style-app.css?v=250666c2">
+  <link rel="stylesheet" href="../style.css?v=9a8db380">
+  <link rel="stylesheet" href="style-app.css?v=a675b9c7">
   <!-- ⚠️ נטען אחרון בכוונה — `flow.css` דורס את `style-app.css` תחת
        `.flow-b` בלבד, כך שדף שלא טוען אותו אינו מושפע. -->
   <link rel="stylesheet" href="flow.css?v=24a4ec4f">
@@ -87,7 +87,7 @@
   </style>
 </head>
 <body class="app-body flow-b">
-<div data-build-stamp class="build-stamp" aria-hidden="true">עודכן 25.09 · 02:27</div>
+<div data-build-stamp class="build-stamp" aria-hidden="true">עודכן 25.09 · 02:42</div>
 <script src="/version-check.js?v=b4f8b2f7" defer></script>
   <!-- ⚠️ 15.9 — "דלג לתוכן המרכזי" (WCAG 2.4.1, רמה A). זהו האלמנט הממוקד
        הראשון בדף: מוסתר מהעין, מופיע בפינה ברגע שמגיעים אליו ב-Tab, ומעביר
@@ -118,7 +118,13 @@
            משאירה בסדר ה-Tab **שדות טקסט בלבד** — לינקים וכפתורים נשמטים,
            וכפתור "פרסם מודעה" לא היה נגיש כלל. נמדד: אלמנט עם `tabindex="0"`
            מפורש **כן** נכנס לסדר גם במצב הזה (WebKit, 15.9). -->
-      <a href="marketplace.html" class="btn-text" tabindex="0" style="padding:0; margin-bottom:10px; display:inline-block;">→ מעבירים את זה הלאה</a>
+      <!-- ⚠️ 25.9 — היה `.btn-text` ("פעולה משנית שקטה") על קישור ניווט
+           אמיתי בין דפים: טקסט צבוע בלי מסגרת. **לא** `.pill-link` —
+           הדף הזה נושא `flow-b`, ו-`.step-hero` שלו כהה (`flow.css:85-92`,
+           `--fl-deep`) בדיוק כמו ב-apartment/small-move, ו-`--green-tint`
+           הבהיר של `.pill-link` היה נעלם עליו. `.step-back` הוא הווריאנט
+           שכבר עובד על הרקע הזה. -->
+      <a href="marketplace.html" class="step-back" tabindex="0" style="margin-bottom:10px;"><svg viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M6 3.5 10.5 8 6 12.5" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/></svg><span>מעבירים את זה הלאה</span></a>
       <h1>פרסום מודעה</h1>
       <p>כמה פרטים קטנים, ותוכל למסור בקלות למי שגר קרוב.</p>
     </div>

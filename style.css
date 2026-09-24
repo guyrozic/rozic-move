@@ -2700,3 +2700,45 @@ body.hp-home .nav:not(.scrolled) :is(a, button, summary, [tabindex]):focus-visib
   border-radius: 12px; padding: 13px 16px; margin-bottom: 18px;
   font-size: 0.9rem; font-weight: 600; line-height: 1.55; max-width: 560px;
 }
+
+/* ==========================================================================
+   25.9 — .pill-link: קישור-ניווט עם מסגרת ירוקה וקצוות עגולים
+   --------------------------------------------------------------------------
+   גיא: קישורי ניווט "ערומים" (טקסט צבוע בלבד, בלי רקע ובלי מסגרת) לצד
+   כרטיס/מסך בהיר נראים זול — "מסגרת ירוקה שמקיפה אותם עם קצוות עגולים".
+
+   ⚠️ מיפוי 25.9 מצא **שני** תקדימים קיימים באתר ל"פיל ירוק", ושניהם
+   מילוי (`background`) בלי `border` בפועל: `.step-back` (לבן-שקוף על
+   הירו הכהה של אשפי ההזמנה) ו-`.back-link` (מילוי `--green-light`
+   בדפי המדיניות). אף אחד מהם אינו "מסגרת" במובן המילולי, ולכן זהו
+   רכיב חדש — לא שכפול של אחד מהם.
+
+   הצבעים הם **כלל שני הירוקים** שכבר מוגדר ונמדד ב-`:root` (ליד
+   `--green-line`): אלמנט שנשאר מסגרת (ולא ממלא) מקבל רקע בהיר
+   (`--green-tint`), מסגרת (`--green-line`) וטקסט ירוק שלישי
+   (`--green-ink`, נמדד 5.11:1 על `--green-tint` — עובר AA).
+   אותה שלישייה כבר משמשת לצ'יפ שירות/פריט נבחר בהירו של עמוד הבית
+   (`.hp-svc-chip[aria-checked="true"]`, `.hp-cell[data-picked="true"]`)
+   — הרכיב הזה מריץ את אותו מתכון, לא מוסיף גוון רביעי.
+
+   ⚠️ **על רקע כהה זה לא יעבוד** — `--green-tint` הבהיר נעלם על הירו
+   הכהה של `app/apartment.html`/`app/small-move.html`. שם יש כבר וריאנט
+   ייעודי (`.flow-b .step-hero .step-back`) — יש להשתמש בו, לא בזה.
+   ========================================================================== */
+.pill-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 7px 14px;
+  border-radius: 999px;
+  border: 1.5px solid var(--green-line);
+  background: var(--green-tint);
+  color: var(--green-ink);
+  font-size: 0.88rem;
+  font-weight: 700;
+  text-decoration: none;
+  transition: background var(--transition), border-color var(--transition);
+}
+.pill-link svg { width: 14px; height: 14px; flex: none; }
+.pill-link:hover { background: #DCF3E6; border-color: var(--green-dark); color: var(--green-dark); }
+.pill-link:focus-visible { outline: 2px solid var(--green); outline-offset: 2px; }
