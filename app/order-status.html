@@ -806,6 +806,14 @@
           <a class="invoice-link-row" href="${esc(order.growInvoiceUrl)}" target="_blank" rel="noopener">
             📄 ${order.growInvoiceNumber ? `חשבונית מס ${esc(order.growInvoiceNumber)}` : 'צפה בחשבונית'}
           </a>` : ''}
+          ${/* ⚠️ 24.9 — חשבונית **נפרדת** לתוספת הפריטים, ולא דריסה של
+                זו שמעליה. שתי עסקאות נפרדות ב-Grow, שני מסמכים — ראו
+                `FIELD_TARGETS` ב-`functions/src/growInvoiceNotify.ts`.
+                בלי השורה הזאת המסמך נכתב על ההזמנה ואיש לא רואה אותו. */''}
+          ${order.loadGapInvoiceUrl ? `
+          <a class="invoice-link-row" href="${esc(order.loadGapInvoiceUrl)}" target="_blank" rel="noopener">
+            📄 ${order.loadGapInvoiceNumber ? `חשבונית תוספת פריטים ${esc(order.loadGapInvoiceNumber)}` : 'חשבונית תוספת פריטים'}
+          </a>` : ''}
           ${cancelledNoCharge ? `<p class="form-hint">ההזמנה בוטלה לפני שבוצע תשלום — לא נגבה ממך כסף, ואין מה להחזיר.</p>` : ''}
           ${order.paymentMethod && !cancelledNoCharge ? `<div class="price-line"><span>${wasCharged ? 'אמצעי תשלום' : 'אמצעי התשלום שנבחר'}</span><span>${esc(PAYMENT_LABELS[order.paymentMethod] ?? order.paymentMethod)}</span></div>` : ''}
           ${order.hasInsurance && !PILOT_MODE && (order.insuranceAmount ?? 0) > 0 ? `
