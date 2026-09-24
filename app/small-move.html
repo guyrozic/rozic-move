@@ -66,7 +66,8 @@
 
     /* ⚠️ 62.4 (21.9) — פירוט "מה נארז ומה לא" בתוך #packing-preview.
        זהה ל-apartment.html (הנימוק המלא שם) — בלי `color` משלהן, כדי
-       לירוש את `var(--info)` התקין-AA מ-`.alert-info`. */
+       לירוש את `var(--green-ink)` התקין-AA מ-`.alert-info`
+       (עודכן 25.9 מ-var(--info) הכחול). */
     .packing-preview-summary { margin: 0 0 4px; font-weight: 700; }
     .packing-preview-detail { margin: 4px 0 0; font-size: 0.85rem; }
 
@@ -2857,7 +2858,7 @@
       syncElevatorVisibility();
       renderTimeSlots();
     }
-    else if (draftDiscarded) showDraftDiscardedNotice();
+    else if (draftDiscarded) showDraftDiscardedNotice('smallMove', Boolean(draftUid));
     if (!editMode && draftHasContent(restoredDraft)) askResumeDraft('smallMove');
     /**
      * ⚠️ 18.9 — **אחרי** השחזור, לא לפניו. `applyDraftToForm` ממלא שדות

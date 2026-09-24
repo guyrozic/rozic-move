@@ -309,11 +309,11 @@ export function loadOrderDraft(serviceType) {
      * ⚠️ טיוטה של משתמש אחר על אותו מכשיר — נמחקת ו**אינה מוצגת**. ראו
      * `currentUid`. `uid` חסר או `null` = טיוטת אורח, פתוחה לכל אחד.
      *
-     * ⚠️ ובלי `lastDraftDiscarded`: ההודעה אומרת *"לא הצלחנו לשחזר את
-     * ההזמנה שהתחלת"*, ומי שרואה אותה כאן **לא התחיל שום הזמנה** — היא
-     * של מי שהשתמש במכשיר לפניו. הודעה כזאת היא בדיוק ההפך מהתכלית
-     * שלה: היא מרמזת לו שאיבדנו עבודה שלו, וגם מסגירה שהייתה כאן
-     * הזמנה של מישהו אחר.
+     * ⚠️ ובלי `lastDraftDiscarded`: הבאנר (ראו `showDraftDiscardedNotice`
+     * למטה) היה עולה גם כאן, ומי שרואה אותו **לא התחיל שום הזמנה** — הוא
+     * של מי שהשתמש במכשיר לפניו. הבאנר הזה הוא בדיוק ההפך מהתכלית שלו:
+     * הוא מרמז ללקוח שאיבדנו עבודה שלו, וגם מסגיר שהייתה כאן הזמנה של
+     * מישהו אחר.
      */
     if (uid != null && uid !== currentUid()) {
       localStorage.removeItem(draftKey(serviceType));
@@ -337,17 +337,80 @@ export function loadOrderDraft(serviceType) {
 /**
  * מודיעה ללקוח שהטיוטה נזרקה, במקום להחליף לו את הטופס בשקט.
  *
- * ההודעה קצרה ואומרת מה לעשות עכשיו. לא מוצג בה שום פירוט טכני —
- * הלקוח לא יכול לעשות דבר עם "מבנה טיוטה לא תקין", והסיבה השכיחה
- * ביותר היא ממילא TTL שפג או טיוטה מגרסת קוד קודמת.
+ * ⚠️ 25.9 — גיא צילם את הנוסח הקודם ("לא הצלחנו לשחזר את ההזמנה
+ * שהתחלת — היא כבר לא בתוקף") ותפס בו שני דברים: (1) זו בדיוק שפת-
+ * מערכת-על-עצמה שהכלל "לא לחשוף כשל טכני ללקוח" נכתב למנוע (ראו הדיאלוג
+ * ב-`SaveExitButton` באפליקציה) — הלקוח לא עשה שום דבר לא בסדר, ולא
+ * אכפת לו מה בדיוק פג; (2) הבאנר לא הציע את הפתרון האמיתי. טיוטה של
+ * מחובר נשמרת ב-Firestore ולא נזרקת ככה מלכתחילה (`attachDraftAutosave`
+ * למעלה כותבת גם מרוחקת כל עוד `remote.uid` קיים) — כלומר אם הלקוח היה
+ * מחובר, זה כנראה לא היה קורה לו.
+ *
+ * הנוסח החדש: משפט אחד שמודה בתקלה ומיד אומר מה עכשיו (בלי "נכשל",
+ * "פג תוקף" או כל מונח שמדבר על המערכת), ועוד שורת הצעה **לאורח בלבד**
+ * (`isLoggedIn === false`) להתחבר — עם התועלת בחצי משפט, לא כדרישה.
+ * מחובר שרואה את הבאנר הזה (התרחיש הנדיר שבו לטיוטה המקומית שלו אין
+ * טיוטה מרוחקת תקינה למול — ראו `loadResumeDraft`) כבר מחובר, וההצעה
+ * הייתה סתם מבלבלת אותו; ולכן `isLoggedIn` נבדק ולא מדולג בשקט.
+ *
+ * ⚠️ הסגירה (כפתור ה-✕) נזכרת ב-`sessionStorage`, לכל משך הטאב, לפי
+ * `serviceType`. במקרה הרגיל `loadOrderDraft` כבר מוחקת את מפתח הטיוטה
+ * הפגום ברגע שהיא מזהה אותו, כך שרענון של הדף לא מציג את הבאנר שוב
+ * ממילא — אבל בלי הזיכרון הזה נתיב עתידי שקורא לפונקציה פעמיים באותו
+ * טעינה (או ניסיון חוזר של הטיוטה המרוחקת) היה מציג את אותה סגירה פעמיים
+ * לאותו לקוח באותו ביקור.
+ *
+ * @param {string} serviceType 'apartment' | 'smallMove' — לשמירת דגל הסגירה.
+ * @param {boolean} isLoggedIn האם יש משתמש מחובר ברגע שהבאנר עולה.
  */
-export function showDraftDiscardedNotice() {
+export function showDraftDiscardedNotice(serviceType, isLoggedIn) {
+  const dismissKey = `rozic:draft-notice-dismissed:${serviceType}`;
+  try { if (sessionStorage.getItem(dismissKey)) return; } catch { /* פרטיות חוסמת sessionStorage — פשוט מציגים */ }
+
   const host = document.querySelector('.app-main') || document.querySelector('.app-container');
   if (!host) return;
+
   const box = document.createElement('div');
-  box.className = 'alert alert-info';
+  box.className = 'alert alert-info draft-discarded-notice';
   box.setAttribute('role', 'status');
-  box.textContent = 'לא הצלחנו לשחזר את ההזמנה שהתחלת — היא כבר לא בתוקף. נתחיל מחדש, זה ייקח רגע.';
+
+  const texts = document.createElement('div');
+  texts.className = 'draft-discarded-notice-texts';
+
+  const body = document.createElement('p');
+  body.className = 'draft-discarded-notice-body';
+  body.textContent = 'מצטערים, ההזמנה הקודמת לא נשמרה — מתחילים מחדש, זה ייקח רגע.';
+  texts.appendChild(body);
+
+  if (!isLoggedIn) {
+    const cta = document.createElement('p');
+    cta.className = 'draft-discarded-notice-cta';
+    const next = encodeURIComponent(location.pathname + location.search);
+    // ⚠️ `reason=draft-resume` — `login.html` מציג לפיו שורת הסבר משלו
+    // (REASON_NOTES), בדיוק כמו `goRegister('…', …, 'ai-quota'/'coupon')`.
+    cta.innerHTML = 'כדי שההזמנה הבאה תישמר לך גם אם תעצור/י באמצע, אפשר '
+      + `<a href="login.html?next=${next}&reason=draft-resume">להתחבר לחשבון</a>.`;
+    texts.appendChild(cta);
+  }
+
+  box.appendChild(texts);
+
+  const closeBtn = document.createElement('button');
+  closeBtn.type = 'button';
+  closeBtn.className = 'draft-discarded-notice-close';
+  closeBtn.setAttribute('aria-label', 'סגור את ההודעה');
+  closeBtn.innerHTML = '<span aria-hidden="true">✕</span>';
+  closeBtn.addEventListener('click', () => {
+    box.remove();
+    try { sessionStorage.setItem(dismissKey, '1'); } catch { /* ראו למעלה */ }
+    // ⚠️ המיקוד עובר לכותרת השלב — אותו יעד שהמעבר בין שלבים כבר ממקד
+    // אליו (ראו `goToStep`), ולא ל-`<body>`: בלי זה ה-Tab הבא היה מתחיל
+    // מראש המסמך במקום מתוכן הטופס שמתחת לבאנר שנעלם.
+    const titleEl = document.getElementById('step-title');
+    if (titleEl) titleEl.focus({ preventScroll: true });
+  });
+  box.appendChild(closeBtn);
+
   host.prepend(box);
 }
 

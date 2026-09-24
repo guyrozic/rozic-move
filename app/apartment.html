@@ -47,8 +47,8 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="../style.css?v=bd1d383b">
-  <link rel="stylesheet" href="style-app.css?v=250666c2">
+  <link rel="stylesheet" href="../style.css?v=9a8db380">
+  <link rel="stylesheet" href="style-app.css?v=a675b9c7">
   <link rel="stylesheet" href="address-autocomplete.css?v=8020fd51">
   <link rel="stylesheet" href="address-map.css?v=8417010c">
   <!-- ⚠️ נטען אחרון בכוונה — `flow.css` דורס את `style-app.css` תחת
@@ -113,8 +113,9 @@
 
     /* ⚠️ 62.4 (21.9) — פירוט "מה נארז ומה לא" בתוך #packing-preview
        (`.alert.alert-info`). בלי `color` משלהן בכוונה: הן יורשות את
-       `var(--info)` מ-`.alert-info` שכבר עומד ב-AA על הרקע הזה
-       (6.25:1) — הצהרת הנגישות מבטיחה את זה, וצבע חדש (או `opacity`,
+       `var(--green-ink)` מ-`.alert-info` שכבר עומד ב-AA על הרקע הזה
+       (5.11:1 — עודכן 25.9 מ-var(--info) הכחול) — הצהרת הנגישות מבטיחה
+       את זה, וצבע חדש (או `opacity`,
        שמדלל בדיוק כמו צבע בהיר יותר) היה עוקף את הבדיקה בלי לעדכן אותה.
        הפירוט הוא הרחבת השורה הקיימת בלבד — לא מסך שני (`PackingOfferScreen`
        ב-Hovalot, `step==='breakdown'`), ואינו מחשב מחיר; המחיר מגיע
@@ -163,7 +164,7 @@
   </style>
 </head>
 <body class="app-body flow-b">
-<div data-build-stamp class="build-stamp" aria-hidden="true">עודכן 25.09 · 02:27</div>
+<div data-build-stamp class="build-stamp" aria-hidden="true">עודכן 25.09 · 02:42</div>
 <script src="/version-check.js?v=b4f8b2f7" defer></script>
   <!-- ⚠️ 15.9 — "דלג לתוכן המרכזי" (WCAG 2.4.1, רמה A). זהו האלמנט הממוקד
        הראשון בדף: מוסתר מהעין, מופיע בפינה ברגע שמגיעים אליו ב-Tab, ומעביר
@@ -2964,7 +2965,7 @@
       syncElevatorVisibility();
       renderTimeSlots();
     }
-    else if (draftDiscarded) showDraftDiscardedNotice();
+    else if (draftDiscarded) showDraftDiscardedNotice('apartment', Boolean(draftUid));
     // ⚠️ (task 3) — במצב עריכה אין מה לשאול: הלקוח בחר במפורש לערוך
     // הזמנה קיימת, לא נתקל בטיוטה שהתחילה ברקע.
     if (!editMode && draftHasContent(restoredDraft)) askResumeDraft('apartment');

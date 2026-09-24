@@ -47,8 +47,8 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="../style.css?v=bd1d383b">
-  <link rel="stylesheet" href="style-app.css?v=250666c2">
+  <link rel="stylesheet" href="../style.css?v=9a8db380">
+  <link rel="stylesheet" href="style-app.css?v=a675b9c7">
   <style>
     .auth-shell {
       position: relative;
@@ -164,7 +164,7 @@
   </style>
 </head>
 <body class="app-body">
-<div data-build-stamp class="build-stamp" aria-hidden="true">עודכן 25.09 · 02:27</div>
+<div data-build-stamp class="build-stamp" aria-hidden="true">עודכן 25.09 · 02:42</div>
 <script src="/version-check.js?v=b4f8b2f7" defer></script>
   <!-- ⚠️ 15.9 — "דלג לתוכן המרכזי" (WCAG 2.4.1, רמה A). זהו האלמנט הממוקד
        הראשון בדף: מוסתר מהעין, מופיע בפינה ברגע שמגיעים אליו ב-Tab, ומעביר
@@ -511,6 +511,10 @@
       // השורה הזאת הלקוח לוחץ "החל", נזרק למסך התחברות ניטרלי, ולא
       // מבין מה הקשר — בדיוק הכשל השקט שגיא תיאר במכסת הסריקות.
       'coupon': 'קוד הנחה משויך לחשבון, ולכן צריך להתחבר כדי לממש אותו. ההרשמה לוקחת שנייה, וההזמנה שהתחלת — כולל הקוד שהקלדת — מחכה לך בחזרה.',
+      // ⚠️ 25.9 — מגיע מהצעת ההתחברות בבאנר "הטיוטה לא נשמרה" (ראו
+      // showDraftDiscardedNotice ב-guest-checkout.js). מסביר את התועלת
+      // בלי לחזור על הכשל שהלקוח כבר ראה שם.
+      'draft-resume': 'התחברות שומרת את ההזמנה שלך אצלנו אוטומטית תוך כדי מילוי, לא רק על המכשיר הזה — כך שאם תעצור/י באמצע, אפשר לחזור בדיוק לאותה נקודה.',
     };
     const reasonNote = REASON_NOTES[new URLSearchParams(location.search).get('reason')];
     if (reasonNote) {

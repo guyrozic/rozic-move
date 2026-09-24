@@ -271,7 +271,46 @@
 }
 .alert-error   { background: #FCE9E9; color: var(--danger); border: 1px solid #F3C6C6; }
 .alert-success { background: var(--green-light); color: var(--green-dark); border: 1px solid rgba(14,92,67,0.25); }
-.alert-info    { background: #EAF2FB; color: var(--info); border: 1px solid #CFE3F5; }
+/* ⚠️ 25.9 — היה #EAF2FB/var(--info) (כחול, 6.25:1). "גיא שונא כחול — אין
+   כחול בשום גוון" (CLAUDE.md) — אותו טיפול שכבר קיבל `.status-badge.pending`
+   באותו יום: השלישייה הבהירה של "שני הירוקים"
+   (--green-tint/--green-line/--green-ink). 5.11:1 על הרקע — עובר AA.
+   `--info` עצמו הוסר מ-style.css: זה היה השימוש האחרון בו. */
+.alert-info    { background: var(--green-tint); border: 1px solid var(--green-line); color: var(--green-ink); }
+
+/* --- הודעת "הטיוטה לא נשמרה" (guest-checkout.js) --------------------
+   ⚠️ 25.9 — מוצגת ב-apartment.html/small-move.html כש-loadResumeDraft
+   זרקה טיוטה מקומית פגומה/פגת-תוקף. פריסה כמו .pilot-banner: טקסט
+   גמיש + כפתור סגירה קבוע-רוחב, כדי שכפתור ה-✕ לא ידחוס את הטקסט לצר
+   מדי ב-390px. */
+.draft-discarded-notice { display: flex; align-items: flex-start; gap: 10px; }
+.draft-discarded-notice-texts { flex: 1; min-width: 0; }
+.draft-discarded-notice-body { margin: 0; }
+.draft-discarded-notice-cta { margin: 6px 0 0; }
+.draft-discarded-notice-cta a { color: inherit; font-weight: 700; }
+/* ⚠️ 44×44 יעד מגע מינימלי (WCAG 2.5.5), כמו .pilot-banner-close — ראו
+   ההערה שם למה השוליים השליליים ולא גודל קטן יותר. */
+.draft-discarded-notice-close {
+  flex-shrink: 0;
+  width: 44px;
+  height: 44px;
+  margin-block: -10px;
+  margin-inline-end: -10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 0;
+  border-radius: 50%;
+  background: none;
+  color: inherit;
+  font-family: inherit;
+  font-size: 1.1rem;
+  line-height: 1;
+  cursor: pointer;
+  transition: background var(--transition);
+}
+.draft-discarded-notice-close:hover { background: rgba(0,0,0,0.06); }
+.draft-discarded-notice-close:focus-visible { outline: 3px solid var(--green); outline-offset: 2px; }
 
 /* --- מכסת הסריקות לאורח (ai-guest-quota.js) ---------------------------
    ⚠️ אין כאן ולו צבע אחד, וזה מכוון: הפאנל מופיע בשני הקשרים שונים —
