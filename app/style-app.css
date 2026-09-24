@@ -81,7 +81,22 @@
 .app-container {
   max-width: 640px;
   margin: 0 auto;
-  padding: 28px 20px 0;
+  /* ⚠️ 25.9 — היה `28px 20px 0`: **אפס ריפוד תחתון**, בכוונה (ראו ההערה
+     ב-`.app-body` למעלה) — הכוונה הייתה שהנשימה תבוא מ-`padding-top`
+     של הפוטר. אבל זה ריפוד *כהה*, בתוך רקע הפוטר עצמו: הוא לא יוצר
+     שום מרחק *לבן* בין התוכן לפוטר, רק פוטר גבוה יותר.
+     ברוב הדפים זה נבלע במקרה: האלמנט האחרון בזרימה הוא `.app-card`
+     (`margin-bottom: 18px`), וה-margin שלו **קורס דרך** `#content`/
+     `.app-container` (לשניהם אין padding/border תחתון שעוצר קריסה)
+     ומתגלה כפער לבן לפני הפוטר. ב-`account.html` האלמנט האחרון הוא
+     `#logout-btn` — כפתור בודד בלי עטיפת `.app-card` ובלי margin-bottom
+     משלו — ולכן אין מה שיקרוס, והפער יוצא 0px בדיוק: "התנתק" נוגע
+     בפוטר. נמדד בדפדפן אמיתי: 0px ב-`account.html` מול 16-18px בכל
+     שאר דפי ה-`.app-container` (settings/saved-addresses/edit-profile/
+     support-chat), שם זה עבד "במקרה" ולא בכוונה.
+     הריפוד המפורש כאן מחליף את ההסתמכות על קריסת margin באלמנט אחרון
+     ספציפי — עובד זהה לכל דף, לא משנה מה האלמנט האחרון שלו. */
+  padding: 28px 20px 28px;
 }
 
 .app-container.wide { max-width: 980px; }
@@ -669,7 +684,7 @@
 
 @media (max-width: 480px) {
   .service-tiles { grid-template-columns: 1fr 1fr; gap: 10px; }
-  .app-container { padding: 20px 16px 0; }
+  .app-container { padding: 20px 16px 20px; }
   .form-row { flex-direction: column; gap: 0; }
   /* כתובת ארוכה נשברת לשלוש-ארבע שורות ברוחב טלפון. שורה עברית שנשברת
      חייבת להתחיל מימין — ולכן הערך יורד לשורה משלו, מיושר להתחלה,
