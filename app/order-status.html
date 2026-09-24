@@ -186,7 +186,7 @@
 
   <div class="step-hero">
     <div class="step-hero-inner">
-      <a href="account.html" class="btn-text" style="padding:0; margin-bottom:10px; display:inline-block;">→ החשבון שלי</a>
+      <a tabindex="0" href="account.html" class="step-back"><svg viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M6 3.5 10.5 8 6 12.5" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/></svg>החשבון שלי</a>
       <h1>ההזמנה שלי</h1>
       <p>מעקב סטטוס בזמן אמת.</p>
     </div>
@@ -755,7 +755,7 @@
           ${order.scheduledDate ? `<div class="price-line"><span>תאריך</span><span>${esc(order.scheduledDate)}${order.timeSlot ? ' · ' + esc(order.timeSlot) : ''}</span></div>` : ''}
           ${order.scheduledDate ? `<button type="button" class="btn-text calendar-btn" id="calendar-btn" style="padding:0; margin-bottom:8px;">הוסף ליומן</button>
           <div id="calendar-links" style="display:none;"></div>` : ''}
-          ${order.notes ? `<div class="price-line"><span>הערות</span><span>${esc(order.notes)}</span></div>` : ''}
+          ${order.notes ? `<div class="note-line"><span class="note-label">הערות</span><span class="note-body">${esc(order.notes)}</span></div>` : ''}
           ${order.hasInsurance && order.insuranceAmount > 0 ? `<div class="price-line discount"><span>כולל ביטוח תכולה</span><span>₪${esc(order.insuranceAmount)}</span></div>` : ''}
           ${order.packingService && order.packingServicePrice > 0 ? `<div class="price-line discount"><span>כולל שירות אריזה</span><span>₪${esc(order.packingServicePrice)}</span></div>` : ''}
           ${order.craneNeeded ? `<div class="price-line discount"><span>נדרש מנוף — קומה ${esc(order.craneFloor ?? '')}</span><span>${order.craneCost ? `₪${esc(order.craneCost)}` : ''}</span></div>` : ''}
