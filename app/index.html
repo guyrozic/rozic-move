@@ -47,8 +47,8 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="../style.css?v=bd1d383b">
-  <link rel="stylesheet" href="style-app.css?v=250666c2">
+  <link rel="stylesheet" href="../style.css?v=1e54b667">
+  <link rel="stylesheet" href="style-app.css?v=a675b9c7">
   <link rel="stylesheet" href="hub.css?v=1">
   <!-- ⚠️ נטען אחרון בכוונה — `flow.css` דורס את `style-app.css` תחת
        `.flow-b` בלבד, כך שדף שלא טוען אותו אינו מושפע. -->
@@ -59,10 +59,48 @@
        בפריסה, ולכן שום דבר לא זז כשהמיקוד עובר. --green הקיים, בלי צבע חדש. */
     .app-body a:focus-visible,
     .app-body button:focus-visible { outline: 3px solid var(--green); outline-offset: 2px; }
+
+    /* --- הבמה הירוקה: אותו נפח וחפיפה כמו app/apartment.html (25.9) ---
+       גיא, על צילום המסך האישי: "הרובריקות הלבנות עולות על הירוק... שהוא
+       גם תופס יותר נפח... הייתי רוצה שזה יהיה כך גם במסך האישי."
+
+       ⚠️ flow.css דורס `.step-hero { padding-bottom: 34px }` לכל דף צר
+       (`.flow-b main:has(> .app-container) .step-hero`) — נכון ל-11
+       מסכים אחרים (חשבון, הגדרות, הזמנות...) שגיא לא ביקש לגעת בהם.
+       הדריסה כאן מוגבלת למחלקה hub-hero, שרק index.html נושא (ראה
+       <div class="step-hero hub-hero">). ⚠️ נמדד בפועל: הספציפיות של
+       הכלל ההוא היא (0,0,3,1) — שלוש מחלקות **וגם** התג `main` — לעומת
+       (0,0,3,0) כאן, כלומר בלי `!important` הדריסה נכשלת בשקט (כך
+       נתפס: `padding-bottom` נשאר 34px גם אחרי הוספת hub-hero). לכן
+       `!important`, לא בחירה סתמית. הערכים והנקודת-שבירה (96/80px,
+       760px) הם מה שנמדד בפועל ב-apartment.html/flow.css — לא ניחוש. */
+    .flow-b .step-hero.hub-hero { padding-bottom: clamp(96px, 6.6vw, 134px) !important; }
+    @media (max-width: 760px) {
+      .flow-b .step-hero.hub-hero { padding-bottom: 80px !important; }
+    }
+
+    /* הכרטיס היחיד שעולה על הירוק הוא "ההזמנה הקרובה שלך" — זה מה שגיא
+       ראה בצילום. לא רשת "השירותים שלנו": flow.css כבר מתעד ניסיון קודם
+       שהרים את כותרת הסעיף ישירות על הבמה וקיבל טקסט ירוק-כהה על
+       ירוק-כהה, כי לכותרת אין רקע לבן משלה. `:not(:empty)` הוא התנאי —
+       כשאין הזמנה קרובה ה-wrap ריק, הכלל לא חל, ואין חפיפה: ה-hero
+       הגדול פשוט מסתיים ברווח הרגיל שלו, בלי "חור" ריק בהמשך.
+       המספרים: חפיפה מדודה מעל תחתית ה-hero (68px/54px ב-apartment.html)
+       ועליה .app-container.wide, שמוסיף padding-top משלו (28px, או 20px
+       מתחת ל-480px — כבר מוגדר ב-style-app.css) לפני שהכרטיס הראשון
+       מתחיל. הסכום השלילי מבטל בדיוק את התוספת הזאת, כך שהכרטיס נוחת
+       באותו מרחק מעל תחתית ה-hero כמו באשף. */
+    #next-order-wrap:not(:empty) { margin-top: -96px; }
+    @media (max-width: 760px) {
+      #next-order-wrap:not(:empty) { margin-top: -82px; }
+    }
+    @media (max-width: 480px) {
+      #next-order-wrap:not(:empty) { margin-top: -74px; }
+    }
   </style>
 </head>
 <body class="app-body flow-b">
-<div data-build-stamp class="build-stamp" aria-hidden="true">עודכן 25.09 · 02:27</div>
+<div data-build-stamp class="build-stamp" aria-hidden="true">עודכן 25.09 · 02:38</div>
 <script src="/version-check.js?v=b4f8b2f7" defer></script>
   <!-- ⚠️ 15.9 — "דלג לתוכן המרכזי" (WCAG 2.4.1, רמה A). זהו האלמנט הממוקד
        הראשון בדף: מוסתר מהעין, מופיע בפינה ברגע שמגיעים אליו ב-Tab, ומעביר
@@ -90,7 +128,7 @@
 
   <main id="main-content" tabindex="-1">
 
-  <div class="step-hero">
+  <div class="step-hero hub-hero">
     <div class="step-hero-inner">
       <div class="hero-badge" style="margin-bottom:14px;">בלי הורדת אפליקציה</div>
       <!-- ⚠️ הטקסט הסטטי כאן הוא ברירת המחדל לאורח (ולמי שה-JS טרם רץ) —
