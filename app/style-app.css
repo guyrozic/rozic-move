@@ -585,7 +585,11 @@
    הזה אינו "טקסט גדול" (0.78rem ≈ 14–16px, גם במשקל 800). #856008
    עובר ב-5.18:1. */
 .status-badge.pending_payment { background: #FFF3D6; color: var(--amber-deep); }
-.status-badge.pending         { background: #E3EEFB; color: var(--info); }
+/* ⚠️ 25.9 — היה #E3EEFB/var(--info) (כחול). "גיא שונא כחול — אין כחול
+   בשום גוון" (CLAUDE.md). זה תג שנשאר מסגרת (רקע בהיר + טקסט, לא נמלא) —
+   השלישייה הבהירה של "שני הירוקים" (--green-tint/--green-line/--green-ink),
+   בדיוק כמו .cancel-policy.free באותו דף. 5.11:1 על הרקע — עובר ניגודיות. */
+.status-badge.pending          { background: var(--green-tint); border: 1px solid var(--green-line); color: var(--green-ink); }
 .status-badge.assigned,
 .status-badge.en_route,
 .status-badge.in_progress     { background: var(--green-light); color: var(--green-dark); }

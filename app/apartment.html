@@ -48,7 +48,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="../style.css?v=bd1d383b">
-  <link rel="stylesheet" href="style-app.css?v=b053860a">
+  <link rel="stylesheet" href="style-app.css?v=250666c2">
   <link rel="stylesheet" href="address-autocomplete.css?v=aa414fa6">
   <!-- ⚠️ נטען אחרון בכוונה — `flow.css` דורס את `style-app.css` תחת
        `.flow-b` בלבד. 14 המסכים האחרים שחולקים את `style-app.css`
@@ -162,7 +162,7 @@
   </style>
 </head>
 <body class="app-body flow-b">
-<div data-build-stamp class="build-stamp" aria-hidden="true">עודכן 25.09 · 01:14</div>
+<div data-build-stamp class="build-stamp" aria-hidden="true">עודכן 25.09 · 02:16</div>
 <script src="/version-check.js?v=b4f8b2f7" defer></script>
   <!-- ⚠️ 15.9 — "דלג לתוכן המרכזי" (WCAG 2.4.1, רמה A). זהו האלמנט הממוקד
        הראשון בדף: מוסתר מהעין, מופיע בפינה ברגע שמגיעים אליו ב-Tab, ומעביר
@@ -190,7 +190,16 @@
 
   <div class="step-hero" id="step-hero">
     <div class="step-hero-inner">
-      <a tabindex="0" href="index.html" class="step-back"><svg viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M6 3.5 10.5 8 6 12.5" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/></svg>בחירת שירות</a>
+      <!-- ⚠️ 25.9 — **הכפתור היחיד ל"חזרה" בכל ארבעת השלבים.** גיא: "במסך
+           הזה ככה אני רוצה שייראה הכפתור אחורה — כמו כאן של בחירת שירות."
+           בעבר זה היה קישור סטטי ל-index.html בכל שלב (גם בשלב 3!), ולצדו
+           כפתורי `.btn-text` ערומים (`back-to-1/2/3`) בתחתית כל שלב 2-4 —
+           שורת טקסט בלי מסגרת שגם דחפה את הכרטיס הירוק למטה (ראו המדידה
+           למטה). שני הבאגים תוקנו יחד: הגלולה הזו היא עכשיו הפקד היחיד,
+           והיעד/הטקסט שלה מתעדכנים ב-goToStep() לפי BACK_TARGETS —
+           השלב הקודם *בפועל* (פריטים→אריזה→פרטי הובלה→סיכום), לא תמיד
+           "בחירת שירות". ראו ההערה ליד BACK_TARGETS. -->
+      <a tabindex="0" href="index.html" id="step-back-link" class="step-back"><svg viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M6 3.5 10.5 8 6 12.5" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/></svg><span id="step-back-label">בחירת שירות</span></a>
       <!-- ⚠️ 20.9 — העינית והתוויות הן חלק מהמוקאפ שאושר. ארבעה פסים
            אפורים בלי מילה אינם אומרים ללקוח היכן הוא נמצא ומה נשאר. -->
       <p class="step-kick" id="step-kick">עוברים דירה · שלב 1 מתוך 4</p>
@@ -353,7 +362,9 @@
             <button tabindex="0" class="btn btn-primary btn-block" id="packing-add-btn" style="margin-bottom:10px;">הוסף שירות אריזה</button>
             <button tabindex="0" class="btn btn-secondary btn-block" id="packing-skip-btn">דלג, אני אארוז בעצמי</button>
           </div>
-          <button tabindex="0" class="btn-text" id="back-to-1">→ חזרה לפריטים</button>
+          <!-- ⚠️ 25.9 — "→ חזרה לפריטים" הוסר מכאן: גלולת ה-`.step-back`
+               בראש הדף היא עכשיו כפתור החזרה היחיד לכל שלב. ראו ההערה
+               ליד `#step-back-link` וליד `BACK_TARGETS`. -->
         </section>
 
         <!-- Step 3: delivery details -->
@@ -468,7 +479,6 @@
 
           <div id="delivery-error" role="alert"></div>
           <button tabindex="0" class="btn btn-primary btn-block" id="delivery-continue-btn">המשך</button>
-          <button tabindex="0" class="btn-text" id="back-to-2">→ חזרה</button>
         </section>
 
         <!-- Step 4: summary -->
@@ -568,7 +578,6 @@
             <div class="terms-error" id="terms-error" role="alert"></div>
           </div>
           <button tabindex="0" class="btn btn-primary btn-block" id="submit-btn" disabled>מעבר לתשלום</button>
-          <button tabindex="0" class="btn-text" id="back-to-3">→ חזרה</button>
         </section>
 
       </div>
@@ -1932,7 +1941,6 @@
     document.getElementById('boxes-packed-no').addEventListener('click', () => { state.boxesAlreadyPacked = false; renderPackingOffer(); });
     document.getElementById('packing-add-btn').addEventListener('click', () => { state.hasPacking = true; goToStep(3); });
     document.getElementById('packing-skip-btn').addEventListener('click', () => { state.hasPacking = false; goToStep(3); });
-    document.getElementById('back-to-1').addEventListener('click', () => goToStep(1));
 
     // ---------- Step 3: delivery ----------
     ['from-floor', 'to-floor', 'crane-floor'].forEach(id => {
@@ -2261,13 +2269,11 @@
       noteEl.textContent = `מרחק משוער: ${state.distance} ק"מ · עלות נסיעה: ₪${formatPrice(state.distance * PRICE_PER_KM)}`;
       goToStep(4);
     });
-    document.getElementById('back-to-2').addEventListener('click', () => goToStep(2));
 
     // ---------- Step 4: summary ----------
     document.getElementById('has-insurance').addEventListener('change', (e) => { state.hasInsurance = e.target.checked; renderSummary(); });
     document.getElementById('has-packing').addEventListener('change', (e) => { state.hasPacking = e.target.checked; renderSummary(); });
     document.getElementById('notes').addEventListener('input', (e) => { state.notes = e.target.value; });
-    document.getElementById('back-to-3').addEventListener('click', () => goToStep(3));
 
     /** "קומת קרקע" · "קומה 3 · אין מעלית". במפלס הקרקע המעלית חסרת משמעות. */
     const floorText = (floor, hasElevator) =>
@@ -2733,6 +2739,33 @@
     };
 
     /**
+     * ⚠️ 25.9 — **לאן ה"חזרה" בראש הדף מוביל מכל שלב, ומה נכתב עליו.**
+     * גיא: "העניין היחיד שהאחורה מהמסך הזה [שלב 3] הוא לא בחירת שירות או
+     * שירותי האריזה, ומשירותי האריזה אחד אחורה זה הוספת הפריטים." לפני
+     * התיקון הגלולה תמיד אמרה "בחירת שירות" והובילה ל-index.html, גם
+     * משלב 3 — כלומר "חזרה" לא חזרה לשלב הקודם בפועל.
+     *
+     * הסדר כאן זהה ל-`DRAFT_STEP_ORDER.apartment` ב-`~/Hovalot/src/
+     * services/orders.ts` (['Apartment','AIRoomScan','PackingOffer',
+     * 'DeliveryDetails','Summary'] — שני המסכים הראשונים מאוחדים כאן
+     * לשלב 1 אחד), ולתגי ה-`.step-dot` שכבר על המסך (פריטים/אריזה/פרטי
+     * הובלה/סיכום) — אין ניחוש, שני המקורות מסכימים. אין שם ענף שמדלג
+     * על PackingOffer (גם "דלג, אני אארוז בעצמי" מנווט ל-DeliveryDetails,
+     * לא מדלג את המסך עצמו), ולכן אין כאן תנאי דילוג — כל "אחורה" הוא
+     * בדיוק n-1.
+     *
+     * שלב 1 שונה במהותו מ-2/3/4: היעד שלו מחוץ לאשף (מסך בחירת השירות),
+     * ולכן הוא נשא וממשיך לשאת ניווט אמיתי (`href`); שלבים 2-4 נשארים
+     * בעמוד ורק קוראים ל-`goToStep` (ראו המאזין על `step-back-link`).
+     */
+    const BACK_TARGETS = {
+      1: { href: 'index.html', label: 'בחירת שירות' },
+      2: { toStep: 1, label: 'פריטים' },
+      3: { toStep: 2, label: 'אריזה' },
+      4: { toStep: 3, label: 'פרטי הובלה' },
+    };
+
+    /**
      * ⚠️ 15.9 נגישות — המעבר בין השלבים הוא הזרימה המרכזית באתר, והוא היה
      * שקט לחלוטין לטכנולוגיה מסייעת.
      *
@@ -2772,6 +2805,11 @@
       document.getElementById('step-desc').textContent = STEP_TITLES[step][1];
       document.getElementById('step-hero').className = 'step-hero step-' + step;
       document.getElementById('step-kick').textContent = `עוברים דירה · שלב ${step} מתוך 4`;
+      // ⚠️ ראו ההערה ליד BACK_TARGETS — היעד והטקסט תלויים בשלב הנוכחי.
+      const backTarget = BACK_TARGETS[step];
+      const backLinkEl = document.getElementById('step-back-link');
+      backLinkEl.href = backTarget.href || '#';
+      document.getElementById('step-back-label').textContent = backTarget.label;
       /* ⚠️ 19.9 (61.2א) — הפס נשאר בכל השלבים, והכפתור מוסתר.
 
          עד כה הפס כולו הוסתר בשלבים 2–4. בדסקטופ זה בסדר כי `.app-side`
@@ -2799,6 +2837,19 @@
       if (stepEntered) titleEl.focus({ preventScroll: true });
       stepEntered = true;
     }
+
+    // ⚠️ 25.9 — נרשם פעם אחת (לא בתוך goToStep, ראו ההערה שם על מאזין
+    // כפול). משלב 1 היעד הוא ניווט אמיתי (href="index.html", בלי JS);
+    // משלבים 2-4 ה-href הוא "#" ו-preventDefault מפעיל את goToStep על
+    // השלב הקודם *בפועל* לפי BACK_TARGETS[step] — לא ניחוש, `step`
+    // נקרא ברגע הלחיצה. ראו BACK_TARGETS.
+    document.getElementById('step-back-link').addEventListener('click', (e) => {
+      const target = BACK_TARGETS[step];
+      if (target && target.toStep) {
+        e.preventDefault();
+        goToStep(target.toStep);
+      }
+    });
 
     function updateItemsHeader() {
       renderSidePrice();

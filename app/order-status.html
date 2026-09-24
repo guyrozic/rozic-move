@@ -48,7 +48,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="../style.css?v=bd1d383b">
-  <link rel="stylesheet" href="style-app.css?v=b053860a">
+  <link rel="stylesheet" href="style-app.css?v=250666c2">
   <!-- ⚠️ נטען אחרון בכוונה — `flow.css` דורס את `style-app.css` תחת
        `.flow-b` בלבד, כך שדף שלא טוען אותו אינו מושפע. -->
   <link rel="stylesheet" href="flow.css?v=24a4ec4f">
@@ -70,6 +70,31 @@
       .modal-overlay { align-items: center; padding: 20px; }
       .modal-card { border-radius: 20px; }
     }
+    /* ⚠️ `.modal-overlay` כשלעצמו `display:flex` — בלי הכלל הזה `hidden`
+       (מאפיין, לא class) לא באמת מסתיר את המודאל: מפרט CSS מכריע לפי
+       origin (author נגד author) ולא לפי סדר, ושני הכללים הם author. */
+    .modal-overlay[hidden] { display: none; }
+
+    /* ── ביטול הזמנה: אישור + טופס סיבה (25.9) ──────────────────────
+       מראה `getCancellationPolicy`/`OrderDetailsScreen.tsx`, בלי אנימציה —
+       כמו `.modal-overlay` הקיים באותו דף, ולכן אין כאן מה "לצמצם" תחת
+       prefers-reduced-motion: אין תנועה מלכתחילה. */
+    .cancel-reason-intro { font-size: 0.88rem; color: var(--text-mid); margin-bottom: 14px; line-height: 1.5; }
+    .cancel-reason-fieldset { border: 0; padding: 0; margin: 0 0 14px; display: flex; flex-direction: column; gap: 8px; }
+    .cancel-reason-option {
+      display: flex; align-items: center; gap: 10px;
+      border: 1px solid var(--border); border-radius: 12px;
+      padding: 11px 14px; cursor: pointer; font-size: 0.92rem; color: var(--text);
+    }
+    .cancel-reason-option input { accent-color: var(--green); flex-shrink: 0; }
+    #cancel-reason-note {
+      width: 100%; border: 1px solid var(--border); border-radius: 12px;
+      padding: 10px 12px; font-family: inherit; font-size: 0.92rem; resize: vertical;
+      margin-bottom: 10px; color: var(--text); background: var(--white);
+    }
+    #cancel-reason-note:focus-visible { outline: 3px solid var(--green); outline-offset: 2px; }
+    .cancel-modal-actions { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 6px; }
+    .cancel-modal-actions .btn { flex: 1 1 auto; justify-content: center; }
     .no-show-notice p { font-size: 0.88rem; color: var(--text-mid); margin-bottom: 10px; }
     .no-show-notice p:last-child { margin-bottom: 0; }
     .no-show-choices { display: flex; flex-direction: column; gap: 8px; }
@@ -161,7 +186,7 @@
   </style>
 </head>
 <body class="app-body flow-b">
-<div data-build-stamp class="build-stamp" aria-hidden="true">עודכן 25.09 · 01:14</div>
+<div data-build-stamp class="build-stamp" aria-hidden="true">עודכן 25.09 · 02:16</div>
 <script src="/version-check.js?v=b4f8b2f7" defer></script>
   <!-- ⚠️ 15.9 — "דלג לתוכן המרכזי" (WCAG 2.4.1, רמה A). זהו האלמנט הממוקד
        הראשון בדף: מוסתר מהעין, מופיע בפינה ברגע שמגיעים אליו ב-Tab, ומעביר
@@ -234,7 +259,7 @@
     import { getUserProfile, formatVehicle } from './users.js';
     import { toggleFavoriteDriver } from './account.js';
     import { PILOT_MODE } from './pilot-mode.js';
-    import { addDoc, collection, serverTimestamp as reportServerTimestamp } from 'https://www.gstatic.com/firebasejs/12.16.0/firebase-firestore.js';
+    import { addDoc, collection, doc, updateDoc, serverTimestamp as reportServerTimestamp } from 'https://www.gstatic.com/firebasejs/12.16.0/firebase-firestore.js';
     import { db } from './firebase.js';
 
     // מראה PAYMENT_LABELS ב-OrderDetailsScreen.tsx. האתר יוצר היום רק
@@ -262,6 +287,103 @@
     const esc = (v) => String(v ?? '')
       .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
       .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+
+    /**
+     * ⚠️ 25.9 — **הרשימה הזו הומצאה כאן ואינה קיימת באפליקציה.**
+     *
+     * נבדק במקור (`Hovalot/src/services/cancellation.ts` ו-
+     * `functions/src/customerCancelOrder.ts`) לפני שנכתבה שורת קוד אחת:
+     * אין שם שום רשימת סיבות שהלקוח בוחר מתוכה. `cancellationReason`
+     * שנכתב על ההזמנה שם הוא קוד מדרג-המדיניות שהשרת קובע בעצמו
+     * (`tier_50`, `driver_en_route`, `no_driver_assigned` וכו') — לא סיבה
+     * שהלקוח מנסח. גיא ביקש "אופציות מוכנות" בצ'אט; הרשימה למטה היא הצעה
+     * קצרה שממלאת את זה, לא העתקה של רשימה קיימת.
+     *
+     * **צריך להיכנס גם לאפליקציה** כדי שלא ייווצר עותק שני שמסתעף (ראו
+     * CLAUDE.md, "האתר מחזיק עותק שני של לוגיקה עסקית" — זו בדיוק אותה
+     * משפחת פער, רק שכאן העותק הראשון עוד לא קיים בכלל).
+     */
+    const CANCELLATION_REASON_OPTIONS = [
+      { code: 'found_another_mover', label: 'מצאתי מוביל אחר' },
+      { code: 'price_too_high', label: 'המחיר גבוה מדי בשבילי' },
+      { code: 'plans_changed', label: 'התוכנית השתנתה או נדחתה' },
+      { code: 'no_longer_needed', label: 'כבר לא צריך את ההובלה' },
+      { code: 'mistake', label: 'הזמנתי בטעות' },
+      { code: 'other', label: 'סיבה אחרת' },
+    ];
+    /** שדה חופשי בלי תקרת אורך הוא בעיה מתועדת בפרויקט — ראו `notes` ב-
+     *  firestore.rules (`notesLengthOkOnUpdate`). כאן התקרה גם ב-`maxlength`
+     *  (native, לא דורש `<form>`) וגם נאכפת שוב ב-JS לפני השליחה. */
+    const CANCELLATION_NOTE_MAX = 300;
+
+    /**
+     * מלכודת מיקוד + Escape + החזרת מיקוד למקור — הדיאלוגים היחידים בדף
+     * הזה עם ניהול מיקוד מלא. `insurance-modal` הקיים אינו `role="dialog"`
+     * ואינו מנהל מיקוד כלל — לא הורחב כאן, זה מחוץ להיקף הבקשה הנוכחית.
+     */
+    function trapFocus(dialogEl, e) {
+      const focusables = dialogEl.querySelectorAll(
+        'a[href], button:not([disabled]), input:not([disabled]), textarea:not([disabled]), select:not([disabled]), [tabindex]:not([tabindex="-1"])'
+      );
+      if (!focusables.length) return;
+      const first = focusables[0];
+      const last = focusables[focusables.length - 1];
+      if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+      else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+    }
+    /**
+     * נעילת גלילת הרקע כל עוד מודאל פתוח — נוהג מקובל ב-WAI-ARIA Dialog
+     * Pattern (מונע מהעמוד שמאחורי המודאל לזוז תוך כדי אינטראקציה איתו).
+     * נועל גם `<html>` וגם `<body>`: `document.scrollingElement` בדף הזה
+     * הוא `<html>`, אבל `<body>` נושא `overflow:hidden auto` משלו (הגדרה
+     * כלל-אתרית) — נעילת רק אחד מהם משאירה את השני פתוח.
+     */
+    let _bodyOverflowBeforeDialog = null;
+    let _htmlOverflowBeforeDialog = null;
+    function openDialog(overlayEl, initialFocusEl, onEscape) {
+      if (_bodyOverflowBeforeDialog === null) {
+        _bodyOverflowBeforeDialog = document.body.style.overflow;
+        _htmlOverflowBeforeDialog = document.documentElement.style.overflow;
+        document.body.style.overflow = 'hidden';
+        document.documentElement.style.overflow = 'hidden';
+      }
+      /**
+       * ⚠️ **"פורטל" ל-`<body>` — לא קוסמטיקה, תיקון לבאג שנמדד.** כשהעמוד
+       * גלול (כפתור "בטל הזמנה" יושב מתחת לקיפול, וזה המצב הרגיל), המודאל
+       * נשאר `position:fixed;inset:0` תקין (מכסה בדיוק את החלון) — אבל
+       * הפוטר הקבוע שבתחתית הדף מצטייר **מעליו** ותופס את הקליקים, כי הוא
+       * ילד של `#content`/`main` בעוד הפוטר הוא ילד ישיר מאוחר יותר של
+       * `<body>`. אומת ב-Playwright: `elementsFromPoint` על כפתור במודאל
+       * החזיר קודם `.footer-bottom`, ואחרי ההעברה ל-`<body>` (סוף הרשימה,
+       * אחרי הפוטר) — את הכפתור עצמו. `remove()` המקביל יושב בתחילת
+       * `render()`, כדי שעדכון realtime באמצע לא ישאיר עותק יתום.
+       */
+      document.body.appendChild(overlayEl);
+      overlayEl.hidden = false;
+      const dialogEl = overlayEl.querySelector('[role="dialog"]');
+      const onKeydown = (e) => {
+        if (e.key === 'Escape') { e.preventDefault(); onEscape(); }
+        else if (e.key === 'Tab') { trapFocus(dialogEl, e); }
+      };
+      overlayEl._onKeydown = onKeydown;
+      overlayEl.addEventListener('keydown', onKeydown);
+      (initialFocusEl || dialogEl).focus({ preventScroll: true });
+    }
+    function closeDialog(overlayEl, returnFocusEl) {
+      overlayEl.hidden = true;
+      if (overlayEl._onKeydown) { overlayEl.removeEventListener('keydown', overlayEl._onKeydown); overlayEl._onKeydown = null; }
+      // משחררים את נעילת הגלילה רק כששני המודאלים סגורים — שלב הסיבה
+      // נפתח מיד אחרי שלב האישור נסגר, ואסור "לקפוץ" לגלילה בין השניים.
+      const confirmHidden = document.getElementById('cancel-confirm-modal')?.hidden ?? true;
+      const reasonHidden = document.getElementById('cancel-reason-modal')?.hidden ?? true;
+      if (confirmHidden && reasonHidden) {
+        document.body.style.overflow = _bodyOverflowBeforeDialog ?? '';
+        document.documentElement.style.overflow = _htmlOverflowBeforeDialog ?? '';
+        _bodyOverflowBeforeDialog = null;
+        _htmlOverflowBeforeDialog = null;
+      }
+      returnFocusEl?.focus({ preventScroll: true });
+    }
 
     import { startGrowCheckout, startLoadGapCheckout, declineLoadGap, rescheduleOrder, startTipCheckout, TIP_PERCENT_OPTIONS, TIP_FIXED_OPTIONS, TIP_MAX } from './payments.js';
     import { isValidFullName, FULL_NAME_ERROR } from './auth.js';
@@ -584,6 +706,12 @@
     }
 
     function render(order) {
+      // ⚠️ מנקה עותקים שהוזזו ל-`<body>` ב-`openDialog` (ראו שם) לפני
+      // שהתבנית למטה בונה גרסה חדשה שלהם — בלי זה, כל עדכון realtime
+      // שקורה בזמן שדיאלוג הביטול פתוח משאיר עותק יתום דלוק על הדף.
+      document.getElementById('cancel-confirm-modal')?.remove();
+      document.getElementById('cancel-reason-modal')?.remove();
+
       const isOwner = order.customerId === authState.authUser.uid;
       if (!isOwner) {
         contentEl.innerHTML = '<div class="empty-state" role="alert"><div class="empty-icon">🚫</div>אין לך הרשאה לצפות בהזמנה זו.</div>';
@@ -948,8 +1076,41 @@
         ${cancellable && policy?.allowed ? `
         <div class="app-card">
           <div class="cancel-policy ${policy.fee > 0 ? 'charged' : 'free'}" role="note">${esc(policy.warningMessage)}</div>
-          <button class="btn btn-danger btn-block" id="cancel-btn">בטל הזמנה</button>
+          <button type="button" class="btn btn-danger btn-block" id="cancel-btn">בטל הזמנה</button>
           <div id="cancel-error" role="alert"></div>
+        </div>
+
+        <div class="modal-overlay" id="cancel-confirm-modal" hidden>
+          <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="cancel-confirm-title" tabindex="-1">
+            <h2 id="cancel-confirm-title">לבטל את ההזמנה?</h2>
+            <div class="cancel-policy ${policy.fee > 0 ? 'charged' : 'free'}" role="note">${esc(policy.warningMessage)}</div>
+            <div class="cancel-modal-actions">
+              <button type="button" class="btn btn-danger btn-block" id="cancel-confirm-yes">${esc(policy.confirmLabel)}</button>
+              <button type="button" class="btn btn-secondary btn-block" id="cancel-confirm-no">לא, חזרה</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="modal-overlay" id="cancel-reason-modal" hidden>
+          <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="cancel-reason-title" tabindex="-1">
+            <h2 id="cancel-reason-title">למה אתה מבטל?</h2>
+            <p class="cancel-reason-intro">המשוב עוזר לנו לשפר את השירות — זה לוקח רק כמה שניות.</p>
+            <fieldset class="cancel-reason-fieldset">
+              <legend class="sr-only">סיבת הביטול</legend>
+              ${CANCELLATION_REASON_OPTIONS.map((r) => `
+              <label class="cancel-reason-option">
+                <input type="radio" name="cancel-reason" value="${esc(r.code)}">
+                <span>${esc(r.label)}</span>
+              </label>`).join('')}
+            </fieldset>
+            <label for="cancel-reason-note">פרטים נוספים (לא חובה)</label>
+            <textarea id="cancel-reason-note" rows="3" maxlength="${CANCELLATION_NOTE_MAX}" placeholder="ספר לנו עוד, אם תרצה..."></textarea>
+            <div id="cancel-reason-form-error" role="alert"></div>
+            <div class="cancel-modal-actions">
+              <button type="button" class="btn btn-primary btn-block" id="cancel-reason-submit">שלח ובטל את ההזמנה</button>
+              <button type="button" class="btn btn-secondary btn-block" id="cancel-reason-close">סגור</button>
+            </div>
+          </div>
         </div>` : ''}
       `;
 
@@ -1377,49 +1538,90 @@
       }
 
       /**
-       * ⚠️ 15.9 — **הלקוח לא ידע שייגבו ממנו דמי ביטול.**
+       * ⚠️ 15.9 — **הלקוח לא ידע שייגבו ממנו דמי ביטול.** `confirm('לבטל
+       * את ההזמנה?')` הגולמי לא הזכיר אותם במילה. התיקון הראשון (18.9)
+       * החליף את הנוסח שבתוך אותו `confirm()` בפורט המלא של
+       * `getCancellationPolicy` — אותו מדרג, אותם נוסחים, מילה במילה.
        *
-       * `confirm('לבטל את ההזמנה?')` לא הזכיר אותם במילה, והתוצאה לא
-       * הוצגה אחר כך. כלומר לקוח שביטל הזמנה משולמת יום לפני המועד
-       * חויב 50% **וגילה את זה מדף החשבון**. באפליקציה מוצגת טבלת
-       * המדרג לפני האישור.
-       *
-       * התיקון הראשון היה להציג את מה שנגבה **אחרי** הביטול: הפונקציה
-       * מחזירה את דמי הביטול בפועל ואת חוב ההחזר, והם מוצגים מיד.
-       * האזהרה שלפני האישור נשארה אז כללית ("ייתכן חיוב לפי מדיניות
-       * הביטול"), בנימוק שמספר שיוצג כאן יהיה חישוב שני שיכול להיפרד
-       * מהשרת.
-       *
-       * 16.9 — הכפתור נפתח גם ב-'en_route' (ראו `cancellable` למעלה),
-       * ואותה הודעה כללית כיסתה גם את השיעור הקבוע (75%) של השלב הזה.
-       *
-       * ⚠️ **18.9 — המשפט הכללי בוטל, והנימוק שמעליו נשמר.** הוא אכן
-       * מנע חישוב שני שיכול להיפרד — אבל הוא עלה במחיר שלא נספר: הוא
-       * אמר "ייתכן חיוב" גם לשלושת המצבים שבהם התקנון §8 מבטיח ביטול
-       * **ללא עלות**, וגם למי שעומד לשלם 75% בלי לראות מספר.
-       *
-       * מה שמחליף אותו אינו חישוב מקורב אלא הפורט המלא של
-       * `getCancellationPolicy` (ב-`orders.js`) — אותו מדרג, אותם
-       * נוסחים, ומדרג הזמן נגזר מ-`data/pricing.js` המקומפל. ושלוש
-       * הגנות מחליפות את ההימנעות: הנוסח כאן הוא `warningMessage`
-       * מילה במילה, החישוב אינו קובע דבר (`customerCancelOrder` היא
-       * שגובה), ו-`shownFee` מעביר את המספר שהוצג כדי שהשרת ירשום
-       * ללוג כל פער — במקום ש-`0` קבוע ישתיק את ההשוואה.
+       * ⚠️ **25.9 — `confirm()` הגולמי עצמו יורד.** גיא: "אני רוצה שזה
+       * יראה יותר כמו באנר קופץ... אם הוא לוחץ כן צריך ליצור טופס עם
+       * הסבר ואופציות מוכנות, טקסט חופשי." שני מודאלים מעוצבים במקומו —
+       * אישור (`cancel-confirm-modal`, אותו `warningMessage`/`confirmLabel`
+       * מהחוק הקודם, בלי שינוי ניסוח) ואז, רק אם אושר, טופס סיבה
+       * (`cancel-reason-modal`). הביטול בפועל קורה רק בסוף הטופס, לא
+       * בלחיצת "כן" — סגירת הטופס בלי לשלוח משאירה את ההזמנה חיה.
        */
-      document.getElementById('cancel-btn')?.addEventListener('click', async (e) => {
-        // ⚠️ הנוסח כאן הוא `policy.warningMessage` ו-`policy.confirmLabel`
-        // **מילה במילה**, בדיוק כמו ה-`confirmDialog` ב-`handleCancel`
-        // באפליקציה. אין כאן ניסוח שני של אותה מדיניות.
-        if (!confirm(`ביטול הזמנה\n\n${policy.warningMessage}\n\n${policy.confirmLabel}`)) return;
-        const btn = e.currentTarget;
+      const cancelBtn = document.getElementById('cancel-btn');
+      const confirmModal = document.getElementById('cancel-confirm-modal');
+      const reasonModal = document.getElementById('cancel-reason-modal');
+
+      cancelBtn?.addEventListener('click', () => {
+        openDialog(confirmModal, document.getElementById('cancel-confirm-yes'),
+          () => closeDialog(confirmModal, cancelBtn));
+      });
+      document.getElementById('cancel-confirm-no')?.addEventListener('click', () => {
+        closeDialog(confirmModal, cancelBtn);
+      });
+      document.getElementById('cancel-confirm-yes')?.addEventListener('click', () => {
+        closeDialog(confirmModal, cancelBtn);
+        openDialog(reasonModal, reasonModal.querySelector('input[name="cancel-reason"]'),
+          () => closeDialog(reasonModal, cancelBtn));
+      });
+      document.getElementById('cancel-reason-close')?.addEventListener('click', () => {
+        closeDialog(reasonModal, cancelBtn);
+      });
+
+      document.getElementById('cancel-reason-submit')?.addEventListener('click', async () => {
+        const formErrBox = document.getElementById('cancel-reason-form-error');
+        const selected = reasonModal.querySelector('input[name="cancel-reason"]:checked');
+        if (!selected) {
+          formErrBox.innerHTML = '<div class="alert alert-error" role="alert">בחר סיבה מהרשימה כדי להמשיך.</div>';
+          reasonModal.querySelector('input[name="cancel-reason"]').focus();
+          return;
+        }
+        formErrBox.innerHTML = '';
+        const reasonCode = selected.value;
+        // מגבלת אורך כפולה: `maxlength` על ה-textarea (native, בלי צורך
+        // ב-<form>) ועוד `slice` כאן — הגנה גם אם המאפיין הוסר ב-devtools.
+        const note = (document.getElementById('cancel-reason-note').value || '').trim().slice(0, CANCELLATION_NOTE_MAX);
+
+        const submitBtn = document.getElementById('cancel-reason-submit');
         const box = document.getElementById('cancel-error');
-        btn.disabled = true; btn.textContent = 'מבטל…';
+        submitBtn.disabled = true; submitBtn.textContent = 'מבטל…';
         try {
           // ⚠️ `policy.fee` — **הסכום שהלקוח בדיוק ראה על המסך**, כמו
           // `cancelOrderAsCustomer(orderId, policy.fee)` באפליקציה. עד
-          // היום נשלח `0` קבוע, ולכן השוואת "מה הוצג מול מה נגבה" בשרת
+          // 18.9 נשלח `0` קבוע, ולכן השוואת "מה הוצג מול מה נגבה" בשרת
           // הייתה מושבתת על כל ביטול מהאתר.
           const { fee, refundDue } = await cancelOrder(order.id, policy.fee);
+
+          /**
+           * ⚠️ **הסיבה נכתבת בכתיבה שנייה, נפרדת מהביטול עצמו — ולא
+           * אטומית איתו.** `customerCancelOrder` (Hovalot) אינה מקבלת
+           * סיבה בגוף הבקשה וכותבת `cancellationReason` משלה (קוד
+           * מדרג-המדיניות, לא בחירת הלקוח) — ראו CANCELLATION_REASON_OPTIONS
+           * למעלה. `orders/{orderId}` הוא denylist בחוקים (ראו
+           * serverOnlyMoneyFieldsCore/serverDecidedOrderFields), ושני
+           * השדות האלה אינם ברשימה חסומה כלשהי — הכתיבה עוברת גם על
+           * הזמנה שכבר 'cancelled', כל עוד הסטטוס עצמו לא זז.
+           *
+           * אם הכתיבה הזו נכשלת אחרי שהביטול כבר הצליח: ההזמנה מבוטלת
+           * כהלכה, והסיבה אובדת. לא בולעים בשקט (אזהרה ב-console), אבל
+           * גם לא מציגים ללקוח שגיאה — מבחינתו הביטול, שהוא הפעולה
+           * הכספית, כבר הצליח. **ואין עדיין מי שקורא את השדות האלה** —
+           * לא מסך אדמין ולא דוח. ראו דוח הסוכן למה זו לא כתיבה סופית.
+           */
+          try {
+            await updateDoc(doc(db, 'orders', order.id), {
+              customerCancellationReason: reasonCode,
+              customerCancellationReasonNote: note || null,
+              customerCancellationReasonAt: reportServerTimestamp(),
+            });
+          } catch (reasonErr) {
+            console.warn('[cancel] ההזמנה בוטלה, אך סיבת הביטול לא נשמרה', reasonErr);
+          }
+
+          closeDialog(reasonModal, cancelBtn);
           const parts = ['ההזמנה בוטלה.'];
           if (fee > 0) parts.push(`נגבו דמי ביטול בסך ₪${formatPrice(fee)}.`);
           if (refundDue > 0) parts.push(`יוחזרו לך ₪${formatPrice(refundDue)} — ההחזר מבוצע ידנית ע"י הצוות.`);
@@ -1430,25 +1632,21 @@
            *
            * `customerCancelOrder` מחזיר 409 עם המשפט המדויק
            * *"ההזמנה כבר אינה ניתנת לביטול"* (או *"ההזמנה לא נמצאה"*),
-           * ו-`cancelOrder` ב-orders.js מעביר אותו כ-`Error.message` —
-           * הקוד כאן פשוט בלע אותו והציג כשל גנרי. זהו בדיוק התרחיש
-           * שנמדד חי באפליקציה ב-13.9 (האדמין ביטל באותה שנייה שהלקוח
-           * לחץ), ושתוקן שם **בשני** הנתיבים — `OrderDetailsScreen` וגם
-           * `tabs/OrdersScreen`. האתר הוא הנתיב השלישי, והוא נשאר מאחור.
-           *
-           * ⚠️ והנוסח כאן היה חמור מזה שבאפליקציה: "ההזמנה עדיין פעילה"
-           * אינה סתם הודעת כשל, היא **קביעת עובדה שגויה** — הלקוח יוצא
-           * מהמסך בטוח שההזמנה חיה, בזמן שהיא בוטלה.
+           * ו-`cancelOrder` ב-orders.js מעביר אותו כ-`Error.message`.
+           * זהו בדיוק התרחיש שנמדד חי באפליקציה ב-13.9 (האדמין ביטל
+           * באותה שנייה שהלקוח לחץ). "ההזמנה עדיין פעילה" כאן הייתה
+           * לא סתם הודעת כשל אלא קביעת עובדה שגויה.
            */
           const msg = err instanceof Error ? err.message : '';
           if (msg.includes('אינה ניתנת לביטול') || msg.includes('לא נמצאה')) {
+            closeDialog(reasonModal, cancelBtn);
             box.innerHTML = '<div class="alert alert-success" role="status">ההזמנה כבר בוטלה. הסטטוס שלה כבר עודכן — אין צורך בפעולה נוספת.</div>';
             return; // הכפתור נשאר מנוטרל: אין מה לנסות שוב
           }
-          // כאן, ורק כאן, הביטול באמת לא יצא לפועל — ולכן ההודעה אומרת
-          // גם שההזמנה חיה וגם מה הצעד הבא.
-          box.innerHTML = '<div class="alert alert-error" role="alert">לא הצלחנו לבטל את ההזמנה. ההזמנה עדיין פעילה — אפשר לנסות שוב, או לפנות לתמיכה.</div>';
-          btn.disabled = false; btn.textContent = 'בטל הזמנה';
+          // כאן, ורק כאן, הביטול באמת לא יצא לפועל — ולכן ההודעה נשארת
+          // בתוך הטופס (לא ב-cancel-error) וגם אומרת מה הצעד הבא.
+          formErrBox.innerHTML = '<div class="alert alert-error" role="alert">לא הצלחנו לבטל את ההזמנה. ההזמנה עדיין פעילה — אפשר לנסות שוב, או לפנות לתמיכה.</div>';
+          submitBtn.disabled = false; submitBtn.textContent = 'שלח ובטל את ההזמנה';
         }
       });
     }
