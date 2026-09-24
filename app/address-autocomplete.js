@@ -497,6 +497,22 @@ export function mountAddressField({ prefix, authState }) {
     noAddress: 'מצאתי את המיקום אבל לא כתובת שמתאימה לו. אפשר להקליד ידנית.',
     generic: 'משהו השתבש באיתור המיקום. אפשר לנסות שוב או להקליד ידנית.',
     unsupported: 'איתור מיקום אינו נתמך בדפדפן הזה. אפשר להקליד את הכתובת.',
+    /**
+     * ⚠️ 25.9 — **גיאוקודינג הפוך אין לאורח, ולא בטעות.**
+     * `mountAddressField` נטען גם ב-`apartment.html`/`small-move.html`
+     * שתומכים במפורש בזרימת אורח (`getAuthOptional`, 14.9 — "אורח רשאי
+     * לבנות הזמנה ולראות מחיר בלי חשבון"). `reverseGeocode` (למעלה)
+     * דורשת `authUser` כי `mapsProxy` דורש טוקן — ול-`placesAutocompleteGuest`
+     * (שכן פתוח לאורח) **אין** endpoint גיאוקודינג הפוך במפורש
+     * ("לא geocode ולא פרוקסי פתוח", ראו ההערה שם). גם `geocodeAddress`
+     * הפתוחה-לאורח תומכת רק בכיוון `address→lat/lng`, לא בהפוך.
+     *
+     * כלומר זו **מגבלת שרת אמיתית, לא רק לקוח** — אין קריאה אחרת לנסות.
+     * במקום לתת לאורח ללחוץ, לחכות, ולקבל כשל מבלבל בסוף, חוסמים כאן
+     * מראש עם הסבר כן. **דורש פריסה** (הרחבת `geocodeAddress`/פונקציה
+     * חדשה שתקבל גם `latlng`) — לא ממומש כאן, ראו הדוח.
+     */
+    guest: 'איתור מיקום זמין רק למשתמשים מחוברים כרגע. אפשר להקליד את הכתובת, או להתחבר ולנסות שוב.',
   };
   function setLocStatus(msg) {
     if (!locStatus) return;
@@ -505,6 +521,7 @@ export function mountAddressField({ prefix, authState }) {
   }
   async function useMyLocation() {
     if (!locBtn || locBtn.disabled) return;
+    if (!authUser) { setLocStatus(LOCATE_MSG.guest); return; }
     if (!navigator.geolocation) { setLocStatus(LOCATE_MSG.unsupported); return; }
     locBtn.disabled = true;
     locBtn.setAttribute('aria-busy', 'true');
@@ -541,9 +558,16 @@ export function mountAddressField({ prefix, authState }) {
   /**
    * "בחר ממפה" — טוען את מודול המפה (ומרכיב Leaflet שבתוכו) רק כשנלחץ,
    * לא בטעינת הדף. ראו `address-map.js` למימוש המלא.
+   *
+   * ⚠️ 25.9 — אורח נחסם **לפני** טעינת Leaflet, מאותה סיבה בדיוק כמו
+   * ב-`useMyLocation` (ראו `LOCATE_MSG.guest`): המפה בתוך המודאל מתבססת
+   * כל תזוזה על אותה `reverseGeocode`, ובלי `authUser` כל גרירה הייתה
+   * מסתיימת ב"לא הצלחנו לזהות כתובת" — כישלון עקבי, לא מזדמן, שאין טעם
+   * להראות אחרי שהמשתמש כבר חיכה לטעינת המפה.
    */
   if (mapBtn) {
     mapBtn.addEventListener('click', async () => {
+      if (!authUser) { setLocStatus(LOCATE_MSG.guest); return; }
       const { openAddressMapPicker } = await import('./address-map.js');
       const lat = input.dataset.lat ? Number(input.dataset.lat) : undefined;
       const lng = input.dataset.lng ? Number(input.dataset.lng) : undefined;
