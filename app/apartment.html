@@ -49,7 +49,8 @@
   <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="../style.css?v=bd1d383b">
   <link rel="stylesheet" href="style-app.css?v=250666c2">
-  <link rel="stylesheet" href="address-autocomplete.css?v=aa414fa6">
+  <link rel="stylesheet" href="address-autocomplete.css?v=8020fd51">
+  <link rel="stylesheet" href="address-map.css?v=8417010c">
   <!-- ⚠️ נטען אחרון בכוונה — `flow.css` דורס את `style-app.css` תחת
        `.flow-b` בלבד. 14 המסכים האחרים שחולקים את `style-app.css`
        אינם מושפעים, כי המחלקה יושבת על ה-<body> של הדף הזה. -->
@@ -162,7 +163,7 @@
   </style>
 </head>
 <body class="app-body flow-b">
-<div data-build-stamp class="build-stamp" aria-hidden="true">עודכן 25.09 · 02:16</div>
+<div data-build-stamp class="build-stamp" aria-hidden="true">עודכן 25.09 · 02:27</div>
 <script src="/version-check.js?v=b4f8b2f7" defer></script>
   <!-- ⚠️ 15.9 — "דלג לתוכן המרכזי" (WCAG 2.4.1, רמה A). זהו האלמנט הממוקד
        הראשון בדף: מוסתר מהעין, מופיע בפינה ברגע שמגיעים אליו ב-Tab, ומעביר
@@ -389,8 +390,19 @@
                   <input id="from-address" type="text" required placeholder="רחוב, מספר, עיר" autocomplete="off" aria-describedby="from-address-badge">
                   <div class="address-dropdown" id="from-address-dropdown" hidden></div>
                 </div>
+                <div class="address-loc-row" id="from-address-loc-row">
+                  <button type="button" class="address-loc-btn" id="from-address-loc-btn" aria-label="בחר את כתובת המוצא לפי המיקום הנוכחי שלי">
+                    <svg aria-hidden="true" width="16" height="16" viewBox="0 0 18 18" fill="none"><circle cx="9" cy="9" r="2.6" stroke="currentColor" stroke-width="1.6"/><path d="M9 1.6v2.3M9 14.1v2.3M16.4 9h-2.3M3.9 9H1.6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+                    <span class="address-loc-btn-text">השתמש במיקום הנוכחי שלי</span>
+                  </button>
+                </div>
+                <div class="address-loc-status" id="from-address-loc-status" aria-live="polite" hidden></div>
                 <div class="address-hint" id="from-address-hint"></div>
                 <div class="address-badge" id="from-address-badge" hidden></div>
+                <button type="button" class="address-map-btn" id="from-address-map-btn" aria-label="בחר את כתובת המוצא על גבי מפה">
+                  <svg aria-hidden="true" width="16" height="16" viewBox="0 0 18 18" fill="none"><path d="M9 1.8c-2.9 0-5.2 2.3-5.2 5.1 0 3.8 5.2 9.3 5.2 9.3s5.2-5.5 5.2-9.3c0-2.8-2.3-5.1-5.2-5.1Z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><circle cx="9" cy="6.9" r="1.7" stroke="currentColor" stroke-width="1.6"/></svg>
+                  <span class="address-map-btn-text">בחר ממפה</span>
+                </button>
               </div>
             </div>
             <div class="form-row">
@@ -423,8 +435,19 @@
                   <input id="to-address" type="text" required placeholder="רחוב, מספר, עיר" autocomplete="off" aria-describedby="to-address-badge">
                   <div class="address-dropdown" id="to-address-dropdown" hidden></div>
                 </div>
+                <div class="address-loc-row" id="to-address-loc-row">
+                  <button type="button" class="address-loc-btn" id="to-address-loc-btn" aria-label="בחר את כתובת היעד לפי המיקום הנוכחי שלי">
+                    <svg aria-hidden="true" width="16" height="16" viewBox="0 0 18 18" fill="none"><circle cx="9" cy="9" r="2.6" stroke="currentColor" stroke-width="1.6"/><path d="M9 1.6v2.3M9 14.1v2.3M16.4 9h-2.3M3.9 9H1.6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+                    <span class="address-loc-btn-text">השתמש במיקום הנוכחי שלי</span>
+                  </button>
+                </div>
+                <div class="address-loc-status" id="to-address-loc-status" aria-live="polite" hidden></div>
                 <div class="address-hint" id="to-address-hint"></div>
                 <div class="address-badge" id="to-address-badge" hidden></div>
+                <button type="button" class="address-map-btn" id="to-address-map-btn" aria-label="בחר את כתובת היעד על גבי מפה">
+                  <svg aria-hidden="true" width="16" height="16" viewBox="0 0 18 18" fill="none"><path d="M9 1.8c-2.9 0-5.2 2.3-5.2 5.1 0 3.8 5.2 9.3 5.2 9.3s5.2-5.5 5.2-9.3c0-2.8-2.3-5.1-5.2-5.1Z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><circle cx="9" cy="6.9" r="1.7" stroke="currentColor" stroke-width="1.6"/></svg>
+                  <span class="address-map-btn-text">בחר ממפה</span>
+                </button>
               </div>
             </div>
             <div class="form-row">

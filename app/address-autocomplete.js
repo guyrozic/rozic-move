@@ -136,6 +136,35 @@ function parseCityStreet(comps) {
 }
 
 /**
+ * גיאוקודינג הפוך — נ"צ → כתובת, דרך `mapsProxy` (endpoint `geocode` עם
+ * `latlng`, בדיוק כמו `reverseGeocode` ב-`Hovalot/src/services/mapsApi.ts`).
+ *
+ * ⚠️ **דורש `authUser` ואינה נופלת לאורח.** `mapsProxy` דורש טוקן Firebase
+ * Auth בכל בקשה (ראו `callMapsProxy` למעלה) — בניגוד להשלמה האוטומטית,
+ * שיש לה מסלול אורח נפרד (`placesAutocompleteGuest`). זה תקין בפועל:
+ * שני הדפים שקוראים לפונקציה הזו (`apartment.html`/`small-move.html`)
+ * יושבים כולם מאחורי `requireAuth()` (ראו CLAUDE.md, "app/ הוא זרימת
+ * ההזמנה המחוברת") — אין כאן מסך שאורח יכול להגיע אליו בכלל, ולכן
+ * `authUser` תמיד קיים. `placesAutocompleteGuest` אינה תומכת בגיאוקודינג
+ * הפוך — הוספת endpoint כזה לאורח הייתה דורשת פונקציית ענן נוספת, ולא
+ * נדרשת כאן.
+ *
+ * מעדיפה את התוצאה הכי ספציפית שגוגל מחזירה — מראה
+ * `pickBestReverseGeocodeResult` ב-`LocationConfirmMap.tsx`: כתובת מלאה,
+ * ואם אין אז רחוב, ואם אין אז לפחות שם היישוב.
+ */
+export async function reverseGeocode(authUser, lat, lng) {
+  const data = await callMapsProxy(authUser, 'geocode', { latlng: `${lat},${lng}`, language: 'he' });
+  const results = data?.results ?? [];
+  const best = results.find((r) => r.types?.includes('street_address'))
+    ?? results.find((r) => r.types?.includes('route'))
+    ?? results.find((r) => r.types?.includes('locality'));
+  if (!best) return null;
+  const { city, street } = parseCityStreet(best.address_components ?? []);
+  return { city, street, fullAddress: best.formatted_address ?? '' };
+}
+
+/**
  * עיר/רחוב שחולצו מ-`address_components` בבחירת ההצעה האחרונה מהרשימה
  * החיה, או `null`. **בכוונה `null` ולא ניחוש** — כתובת שהוקלדה חופשי,
  * נבחרה מצ'יפ מועדף/אחרון, או ש-Google לא סיפק רכיבים, אינן ניתנות
@@ -208,6 +237,16 @@ export function mountAddressField({ prefix, authState }) {
   const dropdown = document.getElementById(`${prefix}-dropdown`);
   const hint = document.getElementById(`${prefix}-hint`);
   const badge = document.getElementById(`${prefix}-badge`);
+  // 25.9 — מערך המיקום (GPS + מפה), מקביל ל-"מצא לפי המיקום"/מפת האישור
+  // ב-AddressInput.tsx/LocationConfirmMap.tsx. שלושתם אופציונליים בכוונה
+  // (getElementById מחזיר null אם דף לא הוסיף אותם) — עמוד שלא הוסיף את
+  // המרקאפ החדש ממשיך לעבוד בדיוק כמו היום, בלי הפיצ'ר.
+  const locRow = document.getElementById(`${prefix}-loc-row`);
+  const locBtn = document.getElementById(`${prefix}-loc-btn`);
+  const locBtnText = locBtn?.querySelector('.address-loc-btn-text') ?? null;
+  const locStatus = document.getElementById(`${prefix}-loc-status`);
+  const mapBtn = document.getElementById(`${prefix}-map-btn`);
+  const mapBtnText = mapBtn?.querySelector('.address-map-btn-text') ?? null;
   if (!input || !field) return;
 
   const authUser = authState?.authUser ?? null;
@@ -227,7 +266,25 @@ export function mountAddressField({ prefix, authState }) {
 
   function hideDropdown() { if (dropdown) { dropdown.hidden = true; dropdown.innerHTML = ''; } }
 
+  /**
+   * מציג/מסתיר את שורת "המיקום הנוכחי שלי" ומחליף את נוסח כפתור המפה —
+   * נקראת מכל נקודה שמשנה `confirmed` (ראו קריאות ל-renderChips למטה,
+   * שכל אחת מהן היא בדיוק נקודת שינוי כזו).
+   *
+   * ⚠️ **סטייה מודעת אחת מהאפליקציה**: שם כפתור המפה (`mapCheckBtn`)
+   * מוצג רק אחרי שכבר יש כתובת (`isComplete`) — הוא כלי לדיוק/אימות,
+   * לא שיטת קלט ראשית. כאן הוא **תמיד** גלוי, גם לפני שהוקלד דבר, לפי
+   * הבקשה המפורשת של גיא (25.9): "עם אפשרות לבחור ממפה **או** ממיקום
+   * נוכחי" — שני מסלולי קלט שווים, לא רק עידון של הקלדה. הנוסח עצמו
+   * כן מתחלף בדיוק כמו באפליקציה (`isVerified ? 'ודא/דייק...' : '...'`).
+   */
+  function syncLocationUI() {
+    if (locRow) locRow.hidden = confirmed;
+    if (mapBtnText) mapBtnText.textContent = confirmed ? 'דייק מיקום על המפה' : 'בחר ממפה';
+  }
+
   function renderChips() {
+    syncLocationUI();
     if (!chipsWrap || !chipsList) return;
     const list = activeTab === 'fav' ? addressCache.saved : addressCache.recent;
     const showRow = !confirmed && (addressCache.saved.length > 0 || addressCache.recent.length > 0);
@@ -399,6 +456,101 @@ export function mountAddressField({ prefix, authState }) {
   document.addEventListener('click', (e) => {
     if (!field.contains(e.target)) hideDropdown();
   });
+
+  /**
+   * מפעילה כתובת שנפתרה מ-GPS או מהמפה — משותף לשני המקורות, מראה
+   * `useMyLocation`/`onConfirm` ב-`AddressInput.tsx`/`LocationConfirmMap.tsx`.
+   * **לא** עוברת דרך אירוע ה-`input` (שמאפס lat/lng/city/street בכל הקלדה —
+   * ראו למעלה): מדובר בבחירה מאומתת, לא בהקלדה חדשה, בדיוק כמו בחירת
+   * הצעה/צ'יפ קיימת.
+   */
+  function applyResolvedLocation(loc, badgeText) {
+    input.value = loc.fullAddress;
+    confirmed = true;
+    hideDropdown();
+    renderChips();
+    input.dataset.lat = String(loc.lat);
+    input.dataset.lng = String(loc.lng);
+    if (loc.city) input.dataset.city = loc.city; else delete input.dataset.city;
+    if (loc.street) input.dataset.street = loc.street; else delete input.dataset.street;
+    setBadge('ok', badgeText);
+    if (uid) addRecent(uid, addressCache, loc.fullAddress);
+  }
+
+  /**
+   * "השתמש במיקום הנוכחי שלי" — GPS. מראה `useMyLocation` ב-`AddressInput.tsx`
+   * שורה־שורה: אותם ארבעה מסלולי כשל, בלי דיאלוג שגיאה טכני (הנחיה מפורשת
+   * של גיא בעבר) — הודעה קצרה ליד הכפתור, וחזרה בחן לשדה הידני.
+   *
+   * ⚠️ **הבדל מדויק אחד מהאפליקציה, מתחייב מהמשטח**: אין `ensureLocationPermission`
+   * נפרד — הדפדפן עצמו שואל הרשאה בתוך `getCurrentPosition`, ואין API
+   * לשאול "יש הרשאה?" מראש בלי לבקש אותה (בניגוד ל-`expo-location`).
+   * ⚠️ Geolocation דורש הקשר מאובטח (HTTPS) — `rozicmove.com` עומד בזה.
+   * `localhost` נחשב הקשר מאובטח גם הוא (כלל דפדפנים סטנדרטי), כך שבדיקה
+   * מקומית עדיין יכולה לתת/לדחות הרשאה אמיתית — רק דיוק ה-GPS עצמו עשוי
+   * להיות שונה ממכשיר נייד אמיתי.
+   */
+  const LOCATE_MSG = {
+    denied: 'אין הרשאת מיקום. אפשר לאשר בהגדרות הדפדפן, או להקליד את הכתובת.',
+    unavailable: 'לא הצלחתי לאתר את המיקום. בדוק שה-GPS דלוק, או הקלד את הכתובת.',
+    timeout: 'לא הצלחנו לאתר מיקום בזמן. אפשר לנסות שוב או להקליד ידנית.',
+    noAddress: 'מצאתי את המיקום אבל לא כתובת שמתאימה לו. אפשר להקליד ידנית.',
+    generic: 'משהו השתבש באיתור המיקום. אפשר לנסות שוב או להקליד ידנית.',
+    unsupported: 'איתור מיקום אינו נתמך בדפדפן הזה. אפשר להקליד את הכתובת.',
+  };
+  function setLocStatus(msg) {
+    if (!locStatus) return;
+    locStatus.textContent = msg || '';
+    locStatus.hidden = !msg;
+  }
+  async function useMyLocation() {
+    if (!locBtn || locBtn.disabled) return;
+    if (!navigator.geolocation) { setLocStatus(LOCATE_MSG.unsupported); return; }
+    locBtn.disabled = true;
+    locBtn.setAttribute('aria-busy', 'true');
+    if (locBtnText) locBtnText.textContent = 'מאתר את המיקום שלך…';
+    setLocStatus('');
+    try {
+      const pos = await new Promise((resolve, reject) => {
+        navigator.geolocation.getCurrentPosition(resolve, reject, {
+          enableHighAccuracy: true, timeout: 10000, maximumAge: 0,
+        });
+      });
+      const { latitude: lat, longitude: lng } = pos.coords;
+      const result = await reverseGeocode(authUser, lat, lng);
+      if (!result || !result.fullAddress) { setLocStatus(LOCATE_MSG.noAddress); return; }
+      // הנ"צ הן של המדידה עצמה, לא של תוצאת הגיאוקודינג — מראה useMyLocation
+      // באפליקציה: הן מדויקות יותר, וזה מה שהמשתמש התכוון אליו בפועל.
+      applyResolvedLocation({ lat, lng, fullAddress: result.fullAddress, city: result.city, street: result.street }, 'כתובת מהמיקום שלך');
+    } catch (e) {
+      if (e && typeof e.code === 'number') {
+        if (e.code === 1) setLocStatus(LOCATE_MSG.denied);
+        else if (e.code === 3) setLocStatus(LOCATE_MSG.timeout);
+        else setLocStatus(LOCATE_MSG.unavailable);
+      } else {
+        setLocStatus(LOCATE_MSG.generic);
+      }
+    } finally {
+      locBtn.disabled = false;
+      locBtn.removeAttribute('aria-busy');
+      if (locBtnText) locBtnText.textContent = 'השתמש במיקום הנוכחי שלי';
+    }
+  }
+  if (locBtn) locBtn.addEventListener('click', useMyLocation);
+
+  /**
+   * "בחר ממפה" — טוען את מודול המפה (ומרכיב Leaflet שבתוכו) רק כשנלחץ,
+   * לא בטעינת הדף. ראו `address-map.js` למימוש המלא.
+   */
+  if (mapBtn) {
+    mapBtn.addEventListener('click', async () => {
+      const { openAddressMapPicker } = await import('./address-map.js');
+      const lat = input.dataset.lat ? Number(input.dataset.lat) : undefined;
+      const lng = input.dataset.lng ? Number(input.dataset.lng) : undefined;
+      const result = await openAddressMapPicker({ authUser, lat, lng, returnFocusEl: mapBtn });
+      if (result) applyResolvedLocation(result, 'כתובת מאומתת');
+    });
+  }
 
   renderChips();
   if (confirmed && input.value.trim()) verifyInBackground(input.value.trim());

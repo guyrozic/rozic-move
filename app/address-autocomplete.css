@@ -62,3 +62,23 @@
 }
 .address-badge.ok   { background: var(--green-light); color: var(--green-dark); }
 .address-badge.warn { background: #FBEFD9; color: var(--amber-strong); }
+
+/* --- מערך המיקום: "המיקום הנוכחי שלי" + "בחר ממפה" ---------------------
+   25.9 — מראה locRow/mapCheckBtn ב-AddressInput.tsx. שני הכפתורים בסגנון
+   קישור-טקסט (בלי רקע/מסגרת), כמו .btn-text הכללי, כדי לא להתחרות ויזואלית
+   עם כפתור "המשך" הראשי של השלב. */
+.address-loc-row { margin: 6px 0 2px; }
+.address-loc-btn, .address-map-btn {
+  display: inline-flex; align-items: center; gap: 6px;
+  background: none; border: none; padding: 6px 2px; margin: 0;
+  font-family: inherit; font-size: 0.85rem; font-weight: 700;
+  color: var(--green-dark); cursor: pointer;
+}
+.address-map-btn { margin-top: 6px; }
+.address-loc-btn:hover:not(:disabled), .address-map-btn:hover { color: var(--green); }
+.address-loc-btn:disabled { opacity: 0.7; cursor: default; }
+.address-loc-btn:focus-visible, .address-map-btn:focus-visible {
+  outline: 3px solid var(--green); outline-offset: 2px; border-radius: 6px;
+}
+.address-loc-status { font-size: 0.78rem; color: var(--danger); margin: 2px 0 4px; }
+.address-loc-status[hidden] { display: none; }
