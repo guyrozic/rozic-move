@@ -654,18 +654,6 @@
     background: var(--green);
   }
 
-  /* המשאית בקצה הקו — הדימוי היחיד במקטע, והוא בדיוק מה שהכותרת
-     מבטיחה. דקורטיבי לחלוטין ולכן `aria-hidden`. */
-  .jr-truck {
-    position: absolute;
-    inset-inline-end: 6px;
-    top: calc(var(--jr-half) + var(--jr-dot) / 2);
-    transform: translateY(-50%);
-    width: 44px; height: 30px;
-    stroke: var(--green); fill: none;
-    stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round;
-  }
-
   .jr-stop {
     /* ⚠️ ברירת מחדל מוצהרת, לא קישוט: `--jr-i` נקבע כ-`style=""` על כל
        `<li>` בנפרד, ו-`check-a11y` נופל על `var()` שאף גיליון בדף אינו
@@ -862,8 +850,6 @@
   @media (max-width: 1400px) {
     /* עמודה צרה יותר => תווית גבוהה יותר, ולכן חצי-הפס גדל איתה. */
     .jr { --jr-half: 150px; }
-    /* למשאית אין עוד מקום בקצה בלי להיתקל בתווית האחרונה. */
-    .jr-truck { display: none; }
   }
 
   /* ⚠️ נקודת המעבר לאנכי היא 1180 ולא 980. שמונה עמודות על 1100px הן
@@ -1329,7 +1315,11 @@
     margin-top: 1px;
   }
 
+  /* 25.9 — הפך מ-`<span>` קישוטי ל-`<a>` אמיתי (ל-movers.html#how-it-works),
+     ולכן צריך את שני הכללים שדפדפן נותן לקישור כברירת מחדל ולא רצינו כאן:
+     קו תחתי וסמן טקסט. */
   .mv-b-take {
+    display: inline-block;
     flex-shrink: 0;
     background: var(--green-on-dark);
     color: var(--green-dark);       /* 6.32:1 */
@@ -1337,7 +1327,10 @@
     font-weight: 800;
     border-radius: 11px;
     padding: 10px 18px;
+    text-decoration: none;
+    cursor: pointer;
   }
+  .mv-b-take:hover { background: var(--white); }
 
   .mv-b-foot {
     display: flex;
@@ -1443,7 +1436,7 @@
      שיחליף אותם; בלי הסימון הזה הם נעלמו גם בחמשת הדפים המשפטיים,
      בלי שום דרך להגיע אליהם (WCAG 1.4.4). -->
 <body class="has-nav-menu hp-home">
-<div data-build-stamp class="build-stamp" aria-hidden="true">עודכן 25.09 · 11:52</div>
+<div data-build-stamp class="build-stamp" aria-hidden="true">עודכן 25.09 · 13:32</div>
 <script src="/version-check.js?v=b4f8b2f7" defer></script>
   <!-- ⚠️ 15.9 — "דלג לתוכן המרכזי" (WCAG 2.4.1, רמה A). זהו האלמנט הממוקד
        הראשון בדף: מוסתר מהעין, מופיע בפינה ברגע שמגיעים אליו ב-Tab, ומעביר
@@ -1966,10 +1959,6 @@
           <span class="jr-txt"><b>דירוג</b><i>סוגרים את המעגל</i></span>
         </li>
       </ol>
-      <svg class="jr-truck" viewBox="0 0 44 30" aria-hidden="true" focusable="false">
-        <path d="M2 6h22v16H2zM24 11h7l5 5v6H24"/>
-        <path d="M9 26a3 3 0 1 0 0-6 3 3 0 0 0 0 6M30 26a3 3 0 1 0 0-6 3 3 0 0 0 0 6"/>
-      </svg>
     </div>
 
     <!-- שתי ההבטחות — אחת לכל חצי של הפס שמעליהן. -->
@@ -2051,9 +2040,13 @@
 
       <div class="mv-board-wrap reveal-right">
 
-        <!-- ציור ממשק בלבד. `aria-hidden` כי אין כאן מידע שקורא מסך
-             אמור לשמוע — כל טענה שהציור ממחיש כתובה בטקסט שלצידו. -->
-        <div class="mv-board" aria-hidden="true">
+        <!-- 25.9 — "קח אותה" הפך לקישור אמיתי (לדף המובילים המלא), ולכן
+             הלוח כבר לא יכול לשאת `aria-hidden`: זה היה מסתיר שלושה
+             קישורים פוקוסביליים מקורא מסך בזמן שהם עדיין נגישים למקלדת —
+             בדיוק התבנית שמפילה כלי בדיקה כמו axe (`aria-hidden-focus`).
+             שאר הכרטיס (הכותרת, הצ'יפים, פרטי ההזמנה) נחשף איתו; אין בכך
+             נזק, ורובו כבר טקסט מובן שקורא מסך יודע לקרוא. -->
+        <div class="mv-board">
 
           <div class="mv-b-head">
             <div class="mv-b-head-tx">
@@ -2077,7 +2070,7 @@
                   </span>
                 </div>
                 <div class="mv-b-pay"><b>₪1,180</b><i>הרווח שלך</i></div>
-                <span class="mv-b-take">קח אותה</span>
+                <a tabindex="0" href="movers.html#how-it-works" class="mv-b-take">קח אותה</a>
               </div>
             </div>
 
@@ -2092,7 +2085,7 @@
                   </span>
                 </div>
                 <div class="mv-b-pay"><b>₪540</b><i>הרווח שלך</i></div>
-                <span class="mv-b-take">קח אותה</span>
+                <a tabindex="0" href="movers.html#how-it-works" class="mv-b-take">קח אותה</a>
               </div>
             </div>
 
@@ -2107,7 +2100,7 @@
                   </span>
                 </div>
                 <div class="mv-b-pay"><b>₪860</b><i>הרווח שלך</i></div>
-                <span class="mv-b-take">קח אותה</span>
+                <a tabindex="0" href="movers.html#how-it-works" class="mv-b-take">קח אותה</a>
               </div>
             </div>
 
@@ -2138,7 +2131,7 @@
           <div>הרווח נכנס לחשבון עם סיום ההובלה, והתשלום מועבר אחת לשבועיים</div>
         </li>
       </ul>
-        <a tabindex="0" href="#download" class="btn-light mv-cta">הצטרף כמוביל</a>
+        <a tabindex="0" href="movers.html" class="btn-light mv-cta">הצטרף כמוביל</a>
       </div>
 
     </div>

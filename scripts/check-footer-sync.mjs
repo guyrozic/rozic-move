@@ -50,7 +50,8 @@ const TARGETS = [
   { file: 'terms.html', legalPrefix: '', homePrefix: 'index.html' },
   { file: 'privacy.html', legalPrefix: '', homePrefix: 'index.html' },
   // 25.9 — גיא בחר גרסה A מתוך שלוש חלופות; B ו-C נמחקו מהריפו ומכאן.
-  { file: 'preview-movers-a.html', legalPrefix: '', homePrefix: 'index.html' },
+  // הקובץ שונה משם מ-preview-movers-a.html ל-movers.html ופורסם (יצא מ-noindex).
+  { file: 'movers.html', legalPrefix: '', homePrefix: 'index.html' },
   // דפי שורש — משפטי אבסולוטי (המוסכמה הקיימת בקבצים האלה)
   { file: '404.html', legalPrefix: '/', homePrefix: '/index.html' },
   { file: 'delete-account.html', legalPrefix: '/', homePrefix: '/index.html' },

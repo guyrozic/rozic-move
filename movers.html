@@ -8,16 +8,40 @@
      מחובר — Firestore, Auth, Storage ופונקציות הענן. -->
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://www.gstatic.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdn.jsdelivr.net; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob: https://*.tile.openstreetmap.org https://*.googleapis.com https://*.firebasestorage.app; connect-src 'self' https://*.googleapis.com https://*.cloudfunctions.net https://*.firebasestorage.app; frame-src 'none'; object-src 'none'; base-uri 'self'; form-action 'self'">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="robots" content="noindex, nofollow">
-<title>מצטרפים כמובילים — ROZIC MOVE</title>
-<meta name="description" content="לוח הזמנות דיגיטלי, תשלום קבוע אחת לשבועיים ושעות שאתם בוחרים. ההרשמה כמוביל מתבצעת באפליקציית ROZIC MOVE.">
-<!-- ⚠️ noindex, לא מקושר, נמחק אחרי הכרעת גיא (25.9).
-     גרסה A נבחרה מתוך שלוש שהוצגו לגיא (25.9) — גישת "המספרים": הירו
+<meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large">
+<title>מצטרף כמוביל — ROZIC MOVE</title>
+<meta name="description" content="לוח הזמנות דיגיטלי, תשלום קבוע אחת לשבועיים ושעות שאתה בוחר. ההרשמה כמוביל מתבצעת באפליקציית ROZIC MOVE.">
+<link rel="canonical" href="https://rozicmove.com/movers.html">
+<!-- גרסה A נבחרה מתוך שלוש שהוצגו לגיא (25.9) — גישת "המספרים": הירו
      כהה כמו מקטע המובילים בדף הבית, כרטיסי עובדה קצרים, ואקורדיון
      שאלות מורחב. preview-movers-b.html ו-preview-movers-c.html נדחו
      ונמחקו באותו יום. אקורדיון השאלות הורחב מ-5 ל-15 שאלות (25.9,
      בהנחיית גיא) — כל תשובה מאומתת מול תקנון/קוד, ראו דוח הסוכן
-     marketing לטבלת המקורות. -->
+     marketing לטבלת המקורות.
+
+     ⚠️ 25.9 — גיא אישר את התוכן והעיצוב וביקש להמיר את הדף מלשון רבים
+     ("אתם"/"שלכם") ללשון יחיד (הכרעת גיא 105.3א, אותה החלטה שכבר חלה על
+     מקטע המובילים ב-index.html). הקובץ שונה משם מ-`preview-movers-a.html`
+     ל-`movers.html`, יצא מ-noindex, ומקושר עכשיו מארבעה כפתורים בדף
+     הבית ומה-sitemap. -->
+<!-- Open Graph / social + AI crawlers -->
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="ROZIC MOVE">
+<meta property="og:locale" content="he_IL">
+<meta property="og:url" content="https://rozicmove.com/movers.html">
+<meta property="og:title" content="מצטרף כמוביל — ROZIC MOVE">
+<meta property="og:description" content="לוח הזמנות דיגיטלי, תשלום קבוע אחת לשבועיים ושעות שאתה בוחר. ההרשמה כמוביל מתבצעת באפליקציית ROZIC MOVE.">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="מצטרף כמוביל — ROZIC MOVE">
+<meta name="twitter:description" content="לוח הזמנות דיגיטלי, תשלום קבוע אחת לשבועיים ושעות שאתה בוחר. ההרשמה כמוביל מתבצעת באפליקציית ROZIC MOVE.">
+<!-- 15.9 — תמונת השיתוף. המקור: scripts/og-image.svg, נבנית מחדש ב-node scripts/make-og-image.mjs -->
+<meta property="og:image" content="https://rozicmove.com/og-image.png">
+<meta property="og:image:type" content="image/png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="לוגו ROZIC MOVE על רקע ירוק כהה, עם הסלוגן &quot;מזיזים אותך קדימה&quot;">
+<meta name="twitter:image" content="https://rozicmove.com/og-image.png">
+<meta name="twitter:image:alt" content="לוגו ROZIC MOVE על רקע ירוק כהה, עם הסלוגן &quot;מזיזים אותך קדימה&quot;">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
@@ -93,6 +117,10 @@
   .mvp-fact p { color: var(--text-muted); font-size: 0.92rem; line-height: 1.6; }
 
   .mvp-section { padding: 8px 24px 56px; max-width: 760px; margin: 0 auto; }
+  /* 25.9 — העוגן נכנס לשימוש אמיתי (הכפתורים "קח אותה" בדף הבית קופצים
+     לכאן), ולכן צריך scroll-margin-top: בלי זה הכותרת נוחתת מתחת ל-nav
+     הצף (68px, `--nav-h`). אותו ערך בדיוק כמו `#how-it-works` בדף הבית. */
+  #how-it-works { scroll-margin-top: 92px; }
   .mvp-section h2 { color: var(--text); font-size: clamp(1.4rem, 2.6vw, 1.8rem); font-weight: 900; margin-bottom: 14px; }
   .mvp-section p { color: var(--text-mid); line-height: 1.7; margin-bottom: 10px; }
   .mvp-steps { padding-inline-start: 20px; }
@@ -107,7 +135,7 @@
 </style>
 </head>
 <body>
-<div data-build-stamp class="build-stamp" aria-hidden="true">עודכן 25.09 · 12:32</div>
+<div data-build-stamp class="build-stamp" aria-hidden="true">עודכן 25.09 · 13:32</div>
 <script src="/version-check.js?v=b4f8b2f7" defer></script>
 <a class="skip-link" href="#main-content">דלג לתוכן המרכזי</a>
 
@@ -135,8 +163,8 @@
   </div>
 
   <div class="mvp-hero">
-    <p class="section-label light">הצטרפו לצוות</p>
-    <h1>הרווח ברור לפני שלוקחים הזמנה</h1>
+    <p class="section-label light">הצטרף לצוות</p>
+    <h1>הרווח ברור לפני שלוקח הזמנה</h1>
     <p class="lead">ROZIC MOVE מחברת בין לקוחות שצריכים הובלה לבין מובילים עצמאיים. הלוח, ההרשמה וניהול ההזמנות — הכול בתוך האפליקציה.</p>
     <div class="mvp-badge">ההרשמה כמוביל מתבצעת באפליקציה — לא באתר</div>
     <div class="cta-row">
@@ -163,29 +191,29 @@
     <div class="mvp-facts-grid">
       <div class="mvp-fact">
         <h3>אחת לשבועיים</h3>
-        <p>התשלום על ההובלות שביצעתם מועבר לחשבון שלכם בתדירות קבועה.</p>
+        <p>התשלום על ההובלות שביצעת מועבר לחשבון שלך בתדירות קבועה.</p>
       </div>
       <div class="mvp-fact">
         <h3>מיד עם סיום ההובלה</h3>
-        <p>הרווח נכנס לחשבון שלכם ברגע שההובלה הושלמה — לא בהמתנה לאישור נפרד.</p>
+        <p>הרווח נכנס לחשבון שלך ברגע שההובלה הושלמה — לא בהמתנה לאישור נפרד.</p>
       </div>
       <div class="mvp-fact">
-        <h3>מה שרואים זה מה שמקבלים</h3>
-        <p>לפני שלוקחים הזמנה מהלוח, רואים את האזור, השעה והרווח שייכנס לחשבון.</p>
+        <h3>מה שרואה זה מה שמקבל</h3>
+        <p>לפני שלוקח הזמנה מהלוח, רואה את האזור, השעה והרווח שייכנס לחשבון.</p>
       </div>
       <div class="mvp-fact">
-        <h3>השעות שלכם</h3>
-        <p>הלוח פתוח כל הזמן, ואתם בוחרים אילו הזמנות מתאימות לכם ומתי לעבוד.</p>
+        <h3>השעות שלך</h3>
+        <p>הלוח פתוח כל הזמן, ואתה בוחר אילו הזמנות מתאימות לך ומתי לעבוד.</p>
       </div>
     </div>
   </div>
 
   <div class="mvp-section" id="how-it-works">
-    <h2>איך מצטרפים</h2>
+    <h2>איך מצטרף</h2>
     <ol class="mvp-steps">
-      <li>מורידים את האפליקציה מ-App Store או מ-Google Play.</li>
-      <li>נרשמים כמוביל, ומעלים רישיון נהיגה ותעודת ביטוח בתוקף לאימות.</li>
-      <li>בוחרים הזמנות מהלוח הדיגיטלי, בהתאם לאזור ולשעות שנוחים לכם.</li>
+      <li>מוריד את האפליקציה מ-App Store או מ-Google Play.</li>
+      <li>נרשם כמוביל, ומעלה רישיון נהיגה ותעודת ביטוח בתוקף לאימות.</li>
+      <li>בוחר הזמנות מהלוח הדיגיטלי, בהתאם לאזור ולשעות שנוחים לך.</li>
     </ol>
   </div>
 
@@ -194,11 +222,11 @@
     <div class="faq-list">
       <div class="faq-item">
         <button tabindex="0" class="faq-q" aria-expanded="false">
-          איך נרשמים כמוביל?
+          איך נרשם כמוביל?
           <svg aria-hidden="true" class="faq-arrow" width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M3 6l6 6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
         </button>
         <div class="faq-a">
-          <p>ההרשמה מתבצעת רק דרך האפליקציה: מורידים אותה, נרשמים, ומעלים רישיון נהיגה ותעודת ביטוח בתוקף לאימות.</p>
+          <p>ההרשמה מתבצעת רק דרך האפליקציה: מוריד אותה, נרשם, ומעלה רישיון נהיגה ותעודת ביטוח בתוקף לאימות.</p>
         </div>
       </div>
       <div class="faq-item">
@@ -216,7 +244,7 @@
           <svg aria-hidden="true" class="faq-arrow" width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M3 6l6 6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
         </button>
         <div class="faq-a">
-          <p>הלוח הדיגיטלי מציג את כל ההזמנות הפתוחות לפי אזור, תאריך ושעה, ולצד כל הזמנה את הרווח שהיא מניבה. בוחרים הזמנה שמתאימה ולוחצים לקחת אותה — היא משויכת אליכם ומופיעה במסך ההזמנות שלכם.</p>
+          <p>הלוח הדיגיטלי מציג את כל ההזמנות הפתוחות לפי אזור, תאריך ושעה, ולצד כל הזמנה את הרווח שהיא מניבה. בוחר הזמנה שמתאימה ולוחץ לקחת אותה — היא משויכת אליך ומופיעה במסך ההזמנות שלך.</p>
         </div>
       </div>
       <div class="faq-item">
@@ -225,7 +253,7 @@
           <svg aria-hidden="true" class="faq-arrow" width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M3 6l6 6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
         </button>
         <div class="faq-a">
-          <p>כן. הלוח הדיגיטלי מציג את כל ההזמנות הפתוחות, ואתם בוחרים לפי אזור, תאריך ושעה מה שמתאים לכם.</p>
+          <p>כן. הלוח הדיגיטלי מציג את כל ההזמנות הפתוחות, ואתה בוחר לפי אזור, תאריך ושעה מה שמתאים לך.</p>
         </div>
       </div>
       <div class="faq-item">
@@ -234,7 +262,7 @@
           <svg aria-hidden="true" class="faq-arrow" width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M3 6l6 6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
         </button>
         <div class="faq-a">
-          <p>מחיר ההזמנה קבוע מראש לפי מחירון החברה ומוצג ללקוח בעת ביצוע ההזמנה — וגם לכם, לפני שאתם לוקחים אותה מהלוח. אתם לא מתמחרים את ההובלה, ולכן גם אין הפתעות מול הלקוח.</p>
+          <p>מחיר ההזמנה קבוע מראש לפי מחירון החברה ומוצג ללקוח בעת ביצוע ההזמנה — וגם לך, לפני שאתה לוקח אותה מהלוח. אתה לא מתמחר את ההובלה, ולכן גם אין הפתעות מול הלקוח.</p>
         </div>
       </div>
       <div class="faq-item">
@@ -243,16 +271,16 @@
           <svg aria-hidden="true" class="faq-arrow" width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M3 6l6 6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
         </button>
         <div class="faq-a">
-          <p>לפני שלוקחים הזמנה מהלוח, האפליקציה מציגה את הרווח המדויק שייכנס לחשבון עבורה — כך שיודעים בדיוק כמה מרוויחים לפני שמתחייבים. בסיום ההובלה הרווח נזקף אוטומטית ל"יתרת רווחים" בפרופיל, יחד עם טיפים שהתקבלו, ואת הפירוט לפי הובלה ולפי שבוע אפשר לראות במסך "הכנסות".</p>
+          <p>לפני שלוקח הזמנה מהלוח, האפליקציה מציגה את הרווח המדויק שייכנס לחשבון עבורה — כך שיודע בדיוק כמה מרוויח לפני שמתחייב. בסיום ההובלה הרווח נזקף אוטומטית ל"יתרת רווחים" בפרופיל, יחד עם טיפים שהתקבלו, ואת הפירוט לפי הובלה ולפי שבוע אפשר לראות במסך "הכנסות".</p>
         </div>
       </div>
       <div class="faq-item">
         <button tabindex="0" class="faq-q" aria-expanded="false">
-          מתי ואיך מקבלים תשלום?
+          מתי ואיך מקבל תשלום?
           <svg aria-hidden="true" class="faq-arrow" width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M3 6l6 6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
         </button>
         <div class="faq-a">
-          <p>הרווח נכנס לחשבון שלכם עם סיום ההובלה, והתשלום מועבר אליכם אחת לשבועיים.</p>
+          <p>הרווח נכנס לחשבון שלך עם סיום ההובלה, והתשלום מועבר אליך אחת לשבועיים.</p>
         </div>
       </div>
       <div class="faq-item">
@@ -261,7 +289,7 @@
           <svg aria-hidden="true" class="faq-arrow" width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M3 6l6 6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
         </button>
         <div class="faq-a">
-          <p>כן — בתהליך האימות באפליקציה תצהירו גם על מעמד העוסק שלכם, כדי שההתחשבנות תהיה נכונה עבורכם.</p>
+          <p>כן — בתהליך האימות באפליקציה תצהיר גם על מעמד העוסק שלך, כדי שההתחשבנות תהיה נכונה עבורך.</p>
         </div>
       </div>
       <div class="faq-item">
@@ -279,7 +307,7 @@
           <svg aria-hidden="true" class="faq-arrow" width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M3 6l6 6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
         </button>
         <div class="faq-a">
-          <p>ביטול אחרי שכבר קיבלתם הזמנה גורר קנס שנגבה מהפיקדון ומועבר ללקוח כפיצוי: ₪100 אם נותרו יותר מ-24 שעות עד תחילת חלון הזמן, ו-₪150 אם נותרו פחות. כל ביטול נספר כסטרייק: ביטול ראשון ושני משעים את החשבון ל-30 יום (אפשר לערער מול הצוות), וביטול שלישי משעה לצמיתות עד הסדרה. אותו כלל חל גם על נטישת הובלה שכבר התחילה.</p>
+          <p>ביטול אחרי שכבר קיבלת הזמנה גורר קנס שנגבה מהפיקדון ומועבר ללקוח כפיצוי: ₪100 אם נותרו יותר מ-24 שעות עד תחילת חלון הזמן, ו-₪150 אם נותרו פחות. כל ביטול נספר כסטרייק: ביטול ראשון ושני משעים את החשבון ל-30 יום (אפשר לערער מול הצוות), וביטול שלישי משעה לצמיתות עד הסדרה. אותו כלל חל גם על נטישת הובלה שכבר התחילה.</p>
         </div>
       </div>
       <div class="faq-item">
@@ -288,16 +316,16 @@
           <svg aria-hidden="true" class="faq-arrow" width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M3 6l6 6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
         </button>
         <div class="faq-a">
-          <p>ההזמנה יורדת מהיומן שלכם, והביטול אינו נספר לרעתכם — אין קנס ואין סטרייק על ביטול שהוא של הלקוח. דמי הביטול שהלקוח עשוי לשלם, לפי הזמן שנותר עד מועד ההובלה, הם עניין בינו לבין החברה.</p>
+          <p>ההזמנה יורדת מהיומן שלך, והביטול אינו נספר לרעתך — אין קנס ואין סטרייק על ביטול שהוא של הלקוח. דמי הביטול שהלקוח עשוי לשלם, לפי הזמן שנותר עד מועד ההובלה, הם עניין בינו לבין החברה.</p>
         </div>
       </div>
       <div class="faq-item">
         <button tabindex="0" class="faq-q" aria-expanded="false">
-          מה עושים אם מוצאים בבית יותר פריטים ממה שהוזמן?
+          מה עושה אם מוצא בבית יותר פריטים ממה שהוזמן?
           <svg aria-hidden="true" class="faq-arrow" width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M3 6l6 6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
         </button>
         <div class="faq-a">
-          <p>לפני תחילת ההעמסה אפשר לדווח על הפריטים הנוספים באפליקציה ולבקש מהלקוח לאשר ולשלם תוספת. מחיר התוספת נגזר ממחירון הפריטים הקבוע של החברה ואינו נקבע על ידכם. אם הלקוח לא מאשר, ההובלה שהוזמנה ממשיכה כרגיל — רק הפריטים שלא אושרו הם שלא יובלו.</p>
+          <p>לפני תחילת ההעמסה אפשר לדווח על הפריטים הנוספים באפליקציה ולבקש מהלקוח לאשר ולשלם תוספת. מחיר התוספת נגזר ממחירון הפריטים הקבוע של החברה ואינו נקבע על ידך. אם הלקוח לא מאשר, ההובלה שהוזמנה ממשיכה כרגיל — רק הפריטים שלא אושרו הם שלא יובלו.</p>
         </div>
       </div>
       <div class="faq-item">
@@ -315,7 +343,7 @@
           <svg aria-hidden="true" class="faq-arrow" width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M3 6l6 6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
         </button>
         <div class="faq-a">
-          <p>בתום כל הובלה הלקוח יכול לדרג אתכם, והדירוג הממוצע מוצג ללקוחות באפליקציה כחלק מהמידע שעל בסיסו הם בוחרים מוביל. דירוג נמוך שחוזר על עצמו מועבר לבדיקת צוות החברה, הרשאית לפעול בהתאם — עד כדי השעיה או ביטול חשבון במקרים חמורים.</p>
+          <p>בתום כל הובלה הלקוח יכול לדרג אותך, והדירוג הממוצע מוצג ללקוחות באפליקציה כחלק מהמידע שעל בסיסו הם בוחרים מוביל. דירוג נמוך שחוזר על עצמו מועבר לבדיקת צוות החברה, הרשאית לפעול בהתאם — עד כדי השעיה או ביטול חשבון במקרים חמורים.</p>
         </div>
       </div>
       <div class="faq-item">
@@ -331,7 +359,7 @@
   </div>
 
   <div class="mvp-cta-final">
-    <h2>מוכנים להתחיל?</h2>
+    <h2>מוכן להתחיל?</h2>
     <div class="cta-row">
       <a tabindex="0" href="https://apps.apple.com/app/id6783814838" target="_blank" rel="noopener noreferrer" class="btn-store btn-apple large">
         <svg width="22" height="27" viewBox="0 0 20 24" fill="none" aria-hidden="true">
