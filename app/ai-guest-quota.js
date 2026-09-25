@@ -83,7 +83,7 @@ export function guestQuotaPanelHTML({ manualLabel = 'או המשך להוסיף 
     <span class="ai-quota-gate-body">${QUOTA_BODY}</span>
     ${note ? `<span class="ai-quota-gate-note">${note}</span>` : ''}
     <span class="ai-quota-gate-actions">
-      <button tabindex="0" type="button" class="btn btn-primary" data-ai-quota="login">התחבר והמשך ←</button>
+      <button tabindex="0" type="button" class="btn btn-primary" data-ai-quota="login">התחבר והמשך</button>
       <button tabindex="0" type="button" class="btn btn-text" data-ai-quota="manual">${manualLabel}</button>
     </span>
   </div>`;
