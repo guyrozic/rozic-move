@@ -285,7 +285,7 @@
   <script type="module">
     import { requireAuth } from './auth.js';
     import {
-      subscribeToOrder, cancelOrder, customerTotalOf, STATUS_LABELS,
+      subscribeToOrder, cancelOrder, submitCancellationReason, customerTotalOf, STATUS_LABELS,
       ORDER_PROGRESS_STEPS, customerConfirmCompletion, parseItemsSummary,
       CUSTOMER_NO_SHOW_RESPONSES, respondToCustomerNoShow,
       canReportNoShow, reportDriverNoShow,
@@ -294,7 +294,7 @@
     import { getUserProfile, formatVehicle } from './users.js';
     import { toggleFavoriteDriver } from './account.js';
     import { PILOT_MODE } from './pilot-mode.js';
-    import { addDoc, collection, doc, updateDoc, serverTimestamp as reportServerTimestamp } from 'https://www.gstatic.com/firebasejs/12.16.0/firebase-firestore.js';
+    import { addDoc, collection, serverTimestamp as reportServerTimestamp } from 'https://www.gstatic.com/firebasejs/12.16.0/firebase-firestore.js';
     import { db } from './firebase.js';
 
     // מראה PAYMENT_LABELS ב-OrderDetailsScreen.tsx. האתר יוצר היום רק
@@ -1635,23 +1635,21 @@
            * אטומית איתו.** `customerCancelOrder` (Hovalot) אינה מקבלת
            * סיבה בגוף הבקשה וכותבת `cancellationReason` משלה (קוד
            * מדרג-המדיניות, לא בחירת הלקוח) — ראו CANCELLATION_REASON_OPTIONS
-           * למעלה. `orders/{orderId}` הוא denylist בחוקים (ראו
-           * serverOnlyMoneyFieldsCore/serverDecidedOrderFields), ושני
-           * השדות האלה אינם ברשימה חסומה כלשהי — הכתיבה עוברת גם על
-           * הזמנה שכבר 'cancelled', כל עוד הסטטוס עצמו לא זז.
+           * למעלה.
+           *
+           * 25.9 (70.2א) — עברה מ-`updateDoc` ישיר ל-Cloud Function
+           * (`submitCancellationReason`, Admin SDK): היא מאמתת
+           * `reasonCode` מול רשימה סגורה, חותכת את ההערה ל-300 תווים
+           * בשרת (לא רק בקליינט), ומוודאת שההזמנה הזו באמת בוטלה ע"י
+           * הלקוח הזה לפני שהיא כותבת.
            *
            * אם הכתיבה הזו נכשלת אחרי שהביטול כבר הצליח: ההזמנה מבוטלת
            * כהלכה, והסיבה אובדת. לא בולעים בשקט (אזהרה ב-console), אבל
            * גם לא מציגים ללקוח שגיאה — מבחינתו הביטול, שהוא הפעולה
-           * הכספית, כבר הצליח. **ואין עדיין מי שקורא את השדות האלה** —
-           * לא מסך אדמין ולא דוח. ראו דוח הסוכן למה זו לא כתיבה סופית.
+           * הכספית, כבר הצליח.
            */
           try {
-            await updateDoc(doc(db, 'orders', order.id), {
-              customerCancellationReason: reasonCode,
-              customerCancellationReasonNote: note || null,
-              customerCancellationReasonAt: reportServerTimestamp(),
-            });
+            await submitCancellationReason(order.id, reasonCode, note);
           } catch (reasonErr) {
             console.warn('[cancel] ההזמנה בוטלה, אך סיבת הביטול לא נשמרה', reasonErr);
           }

@@ -656,6 +656,7 @@ export function getCancellationPolicy(order, cancellerRole = 'customer') {
 }
 
 const CUSTOMER_CANCEL_URL = 'https://us-central1-hovalot-6cf65.cloudfunctions.net/customerCancelOrder';
+const SUBMIT_CANCELLATION_REASON_URL = 'https://us-central1-hovalot-6cf65.cloudfunctions.net/submitCancellationReason';
 
 /**
  * ביטול הזמנה ע"י הלקוח — **דרך אותה Cloud Function שהאפליקציה קוראת לה.**
@@ -716,6 +717,41 @@ export async function cancelOrder(orderId, shownFee) {
   const data = await res.json().catch(() => null);
   if (!res.ok) throw new Error(data?.error ?? 'לא הצלחנו לבטל את ההזמנה');
   return { fee: data?.fee ?? 0, refundDue: data?.refundDue ?? 0 };
+}
+
+/**
+ * שולח את סיבת הביטול שהלקוח בחר, **אחרי** ש-`cancelOrder` לעיל כבר
+ * הצליח — דרך אותה Cloud Function שהאפליקציה קוראת לה
+ * (`src/services/cancellationReason.ts`, Hovalot). מדפוס זהה בדיוק
+ * ל-`cancelOrder`: קריאה מאומתת ל-Admin SDK, לא כתיבה ישירה מהקליינט.
+ *
+ * ⚠️ 25.9 (70.2א) — עד עכשיו `order-status.html` כתב את שלושת השדות
+ * (`customerCancellationReason`/`...Note`/`...At`) ישירות ל-Firestore
+ * דרך `updateDoc`, בלי גבול אורך שרתי ובלי אימות שהקוד הוא אחד מהרשימה
+ * הסגורה. `submitCancellationReason` (Cloud Function) סוגרת את זה:
+ * מאמתת `reasonCode`, חותכת את ההערה ל-300 תווים בשרת, ומסתמכת על
+ * first-write-wins (סיבה שכבר נכתבה לא נדרסת).
+ *
+ * best-effort במכוון, זהה להתנהגות הקיימת: אם הקריאה נכשלת, הביטול
+ * עצמו (שכבר קרה) לא מתבטל — רק הסיבה אובדת. הקורא מתעד אזהרה ולא
+ * מציג שגיאה ללקוח על משהו שמבחינתו כבר הצליח.
+ *
+ * @param {string} orderId
+ * @param {string} reasonCode אחד מ-`CANCELLATION_REASON_OPTIONS` ב-order-status.html.
+ * @param {string} note הערה חופשית, עד `CANCELLATION_NOTE_MAX` תווים.
+ * @returns {Promise<{reasonCode:string, note:string|null, alreadySet:boolean}>}
+ */
+export async function submitCancellationReason(orderId, reasonCode, note) {
+  if (!auth.currentUser) throw new Error('NOT_LOGGED_IN');
+  const token = await auth.currentUser.getIdToken();
+  const res = await fetch(SUBMIT_CANCELLATION_REASON_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+    body: JSON.stringify({ orderId, reasonCode, note }),
+  });
+  const data = await res.json().catch(() => null);
+  if (!res.ok) throw new Error(data?.error ?? 'לא הצלחנו לשמור את סיבת הביטול');
+  return { reasonCode: data?.reasonCode ?? reasonCode, note: data?.note ?? null, alreadySet: data?.alreadySet ?? false };
 }
 
 /** Autosaves in-progress wizard state — mirrors saveDraftOrder() in orders.ts. */
