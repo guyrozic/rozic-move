@@ -99,6 +99,11 @@
     .no-show-notice p:last-child { margin-bottom: 0; }
     .no-show-choices { display: flex; flex-direction: column; gap: 8px; }
 
+    /* ── קישורי היומן (25.9) ── שני `.pill-link` צמודים; `flex-wrap`
+       כדי שב-390px, אם "Google Calendar" ו"הורדת קובץ ליומן (ICS)"
+       לא נכנסים בשורה אחת, השני יעבור לשורה חדשה במקום לגלוש. */
+    #calendar-links { display: flex; flex-wrap: wrap; gap: 8px; }
+
     /* ── גילוי דמי הביטול לפני הביטול ── מראה `cancelWarning`/`cancelWarningText`
        ב-OrderDetailsScreen.tsx (ענבר, לא אדום: זו אזהרה על מחיר, לא כשל).
        הענף החינמי הוא ירוק, כי שם התשובה היא בשורה טובה ולא אזהרה. */
@@ -186,7 +191,7 @@
   </style>
 </head>
 <body class="app-body flow-b">
-<div data-build-stamp class="build-stamp" aria-hidden="true">עודכן 25.09 · 09:02</div>
+<div data-build-stamp class="build-stamp" aria-hidden="true">עודכן 25.09 · 11:18</div>
 <script src="/version-check.js?v=b4f8b2f7" defer></script>
   <!-- ⚠️ 15.9 — "דלג לתוכן המרכזי" (WCAG 2.4.1, רמה A). זהו האלמנט הממוקד
        הראשון בדף: מוסתר מהעין, מופיע בפינה ברגע שמגיעים אליו ב-Tab, ומעביר
@@ -1191,10 +1196,10 @@
         const location = encodeURIComponent(order.fromAddress || '');
         const gcalUrl = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${title}&dates=${fmt(times.start)}/${fmt(times.end)}&details=${details}&location=${location}`;
         box.innerHTML = `
-          <a class="btn-text" href="${gcalUrl}" target="_blank" rel="noopener" style="display:block;">📅 Google Calendar</a>
-          <a class="btn-text" id="ics-download-link" style="display:block;">📥 הורדת קובץ ליומן (ICS)</a>
+          <a class="pill-link" href="${gcalUrl}" target="_blank" rel="noopener">📅 Google Calendar</a>
+          <a class="pill-link" id="ics-download-link">📥 הורדת קובץ ליומן (ICS)</a>
         `;
-        box.style.display = 'block';
+        box.style.display = 'flex';
         document.getElementById('ics-download-link').addEventListener('click', (e) => {
           e.preventDefault();
           const ics = [
