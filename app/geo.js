@@ -65,7 +65,7 @@ export async function geocode(address) {
   const query = String(address ?? '').trim();
   if (!query) return null;
   const ctrl = new AbortController();
-  const timer = setTimeout(() => ctrl.abort(), 6000);
+  const timer = setTimeout(() => ctrl.abort(), GEOCODE_TIMEOUT_MS);
   try {
     const res = await fetch(GEOCODE_PROXY_URL, {
       method: 'POST',
@@ -81,6 +81,40 @@ export async function geocode(address) {
     // `functions/src/geocodeAddress.ts`. השדות הקיימים לא השתנו, וקורא
     // שאינו צריך אותו פשוט מתעלם.
     return { lat: data.lat, lon: data.lng, components: data.addressComponents ?? null };
+  } catch {
+    return null;
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+/**
+ * גיאוקודינג הפוך (נ"צ → כתובת) לאורח, דרך אותו פרוקסי `geocodeAddress` —
+ * לא endpoint נפרד ולא ישירות מול Google. 25.9 (הכרעת גיא 70.1א): עד עכשיו
+ * reverse-geocoding עבד רק למשתמש מחובר דרך `mapsProxy` (ראו `reverseGeocode`
+ * ב-`address-autocomplete.js`), כי `geocodeAddress` — הפתוחה לאורח — ידעה
+ * רק את הכיוון הקדמי. הורחבה לקבל גם `lat`/`lng`, ומחזירה **אותה צורה
+ * בדיוק** בשני הכיוונים (`lat`, `lng`, `addressComponents`, ובנוסף
+ * `formattedAddress` שרלוונטי כשאין לקורא טקסט כתובת משלו — זה המקרה כאן).
+ *
+ * מחזירה `null` בכל כשל (רשת, timeout, "לא נמצאה כתובת", מכסה) — בדיוק
+ * כמו `geocode` לעיל — כדי שהקורא (`reverseGeocode`) יטפל בכשל בחן בלי
+ * להבחין אם המקור היה `mapsProxy` או כאן.
+ */
+export async function reverseGeocodeGuest(lat, lng) {
+  const ctrl = new AbortController();
+  const timer = setTimeout(() => ctrl.abort(), GEOCODE_TIMEOUT_MS);
+  try {
+    const res = await fetch(GEOCODE_PROXY_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ lat, lng }),
+      signal: ctrl.signal,
+    });
+    if (!res.ok) return null;
+    const data = await res.json();
+    if (typeof data?.lat !== 'number' || typeof data?.lng !== 'number' || !data.formattedAddress) return null;
+    return { lat: data.lat, lng: data.lng, formattedAddress: data.formattedAddress, components: data.addressComponents ?? null };
   } catch {
     return null;
   } finally {

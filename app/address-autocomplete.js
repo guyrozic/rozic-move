@@ -49,7 +49,7 @@
  */
 import { doc, getDoc, setDoc } from 'https://www.gstatic.com/firebasejs/12.16.0/firebase-firestore.js';
 import { db } from './firebase.js';
-import { geocode } from './geo.js';
+import { geocode, reverseGeocodeGuest } from './geo.js';
 
 const MAPS_PROXY_URL = 'https://us-central1-hovalot-6cf65.cloudfunctions.net/mapsProxy';
 const PLACES_AUTOCOMPLETE_GUEST_URL = 'https://us-central1-hovalot-6cf65.cloudfunctions.net/placesAutocompleteGuest';
@@ -136,24 +136,34 @@ function parseCityStreet(comps) {
 }
 
 /**
- * גיאוקודינג הפוך — נ"צ → כתובת, דרך `mapsProxy` (endpoint `geocode` עם
- * `latlng`, בדיוק כמו `reverseGeocode` ב-`Hovalot/src/services/mapsApi.ts`).
+ * גיאוקודינג הפוך — נ"צ → כתובת. מנתבת בין שני הפרוקסי לפי `authUser`,
+ * בדיוק כמו `placeAutocomplete`/`placeDetails` לעיל: מחובר → `mapsProxy`
+ * (endpoint `geocode` עם `latlng`, כמו `reverseGeocode` ב-
+ * `Hovalot/src/services/mapsApi.ts`); אורח → `reverseGeocodeGuest`
+ * (`./geo.js`), שקוראת ל-`geocodeAddress` — הפתוחה לאורח, שהורחבה ב-25.9
+ * (הכרעת גיא 70.1א) לקבל גם `lat`/`lng` ולא רק `address`.
  *
- * ⚠️ **דורש `authUser` ואינה נופלת לאורח.** `mapsProxy` דורש טוקן Firebase
- * Auth בכל בקשה (ראו `callMapsProxy` למעלה) — בניגוד להשלמה האוטומטית,
- * שיש לה מסלול אורח נפרד (`placesAutocompleteGuest`). זה תקין בפועל:
- * שני הדפים שקוראים לפונקציה הזו (`apartment.html`/`small-move.html`)
- * יושבים כולם מאחורי `requireAuth()` (ראו CLAUDE.md, "app/ הוא זרימת
- * ההזמנה המחוברת") — אין כאן מסך שאורח יכול להגיע אליו בכלל, ולכן
- * `authUser` תמיד קיים. `placesAutocompleteGuest` אינה תומכת בגיאוקודינג
- * הפוך — הוספת endpoint כזה לאורח הייתה דורשת פונקציית ענן נוספת, ולא
- * נדרשת כאן.
+ * ⚠️ **עד 25.9 המסלול הזה דרש `authUser` ולא נפל לאורח בכלל** — `mapsProxy`
+ * דורש טוקן, ול-`placesAutocompleteGuest` (הפרוקסי הפתוח לאורח) אין
+ * endpoint גיאוקודינג הפוך. `apartment.html`/`small-move.html` תומכים
+ * במפורש בזרימת אורח (`getAuthOptional`, 14.9), ולכן זו הייתה מגבלת שרת
+ * אמיתית שחסמה GPS/מפה לאורח — לא רק לקוח. הוסרה כשהשרת נפתח.
  *
- * מעדיפה את התוצאה הכי ספציפית שגוגל מחזירה — מראה
- * `pickBestReverseGeocodeResult` ב-`LocationConfirmMap.tsx`: כתובת מלאה,
- * ואם אין אז רחוב, ואם אין אז לפחות שם היישוב.
+ * שני המסלולים מחזירים אותה צורה (`{ city, street, fullAddress }`), כדי
+ * שכל קורא — `useMyLocation`, `openAddressMapPicker` — יטפל בתוצאה בלי
+ * להבחין מי ענה. מעדיפה את התוצאה הכי ספציפית שגוגל מחזירה במסלול המחובר —
+ * מראה `pickBestReverseGeocodeResult` ב-`LocationConfirmMap.tsx`: כתובת
+ * מלאה, ואם אין אז רחוב, ואם אין אז לפחות שם היישוב. במסלול האורח הבחירה
+ * הזו כבר נעשית בשרת (`geocodeAddress`'s `tooCoarse`), ולכן `formattedAddress`
+ * שמתקבל משם מועבר כמו שהוא.
  */
 export async function reverseGeocode(authUser, lat, lng) {
+  if (!authUser) {
+    const guest = await reverseGeocodeGuest(lat, lng);
+    if (!guest) return null;
+    const { city, street } = parseCityStreet(guest.components ?? []);
+    return { city, street, fullAddress: guest.formattedAddress };
+  }
   const data = await callMapsProxy(authUser, 'geocode', { latlng: `${lat},${lng}`, language: 'he' });
   const results = data?.results ?? [];
   const best = results.find((r) => r.types?.includes('street_address'))
@@ -497,22 +507,6 @@ export function mountAddressField({ prefix, authState }) {
     noAddress: 'מצאתי את המיקום אבל לא כתובת שמתאימה לו. אפשר להקליד ידנית.',
     generic: 'משהו השתבש באיתור המיקום. אפשר לנסות שוב או להקליד ידנית.',
     unsupported: 'איתור מיקום אינו נתמך בדפדפן הזה. אפשר להקליד את הכתובת.',
-    /**
-     * ⚠️ 25.9 — **גיאוקודינג הפוך אין לאורח, ולא בטעות.**
-     * `mountAddressField` נטען גם ב-`apartment.html`/`small-move.html`
-     * שתומכים במפורש בזרימת אורח (`getAuthOptional`, 14.9 — "אורח רשאי
-     * לבנות הזמנה ולראות מחיר בלי חשבון"). `reverseGeocode` (למעלה)
-     * דורשת `authUser` כי `mapsProxy` דורש טוקן — ול-`placesAutocompleteGuest`
-     * (שכן פתוח לאורח) **אין** endpoint גיאוקודינג הפוך במפורש
-     * ("לא geocode ולא פרוקסי פתוח", ראו ההערה שם). גם `geocodeAddress`
-     * הפתוחה-לאורח תומכת רק בכיוון `address→lat/lng`, לא בהפוך.
-     *
-     * כלומר זו **מגבלת שרת אמיתית, לא רק לקוח** — אין קריאה אחרת לנסות.
-     * במקום לתת לאורח ללחוץ, לחכות, ולקבל כשל מבלבל בסוף, חוסמים כאן
-     * מראש עם הסבר כן. **דורש פריסה** (הרחבת `geocodeAddress`/פונקציה
-     * חדשה שתקבל גם `latlng`) — לא ממומש כאן, ראו הדוח.
-     */
-    guest: 'איתור מיקום זמין רק למשתמשים מחוברים כרגע. אפשר להקליד את הכתובת, או להתחבר ולנסות שוב.',
   };
   function setLocStatus(msg) {
     if (!locStatus) return;
@@ -521,7 +515,6 @@ export function mountAddressField({ prefix, authState }) {
   }
   async function useMyLocation() {
     if (!locBtn || locBtn.disabled) return;
-    if (!authUser) { setLocStatus(LOCATE_MSG.guest); return; }
     if (!navigator.geolocation) { setLocStatus(LOCATE_MSG.unsupported); return; }
     locBtn.disabled = true;
     locBtn.setAttribute('aria-busy', 'true');
@@ -557,17 +550,11 @@ export function mountAddressField({ prefix, authState }) {
 
   /**
    * "בחר ממפה" — טוען את מודול המפה (ומרכיב Leaflet שבתוכו) רק כשנלחץ,
-   * לא בטעינת הדף. ראו `address-map.js` למימוש המלא.
-   *
-   * ⚠️ 25.9 — אורח נחסם **לפני** טעינת Leaflet, מאותה סיבה בדיוק כמו
-   * ב-`useMyLocation` (ראו `LOCATE_MSG.guest`): המפה בתוך המודאל מתבססת
-   * כל תזוזה על אותה `reverseGeocode`, ובלי `authUser` כל גרירה הייתה
-   * מסתיימת ב"לא הצלחנו לזהות כתובת" — כישלון עקבי, לא מזדמן, שאין טעם
-   * להראות אחרי שהמשתמש כבר חיכה לטעינת המפה.
+   * לא בטעינת הדף. ראו `address-map.js` למימוש המלא. `authUser` מועבר גם
+   * כשהוא `null` (אורח) — `reverseGeocode` מנתבת פנימית לפי זה, ראו שם.
    */
   if (mapBtn) {
     mapBtn.addEventListener('click', async () => {
-      if (!authUser) { setLocStatus(LOCATE_MSG.guest); return; }
       const { openAddressMapPicker } = await import('./address-map.js');
       const lat = input.dataset.lat ? Number(input.dataset.lat) : undefined;
       const lng = input.dataset.lng ? Number(input.dataset.lng) : undefined;
