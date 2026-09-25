@@ -86,6 +86,13 @@
       transition: background var(--transition);
     }
     .back-link:hover { background: #c8edda; }
+    /* ⚠️ 25.9 — ה-chevron של כפתור החזרה. **זהה ל-`.step-back`**
+       (`app/flow.css`) ולכיוון של 62 כפתורי החזרה באפליקציה
+       (`arrow-forward`): ב-RTL "אחורה" היא ימינה. עד 25.9 היה כאן
+       התו `←` — כלומר החץ הצביע לכיוון ההפוך מהמילה שלצדו. SVG
+       ולא תו טקסט, כי `gap: 8px` שלמעלה חל רק על ילד נפרד. */
+    .back-link svg { width: 14px; height: 14px; flex: none; }
+
     .card ul { padding-inline-start: 22px; margin-top: 8px; }
     .card li { margin-bottom: 6px; }
     .card p + p { margin-top: 10px; }
@@ -113,7 +120,7 @@
   </style>
 </head>
 <body>
-<div data-build-stamp class="build-stamp" aria-hidden="true">עודכן 25.09 · 18:08</div>
+<div data-build-stamp class="build-stamp" aria-hidden="true">עודכן 25.09 · 21:44</div>
 <script src="/version-check.js?v=b4f8b2f7" defer></script>
   <!-- ⚠️ 15.9 — "דלג לתוכן המרכזי" (WCAG 2.4.1, רמה A). זהו האלמנט הממוקד
        הראשון בדף: מוסתר מהעין, מופיע בפינה ברגע שמגיעים אליו ב-Tab, ומעביר
@@ -147,7 +154,7 @@
   </div>
 
   <div class="sub-main">
-    <a tabindex="0" class="back-link" href="index.html">חזרה לעמוד הבית</a>
+    <a tabindex="0" class="back-link" href="index.html"><svg viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M6 3.5 10.5 8 6 12.5" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/></svg>חזרה לעמוד הבית</a>
 
     <div class="card">
       <h2>1. מה נמחק לצמיתות</h2>

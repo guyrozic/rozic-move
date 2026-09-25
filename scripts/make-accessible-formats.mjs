@@ -531,19 +531,31 @@ const sizeOf = (p) => (existsSync(p) ? statSync(p).size : null);
    ובכל זאת הוא פסל את `terms.mp3` ואת `privacy.mp3` ברגע שנוסף.
    שלוש פעמים זה כבר דפוס: **כל דבר ש-`stamp-assets` מזריק לכל הדפים
    חייב להיות מנוטרל כאן באותה הרצה.** */
-const STAMP_RE = /<div data-build-stamp[\s\S]*?<\/div>\n?(?:\s*<script src="\/version-check\.js(?:\?v=[0-9a-f]*)?" defer><\/script>\n?)*/;
-/* ⚠️ 16.9 — מופע שני של אותה משפחת באג, ונמצא אחרי שהראשון תוקן: גם
-   `?v=<hash>` שמזריק `stamp-assets` על style.css ועל קבצי ה-JS משתנה בכל
-   עריכת CSS. שינוי צבע אחד בגיליון פסל את `privacy.mp3` — 13 דקות קול —
-   למרות שאף מילה בנוסח המשפטי לא זזה. גרסת הנכס היא מטא-דאטה של בנייה,
-   בדיוק כמו החותמת, ולכן היא מנוטרלת כאן ולא נמחקת: המחרוזת `?v=` נשמרת
-   בלי הערך, כדי שהוספה או הסרה של הפניה לנכס **כן** תישבר את ההתאמה. */
-const ASSET_VER_RE = /(\?v=)[0-9a-f]{8}/g;
-const canonicalSource = (buf) =>
-  Buffer.from(
-    buf.toString('utf8').replace(STAMP_RE, '').replace(ASSET_VER_RE, '$1'),
-    'utf8',
-  );
+/* ⚠️ 25.9 — **המופע הרביעי סגר את המשפחה מהשורש, בהכרעת גיא (תזכיר 107.2).**
+   הפעם זה לא היה משהו ש-`stamp-assets` מזריק, אלא עריכה אנושית: הסרת חץ
+   מכפתור "חזרה" ב-`terms.html` ובי-`privacy.html`. היא ייתמה את שני
+   ה-mp3 והצריכה הפקה של **48 דקות הקראה** (34:25 + 14:07) — שהפיקה
+   קבצים **זהים בייט-בייט**, כלומר git לא ראה בהם שינוי כלל.
+
+   ה-sha חושב על **הקובץ הגולמי**, בזמן שההקראה קוראת רק
+   `dropChrome(extractMain(src))`. לכן כל דבר מחוץ ל-<main> — חותמת,
+   `?v=`, version-check, ועכשיו גם ניווט ועיצוב — פסל אותה, וכל מופע
+   טופל בניטרול ידני נפרד אחרי שכבר שרף הקראה.
+
+   **עכשיו ה-sha מחושב על אותו תוכן מחולץ שההקראה עצמה מקבלת.** זה
+   מדויק **יותר**, לא פחות: שינוי בנוסח המשפטי ימשיך לפסול (הוא בתוך
+   ה-main), ושינוי שאינו נשמע יפסיק. `.back-link` ו-`svg` כבר יושבים
+   ב-`DROP_CLASSES`/`DROP_ELEMENTS` למעלה, כלומר הם מוסרים מההקראה
+   בפועל — ולכן אין שום מובן שבו החלפת החץ שלהם "משנה את הנוסח".
+
+   שלושת הניטרולים הידניים נמחקו: הם היו פתרון לתסמין, ומיותרים ברגע
+   שהחישוב עצמו מודד את הדבר הנכון. ההיסטוריה שלהם, שווה זכירה כדי לא
+   לחזור לשיטה ההיא: החותמת (16.9), `?v=` שפסל mp3 על שינוי צבע אחד
+   ב-CSS (16.9), ו-`version-check.js` (20.9). */
+/** מה שההקראה באמת מקבלת — ולכן מה שה-sha חייב למדוד. `file` נדרש כדי
+ *  ש-`extractMain` יוכל לנקוב בשם הדף אם אין בו `<main>`. */
+const canonicalSource = (buf, file) =>
+  Buffer.from(dropChrome(extractMain(buf.toString('utf8'), file)), 'utf8');
 
 function readManifest() {
   if (!existsSync(MANIFEST)) return null;
@@ -571,7 +583,7 @@ function runCheck(docs) {
     const rec = (manifest.documents || {})[doc.slug];
     if (!rec) { problems.push(`${doc.slug}: אינו במניפסט — ההתאמה לא הופקה מעולם`); continue; }
 
-    const current = sha256(canonicalSource(readFileSync(join(ROOT, doc.source))));
+    const current = sha256(canonicalSource(readFileSync(join(ROOT, doc.source)), doc.source));
 
     for (const [kind, key, file] of [['הטקסט', 'text', `${doc.slug}.txt`],
                                      ['הקול', 'audio', `${doc.slug}.mp3`]]) {
@@ -681,7 +693,7 @@ for (const doc of docs) {
      בתקנון: הטקסט מתרענן, קובץ הקול נשאר מהנוסח הישן, וה-sha המשותף
      מתעדכן לחדש — כלומר --check היה מאשר בדיוק את המצב שהוא נבנה לתפוס.
      כאן רשומת האודיו נוגעת רק כשבאמת הוקרא, ואחרת נשמרת כמו שהייתה. */
-  const stamp = { sourceSha256: sha256(canonicalSource(raw)), termsVersion: version,
+  const stamp = { sourceSha256: sha256(canonicalSource(raw, doc.source)), termsVersion: version,
                   generatedAt: now.toISOString() };
   const prev = manifest.documents[doc.slug] || {};
 
