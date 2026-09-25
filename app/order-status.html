@@ -1410,11 +1410,11 @@
          * לא יכול ליצור קשר עם מי ששילם.
          */
         if (!authState.profile.phoneVerified) {
-          payErrBox.innerHTML = '<div class="alert alert-error">נדרש אימות טלפון לפני התשלום — המוביל צריך דרך ליצור איתך קשר. <a tabindex="0" href="account.html">לאימות</a></div>';
+          payErrBox.innerHTML = '<div class="alert alert-error">נדרש אימות טלפון לפני התשלום — המוביל צריך דרך ליצור איתך קשר. <a tabindex="0" class="pill-link" href="account.html">לאימות</a></div>';
           return;
         }
         if (!isValidFullName(authState.profile.name)) {
-          payErrBox.innerHTML = `<div class="alert alert-error">${FULL_NAME_ERROR} <a tabindex="0" href="edit-profile.html">לעריכת הפרופיל</a></div>`;
+          payErrBox.innerHTML = `<div class="alert alert-error">${FULL_NAME_ERROR} <a tabindex="0" class="pill-link" href="edit-profile.html">לעריכת הפרופיל</a></div>`;
           return;
         }
         btn.disabled = true; btn.textContent = 'מעביר לתשלום...';

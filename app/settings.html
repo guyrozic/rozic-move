@@ -34,7 +34,7 @@
   <link rel="stylesheet" href="flow.css?v=24a4ec4f">
 </head>
 <body class="app-body flow-b">
-<div data-build-stamp class="build-stamp" aria-hidden="true">עודכן 25.09 · 09:02</div>
+<div data-build-stamp class="build-stamp" aria-hidden="true">עודכן 25.09 · 10:41</div>
 <script src="/version-check.js?v=b4f8b2f7" defer></script>
   <a class="skip-link" href="#main-content">דלג לתוכן המרכזי</a>
   <script type="module" src="pilot-banner.js?v=14a0e537"></script>
@@ -147,7 +147,7 @@
         </div>
         <p class="form-hint">
           מעדיף שנטפל בזה במקומך? אפשר גם
-          <a tabindex="0" href="/delete-account.html">לבקש מחיקה במייל</a>.
+          <a tabindex="0" class="pill-link" href="/delete-account.html">לבקש מחיקה במייל</a>.
         </p>
       </div>
 
@@ -347,7 +347,7 @@
                 ? 'חלון האימות נסגר לפני שהושלם. החשבון לא נמחק.'
                 : code === 'auth/too-many-requests'
                   ? 'יותר מדי ניסיונות. נסה שוב בעוד כמה דקות.'
-                  : 'לא הצלחנו למחוק את החשבון. אפשר לנסות שוב, או <a href="/delete-account.html">לבקש מחיקה במייל</a>.'
+                  : 'לא הצלחנו למחוק את החשבון. אפשר לנסות שוב, או <a class="pill-link" href="/delete-account.html">לבקש מחיקה במייל</a>.'
           );
           restore('מחק את החשבון לצמיתות');
         }

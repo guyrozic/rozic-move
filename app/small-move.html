@@ -147,7 +147,7 @@
   </style>
 </head>
 <body class="app-body flow-b">
-<div data-build-stamp class="build-stamp" aria-hidden="true">עודכן 25.09 · 09:02</div>
+<div data-build-stamp class="build-stamp" aria-hidden="true">עודכן 25.09 · 10:41</div>
 <script src="/version-check.js?v=b4f8b2f7" defer></script>
   <!-- ⚠️ 15.9 — "דלג לתוכן המרכזי" (WCAG 2.4.1, רמה A). זהו האלמנט הממוקד
        הראשון בדף: מוסתר מהעין, מופיע בפינה ברגע שמגיעים אליו ב-Tab, ומעביר
@@ -2510,7 +2510,7 @@
         // ⚠️ 17.9 — שומרים את הטיוטה לפני שהלקוח עוזב לאימות טלפון, אחרת הוא
         // חוזר מ-account.html לאשף ריק. מקביל ל-saveOrderDraft שב-goRegister.
         saveOrderDraft('smallMove', state);
-        errBox.innerHTML = '<div class="alert alert-error">נדרש אימות טלפון לפני אישור הזמנה — המוביל צריך דרך ליצור איתך קשר. <a tabindex="0" href="account.html">לאימות</a></div>';
+        errBox.innerHTML = '<div class="alert alert-error">נדרש אימות טלפון לפני אישור הזמנה — המוביל צריך דרך ליצור איתך קשר. <a tabindex="0" class="pill-link" href="account.html">לאימות</a></div>';
         return;
       }
       /**
@@ -2523,7 +2523,7 @@
       if (!isValidFullName(authState.profile.name)) {
         // ⚠️ 17.9 — כנ"ל: שמירה לפני מעבר ל-edit-profile.html.
         saveOrderDraft('smallMove', state);
-        errBox.innerHTML = `<div class="alert alert-error">${FULL_NAME_ERROR} <a tabindex="0" href="edit-profile.html">לעריכת הפרופיל</a></div>`;
+        errBox.innerHTML = `<div class="alert alert-error">${FULL_NAME_ERROR} <a tabindex="0" class="pill-link" href="edit-profile.html">לעריכת הפרופיל</a></div>`;
         return;
       }
       /**
