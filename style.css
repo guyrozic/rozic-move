@@ -2487,23 +2487,33 @@ body.menu-open .pilot-banner {
 /* ── סרגל הניווט מעל הירו כהה ────────────────────────────────────────
    ⚠️ `.nav` משותף לכל דפי האתר וצבעיו כהים על רקע בהיר. בעמוד הבית הוא
    צף מעל הגרדיאנט הכהה כל עוד לא גללו (`.scrolled` נכנס ב-60px וממילא
-   מחזיר רקע בהיר), ולכן הוא מקבל כאן היפוך — **רק** בדף שנושא את
-   `hp-home` על ה-`<body>`, ורק כשאינו `scrolled`. */
-body.hp-home .nav:not(.scrolled) { border-bottom: 1px solid rgba(255, 255, 255, 0.12); }
-body.hp-home .nav:not(.scrolled) .nav-logo { color: var(--white); }
-body.hp-home .nav:not(.scrolled) .nav-links a { color: var(--white); }
-body.hp-home .nav:not(.scrolled) .nav-links a:hover {
+   מחזיר רקע בהיר), ולכן הוא מקבל כאן היפוך — **רק** בדפים שנושאים
+   `hp-home` או `mvp-page` על ה-`<body>`, ורק כשאינו `scrolled`.
+   ⚠️ 25.9 — `mvp-page` (movers.html) הצטרף אחרי שההירו שם הפך לכהה
+   כמו של דף הבית: אותו מנגנון בדיוק, לא מנגנון נפרד. הדף הזה בלי
+   `.nav-toggle`/`.nav-auth` בניווט, ולכן שני הכללים האלה לא הורחבו —
+   אין מה שיתפוס אותם. */
+body.hp-home .nav:not(.scrolled),
+body.mvp-page .nav:not(.scrolled) { border-bottom: 1px solid rgba(255, 255, 255, 0.12); }
+body.hp-home .nav:not(.scrolled) .nav-logo,
+body.mvp-page .nav:not(.scrolled) .nav-logo { color: var(--white); }
+body.hp-home .nav:not(.scrolled) .nav-links a,
+body.mvp-page .nav:not(.scrolled) .nav-links a { color: var(--white); }
+body.hp-home .nav:not(.scrolled) .nav-links a:hover,
+body.mvp-page .nav:not(.scrolled) .nav-links a:hover {
   background: rgba(255, 255, 255, 0.14);
   color: var(--white);
 }
 body.hp-home .nav:not(.scrolled) .nav-toggle span { background: var(--white); }
 /* הכפתור **מתמלא**, ולכן לא במסגרת — אבל הירוק הכהה נעלם על רקע כהה.
    ⚠️ נמדד: --green-dark על --green-on-dark = 6.32:1. */
-body.hp-home .nav:not(.scrolled) .nav-cta {
+body.hp-home .nav:not(.scrolled) .nav-cta,
+body.mvp-page .nav:not(.scrolled) .nav-cta {
   background: var(--green-on-dark);
   color: var(--green-dark);
 }
-body.hp-home .nav:not(.scrolled) .nav-cta:hover {
+body.hp-home .nav:not(.scrolled) .nav-cta:hover,
+body.mvp-page .nav:not(.scrolled) .nav-cta:hover {
   background: var(--green-wash);
   box-shadow: none;
 }
@@ -2528,7 +2538,8 @@ body.hp-home .nav:not(.scrolled) .nav-auth:hover {
    `--green` נעלמת על הגרדיאנט (1.5:1 בערך). על ההירו הכהה היא עוברת
    ל---green-on-dark, בדיוק כמו בפוטר ובמקטע המובילים. ברגע שהסרגל
    מקבל רקע בהיר (`.scrolled`) הכלל מפסיק לחול והטבעת חוזרת לירוק. */
-body.hp-home .nav:not(.scrolled) :is(a, button, summary, [tabindex]):focus-visible {
+body.hp-home .nav:not(.scrolled) :is(a, button, summary, [tabindex]):focus-visible,
+body.mvp-page .nav:not(.scrolled) :is(a, button, summary, [tabindex]):focus-visible {
   outline-color: var(--green-on-dark);
 }
 

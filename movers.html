@@ -45,42 +45,81 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css?v=1e54b667">
+<link rel="stylesheet" href="style.css?v=c7d60ac8">
 <style>
-  /* ── שורת חזרה קלה, מעל ההירו הכהה (pill-link לא עובד על רקע כהה — 18.9) ── */
-  .mv-crumb { padding: 96px 24px 0; text-align: center; background: var(--green-dark); }
-  .mv-crumb .pill-link { background: var(--white); }
-
-  /* ── הירו כהה — אותו משטח בדיוק כמו מקטע "למובילים עצמאיים" בדף הבית ── */
+  /* ── ההירו הכהה — אותו מתכון בדיוק כמו מקטע "למובילים עצמאיים" בדף
+     הבית (index.html, `.mv`/`.mv::after`): שני radial-gradient ואז רשת
+     נקודות 15px ב---green-wash באלפא 0.055. הערכים הועתקו כמו שהם —
+     גיא משווה את שני הדפים זה מול זה.
+     ⚠️ 25.9 — הפס העליון הלבן שהיה כאן (`nav scrolled` קבוע ב-HTML,
+     רקע `rgba(247,250,247,.97)`) הוסר. הניווט מתחיל שקוף מעל המשטח
+     הזה ומקבל רקע בהיר רק בגלילה — אותו מנגנון בדיוק כמו בדף הבית,
+     דרך `body.mvp-page` ב-style.css (סעיף "סרגל הניווט מעל הירו כהה").
+     שורת החזרה ("← חזרה לעמוד הבית") נטמעה בתוך המשטח הזה במקום
+     לשבת על ריצוף ירוק-שטוח נפרד, כדי שלא יהיה קו תפר בין שני גווני
+     ירוק. */
   .mvp-hero {
-    background: var(--green-dark);
-    padding: 28px 24px 56px;
+    position: relative;
+    overflow: hidden;
+    background:
+      radial-gradient(760px 620px at 88% 40%, rgba(28,133,99,0.54) 0%, transparent 68%),
+      radial-gradient(900px 640px at 4% 6%, rgba(10,68,51,0.45) 0%, transparent 70%),
+      #10664A;
+    padding: 108px 24px 64px;
     text-align: center;
   }
+  .mvp-hero::after {
+    content: '';
+    position: absolute; inset: 0;
+    pointer-events: none; z-index: 1;
+    background-image: radial-gradient(circle at 1px 1px, var(--green-wash) 1px, transparent 1px);
+    background-size: 15px 15px;
+    opacity: 0.055;
+  }
+  /* התוכן מעל רשת הנקודות (z-index 1), בדיוק כמו .mv-inner בדף הבית. */
+  .mvp-hero-inner { position: relative; z-index: 2; }
+
+  .mvp-crumb { margin-bottom: 40px; }
+  .mvp-crumb .pill-link { background: var(--white); }
+
+  .mvp-hero .section-label.light { margin-bottom: 16px; }
+
   .mvp-hero h1 {
     color: var(--white);
     font-size: clamp(1.9rem, 4vw, 2.7rem);
     font-weight: 900;
     letter-spacing: -0.6px;
     max-width: 720px;
-    margin: 0 auto 14px;
+    margin: 0 auto 16px;
   }
+  /* ⚠️ לבן ולא --green-wash. על אותו משטח בדיוק (שני הגרדיאנטים + רשת
+     הנקודות) נמדד ב-index.html ש---green-wash נופל ל-4.30:1 — מתחת
+     ל-AA — גם עם הנקודות; אין אטימות שמצילה אותו (ראו ההערה המקורית
+     סביב `.mv-desc`). לבן הוא מה שקונה חזרה את המרווח. */
   .mvp-hero .lead {
-    color: var(--green-wash);
+    color: var(--white);
     font-size: clamp(1rem, 1.4vw, 1.15rem);
     max-width: 620px;
-    margin: 0 auto 26px;
+    margin: 0 auto 34px;
     line-height: 1.65;
   }
+  /* ⚠️ 25.9, נמדד על הפיקסלים בפועל (לא axe — הוא לא יכול לראות מבעד
+     ל-::after של רשת הנקודות, וסימן את כל האזור כ-"incomplete"): מילוי
+     לבן שקוף (0.12) *מבהיר* את המשטח מתחתיו, ובנקודה הבהירה ביותר של
+     התג נמדד 4.27:1 בנייד — מתחת ל-AA — ו-4.60:1 בדסקטופ, גבול בקושי.
+     הפתרון הוא בדיוק ההיגיון של `.mv-board` בדף הבית: תג **אטום**
+     ולא שקוף, כדי שהניגודיות תיקבע מול צבע קבוע ולא מול גרדיאנט משתנה.
+     --green-dark על לבן נמדד כבר במקומות אחרים באתר כ-11.13:1. */
   .mvp-badge {
     display: inline-block;
-    background: rgba(255,255,255,0.12);
+    background: var(--green-dark);
+    border: 1px solid rgba(255,255,255,0.16);
     color: var(--white);
     font-weight: 700;
-    font-size: 0.9rem;
-    padding: 8px 18px;
+    font-size: 0.85rem;
+    padding: 7px 16px;
     border-radius: 999px;
-    margin-bottom: 22px;
+    margin-bottom: 24px;
   }
 
   /* ── שורת כפתורי חנויות, משותפת לשלוש הגרסאות ── */
@@ -134,16 +173,16 @@
   }
 </style>
 </head>
-<body>
-<div data-build-stamp class="build-stamp" aria-hidden="true">עודכן 25.09 · 13:35</div>
+<body class="mvp-page">
+<div data-build-stamp class="build-stamp" aria-hidden="true">עודכן 25.09 · 14:21</div>
 <script src="/version-check.js?v=b4f8b2f7" defer></script>
 <a class="skip-link" href="#main-content">דלג לתוכן המרכזי</a>
 
-<nav class="nav scrolled" id="nav">
+<nav class="nav" id="nav">
   <div class="nav-inner">
     <a tabindex="0" href="index.html" class="nav-logo">
       <svg class="logo-arrow" width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden="true">
-        <path d="M3 9h12M9 3l6 6-6 6" stroke="#0E5C43" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M3 9h12M9 3l6 6-6 6" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
       </svg>
       ROZIC MOVE
     </a>
@@ -158,31 +197,32 @@
 
 <main id="main-content" tabindex="-1">
 
-  <div class="mv-crumb">
-    <a tabindex="0" class="pill-link" href="index.html">← חזרה לעמוד הבית</a>
-  </div>
-
   <div class="mvp-hero">
-    <p class="section-label light">הצטרף לצוות</p>
-    <h1>הרווח ברור לפני שלוקח הזמנה</h1>
-    <p class="lead">ROZIC MOVE מחברת בין לקוחות שצריכים הובלה לבין מובילים עצמאיים. הלוח, ההרשמה וניהול ההזמנות — הכול בתוך האפליקציה.</p>
-    <div class="mvp-badge">ההרשמה כמוביל מתבצעת באפליקציה — לא באתר</div>
-    <div class="cta-row">
-      <a tabindex="0" href="https://apps.apple.com/app/id6783814838" target="_blank" rel="noopener noreferrer" class="btn-store btn-apple large">
-        <svg width="22" height="27" viewBox="0 0 20 24" fill="none" aria-hidden="true">
-          <path d="M16.5 12.7c0-3.2 2.6-4.7 2.7-4.8-1.5-2.1-3.7-2.4-4.5-2.4-1.9-.2-3.7 1.1-4.7 1.1-1 0-2.5-1.1-4.1-1-2.1 0-4 1.2-5.1 3-2.2 3.8-.6 9.4 1.6 12.5 1 1.5 2.3 3.2 3.9 3.2 1.6-.1 2.2-1 4.1-1s2.4 1 4.1.9c1.7 0 2.8-1.5 3.8-3 1.2-1.7 1.7-3.4 1.7-3.5-.1 0-3.5-1.3-3.5-5zm-3.3-9.5c.9-1 1.4-2.4 1.3-3.8-1.2.1-2.7.8-3.6 1.8-.8.9-1.5 2.3-1.3 3.7 1.3.1 2.7-.7 3.6-1.7z" fill="currentColor"/>
-        </svg>
-        <div><small>הורד מ-</small><strong>App Store</strong></div>
-      </a>
-      <a tabindex="0" href="https://play.google.com/store/apps/details?id=com.rozicmove.app" target="_blank" rel="noopener noreferrer" class="btn-store btn-google large">
-        <svg width="22" height="24" viewBox="0 0 20 22" fill="none" aria-hidden="true">
-          <path d="M1.2 1.2c-.3.3-.5.8-.5 1.5v16.6c0 .7.2 1.2.5 1.5l.1.1 9.3-9.3v-.2L1.3 1.1l-.1.1z" fill="#4285F4"/>
-          <path d="M13.7 13.9l-3.1-3.1v-.2l3.1-3.1.1.1 3.7 2.1c1 .6 1 1.5 0 2.1l-3.8 2.1z" fill="#FBBC04"/>
-          <path d="M13.8 13.8L10.6 10.6 1.2 20c.4.3 1 .4 1.7.1l10.9-6.3z" fill="#34A853"/>
-          <path d="M13.8 7.4L2.9 1.1C2.2.8 1.6.9 1.2 1.2l9.4 9.4 3.2-3.2z" fill="#EA4335"/>
-        </svg>
-        <div><small>הורד מ-</small><strong>Google Play</strong></div>
-      </a>
+    <div class="mvp-hero-inner">
+      <div class="mvp-crumb">
+        <a tabindex="0" class="pill-link" href="index.html">← חזרה לעמוד הבית</a>
+      </div>
+      <p class="section-label light">הצטרף לצוות</p>
+      <h1>הרווח ברור לפני שלוקח הזמנה</h1>
+      <p class="lead">ROZIC MOVE מחברת בין לקוחות שצריכים הובלה לבין מובילים עצמאיים. הלוח, ההרשמה וניהול ההזמנות — הכול בתוך האפליקציה.</p>
+      <div class="mvp-badge">ההרשמה כמוביל מתבצעת באפליקציה — לא באתר</div>
+      <div class="cta-row">
+        <a tabindex="0" href="https://apps.apple.com/app/id6783814838" target="_blank" rel="noopener noreferrer" class="btn-store btn-apple large">
+          <svg width="22" height="27" viewBox="0 0 20 24" fill="none" aria-hidden="true">
+            <path d="M16.5 12.7c0-3.2 2.6-4.7 2.7-4.8-1.5-2.1-3.7-2.4-4.5-2.4-1.9-.2-3.7 1.1-4.7 1.1-1 0-2.5-1.1-4.1-1-2.1 0-4 1.2-5.1 3-2.2 3.8-.6 9.4 1.6 12.5 1 1.5 2.3 3.2 3.9 3.2 1.6-.1 2.2-1 4.1-1s2.4 1 4.1.9c1.7 0 2.8-1.5 3.8-3 1.2-1.7 1.7-3.4 1.7-3.5-.1 0-3.5-1.3-3.5-5zm-3.3-9.5c.9-1 1.4-2.4 1.3-3.8-1.2.1-2.7.8-3.6 1.8-.8.9-1.5 2.3-1.3 3.7 1.3.1 2.7-.7 3.6-1.7z" fill="currentColor"/>
+          </svg>
+          <div><small>הורד מ-</small><strong>App Store</strong></div>
+        </a>
+        <a tabindex="0" href="https://play.google.com/store/apps/details?id=com.rozicmove.app" target="_blank" rel="noopener noreferrer" class="btn-store btn-google large">
+          <svg width="22" height="24" viewBox="0 0 20 22" fill="none" aria-hidden="true">
+            <path d="M1.2 1.2c-.3.3-.5.8-.5 1.5v16.6c0 .7.2 1.2.5 1.5l.1.1 9.3-9.3v-.2L1.3 1.1l-.1.1z" fill="#4285F4"/>
+            <path d="M13.7 13.9l-3.1-3.1v-.2l3.1-3.1.1.1 3.7 2.1c1 .6 1 1.5 0 2.1l-3.8 2.1z" fill="#FBBC04"/>
+            <path d="M13.8 13.8L10.6 10.6 1.2 20c.4.3 1 .4 1.7.1l10.9-6.3z" fill="#34A853"/>
+            <path d="M13.8 7.4L2.9 1.1C2.2.8 1.6.9 1.2 1.2l9.4 9.4 3.2-3.2z" fill="#EA4335"/>
+          </svg>
+          <div><small>הורד מ-</small><strong>Google Play</strong></div>
+        </a>
+      </div>
     </div>
   </div>
 
@@ -440,6 +480,12 @@
   </footer>
 <script type="module" src="support-fab.js?v=4cc72bd0"></script>
 <script>
+  // סרגל הניווט מעל ההירו הכהה — אותו מנגנון בדיוק כמו ב-index.html.
+  const nav = document.getElementById('nav');
+  window.addEventListener('scroll', () => {
+    nav.classList.toggle('scrolled', window.scrollY > 60);
+  }, { passive: true });
+
   document.querySelectorAll('.faq-q').forEach(btn => {
     btn.addEventListener('click', () => {
       const item = btn.closest('.faq-item');
