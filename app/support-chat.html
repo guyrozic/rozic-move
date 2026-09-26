@@ -54,7 +54,7 @@
   </style>
 </head>
 <body class="app-body flow-b">
-<div data-build-stamp class="build-stamp" aria-hidden="true">עודכן 25.09 · 21:44</div>
+<div data-build-stamp class="build-stamp" aria-hidden="true">עודכן 26.09 · 10:46</div>
 <script src="/version-check.js?v=b4f8b2f7" defer></script>
   <a class="skip-link" href="#main-content">דלג לתוכן המרכזי</a>
   <script type="module" src="pilot-banner.js?v=14a0e537"></script>
@@ -212,15 +212,62 @@
      * נושאי הפתיחה — זהים ל-FAQ_TOPICS_CUSTOMER ב-SupportChatScreen.tsx.
      * האתר הוא צד-לקוח בלבד (ראו auth.js), ולכן רק רשימת הלקוח הועתקה —
      * FAQ_TOPICS_DRIVER לא רלוונטית כאן.
+     *
+     * ⚠️ 26.9 — `subTopics`: תת-נושאים סטטיים, זהים ל-FaqSubTopic ב-
+     * SupportChatScreen.tsx — לחיצה על נושא כזה מציגה כרטיס אפשרויות
+     * לפני שהצ'אט נפתח, בלי קריאת AI. "אף אחת מהאופציות — כתוב ידנית"
+     * (isChat) הוא האחרון בכל רשימה, באותו דפוס בדיוק כמו האופציה
+     * הגנרית שה-AI מזריק לשאלותיו (parseSupportQuestions למטה). מקור
+     * התוכן זהה למקור באפליקציה — ראו ההערות שם לכל קבוצה.
      */
+    const MANUAL_SUBTOPIC = { label: 'אף אחת מהאופציות — כתוב ידנית', question: '', isChat: true };
     const FAQ_TOPICS = [
-      { icon: '❌', label: 'ביטול הזמנה',     question: 'איך מבטלים הזמנה?' },
-      { icon: '🚚', label: 'המוביל לא הגיע',  question: 'המוביל לא הגיע בזמן, מה עושים?' },
-      { icon: '💳', label: 'בעיה בתשלום',     question: 'יש לי בעיה עם התשלום' },
+      { icon: '❌', label: 'ביטול הזמנה',     question: 'איך מבטלים הזמנה?',
+        subTopics: [
+          { label: 'איך מבטלים הזמנה קיימת', question: 'איך מבטלים הזמנה קיימת באפליקציה?' },
+          { label: 'כמה עולה לי לבטל', question: 'כמה עולה לי לבטל את ההזמנה שלי?' },
+          { label: 'ביטלתי ורוצה לדעת מתי יוחזר לי הכסף', question: 'ביטלתי הזמנה ורוצה לדעת מתי יוחזר לי הכסף.' },
+          MANUAL_SUBTOPIC,
+        ] },
+      { icon: '🚚', label: 'המוביל לא הגיע',  question: 'המוביל לא הגיע בזמן, מה עושים?',
+        subTopics: [
+          { label: 'פחות מ-15 דקות', question: 'פחות מ-15 דקות' },
+          { label: '15–30 דקות', question: '15–30 דקות' },
+          { label: '30–60 דקות', question: '30–60 דקות' },
+          { label: 'יותר משעה', question: 'יותר משעה' },
+          MANUAL_SUBTOPIC,
+        ] },
+      { icon: '💳', label: 'בעיה בתשלום',     question: 'יש לי בעיה עם התשלום',
+        subTopics: [
+          { label: 'שילמתי אבל ההזמנה עדיין מסומנת "ממתין לתשלום"', question: 'שילמתי בכרטיס אשראי אבל ההזמנה שלי עדיין מסומנת "ממתין לתשלום", מה קורה?' },
+          { label: 'התשלום נכשל ולא הצלחתי להתחיל אותו', question: 'לא הצלחתי להתחיל את התשלום על ההזמנה שלי, מה עושים?' },
+          { label: 'חויבתי פעמיים על אותה הזמנה', question: 'נראה לי שחויבתי פעמיים על אותה הזמנה, איך מתקנים את זה?' },
+          { label: 'ביטלתי הזמנה ולא קיבלתי את ההחזר', question: 'ביטלתי הזמנה ועדיין לא קיבלתי את ההחזר שמגיע לי, מה קורה עם זה?' },
+          MANUAL_SUBTOPIC,
+        ] },
       { icon: '💰', label: 'כמה עולה הובלה?', question: 'כמה עולה הובלה?' },
-      { icon: '⚠️', label: 'פריט נפגע',       question: 'פריט נפגע במהלך ההובלה' },
-      { icon: '📍', label: 'מעקב הזמנה',      question: 'איך עוקבים אחרי המוביל בזמן אמת?' },
-      { icon: '🎟️', label: 'קוד הנחה',        question: 'איך משתמשים בקוד הנחה?' },
+      { icon: '⚠️', label: 'פריט נפגע',       question: 'פריט נפגע במהלך ההובלה',
+        subTopics: [
+          { label: 'בטעינה', question: 'בטעינה' },
+          { label: 'בהובלה', question: 'בהובלה' },
+          { label: 'בפריקה', question: 'בפריקה' },
+          MANUAL_SUBTOPIC,
+        ] },
+      { icon: '📍', label: 'מעקב הזמנה',      question: 'איך עוקבים אחרי המוביל בזמן אמת?',
+        subTopics: [
+          { label: 'המפה לא מציגה את מיקום המוביל', question: 'מסך המעקב לא מציג את מיקום המוביל, למה?' },
+          { label: 'המיקום מוצג אבל לא מתעדכן', question: 'אני רואה את המוביל על המפה אבל המיקום שלו לא מתעדכן, מה קורה?' },
+          { label: 'איך פותחים את מסך המעקב', question: 'איך פותחים את מסך המעקב אחרי המוביל?' },
+          MANUAL_SUBTOPIC,
+        ] },
+      { icon: '🎟️', label: 'קוד הנחה',        question: 'איך משתמשים בקוד הנחה?',
+        subTopics: [
+          { label: 'הקוד לא מתקבל / "קוד לא תקין"', question: 'ניסיתי להזין קוד הנחה וקיבלתי הודעה שהקוד לא תקין, מה הבעיה?' },
+          { label: 'הקוד פג תוקף', question: 'קוד ההנחה שלי מציג שפג תוקפו, יש לו תחליף?' },
+          { label: 'כבר השתמשתי בקוד הזה בעבר', question: 'האפליקציה אומרת שכבר השתמשתי בקוד ההנחה הזה, מה עכשיו?' },
+          { label: 'ההזמנה לא מגיעה לסכום המינימלי לקוד', question: 'קוד ההנחה שלי דורש סכום הזמנה מינימלי וההזמנה שלי לא מגיעה אליו, מה אפשר לעשות?' },
+          MANUAL_SUBTOPIC,
+        ] },
       { icon: '❓', label: 'שאלה אחרת',        question: '' },
     ];
 
@@ -258,16 +305,65 @@
     let windowSize = SUPPORT_PAGE_SIZE;
     let hasOlder = false;
     let loadingOlder = false;
+    // תת-נושאים סטטיים — זהה ל-pendingStaticTopic/manualComposeChosen
+    // ב-SupportChatScreen.tsx: הנושא שנבחר ומחכה לתת-בחירה, ודגל ל"אף אחת
+    // מהאופציות — כתוב ידנית" (הצ'אט טרם נפתח, אין עדיין הודעה).
+    let pendingStaticTopic = null;
+    let manualComposeChosen = false;
 
     function formatTime(ts) {
       if (!ts || typeof ts.toDate !== 'function') return '';
       return ts.toDate().toLocaleTimeString('he-IL', { hour: '2-digit', minute: '2-digit' });
     }
 
+    // לחיצה על נושא: אם יש לו תת-נושאים, מציגה כרטיס בחירה סטטי — בלי
+    // רשת ובלי מודל — במקום לשלוח מיד. הצ'אט נפתח רק אחרי בחירה מתוכו.
+    function chooseTopic(topic) {
+      if (Array.isArray(topic.subTopics) && topic.subTopics.length > 0) {
+        pendingStaticTopic = topic;
+        renderTopics();
+        return;
+      }
+      sendMessage(topic.question || topic.label);
+    }
+
+    // בחירת תת-נושא: "כתוב ידנית" ממלא את השדה (בדיוק כמו isChat על שאלת
+    // AI, ראו answerQuestion למטה) בלי לשלוח — כל אופציה אחרת שולחת הודעה
+    // אמיתית, וזה הרגע שבו הצ'אט בפועל נפתח.
+    function chooseStaticSubTopic(topic, sub) {
+      pendingStaticTopic = null;
+      if (sub.isChat) {
+        manualComposeChosen = true;
+        textEl.value = `לגבי: "${topic.label}" — `;
+        textEl.focus();
+        renderTopics();
+        return;
+      }
+      sendMessage(sub.question || sub.label);
+    }
+
     function renderTopics() {
-      const showTopics = messages.length === 0 && !sending;
+      const showTopics = messages.length === 0 && !sending && !manualComposeChosen;
       topicsEl.style.display = showTopics ? 'flex' : 'none';
       if (!showTopics) { topicsEl.innerHTML = ''; return; }
+      if (pendingStaticTopic) {
+        // כרטיס תת-נושאים סטטי — אותו מבנה חזותי כמו question-card
+        // (שאלת AI), כדי שלא ייראה כמו מנגנון שני.
+        topicsEl.innerHTML = `
+          <div class="question-card">
+            <div class="question-text">${esc(pendingStaticTopic.label)}</div>
+            <div class="question-options">
+              ${pendingStaticTopic.subTopics.map((s, i) => `<button tabindex="0" class="question-option" data-si="${i}">${esc(s.label)}</button>`).join('')}
+            </div>
+            <button type="button" tabindex="0" class="btn-text support-topic-back-btn" style="display:block; margin:4px auto 0;">חזרה לנושאים</button>
+          </div>
+        `;
+        topicsEl.querySelectorAll('.question-option').forEach(btn => {
+          btn.addEventListener('click', () => chooseStaticSubTopic(pendingStaticTopic, pendingStaticTopic.subTopics[Number(btn.dataset.si)]));
+        });
+        topicsEl.querySelector('.support-topic-back-btn').addEventListener('click', () => { pendingStaticTopic = null; renderTopics(); });
+        return;
+      }
       topicsEl.innerHTML = FAQ_TOPICS.map((t, i) => `
         <button type="button" tabindex="0" class="support-topic-btn" data-i="${i}">
           <span class="support-topic-icon" aria-hidden="true">${t.icon}</span>
@@ -276,10 +372,7 @@
         </button>
       `).join('');
       topicsEl.querySelectorAll('.support-topic-btn').forEach(btn => {
-        btn.addEventListener('click', () => {
-          const topic = FAQ_TOPICS[Number(btn.dataset.i)];
-          sendMessage(topic.question || topic.label);
-        });
+        btn.addEventListener('click', () => chooseTopic(FAQ_TOPICS[Number(btn.dataset.i)]));
       });
     }
 
@@ -339,7 +432,7 @@
 
     function renderTicketState() {
       const isResolved = ticket?.status === 'resolved';
-      const showTopics = messages.length === 0 && !sending;
+      const showTopics = messages.length === 0 && !sending && !manualComposeChosen;
       escalateBar.style.display = (!isResolved && ticket?.status === 'bot' && messages.length > 0) ? 'flex' : 'none';
       resolvedBar.style.display = isResolved ? 'block' : 'none';
       formEl.style.display = isResolved ? 'none' : 'flex';
@@ -457,6 +550,8 @@
       messages = [];
       windowSize = SUPPORT_PAGE_SIZE;
       hasOlder = false;
+      pendingStaticTopic = null;
+      manualComposeChosen = false;
       if (unsubMessages) { unsubMessages(); unsubMessages = null; }
       if (unsubTicket) { unsubTicket(); unsubTicket = null; }
       try {
