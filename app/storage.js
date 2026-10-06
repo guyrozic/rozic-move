@@ -8,14 +8,6 @@ export async function uploadImageFile(path, file) {
   return getDownloadURL(storageRef);
 }
 
-// storage.rules requires the path segment right after `listings/` to be
-// exactly request.auth.uid (`match /listings/{userId}/{fileName}` + `uid() ==
-// userId`) — the uniqueness has to live in the filename, not an extra path
-// segment, or every write here would be permission-denied.
-export async function uploadListingPhoto(uid, file, index) {
-  return uploadImageFile(`listings/${uid}/${Date.now()}_${index}.jpg`, file);
-}
-
 // 17.9 — מראה `uploadProfilePhoto` ב-Hovalot's src/services/storage.ts: אותו
 // נתיב קבוע `profiles/{uid}/avatar.jpg` (לא שם קובץ ייחודי כמו במודעות —
 // תמונת פרופיל אחת בלבד לכל משתמש, וההעלאה הבאה דורסת את הקודמת). storage.rules

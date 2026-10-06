@@ -27,9 +27,9 @@ const CHECK = join(ROOT, 'scripts', 'check-a11y.mjs');
 
 /** [כלל, קובץ, המחרוזת המקורית, המחרוזת המנוטרלת] */
 const MUTATIONS = [
-  ['img-alt', 'app/marketplace.html',
-    '<img class="listing-photo" src="${esc(l.photos[0])}" alt="${esc(l.title)}">',
-    '<img class="listing-photo" src="${esc(l.photos[0])}">'],
+  ['img-alt', 'app/order-status.html',
+    '<img class="driver-avatar-photo" id="driver-photo" src="${esc(driver.photoUrl)}" alt="תמונת הפרופיל של ${esc(name)}">',
+    '<img class="driver-avatar-photo" id="driver-photo" src="${esc(driver.photoUrl)}">'],
 
   ['control-name', 'index.html',
     '<button tabindex="0" class="nav-toggle" id="nav-toggle" aria-label="תפריט" aria-expanded="false" aria-controls="mobile-menu">',

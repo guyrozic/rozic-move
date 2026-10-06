@@ -434,12 +434,12 @@
 }
 .flow-b .service-tiles,
 .flow-b .account-links { gap: var(--fl-gap); }
-.flow-b .service-tiles { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.flow-b .service-tiles { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 @media (max-width: 860px) {
   .flow-b .service-tiles { grid-template-columns: minmax(0, 1fr); }
 }
 /* אותו שלד כרטיס של מסלולי ההזמנה: אותו רדיוס, אותו צל, ואותו
-   גובה מינימלי — כדי ששלושת השירותים ייקראו כמו שלושת המסלולים. */
+   גובה מינימלי — כדי ששני השירותים ייקראו כמו שני המסלולים. */
 .flow-b .service-tile {
   border: 0;
   border-radius: 18px;
@@ -770,9 +770,7 @@
 
    באפליקציה `ApartmentScreen` מציגה `showConfirmDialog` לפני שהיא
    משחזרת; באתר `loadOrderDraft` השתלטה על הטופס **בשקט מוחלט**.
-   ⚠️ הרכיב לא נלקח מ-`marketplace.html` אף שיש שם מודאל — הסגנונות
-   שלו כתובים inline באותו דף בלבד ואינם משותפים, והעתקתם הייתה
-   יוצרת עותק שלישי. כאן הם בגיליון המשותף לשני האשפים. */
+   הסגנונות כאן בגיליון המשותף לשני האשפים, ולא inline בדף בודד. */
 .draft-ask {
   position: fixed;
   inset: 0;

@@ -3,11 +3,11 @@
 # /app/ is the logged-in ordering flow, not content: every page there is behind
 # requireAuth() and renders nothing useful to a crawler.
 #
-# ⚠️ 15.9 — listing.html, payment-success.html and verify-redirect.html used to
-# be listed here too, and that was backwards. `Disallow` blocks *crawling*, not
+# ⚠️ 15.9 — payment-success.html and verify-redirect.html used to be listed
+# here too, and that was backwards. `Disallow` blocks *crawling*, not
 # *indexing*: a URL linked from anywhere else still gets indexed, shown without
 # a description — and because the crawler never fetches the page, it can never
-# see a `noindex` tag either. Those three now carry
+# see a `noindex` tag either. Those two now carry
 # `<meta name="robots" content="noindex, follow">`, which is the only directive
 # that actually removes a page from the index, and they must stay crawlable for
 # it to be read. 404.html has done it this way all along.

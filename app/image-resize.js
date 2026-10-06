@@ -1,6 +1,6 @@
 // Browser equivalent of the app's expo-image-manipulator resize step (used in
-// both AIRoomScanScreen.tsx and CreateGiveawayScreen.tsx) — downscaling locally
-// before upload is faster to send and avoids hitting storage.rules' per-photo
+// AIRoomScanScreen.tsx) — downscaling locally before upload is faster to
+// send and avoids hitting storage.rules' per-photo
 // size cap (isImageUnder(10) — a full-res smartphone photo can easily exceed
 // that) or Gemini's own preference for smaller images.
 function loadResizedCanvas(file, maxWidth) {
@@ -32,7 +32,7 @@ export async function resizeImageToBase64(file, maxWidth = 1024, quality = 0.7) 
   return canvas.toDataURL('image/jpeg', quality).split(',')[1];
 }
 
-/** Resizes a File to maxWidth (JPEG, given quality) and returns a Blob — for Firebase Storage uploadBytes (marketplace listing photos etc.), where a base64 string isn't directly usable. */
+/** Resizes a File to maxWidth (JPEG, given quality) and returns a Blob — for Firebase Storage uploadBytes (profile photo etc.), where a base64 string isn't directly usable. */
 export async function resizeImageToBlob(file, maxWidth = 1600, quality = 0.82) {
   const canvas = await loadResizedCanvas(file, maxWidth);
   return new Promise((resolve, reject) => {

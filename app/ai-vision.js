@@ -1,8 +1,6 @@
 // Faithful port of Hovalot's src/services/aiVisionCore.ts — the item-catalog photo-scan
 // path (analyzeImagesWithCatalog), the free-text "chat to add items" path
-// (chatAddItemsWithCatalog/buildChatPrompt), the support-chat agent (chatSupportAgent),
-// AND the marketplace listing AI (analyzeListingPhoto from aiVisionCore.ts + askListingAI
-// from AIChatHelper.tsx).
+// (chatAddItemsWithCatalog/buildChatPrompt), and the support-chat agent (chatSupportAgent).
 //
 // Unlike the mobile app (EXPO_PUBLIC_GEMINI_API_KEY, necessarily bundled
 // client-side — there's no alternative on-device), the web build routes every
@@ -432,63 +430,6 @@ export async function chatAddItemsWithCatalog(catalog, roomLabel, currentQuantit
   return final;
 }
 
-// Verbatim from aiVisionCore.ts's analyzeListingPhoto prompt — do not paraphrase.
-function buildListingPrompt() {
-  return `You are an expert at analyzing product photos for a second-hand marketplace app in Israel. Analyze the image(s) and generate a listing in Hebrew.
-
-Return JSON only, no markdown:
-{
-  "title": "<concise Hebrew product title, max 60 chars>",
-  "description": "<detailed Hebrew description, 2-3 sentences about what you see — condition, color, size, brand if visible>",
-  "category": "<one of: furniture, electronics, appliances, sports, clothing, books, other>",
-  "suggestedPrice": <estimated fair market price in ILS as integer, or null if cannot estimate>,
-  "condition": "<one of: new, like_new, good, fair, or null>",
-  "guidingQuestions": ["<short Hebrew question 1>", "<short Hebrew question 2>", "<short Hebrew question 3>"]
-}
-
-This listing will be given away for free, not sold — do not ask about price.
-For guidingQuestions, ask 2-3 SHORT questions in Hebrew to fill in missing info, for example:
-- "האם הפריט עדיין בשימוש?"
-- "האם יש אביזרים נוספים?"
-- "מה הגודל / הממדים?"
-- "האם יש פגמים שלא נראים בתמונה?"`;
-}
-
-const LISTING_CATEGORIES = ['furniture', 'electronics', 'appliances', 'sports', 'clothing', 'books', 'other'];
-const LISTING_CONDITIONS = ['new', 'like_new', 'good', 'fair'];
-
-/** Analyzes listing photos into a draft — mirrors analyzeListingPhoto in aiVisionCore.ts. images: [{base64, mimeType}]. */
-export async function analyzeListingPhoto(images) {
-  if (images.length === 0) return { title: '', description: '', category: 'other', suggestedPrice: null, condition: null, guidingQuestions: [] };
-  const parts = [{ text: buildListingPrompt() }];
-  for (const img of images) parts.push({ inline_data: { mime_type: img.mimeType, data: img.base64 } });
-  const parsed = await callGemini(parts);
-  return {
-    title: typeof parsed.title === 'string' ? parsed.title : '',
-    description: typeof parsed.description === 'string' ? parsed.description : '',
-    category: LISTING_CATEGORIES.includes(parsed.category) ? parsed.category : 'other',
-    suggestedPrice: Number.isFinite(parsed.suggestedPrice) ? parsed.suggestedPrice : null,
-    condition: LISTING_CONDITIONS.includes(parsed.condition) ? parsed.condition : null,
-    guidingQuestions: Array.isArray(parsed.guidingQuestions) ? parsed.guidingQuestions.slice(0, 3) : [],
-  };
-}
-
-/**
- * Free-text listing-writing Q&A tips — mirrors askListingAI in AIChatHelper.tsx.
- * Not tied to the item catalog, just conversational advice (title/description/pricing tips).
- * The original calls Gemini directly for plain text; here the prompt asks for a
- * {reply} JSON wrapper instead, since the shared proxy always requests JSON output.
- */
-export async function askListingAI(question, context) {
-  const prompt = `You are a helpful assistant for someone creating a second-hand item listing in Israel.
-Context about the item: ${context || 'unknown item'}
-User question: "${question}"
-Answer in Hebrew, friendly and practical, max 2 sentences. Focus on helping write better listings.
-Respond with JSON only, no markdown: {"reply": "<your answer in Hebrew>"}`;
-  const parsed = await callGemini([{ text: prompt }]);
-  return typeof parsed.reply === 'string' ? parsed.reply : 'לא הצלחתי לענות';
-}
-
 /* ══════════════════════════════════════════════════════════════════
    סוכן תמיכה AI (פאזה 3, 16.9) — מקביל ל-chatSupportAgent ב-
    aiVisionCore.ts. **הפרומפט מועתק מילה במילה** ("verbatim", כמו שאר
@@ -648,11 +589,10 @@ Customer (${userName || 'user'}) says: "${message}"`;
  * @param {unknown} err
  * @param {string} [notConfiguredMessage] נוסח חלופי למצב "צריך להתחבר".
  *
- * ⚠️ הפרמטר השני נוסף ב-16.9 אחרי מדידה בדפדפן: עוזר הכתיבה ב-
- * `marketplace-create.html` **אינו מושבת לאורח**, ולכן אורח ששאל בו
- * שאלה קיבל את הנוסח של מסך סריקת החדרים — *"כדי **לסרוק תמונות**
- * צריך להתחבר. אפשר להמשיך להוסיף **פריטים** ידנית"* — שתי מילים
- * ממסך אחר לגמרי, בתשובה לשאלה על ניסוח מודעה. ברירת המחדל נשארה
+ * ⚠️ הפרמטר השני נוסף ב-16.9 אחרי מדידה בדפדפן: עוזר כתיבה שלא היה
+ * מושבת לאורח קיבל בטעות את הנוסח של מסך סריקת החדרים — *"כדי **לסרוק
+ * תמונות** צריך להתחבר. אפשר להמשיך להוסיף **פריטים** ידנית"* — שתי
+ * מילים ממסך אחר לגמרי, בתשובה לשאלה לא קשורה. ברירת המחדל נשארה
  * זהה בדיוק, ומסכי החדרים לא נגעו.
  */
 export function friendlyAIError(err, notConfiguredMessage) {

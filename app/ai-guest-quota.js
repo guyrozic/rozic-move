@@ -130,9 +130,8 @@ export function attachGuestQuotaHandlers({ onLogin, onManual }) {
 
 /* ═══════════ שימור התמונות במעבר להתחברות ═══════════════════════════
    הפריטים, הכתובות והתאריך נשמרים כבר ב-`saveOrderDraft`
-   (`guest-checkout.js`), והמודעה בלוח נשמרת ב-`saveListingDraft`
-   (`marketplace-create.html`) — כולל התמונות שלה. מה שאין לו בית הוא
-   **התמונות שנבחרו לסריקה**: `File[]` בזיכרון, שנעלם ברגע שהדף מתחלף.
+   (`guest-checkout.js`). מה שאין לו בית הוא **התמונות שנבחרו לסריקה**:
+   `File[]` בזיכרון, שנעלם ברגע שהדף מתחלף.
 
    ⚠️ **sessionStorage ולא localStorage, וזו הכרעה ולא נוחות.** טיוטת
    ההזמנה הודגמה כדליפה בין אנשים על אותו מכשיר (ראו
@@ -183,7 +182,7 @@ export async function saveScanPhotos(serviceType, files) {
 /**
  * data URL → `File`, כדי שהתמונה המשוחזרת תיכנס בדיוק לאותו מסלול
  * (`resizeImageToBase64` → `analyzeImagesWithCatalog`) כמו תמונה שנבחרה
- * עכשיו. אותו דפוס בדיוק כמו `dataUrlToFile` ב-`marketplace-create.html`.
+ * עכשיו.
  */
 function dataUrlToFile(dataUrl, index) {
   const bin = atob(dataUrl.split(',')[1]);

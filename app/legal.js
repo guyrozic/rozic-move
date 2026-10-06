@@ -34,8 +34,11 @@ import { serverTimestamp } from 'https://www.gstatic.com/firebasejs/12.16.0/fire
  * בנושא שוויון ונגישות — פסקה "שוויון ונגישות" בסעיף 5 (מובילים)
  * ותת-סעיף הפליה בסעיף 9 (שימוש אסור). ראו את ההערה המלאה
  * ב-`Hovalot/src/constants/legal.ts`.
+ *
+ * ⚠️ 6.10 — `2026-10-1`: הנוסח **הראשון** באוקטובר 2026. הוסר לגמרי לוח
+ * "מעבירים את זה הלאה". ראו את ההערה המלאה ב-`Hovalot/src/constants/legal.ts`.
  */
-export const TERMS_VERSION = '2026-09-4';
+export const TERMS_VERSION = '2026-10-1';
 
 /**
  * בונה את ראיית ההסכמה שמוצמדת להזמנה חדשה באתר — מראה של

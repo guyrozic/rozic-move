@@ -30,7 +30,7 @@ export async function createOrGetTicket(userId, userName, userPhone) {
   if (existing) return existing;
 
   const ref = await addDoc(collection(db, 'support_tickets'), {
-    userId, userName, userPhone: userPhone || null, // undefined היה מפיל את הכתיבה — ראו listings.js
+    userId, userName, userPhone: userPhone || null, // undefined היה מפיל את הכתיבה ל-Firestore בשקט
     status: 'bot',
     category: 'other',
     priority: 'normal',
