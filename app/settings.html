@@ -57,7 +57,7 @@
     <div class="step-hero-inner">
       <a tabindex="0" href="account.html" class="step-back"><svg viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M6 3.5 10.5 8 6 12.5" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/></svg>החשבון שלי</a>
       <h1>הגדרות</h1>
-      <p>התראות, אבטחת חשבון ומשתמשים חסומים.</p>
+      <p>התראות ואבטחת חשבון.</p>
     </div>
   </div>
 
@@ -109,15 +109,6 @@
       <div class="app-card" id="oauth-password-note" style="display:none;">
         <h2>שינוי סיסמה</h2>
         <p class="app-card-desc">החשבון שלך מחובר דרך Google/Apple — אין סיסמה נפרדת לשינוי באתר.</p>
-      </div>
-
-      <div class="app-card">
-        <h2>משתמשים חסומים</h2>
-        <p class="app-card-desc">מי שחסמת בעבר. ביטול חסימה מחזיר את הגלוי ההדדי.</p>
-        <div class="settings-list" id="blocked-list"></div>
-        <div id="blocked-empty" class="empty-state" style="display:none; padding:24px 20px;">
-          <div>לא חסמת אף אחד</div>
-        </div>
       </div>
 
       <!-- ⚠️ 20.9 — עד כה היה כאן **קישור להסבר בלבד**, ו-delete-account.html
@@ -216,13 +207,9 @@
 
   <script type="module">
     import { requireAuth, changePassword, deleteAccount, currentProviderId } from './auth.js';
-    import { setNotificationPreference, subscribeToBlockedUsers, unblockUser } from './account.js';
+    import { setNotificationPreference } from './account.js';
     import { subscribeToUserOrders, ACTIVE_CUSTOMER_STATUSES, hasActiveOrders } from './orders.js';
     import { auth } from './firebase.js';
-
-    const esc = (v) => String(v ?? '')
-      .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
-      .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
 
     const state = await requireAuth();
     document.getElementById('loading').style.display = 'none';
@@ -398,37 +385,6 @@
         }
       });
     }
-
-    /* ---------- משתמשים חסומים ---------- */
-    subscribeToBlockedUsers(state.authUser.uid, (blocked) => {
-      const list = document.getElementById('blocked-list');
-      const empty = document.getElementById('blocked-empty');
-      const entries = Object.entries(blocked);
-      if (entries.length === 0) {
-        list.innerHTML = '';
-        empty.style.display = 'block';
-        return;
-      }
-      empty.style.display = 'none';
-      list.innerHTML = entries.map(([targetId, entry]) => `
-        <div class="settings-row">
-          <span class="settings-row-label">${esc(entry?.name || 'משתמש')}</span>
-          <button tabindex="0" type="button" class="settings-row-remove" data-uid="${esc(targetId)}">בטל חסימה</button>
-        </div>`).join('');
-      list.querySelectorAll('.settings-row-remove').forEach(btn => {
-        btn.addEventListener('click', async () => {
-          // ⚠️ `BlockedUsersScreen.tsx:37` מסביר באישור **מה המשמעות**:
-          // ביטול חסימה מחזיר חשיפה הדדית. זו לא פעולה טכנית.
-          if (!confirm('לבטל את החסימה? מרגע זה שניכם תוכלו לראות זה את זה וליצור קשר.')) return;
-          btn.disabled = true; btn.textContent = 'מבטל...';
-          try {
-            await unblockUser(state.authUser.uid, btn.dataset.uid);
-          } catch {
-            btn.disabled = false; btn.textContent = 'בטל חסימה';
-          }
-        });
-      });
-    });
   </script>
 </body>
 </html>

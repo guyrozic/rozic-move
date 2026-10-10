@@ -1,12 +1,12 @@
 // Web equivalent of pieces of Hovalot's src/context/AuthContext.tsx and
-// src/services/{notifications,blocks}.ts — everything in the "אזור אישי"
+// src/services/notifications.ts — everything in the "אזור אישי"
 // (פאזה 2, 16.9) that isn't core sign-in/identity (that's auth.js) and isn't
 // an order (that's orders.js). Same Firestore document shapes
-// (users/{uid}/private/{addresses,notifications,blocks}) as the mobile app,
+// (users/{uid}/private/{addresses,notifications}) as the mobile app,
 // so a change made from the website is visible to — and made by — the same
 // account's app session, and vice versa.
 import {
-  deleteField, doc, getDoc, onSnapshot, serverTimestamp, setDoc, updateDoc,
+  doc, getDoc, onSnapshot, setDoc, updateDoc,
 } from 'https://www.gstatic.com/firebasejs/12.16.0/firebase-firestore.js';
 import { db } from './firebase.js';
 
@@ -86,42 +86,6 @@ export async function setNotificationPreference(uid, enabled) {
     // פושים באפליקציה של אותו חשבון — לא רק כותב דגל שאיש לא בודק.
     await setDoc(doc(db, 'users', uid, 'private', 'notifications'), { pushToken: null }, { merge: true });
   }
-}
-
-/* ══════════════════════════════════════════════════════════════════
-   משתמשים חסומים
-   ══════════════════════════════════════════════════════════════════
-
-   מציג ומאפשר לבטל רק חסימות שהמשתמש **עצמו** יזם — ראו
-   src/services/blocks.ts. אין כאן כפתור "חסום" חדש: יצירת חסימה קורית
-   היום רק מהקשר של הזמנה קונקרטית, וזה נשאר שם. `blockedBy` (מי חסם
-   אותי) לא מוצג כאן בכוונה — אותה הבחנה
-   כמו BlockContext באפליקציה: חשיפת "מישהו חסם אותך" היא בדיוק המידע
-   שממנו מתחילה הסלמה.
-*/
-
-function blocksRef(uid) {
-  return doc(db, 'users', uid, 'private', 'blocks');
-}
-
-/** מנוי חי למי שהמשתמש חסם. שגיאה מחזירה מפה ריקה — ראו את אותו העיקרון ב-subscribeToSavedAddresses. */
-export function subscribeToBlockedUsers(uid, callback) {
-  return onSnapshot(
-    blocksRef(uid),
-    (snap) => {
-      const data = snap.exists() ? snap.data()?.blocked : null;
-      callback(data && typeof data === 'object' ? data : {});
-    },
-    () => callback({}),
-  );
-}
-
-/** מראה את `unblockUser` ב-src/services/blocks.ts. */
-export async function unblockUser(uid, targetId) {
-  await updateDoc(blocksRef(uid), {
-    [`blocked.${targetId}`]: deleteField(),
-    updatedAt: serverTimestamp(),
-  });
 }
 
 /* ══════════════════════════════════════════════════════════════════
