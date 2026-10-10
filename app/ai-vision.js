@@ -450,7 +450,7 @@ const SUPPORT_SYSTEM_PROMPT = `You are a friendly and professional customer supp
 
 About ROZIC MOVE:
 - Platform connecting customers with independent movers/drivers in Israel
-- Services: apartment moves, small moves, packing service, second-hand marketplace
+- Services: apartment moves, small moves, packing service
 - Pricing: minimum base fee + calculated by distance (per km), floor surcharges (no elevator), number and type of items, with volume discounts. No single fixed price — every order is calculated individually.
 - Cancellation: 7+ days = free | 2-7 days = 15% | 24-48h = 30% | <24h = 50% | no-show = 75% | driver ALREADY EN ROUTE (status en_route) = 75%, regardless of how much time is left
 - Drivers are independent contractors — ROZIC MOVE is a platform
