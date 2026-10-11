@@ -86,10 +86,9 @@ automatically — add addresses, floors, elevator availability and a date, and s
 the price before confirming. After confirmation a mover is assigned and can be
 tracked live on a map.
 
-Four services: full apartment moves, single-item moves, an optional packing
-add-on inside those orders, and a give-away board where items are handed over
-at no charge and no money changes hands. Available across Israel, in Hebrew,
-via iOS, Android or the browser.
+Three services: full apartment moves, single-item moves, and an optional
+packing add-on inside those orders. Available across Israel, in Hebrew, via
+iOS, Android or the browser.
 
 No public price list exists. Price is driven by the number and type of items,
 distance, floors and elevator, crane lifting when an item will not fit through
