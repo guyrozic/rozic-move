@@ -1904,7 +1904,7 @@
         selected.forEach(i => {
           (classifyForPackingPreview(i) === 'none' ? excluded : packed).push(i);
         });
-        const lines = [`<p class="packing-preview-summary">הצוות יארוז: ${parts.join(' + ')} — +₪${formatPrice(packingCalc.total)}</p>`];
+        const lines = [`<p class="packing-preview-summary">המוביל יארוז: ${parts.join(' + ')} — +₪${formatPrice(packingCalc.total)}</p>`];
         if (packed.length) lines.push(`<p class="packing-preview-detail">כולל: ${escHtml(summarizePackingLabels(packed))}</p>`);
         if (excluded.length) lines.push(`<p class="packing-preview-detail">לא כלול בשירות האריזה: ${escHtml(summarizePackingLabels(excluded))} — אלה עוברים כמו שהם.</p>`);
         previewEl.innerHTML = lines.join('');
@@ -2693,7 +2693,7 @@
     // ---------- Step machine ----------
     const STEP_TITLES = {
       1: ['מובילים בקטנה — אילו פריטים?', 'מתאים לפריטים בודדים או כמה ארגזים — טנדר אחד, קיבולת מוגבלת.'],
-      2: ['רוצה גם שירות אריזה?', 'נצא לדרך רגועים — הצוות יארוז הכול בזהירות.'],
+      2: ['רוצה גם שירות אריזה?', 'נצא לדרך רגועים — המוביל יארוז הכול בזהירות.'],
       3: ['פרטי ההובלה', 'כתובות, קומות, תזמון — הכול כאן.'],
       4: ['סיכום ואישור', 'בדוק את הפירוט ואשר את ההזמנה.'],
     };
