@@ -48,7 +48,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="style.css?v=4ee2fd78">
+  <link rel="stylesheet" href="style.css?v=059fe7e9">
   <!-- 15.9 — "דפוס נגיש" לפי תקנה 29(ד)(4): לחיצה על "הדפסה" מדפיסה את
        המסמך בגופן מוגדר ומעובה, בשחור על לבן, בלי ניווט ובלי רקעים. ⚠️ זו
        השורה **היחידה** שנוספה לדף הזה — media="print" מבטיח שאין שום השפעה
@@ -111,7 +111,7 @@
   </style>
 </head>
 <body>
-<div data-build-stamp class="build-stamp" aria-hidden="true">עודכן 16.10 · 13:44</div>
+<div data-build-stamp class="build-stamp" aria-hidden="true">עודכן 16.10 · 14:26</div>
 <script src="/version-check.js?v=b4f8b2f7" defer></script>
   <!-- ⚠️ 15.9 — "דלג לתוכן המרכזי" (WCAG 2.4.1, רמה A). זהו האלמנט הממוקד
        הראשון בדף: מוסתר מהעין, מופיע בפינה ברגע שמגיעים אליו ב-Tab, ומעביר
@@ -239,7 +239,7 @@
         <li>• <span class="bold">Firebase Crashlytics</span>: דוחות קריסה טכניים (סוג מכשיר, מערכת
           הפעלה, מיקום התקלה בקוד) יחד עם מזהה המשתמש הפנימי שלכם בלבד — ללא שם, טלפון, אימייל או תוכן
           הזמנות — לצורך איתור ותיקון תקלות.</li>
-        <li>• <span class="bold">Google Analytics (Firebase Analytics)</span>: כדי להבין איך משתמשים בשירות ולשפר אותו, אנו מודדים פעולות באתר ובאפליקציה באמצעות Google Analytics (באפליקציה — Firebase Analytics).
+        <li id="measurement-settings">• <span class="bold">Google Analytics (Firebase Analytics)</span>: כדי להבין איך משתמשים בשירות ולשפר אותו, אנו מודדים פעולות באתר ובאפליקציה באמצעות Google Analytics (באפליקציה — Firebase Analytics).
           באתר נמדדות הפעולות הבאות: תחילת הזמנה, הצגת מחיר, מעבר לתשלום, השלמת רכישה ולחיצה על הורדת האפליקציה, ולצורך כך האתר שומר בדפדפן שלכם עוגיות מדידה (_ga).
           באפליקציה נמדדות ההרשמה וההתחברות (כולל שיטת ההתחברות), תחילת הזמנה, הצגת מחיר, יצירת הזמנה, מעבר לתשלום, תשלום, שיבוץ מוביל, השלמת הובלה, שליחת דירוג והגשת מסמכי מוביל, וכן, אוטומטית, הפעלה ראשונה של האפליקציה ותחילת שימוש.
           עם הפעולות נשלחים פרטים כמו סוג השירות, הסכום והמטבע, מזהה ההזמנה, סוג המשתמש (לקוח או מוביל), שיטת ההתחברות וציון הדירוג, וכן מידע טכני כללי על המכשיר או הדפדפן, כגון דגם, מערכת הפעלה ומיקום כללי.
@@ -377,6 +377,7 @@
           <a tabindex="0" href="terms.html">תנאי שימוש</a>
           <a tabindex="0" href="accessibility.html">הצהרת נגישות</a>
           <a tabindex="0" href="/delete-account.html">מחיקת חשבון</a>
+          <a tabindex="0" href="privacy.html#measurement-settings" data-measurement-settings>הגדרות מדידה</a>
         </div>
         <!-- 15.9 — עמודת יצירת קשר. אינה קישוט: תקנה 34(א)(3) לתקנות שוויון
              זכויות לאנשים עם מוגבלות (התאמות נגישות לשירות) מחייבת שאפשר יהיה
@@ -396,5 +397,6 @@
     </div>
   </footer>
   <script type="module" src="support-fab.js?v=4cc72bd0"></script>
+<script type="module" src="app/measurement.js?v=cd656c0c"></script>
 </body>
 </html>

@@ -14,12 +14,20 @@
 //     נתוני לקוח: המדידה היא לוג בלבד, ושגיאה מודפסת לקונסול.)
 //  4. פרסום מותאם נחסם (`ad_*` denied) — המדידה היא לניתוח פאנל בלבד.
 
+import { isMeasurementEnabled, clearMeasurementCookies, MEASUREMENT_EVENT, MEASUREMENT_KEY } from './measurement-state.js';
+
+// ⚠️ הביטול (15.10) — "הגדרות מדידה" בפוטר. כשהמתג כבוי: לא טוענים את ה-SDK,
+// לא שולחים אירועים, ואם הוא כבר נטען — עוצרים אותו ומוחקים את עוגיות _ga.
+// הדגל נשמר ב-localStorage (ראו measurement-state.js) ולכן חל על כל דף וכל טעינה.
+
 const ALLOWED = new Set(['order_type', 'value', 'currency', 'transaction_id', 'store', 'page', 'service']);
 
 let ready = null;      // Promise<{ga, logEvent}|null>
 const onceKeys = new Set();
 
 function load() {
+  // לא נשמר ב-`ready`: אם המשתמש מדליק מחדש באותו דף, הטעינה צריכה להתאפשר.
+  if (!isMeasurementEnabled()) return Promise.resolve(null);
   if (ready) return ready;
   ready = (async () => {
     try {
@@ -29,13 +37,34 @@ function load() {
       if (!(await m.isSupported())) return null;
       const ga = m.getAnalytics(fb.app);
       m.setConsent({ ad_storage: 'denied', ad_user_data: 'denied', ad_personalization: 'denied' });
-      return { ga, logEvent: m.logEvent };
+      window['ga-disable-' + fb.MEASUREMENT_ID] = false;
+      return { ga, logEvent: m.logEvent, setEnabled: m.setAnalyticsCollectionEnabled, id: fb.MEASUREMENT_ID };
     } catch (e) {
       console.warn('[analytics] init failed', e && e.message);
       return null;
     }
   })();
   return ready;
+}
+
+/** מחיל את מצב המתג על SDK שכבר נטען בדף הזה (אם לא נטען — אין מה לעצור). */
+async function applyEnabledState() {
+  if (!ready) return;
+  try {
+    const a = await ready;
+    if (!a) return;
+    const on = isMeasurementEnabled();
+    window['ga-disable-' + a.id] = !on;
+    a.setEnabled(a.ga, on);
+    if (!on) clearMeasurementCookies();
+  } catch (e) {
+    console.warn('[analytics] apply state failed', e && e.message);
+  }
+}
+if (typeof window !== 'undefined') {
+  window.addEventListener(MEASUREMENT_EVENT, applyEnabledState);
+  // לשונית אחרת שינתה את המתג.
+  window.addEventListener('storage', (e) => { if (e.key === MEASUREMENT_KEY) applyEnabledState(); });
 }
 
 /** order_type קנוני, זהה לאפליקציה: 'apartment' | 'small_move'. */
@@ -46,6 +75,7 @@ export function orderTypeOf(serviceType) {
 /** שולח אירוע. `once` = מפתח לדה-דופליקציה בטעינת הדף הנוכחית. */
 export async function track(name, params = {}, once) {
   try {
+    if (!isMeasurementEnabled()) return;
     if (once) { if (onceKeys.has(once)) return; onceKeys.add(once); }
     const clean = {};
     for (const [k, v] of Object.entries(params)) {
@@ -53,7 +83,7 @@ export async function track(name, params = {}, once) {
       clean[k] = v;
     }
     const a = await load();
-    if (a) a.logEvent(a.ga, name, clean);
+    if (a && isMeasurementEnabled()) a.logEvent(a.ga, name, clean);
   } catch (e) {
     console.warn('[analytics] track failed', name, e && e.message);
   }
