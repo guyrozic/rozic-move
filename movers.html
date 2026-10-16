@@ -6,7 +6,7 @@
      מקור חיצוני שהאתר פונה אליו נמדד בפועל על כל דפי האתר
      (`Network.requestWillBeSent`), והושלם מהקוד למה שנצרך רק בסשן
      מחובר — Firestore, Auth, Storage ופונקציות הענן. -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://www.gstatic.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdn.jsdelivr.net; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob: https://*.tile.openstreetmap.org https://*.googleapis.com https://*.firebasestorage.app; connect-src 'self' https://*.googleapis.com https://*.cloudfunctions.net https://*.firebasestorage.app; frame-src 'none'; object-src 'none'; base-uri 'self'; form-action 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://www.gstatic.com https://cdn.jsdelivr.net https://www.googletagmanager.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdn.jsdelivr.net; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob: https://*.tile.openstreetmap.org https://*.googleapis.com https://*.firebasestorage.app https://*.google-analytics.com https://*.googletagmanager.com; connect-src 'self' https://*.googleapis.com https://*.cloudfunctions.net https://*.firebasestorage.app https://*.google-analytics.com https://*.analytics.google.com https://*.googletagmanager.com; frame-src 'none'; object-src 'none'; base-uri 'self'; form-action 'self'">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large">
 <title>מצטרף כמוביל — ROZIC MOVE</title>
@@ -174,7 +174,7 @@
 </style>
 </head>
 <body class="mvp-page">
-<div data-build-stamp class="build-stamp" aria-hidden="true">עודכן 06.10 · 17:09</div>
+<div data-build-stamp class="build-stamp" aria-hidden="true">עודכן 16.10 · 13:44</div>
 <script src="/version-check.js?v=b4f8b2f7" defer></script>
 <a class="skip-link" href="#main-content">דלג לתוכן המרכזי</a>
 
@@ -478,6 +478,7 @@
       <p>כל הזכויות שמורות · מדינת ישראל</p>
     </div>
   </footer>
+<script type="module" src="app/analytics.js?v=c73d9804"></script>
 <script type="module" src="support-fab.js?v=4cc72bd0"></script>
 <script>
   // סרגל הניווט מעל ההירו הכהה — אותו מנגנון בדיוק כמו ב-index.html.

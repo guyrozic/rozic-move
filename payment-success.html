@@ -21,7 +21,7 @@
 
        ⚠️ תוספת מארח חדש (SDK, CDN, ספק) מחייבת עדכון כאן, אחרת הוא
        ייחסם בשקט יחסי. נבדק על כל הדפים: אפס הפרות. -->
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://www.gstatic.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdn.jsdelivr.net; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob: https://*.tile.openstreetmap.org https://*.googleapis.com https://*.firebasestorage.app; connect-src 'self' https://*.googleapis.com https://*.cloudfunctions.net https://*.firebasestorage.app; frame-src 'none'; object-src 'none'; base-uri 'self'; form-action 'self'">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://www.gstatic.com https://cdn.jsdelivr.net https://www.googletagmanager.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdn.jsdelivr.net; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob: https://*.tile.openstreetmap.org https://*.googleapis.com https://*.firebasestorage.app https://*.google-analytics.com https://*.googletagmanager.com; connect-src 'self' https://*.googleapis.com https://*.cloudfunctions.net https://*.firebasestorage.app https://*.google-analytics.com https://*.analytics.google.com https://*.googletagmanager.com; frame-src 'none'; object-src 'none'; base-uri 'self'; form-action 'self'">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <!--
     ⚠️ 15.9 — הכותרת כאן הייתה "התשלום התקבל" — מחרוזת קשיחה
@@ -195,7 +195,7 @@
   </style>
 </head>
 <body>
-<div data-build-stamp class="build-stamp" aria-hidden="true">עודכן 06.10 · 17:09</div>
+<div data-build-stamp class="build-stamp" aria-hidden="true">עודכן 16.10 · 13:44</div>
 <script src="/version-check.js?v=b4f8b2f7" defer></script>
   <!-- ⚠️ 15.9 — "דלג לתוכן המרכזי" (WCAG 2.4.1, רמה A). זהו האלמנט הממוקד
        הראשון בדף: מוסתר מהעין, מופיע בפינה ברגע שמגיעים אליו ב-Tab, ומעביר
@@ -390,6 +390,7 @@
      *
      * @returns {Promise<boolean>} האם אושר בתוך זמן הסקירה.
      */
+    var lastPaidData = null;
     async function pollPaid(collectionName, docId, isPaid) {
       var fb = await import('./app/firebase.js');
       var fs = await import('https://www.gstatic.com/firebasejs/12.16.0/firebase-firestore.js');
@@ -406,7 +407,7 @@
       });
       for (var i = 0; i < 6; i++) {
         var snap = await fs.getDoc(fs.doc(fb.db, collectionName, docId));
-        if (snap.exists() && isPaid(snap.data())) return true;
+        if (snap.exists() && isPaid(snap.data())) { lastPaidData = snap.data(); return true; }
         await new Promise(function (r) { setTimeout(r, 2000); });
       }
       return false;
@@ -453,6 +454,17 @@
         if (paid) {
           setStatus('התשלום התקבל בהצלחה!', 'התשלום התקבל');
           openEl.textContent = 'ההזמנה שלך אושרה.';
+          // מדידה: purchase רק אחרי שהשרת אישר paid (לא על ה-redirect), פעם אחת להזמנה.
+          try {
+            if (!sessionStorage.getItem('rm_purchase_' + orderId)) {
+              sessionStorage.setItem('rm_purchase_' + orderId, '1');
+              var an = await import('./app/analytics.js');
+              an.track('purchase', {
+                order_type: an.orderTypeOf(lastPaidData && lastPaidData.serviceType),
+                value: lastPaidData && lastPaidData.price, currency: 'ILS', transaction_id: orderId
+              });
+            }
+          } catch (_) { /* מדידה בלבד */ }
           return;
         }
         setStatus('התשלום נשלח — עדיין מאשרים', 'עדיין מאשרים את התשלום');

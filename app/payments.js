@@ -14,11 +14,13 @@ import {
   doc, setDoc, updateDoc, serverTimestamp,
 } from 'https://www.gstatic.com/firebasejs/12.16.0/firebase-firestore.js';
 
+import { trackThenGo, orderTypeOf } from './analytics.js';
+
 const CREATE_CHECKOUT_URL = 'https://us-central1-hovalot-6cf65.cloudfunctions.net/createGrowCheckout';
 const CREATE_LOAD_GAP_CHECKOUT_URL = 'https://us-central1-hovalot-6cf65.cloudfunctions.net/createLoadGapCheckout';
 
 /** Redirects the browser to the Grow hosted payment page for this order. */
-export async function startGrowCheckout(orderId) {
+export async function startGrowCheckout(orderId, meta) {
   if (!auth.currentUser) throw new Error('NOT_LOGGED_IN');
   const token = await auth.currentUser.getIdToken();
   const res = await fetch(CREATE_CHECKOUT_URL, {
@@ -28,6 +30,13 @@ export async function startGrowCheckout(orderId) {
   });
   const data = await res.json().catch(() => null);
   if (!res.ok || !data?.url) throw new Error((data && data.error) || 'CHECKOUT_FAILED');
+  // מדידה: begin_checkout רק אחרי שהשרת החזיר כתובת תשלום (לא על ניסיון שנכשל).
+  // meta = { serviceType, price } מההזמנה — בלי PII. ראו analytics.js.
+  if (meta) {
+    await trackThenGo('begin_checkout', {
+      order_type: orderTypeOf(meta.serviceType), value: meta.price, currency: 'ILS', transaction_id: orderId,
+    });
+  }
   location.href = data.url;
 }
 
