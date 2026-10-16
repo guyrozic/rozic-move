@@ -1337,7 +1337,7 @@
      שיחליף אותם; בלי הסימון הזה הם נעלמו גם בחמשת הדפים המשפטיים,
      בלי שום דרך להגיע אליהם (WCAG 1.4.4). -->
 <body class="has-nav-menu hp-home">
-<div data-build-stamp class="build-stamp" aria-hidden="true">עודכן 16.10 · 14:26</div>
+<div data-build-stamp class="build-stamp" aria-hidden="true">עודכן 16.10 · 14:33</div>
 <script src="/version-check.js?v=b4f8b2f7" defer></script>
   <!-- ⚠️ 15.9 — "דלג לתוכן המרכזי" (WCAG 2.4.1, רמה A). זהו האלמנט הממוקד
        הראשון בדף: מוסתר מהעין, מופיע בפינה ברגע שמגיעים אליו ב-Tab, ומעביר
@@ -2398,6 +2398,15 @@
       appId: '1:896710732186:web:e3e59d0f8326fda1bc7223',
       apiKey: 'AIzaSyB076tM6CJHfCXUNyaVoRKK5tW6ZL580To',
       authDomain: 'hovalot-6cf65.firebaseapp.com',
+      /* ⚠️ 16.10 — **חייב להיות זהה שדה-שדה ל-`app/firebase.js`**, כולל
+         `measurementId`. הסקריפט הזה נוצר ראשון בדף, ו-`analytics.js`
+         (שמייבא את `firebase.js`) קורא אחריו ל-`initializeApp` עם הקונפיג
+         המלא. אפליקציה ברירת-מחדל עם אפשרויות שונות זורקת `duplicate-app`,
+         ה-`catch` ב-`analytics.js` בולע אותה, והמדידה בדף הבית מתה בשקט.
+         `check-app-web-const-sync` אוכף את הזהות. */
+      storageBucket: 'hovalot-6cf65.firebasestorage.app',
+      messagingSenderId: '896710732186',
+      measurementId: 'G-C7PJYPBSRZ',
     };
 
     let hint = null;
