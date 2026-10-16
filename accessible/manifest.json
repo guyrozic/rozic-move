@@ -14,19 +14,19 @@
       "versionSource": "app/legal.js",
       "text": {
         "path": "accessible/terms.txt",
-        "bytes": 38561,
+        "bytes": 38566,
         "blocks": 123,
         "sourceSha256": "48cc2991d9a6c159a2cc233f0a7f322d363a79d9694ddbec4e1d01827895c999",
-        "termsVersion": "2026-10-1",
-        "generatedAt": "2026-10-06T14:03:51.815Z"
+        "termsVersion": "2026-10-2",
+        "generatedAt": "2026-10-16T11:19:01.288Z"
       },
       "audio": {
         "path": "accessible/terms.mp3",
-        "bytes": 7573002,
-        "seconds": 1893.25,
+        "bytes": 7578436,
+        "seconds": 1894.61,
         "sourceSha256": "48cc2991d9a6c159a2cc233f0a7f322d363a79d9694ddbec4e1d01827895c999",
-        "termsVersion": "2026-10-1",
-        "generatedAt": "2026-10-06T14:03:51.815Z"
+        "termsVersion": "2026-10-2",
+        "generatedAt": "2026-10-16T11:19:01.288Z"
       }
     },
     "privacy": {
@@ -35,19 +35,19 @@
       "versionSource": "app/legal.js",
       "text": {
         "path": "accessible/privacy.txt",
-        "bytes": 15514,
-        "blocks": 56,
-        "sourceSha256": "52f6b433af841ec5a5f2c8084af43ba1f73230559e45e6d420086684642d9384",
-        "termsVersion": "2026-10-1",
-        "generatedAt": "2026-10-06T14:03:51.815Z"
+        "bytes": 17620,
+        "blocks": 57,
+        "sourceSha256": "1c5168c522ab7a9155fd82721b4fdf28c51790db3a022531caeeeb7b35f3b052",
+        "termsVersion": "2026-10-2",
+        "generatedAt": "2026-10-16T11:19:01.288Z"
       },
       "audio": {
         "path": "accessible/privacy.mp3",
-        "bytes": 3192163,
-        "seconds": 798.04,
-        "sourceSha256": "52f6b433af841ec5a5f2c8084af43ba1f73230559e45e6d420086684642d9384",
-        "termsVersion": "2026-10-1",
-        "generatedAt": "2026-10-06T14:03:51.815Z"
+        "bytes": 3628199,
+        "seconds": 907.05,
+        "sourceSha256": "1c5168c522ab7a9155fd82721b4fdf28c51790db3a022531caeeeb7b35f3b052",
+        "termsVersion": "2026-10-2",
+        "generatedAt": "2026-10-16T11:19:01.288Z"
       }
     }
   }
