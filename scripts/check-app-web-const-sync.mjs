@@ -128,6 +128,25 @@ const ENTRIES = [
     web: () => Number(extract(WEB_ROOT, 'app/orders.js',
       /EN_ROUTE_CANCELLATION_RATE\s*=\s*([\d.]+)/, 'EN_ROUTE_CANCELLATION_RATE')[1]),
   },
+  /* 31.10 — שלב ההרצה והסתרת ROZIC GUARD (129.2, תזכיר נדב #132). שני
+     דגלים שההערות בשני הקבצים דורשות להחליף "באותו קומיט" — דגל שעולה
+     בצד אחד בלבד מציע ביטוח במשטח אחד ומסתיר אותו בשני. */
+  {
+    name: 'שלב ההרצה — PILOT_MODE',
+    kind: 'inline-literal',
+    app: () => extract(HOVALOT_ROOT, 'src/constants/pilotMode.ts',
+      /export const PILOT_MODE = (true|false)/, 'PILOT_MODE')[1],
+    web: () => extract(WEB_ROOT, 'app/pilot-mode.js',
+      /export const PILOT_MODE = (true|false)/, 'PILOT_MODE')[1],
+  },
+  {
+    name: 'ROZIC GUARD מוצג — INSURANCE_ENABLED',
+    kind: 'inline-literal',
+    app: () => extract(HOVALOT_ROOT, 'src/constants/pilotMode.ts',
+      /export const INSURANCE_ENABLED = (true|false)/, 'INSURANCE_ENABLED')[1],
+    web: () => extract(WEB_ROOT, 'app/pilot-mode.js',
+      /export const INSURANCE_ENABLED = (true|false)/, 'INSURANCE_ENABLED')[1],
+  },
   {
     name: 'מחיר מינימלי אחרי קופון',
     kind: 'inline-literal',
