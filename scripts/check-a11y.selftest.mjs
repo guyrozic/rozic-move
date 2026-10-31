@@ -36,8 +36,8 @@ const MUTATIONS = [
     '<button tabindex="0" class="nav-toggle" id="nav-toggle" aria-expanded="false" aria-controls="mobile-menu">'],
 
   ['field-label', 'app/apartment.html',
-    '<input type="text" id="ai-chat-input" placeholder="כתבו כאן..." aria-label="הודעה לעוזר ה-AI">',
-    '<input type="text" id="ai-chat-input" placeholder="כתבו כאן...">'],
+    '<input type="text" id="ai-chat-input" placeholder="כתוב כאן..." aria-label="הודעה לעוזר ה-AI">',
+    '<input type="text" id="ai-chat-input" placeholder="כתוב כאן...">'],
 
   ['svg-name', 'index.html',
     '<svg aria-hidden="true" class="logo-arrow" width="18" height="18" viewBox="0 0 18 18" fill="none">',
