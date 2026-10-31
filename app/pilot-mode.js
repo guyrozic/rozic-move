@@ -52,3 +52,20 @@ export const PILOT_BANNER_BODY =
 export function insurancePriceInPilot(fullPrice) {
   return PILOT_MODE ? 0 : fullPrice;
 }
+
+/**
+ * ROZIC GUARD (ביטוח התכולה) — **מוסתר**. תאום ל-`INSURANCE_ENABLED` ב-
+ * `src/constants/pilotMode.ts` באפליקציה (הכרעה 129.2, תזכיר נדב #132).
+ *
+ * כשהדגל `false`: תיבת הביטוח לא מוצגת בטפסי ההזמנה (`apartment.html`,
+ * `small-move.html`), ו-`state.hasInsurance` מאופס גם אחרי שחזור טיוטה,
+ * ולכן הוא לא נכנס למחיר ולהזמנה. הזמנות ישנות ב-`order-status.html`
+ * מוצגות כמו קודם.
+ *
+ * ⚠️ **להדלקה:** `true` כאן **ובאפליקציה** באותו קומיט, ולהחזיר את
+ * האזכורים השיווקיים שהוסתרו: כרטיס "ביטוח תכולה" ותיאור השירות
+ * ב-`index.html` (מסומנים בהערה `INSURANCE_ENABLED`), המשפט על ROZIC
+ * GUARD בשאלה על אחריות לנזק ב-`movers.html`, והשירותים ב-`llms.txt`.
+ * את סעיף ROZIC GUARD בתקנון מחזיר עמוס (הוא הוסר בהכרעה 132.1).
+ */
+export const INSURANCE_ENABLED = false;
