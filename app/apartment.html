@@ -716,11 +716,12 @@
     import { getAuthOptional, isDriverAccount, showDriverBlockAndHalt,
              saveOrderDraft, goRegister,
              applyDraftToForm, attachDraftAutosave,
-             validateCouponSecure, redeemCouponSecure, getDiscountAmount,
+             validateCouponSecure, getDiscountAmount,
              normalizeCouponCode, loadResumeDraft, clearOrderDraftEverywhere,
              discardOrderDraftEverywhere, shapeOk,
              showDraftDiscardedNotice } from './guest-checkout.js';
     import { createOrder, getOrder, cancelOrder, getCancellationPolicy } from './orders.js';
+    import { apartmentPricingInputs } from './order-pricing-inputs.js';
     import { track } from './analytics.js';
     // מדידה: תחילת הזמנה = האינטראקציה הראשונה בדף (לא עצם הטעינה). בלי PII — ראו analytics.js.
     ['pointerdown', 'keydown'].forEach(ev => document.addEventListener(ev, () => track('order_start', { order_type: 'apartment' }, 'order_start'), { once: true, capture: true }));
@@ -1068,7 +1069,7 @@
       // לחסום אותו עכשיו ולא אחרי ששינוי מחירון יפתח אותו.
       const couponDiscount = couponInEffect ? Math.max(0, getDiscountAmount(baseTotal, couponInEffect)) : 0;
       const totalPrice = baseTotal - couponDiscount;
-      return { selected, itemsSubtotal, volumeDiscountRate, volumeDiscount, travelCost, floorSurcharge, surge, surgeAmount, packingCalc, boxesQty, hasCustomerBoxes, insuranceAmount, packingAmount, craneCost, commissionAmount, baseTotal, couponDiscount, couponBelowMin, totalPrice };
+      return { selected, itemsSubtotal, volumeDiscountRate, volumeDiscount, travelCost, floorSurcharge, surge, surgeAmount, packingCalc, boxesQty, hasCustomerBoxes, insuranceAmount, packingAmount, craneCost, commissionAmount, baseTotal, couponDiscount, couponBelowMin, couponCode: couponInEffect ? couponInEffect.code : null, totalPrice };
     }
 
     function renderSidePrice() {
@@ -2699,6 +2700,8 @@
           notes: state.notes.trim() || null,
           itemsSummary: p.selected.map(i => `${i.label} x${i.qty}`).join(', ') || null,
           price: p.totalPrice,
+          // 134.2 — הקלטים שהשרת מחשב מהם את המחיר מחדש בתשלום. ראו order-pricing-inputs.js.
+          pricingInputs: apartmentPricingInputs(state, p.couponCode),
           commissionAmount: p.commissionAmount,
           hasInsurance: state.hasInsurance,
           insuranceAmount: p.insuranceAmount,
@@ -2719,25 +2722,12 @@
         });
         clearTimeout(stuckTimer);
         /**
-         * ⚠️ הפדייה **אחרי** שההזמנה נוצרה, ולפני הניווט. הנימוק המלא
-         * (ולמה זה נקודה אחרת מזו שבאפליקציה) ב-`redeemCouponSecure`.
-         *
-         * ⚠️ הכשל **אינו מפיל את ההזמנה** — הלקוח כבר קיבל את ההנחה,
-         * וההזמנה חשובה יותר מהספירה. הוא גם אינו שקט: `couponSecure`
-         * כותב `adminAlerts`, מעלה מונה על הקופון, ושולח push לאדמין
-         * בכשל הראשון של אותו צמד (קופון, משתמש). השורה כאן היא העקבה
-         * בצד הלקוח, למקרה שהבקשה כלל לא הגיעה לשרת.
-         *
-         * `phraseTimer` עדיין רץ בכוונה — הכפתור ממשיך להתחלף בזמן
-         * הקריאה הזו, במקום להיראות תקוע.
+         * 134.3 (31.10) — **אין כאן פדיית קופון.** הקופון נשמר על ההזמנה
+         * (`pricingInputs.couponCode`) ונפדה בשרת, ב-`growNotify`, רק כשהתשלום
+         * נקלט. פדייה כאן הייתה גורמת לשרת לראות את הקופון כ"כבר נוצל" ע"י
+         * הלקוח, לחשב בלי הנחה ולהעלות את המחיר. לקוח שיצר הזמנה ולא שילם
+         * כבר לא שורף את הקופון. `validateCouponSecure` (בדיקה והצגה) נשאר.
          */
-        if (appliedCoupon && p.couponDiscount > 0) {
-          try {
-            await redeemCouponSecure(appliedCoupon.code);
-          } catch (e) {
-            console.warn('[coupon] פדיית הקופון נכשלה', appliedCoupon.code, e && e.message);
-          }
-        }
         clearInterval(phraseTimer);
         // ⚠️ מבטל שמירה שממתינה בתור **לפני** המחיקה. בלי זה הטיימר
         // שנותר מהלחיצה היה נורה וכותב את הטיוטה בחזרה.

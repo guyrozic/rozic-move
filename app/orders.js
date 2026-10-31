@@ -165,6 +165,13 @@ export async function createOrder(input) {
     notes: input.notes ?? null,
     itemsSummary: input.itemsSummary ?? null,
     price: input.price,
+    /**
+     * 134.2 (31.10) — הקלטים שמהם השרת מחשב מחדש את המחיר ב-`createGrowCheckout`
+     * (יחד עם הקואורדינטות ב-`private/contact` ושדות ההזמנה). צורתו זהה ל-
+     * `buildPricingInputs` באפליקציה — ראו order-pricing-inputs.js. הזמנה בלי
+     * השדה עדיין עוברת בשרת, אבל רק עד שהדגל `REQUIRE_PRICING_INPUTS` יודלק.
+     */
+    pricingInputs: input.pricingInputs ? stripUndefinedDeep(input.pricingInputs) : null,
     commissionAmount: input.commissionAmount ?? 0,
     // Card is the only payment method the site offers (matches the app) — orders
     // wait in 'pending_payment' until Grow's webhook (growNotify) confirms payment.
@@ -881,6 +888,8 @@ export async function promoteDraftToOrder(orderId, finalFields) {
     notes: finalFields.notes ?? null,
     itemsSummary: finalFields.itemsSummary ?? null,
     price: finalFields.price,
+    // ראו createOrder — אותם קלטי תמחור גם במסלול קידום הטיוטה.
+    pricingInputs: finalFields.pricingInputs ? stripUndefinedDeep(finalFields.pricingInputs) : null,
     commissionAmount: finalFields.commissionAmount ?? 0,
     status: computeInitialOrderStatus(finalFields.manualPricingItems),
     hasInsurance: finalFields.hasInsurance ?? false,

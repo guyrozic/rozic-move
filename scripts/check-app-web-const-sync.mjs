@@ -150,7 +150,7 @@ const ENTRIES = [
   {
     name: 'מחיר מינימלי אחרי קופון',
     kind: 'inline-literal',
-    app: () => Number(extract(HOVALOT_ROOT, 'src/services/coupons.ts',
+    app: () => Number(extract(HOVALOT_ROOT, 'src/data/couponMath.ts',
       /MIN_ORDER_PRICE_AFTER_COUPON\s*=\s*(\d+)/, 'MIN_ORDER_PRICE_AFTER_COUPON')[1]),
     web: () => Number(extract(WEB_ROOT, 'app/guest-checkout.js',
       /MIN_ORDER_PRICE_AFTER_COUPON\s*=\s*(\d+)/, 'MIN_ORDER_PRICE_AFTER_COUPON')[1]),

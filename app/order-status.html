@@ -1434,6 +1434,14 @@
              לכן המקרה הזה מקבל הסבר אמיתי ומסלול קדימה. */
           if (String(err?.message) === 'schedule passed') {
             renderRescheduleBox(order, payErrBox);
+          } else if (String(err?.message) === 'order not payable') {
+            /* 134 (31.10) — השרת חוסם תשלום על הזמנה שאינה `pending_payment`
+               (בוטלה, ממתינה לתמחור ידני, או כבר בטיפול). "נסה שוב" לא יעזור. */
+            payErrBox.innerHTML = '<div class="alert alert-error">אי אפשר לשלם על ההזמנה הזו כרגע, כי היא כבר אינה ממתינה לתשלום. רענן את הדף כדי לראות את מצבה, או פנה לתמיכה.</div>';
+          } else if (String(err?.message) === 'price unverifiable') {
+            /* 134.2 — השרת לא הצליח לאמת את המחיר מהקלטים שבהזמנה (למשל הזמנה
+               ישנה בלי כתובות מאומתות). שוב לא יעזור; ההזמנה החדשה כן. */
+            payErrBox.innerHTML = '<div class="alert alert-error">לא הצלחנו לאמת את מחיר ההזמנה, ולכן לא נפתח תשלום. אפשר לפנות לתמיכה, או ליצור את ההזמנה מחדש.</div>';
           } else {
             payErrBox.innerHTML = '<div class="alert alert-error">פתיחת התשלום נכשלה. נסה שוב.</div>';
           }
@@ -1573,6 +1581,8 @@
               code === 'surge tier changed' ? 'התאריך שבחרת משנה את מחיר ההזמנה. בחר יום אחר או הזמן מחדש.'
               : code === 'driver assigned' ? 'כבר שובץ מוביל להזמנה — פנה לתמיכה כדי לשנות מועד.'
               : code === 'already paid' ? 'ההזמנה כבר שולמה.'
+              : code === 'order not payable' ? 'ההזמנה כבר אינה ממתינה לתשלום. רענן את הדף או פנה לתמיכה.'
+              : code === 'price unverifiable' ? 'לא הצלחנו לאמת את מחיר ההזמנה. פנה לתמיכה או צור את ההזמנה מחדש.'
               : 'עדכון המועד נכשל. נסה שוב או פנה לתמיכה.'}</span>`;
           }
         });
