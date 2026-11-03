@@ -52,7 +52,7 @@
   <link rel="stylesheet" href="hub.css?v=1">
   <!-- ⚠️ נטען אחרון בכוונה — `flow.css` דורס את `style-app.css` תחת
        `.flow-b` בלבד, כך שדף שלא טוען אותו אינו מושפע. -->
-  <link rel="stylesheet" href="flow.css?v=51095f16">
+  <link rel="stylesheet" href="flow.css?v=fd6d2d86">
   <style>
     /* --- נגישות מקלדת --- */
     /* טבעת מיקוד נראית. `outline` בלבד ומחוץ לקופסה — אינו תופס מקום
@@ -100,7 +100,7 @@
   </style>
 </head>
 <body class="app-body flow-b">
-<div data-build-stamp class="build-stamp" aria-hidden="true">עודכן 03.11 · 08:10</div>
+<div data-build-stamp class="build-stamp" aria-hidden="true">עודכן 03.11 · 09:01</div>
 <script src="/version-check.js?v=97bd6b2e" defer></script>
   <!-- ⚠️ 15.9 — "דלג לתוכן המרכזי" (WCAG 2.4.1, רמה A). זהו האלמנט הממוקד
        הראשון בדף: מוסתר מהעין, מופיע בפינה ברגע שמגיעים אליו ב-Tab, ומעביר
@@ -114,7 +114,7 @@
        והוא היה בלתי-נגיש למקלדת לחלוטין, כולל המעבר ללוח היד-שנייה.
        נמדד: אלמנט עם `tabindex="0"` מפורש **כן** נכנס לסדר גם במצב הזה
        (WebKit, 15.9). -->
-  <script type="module" src="pilot-banner.js?v=14a0e537"></script>
+  <script type="module" src="pilot-banner.js?v=40593444"></script>
   <script type="module" src="offline-banner.js?v=96b835df"></script>
   <script type="module" src="support-unread.js?v=3e4792c2"></script>
   <div class="app-topbar">
@@ -130,6 +130,10 @@
 
   <div class="step-hero hub-hero">
     <div class="step-hero-inner">
+      <!-- ⚠️ 3.11 — שקע באנר ההרצה **בתוך** ההירו. בלעדיו הבאנר נכנס לראש
+           ה-<main>, וההירו (שמושך את עצמו 68px למעלה אל מאחורי הסרגל ב-
+           `flow.css`) כיסה את חציו התחתון — נמדד ב-390px, גם באתר החי. -->
+      <div class="hp-banner-slot" data-pilot-banner-slot></div>
       <div class="hero-badge" style="margin-bottom:14px;">בלי הורדת אפליקציה</div>
       <!-- ⚠️ הטקסט הסטטי כאן הוא ברירת המחדל לאורח (ולמי שה-JS טרם רץ) —
            המודול בתחתית הדף מחליף אותו בברכה אישית למשתמש מחובר, לפי

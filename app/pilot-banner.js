@@ -32,7 +32,11 @@
  * בעצמו לפי הנתיב. כך ההחלטה "איפה הבאנר מופיע" חיה **בקבוע אחד**, ולא
  * מתפזרת על פני תשעה תגי `<script>` שמישהו יוסיף או ישכח.
  */
-import { PILOT_MODE, PILOT_BANNER_TITLE, PILOT_BANNER_BODY } from './pilot-mode.js';
+import {
+  PILOT_MODE,
+  PILOT_BANNER_GENERAL_TITLE, PILOT_BANNER_GENERAL_BODY,
+  PILOT_BANNER_CUSTOMER_TITLE, PILOT_BANNER_CUSTOMER_BODY,
+} from './pilot-mode.js';
 
 /**
  * מסכי הבית של האתר — המקבילה ל-`'Home'` ו-`'DriverHome'` באפליקציה.
@@ -50,6 +54,11 @@ import { PILOT_MODE, PILOT_BANNER_TITLE, PILOT_BANNER_BODY } from './pilot-mode.
 const PILOT_BANNER_PAGES = ['/', '/index.html', '/app/', '/app/index.html'];
 
 const path = location.pathname.replace(/\/{2,}/g, '/');
+// 3.11 (162.3) — הבית הציבורי מקבל נוסח כללי; הבית של ממשק ההזמנה מקבל
+// את נוסח הלקוח, התאום לאפליקציה.
+const isPublicHome = path === '/' || path === '/index.html';
+const PILOT_BANNER_TITLE = isPublicHome ? PILOT_BANNER_GENERAL_TITLE : PILOT_BANNER_CUSTOMER_TITLE;
+const PILOT_BANNER_BODY = isPublicHome ? PILOT_BANNER_GENERAL_BODY : PILOT_BANNER_CUSTOMER_BODY;
 if (PILOT_MODE && PILOT_BANNER_PAGES.includes(path)) showPilotBanner();
 
 function showPilotBanner() {

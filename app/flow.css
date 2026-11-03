@@ -164,6 +164,10 @@
 }
 .flow-b .step-hero p,
 .flow-b .step-hero #step-desc { color: var(--fl-wash); }
+/* ⚠️ 3.11 — באנר ההרצה יושב בתוך ההירו (שקע ב-`app/index.html`), והכלל
+   שמעל צבע את הטקסט שלו בירוק-חיוור על רקע השמנת — כמעט בלתי קריא. */
+.flow-b .step-hero .pilot-banner-title { color: var(--pilot-title); }
+.flow-b .step-hero .pilot-banner-body { color: var(--pilot-body); }
 
 /* ── העינית ושביל השלבים ──────────────────────────────────────────
    ⚠️ `.step-dot` היה פס אפור בגובה 5px בלי מילה. הכלל הבסיסי מגיע
