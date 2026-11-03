@@ -2654,7 +2654,11 @@ body.mvp-page .nav:not(.scrolled) :is(a, button, summary, [tabindex]):focus-visi
   font-variant-numeric: tabular-nums;
   pointer-events: none;
   user-select: none;
+  /* 161.2 (גיא, 3.11): מוסתרת מלקוחות. מוצגת רק בדפדפן שבו נכתב פעם
+     `?stamp` בכתובת (`?stamp=0` מכבה) — ראו `version-check.js`. */
+  display: none;
 }
+.show-stamp .build-stamp { display: block; }
 
 /* ── חותמת הבנייה במצב "גרסה חדשה" ────────────────────────────────
    נלווה ל-`version-check.js`. ⚠️ שניהם נמחקים יחד לפני השקה לציבור —

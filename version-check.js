@@ -37,6 +37,22 @@
   const el = document.querySelector('[data-build-stamp]');
   if (!el) return;
 
+  /* 161.2 (גיא, 3.11): החותמת גלויה רק למי שביקש — `?stamp` בכתובת
+     פעם אחת, והבחירה נשמרת בדפדפן. `?stamp=0` מכבה. לקוח לא רואה אותה,
+     והבדיקה מול `version.txt` לא רצה אצלו בכלל. */
+  const KEY = 'rozic-show-stamp';
+  let on = false;
+  try {
+    const q = new URLSearchParams(location.search).get('stamp');
+    if (q === '0') localStorage.removeItem(KEY);
+    else if (q !== null) localStorage.setItem(KEY, '1');
+    on = localStorage.getItem(KEY) === '1';
+  } catch {
+    on = new URLSearchParams(location.search).has('stamp') && new URLSearchParams(location.search).get('stamp') !== '0';
+  }
+  if (!on) return;
+  document.documentElement.classList.add('show-stamp');
+
   const mine = el.textContent.replace('עודכן', '').trim();
   if (!mine) return;
 
