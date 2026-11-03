@@ -550,6 +550,10 @@
 .price-lines { display: flex; flex-direction: column; gap: 9px; margin-bottom: 14px; }
 .price-line { display: flex; justify-content: space-between; font-size: 0.88rem; color: var(--text-mid); }
 .price-line.discount { color: var(--green-dark); }
+/* סכום עם סימן ("+₪54", "−₪12") בשורה עברית: הסימן ניטרלי ב-BiDi ונודד לסוף,
+   כלומר מוצג "₪54+". בידוד LTR שומר אותו לפני הסכום (נמצא בבניית רילס 1, 1.11). */
+.price-line > span:last-child { direction: ltr; unicode-bidi: isolate; }
+#packing-price-label, .signed-amount { direction: ltr; unicode-bidi: isolate; display: inline-block; }
 /* הערות הלקוח הן שדה טקסט חופשי — ב-`price-line` (שורת תווית/ערך בשני
    צדדים) הערה ארוכה נפרסת על פני חצי מסך ודוחפת את התווית לפינה. כאן
    התווית יושבת בשורה משלה, הטקסט זורם מתחתיה, ומעל גובה מסוים הוא נגלל

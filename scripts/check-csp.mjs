@@ -53,7 +53,7 @@ for (const page of pages) {
 const NAVIGATION_ONLY = new Set([
   'play.google.com', 'apps.apple.com', 'wa.me', 'calendar.google.com',
   'www.openstreetmap.org', 'schema.org', 'rozicmove.com', 'www.w3.org',
-  'developer.mozilla.org', 'evil.example',
+  'developer.mozilla.org', 'evil.example', 'www.instagram.com',
 ]);
 
 if (reference) {

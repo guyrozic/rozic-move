@@ -315,7 +315,7 @@
         <section class="wizard-step" data-step="2" style="display:none;">
           <div class="app-card">
             <h2>📦 רוצה גם שירות אריזה?</h2>
-            <p class="app-card-desc">הצוות שלנו יארוז את כל הפריטים שנבחרו לפני ההובלה.</p>
+            <p class="app-card-desc">המוביל יארוז את כל הפריטים שנבחרו לפני ההובלה, בזהירות ובמהירות.</p>
             <div id="packing-preview" class="alert alert-info"></div>
             <button tabindex="0" class="btn btn-primary btn-block" id="packing-add-btn" style="margin-bottom:10px;">הוסף שירות אריזה</button>
             <button tabindex="0" class="btn btn-secondary btn-block" id="packing-skip-btn">דלג, אני אארוז בעצמי</button>
@@ -647,6 +647,7 @@
           <div class="footer-col-title">יצירת קשר</div>
           <a tabindex="0" href="tel:+972508811085">טלפון: 050-881-1085</a>
           <a tabindex="0" href="mailto:support@rozicmove.com">support@rozicmove.com</a>
+          <a tabindex="0" href="https://www.instagram.com/rozicmove/" target="_blank" rel="noopener">אינסטגרם</a>
         </div>
       </div>
     </div>
@@ -1913,7 +1914,7 @@
         selected.forEach(i => {
           (classifyForPackingPreview(i) === 'none' ? excluded : packed).push(i);
         });
-        const lines = [`<p class="packing-preview-summary">המוביל יארוז: ${parts.join(' + ')} — +₪${formatPrice(packingCalc.total)}</p>`];
+        const lines = [`<p class="packing-preview-summary">המוביל יארוז: ${parts.join(' + ')} — <span class="signed-amount">+₪${formatPrice(packingCalc.total)}</span></p>`];
         if (packed.length) lines.push(`<p class="packing-preview-detail">כולל: ${escHtml(summarizePackingLabels(packed))}</p>`);
         if (excluded.length) lines.push(`<p class="packing-preview-detail">לא כלול בשירות האריזה: ${escHtml(summarizePackingLabels(excluded))} — אלה עוברים כמו שהם.</p>`);
         previewEl.innerHTML = lines.join('');

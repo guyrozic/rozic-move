@@ -348,7 +348,7 @@
         <section class="wizard-step" data-step="2" style="display:none;">
           <div class="app-card">
             <h2>📦 רוצה גם שירות אריזה?</h2>
-            <p class="app-card-desc" id="packing-desc">הצוות שלנו יארוז את כל הפריטים שנבחרו לפני ההובלה, בזהירות ובמהירות.</p>
+            <p class="app-card-desc" id="packing-desc">המוביל יארוז את כל הפריטים שנבחרו לפני ההובלה, בזהירות ובמהירות.</p>
             <!-- ⚠️ 17.9 — מוצג רק כשיש ארגזי קרטון שהלקוח סימן ברשימת
                  הפריטים (hasCustomerBoxes ב-renderPackingOffer). מקביל
                  מדויק לשאלה ב-PackingOfferScreen באפליקציה. -->
@@ -691,6 +691,7 @@
           <div class="footer-col-title">יצירת קשר</div>
           <a tabindex="0" href="tel:+972508811085">טלפון: 050-881-1085</a>
           <a tabindex="0" href="mailto:support@rozicmove.com">support@rozicmove.com</a>
+          <a tabindex="0" href="https://www.instagram.com/rozicmove/" target="_blank" rel="noopener">אינסטגרם</a>
         </div>
       </div>
     </div>
@@ -1978,7 +1979,7 @@
         selected.forEach(i => {
           (classifyForPackingPreview(i, countCustomerBoxes) === 'none' ? excluded : packed).push(i);
         });
-        const lines = [`<p class="packing-preview-summary">המוביל יארוז: ${parts.join(' + ')} — +₪${formatPrice(packingCalc.total)}</p>`];
+        const lines = [`<p class="packing-preview-summary">המוביל יארוז: ${parts.join(' + ')} — <span class="signed-amount">+₪${formatPrice(packingCalc.total)}</span></p>`];
         if (packed.length) lines.push(`<p class="packing-preview-detail">כולל: ${escHtml(summarizePackingLabels(packed))}</p>`);
         if (excluded.length) lines.push(`<p class="packing-preview-detail">לא כלול בשירות האריזה: ${escHtml(summarizePackingLabels(excluded))} — אלה עוברים כמו שהם.</p>`);
         previewEl.innerHTML = lines.join('');
