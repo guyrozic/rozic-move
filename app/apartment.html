@@ -732,7 +732,7 @@
     import { BED_ITEM_KEYS, buildMattressFollowUpQuestion, hasMattressOptions,
              buildBeddingBoxFollowUpQuestion, diningChairsFollowUpFor,
              buildDuplicateCheckQuestion, longestCommonPrefix } from './data/followups.js';
-    import { BASE_PRICE, PRICE_PER_KM, FLOOR_SURCHARGE_PER_FLOOR, getVolumeDiscount, getSurgePricing, calculatePackingFromItems, getBoxSizeFromKey, INSURANCE_PRICE_APARTMENT, REGION_SURCHARGE_RATE } from './data/pricing.js';
+    import { BASE_PRICE, PRICE_PER_KM, FLOOR_SURCHARGE_PER_FLOOR, getVolumeDiscount, getSurgePricing, calculatePackingFromItems, getBoxSizeFromKey, getBoxItemInfo, INSURANCE_PRICE_APARTMENT, REGION_SURCHARGE_RATE } from './data/pricing.js';
     import { hasRegionSurcharge } from './data/pricing-regions.js';
     import { loadRemotePricingConfig } from './pricing-config.js';
     import { FLOORS, craneCostFor, distanceAndCoords, formatDateApp, parseDateApp } from './geo.js';
@@ -1008,10 +1008,16 @@
 
     function selectedItems() {
       return Object.entries(state.items).filter(([, q]) => q > 0).map(([key, qty]) => ({
-        key, qty, unitPrice: getItemPriceAnyCategory(key), label: findItemAnywhere(key)?.label || key,
+        key, qty, unitPrice: apartmentUnitPrice(key), label: findItemAnywhere(key)?.label || key,
       }));
     }
 
+    // 12.11.2026: מחיר יחידה בדירה, כמו apartmentItemUnitPrice באפליקציה ובשרת: ארגז קרטון
+    // לפי BOX_PRICES.move (12/18/25/35), וכל השאר לפי הקטלוג. מחיר הקטלוג של הארגז
+    // (ובקונפיג החי 24/36/50/70) אינו מה שהשרת גובה, ולכן לא מציגים אותו.
+    function apartmentUnitPrice(key) {
+      return getBoxItemInfo(key)?.price ?? getItemPriceAnyCategory(key);
+    }
     function computePrice() {
       const selected = selectedItems();
       const itemsSubtotal = selected.reduce((s, i) => s + i.unitPrice * i.qty, 0);
@@ -1818,7 +1824,7 @@
           <div class="item-card-icon-wrap"><span class="item-card-icon">${item.icon}</span></div>
           <div class="item-card-name">${name}</div>
           ${size ? `<div class="item-card-size">${size}</div>` : ''}
-          <div class="item-card-price">₪${getItemPriceAnyCategory(item.key)} ליחידה</div>
+          <div class="item-card-price">₪${apartmentUnitPrice(item.key)} ליחידה</div>
           <div class="qty-control">
             <button tabindex="0" data-action="dec" aria-label="הפחת ${name}, כמות נוכחית ${qty}">−</button>
             <span class="qty-value">${qty}</span>
