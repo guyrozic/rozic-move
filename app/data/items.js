@@ -120,6 +120,10 @@ export const ALL_ROOMS = [
             { key: 'projector_device', label: 'מקרן', icon: '📽', defaultQty: 1, heavy: false, fragile: true, needsDisassembly: false, synonyms: ['מקרן וידאו'] },
             { key: 'buffet_sideboard', label: 'מזנון', icon: '🗄', defaultQty: 1, heavy: true, fragile: false, needsDisassembly: false, synonyms: ['ארונית סלון'] },
             { key: 'display_cabinet', label: 'ויטרינה', icon: '🗄', defaultQty: 1, heavy: true, fragile: true, needsDisassembly: false, synonyms: ['ארון תצוגה'] },
+            { key: 'shoe_rack_open', label: 'מעמד נעליים פתוח (עד 80 ס"מ)', icon: '👟', defaultQty: 1, heavy: false, fragile: false, needsDisassembly: false, synonyms: ['מתקן נעליים', 'מדף נעליים'] },
+            { key: 'shoe_cabinet_medium', label: 'ארון נעליים בינוני (עד 120 ס"מ גובה)', icon: '👟', defaultQty: 1, heavy: false, fragile: false, needsDisassembly: false, synonyms: [] },
+            { key: 'shoe_cabinet_tall', label: 'ארון נעליים גבוה (מעל 120 ס"מ)', icon: '👟', defaultQty: 1, heavy: true, fragile: false, needsDisassembly: false, synonyms: [] },
+            { key: 'coat_rack_stand', label: 'מתלה מעילים עומד', icon: '🧥', defaultQty: 1, heavy: false, fragile: false, needsDisassembly: false, synonyms: ['קולב מעילים', 'מתלה כניסה'] },
         ],
     },
     {
@@ -241,6 +245,16 @@ export const ALL_ROOMS = [
             { key: 'ironing_board', label: 'קרש גיהוץ', icon: '👕', defaultQty: 1, heavy: false, fragile: false, needsDisassembly: false, synonyms: ['שולחן גיהוץ'] },
             { key: 'rowing_machine', label: 'מכשיר חתירה', icon: '🚣', defaultQty: 1, heavy: true, fragile: false, needsDisassembly: false, synonyms: [] },
             { key: 'pull_up_bar', label: 'מוט מתח', icon: '🏋', defaultQty: 1, heavy: false, fragile: false, needsDisassembly: true, synonyms: [] },
+            { key: 'surfboard_short', label: 'גלשן קצר (עד 2 מ׳)', icon: '🏄', defaultQty: 1, heavy: false, fragile: true, needsDisassembly: false, synonyms: ['גלשן גלים קצר', 'שורטבורד'] },
+            { key: 'surfboard_long', label: 'גלשן ארוך (2–3 מ׳)', icon: '🏄', defaultQty: 1, heavy: false, fragile: true, needsDisassembly: false, synonyms: ['גלשן גלים ארוך', 'לונגבורד'] },
+            { key: 'sup_board', label: 'SUP, גלשן חתירה (3 מ׳ ומעלה)', icon: '🏄', defaultQty: 1, heavy: false, fragile: true, needsDisassembly: false, synonyms: ['סאפ', 'גלשן סאפ', 'SUP'] },
+            { key: 'kayak', label: 'קיאק', icon: '🛶', defaultQty: 1, heavy: true, fragile: true, needsDisassembly: false, synonyms: ['סירת קיאק', 'קאנו'] },
+            { key: 'ski_snowboard', label: 'סקי או סנובורד (זוג מגלשיים או קרש, בתיק)', icon: '⛷', defaultQty: 1, heavy: false, fragile: true, needsDisassembly: false, synonyms: ['סנובורד', 'מגלשי סקי', 'סקי'] },
+            { key: 'golf_bag', label: 'תיק גולף', icon: '⛳', defaultQty: 1, heavy: false, fragile: true, needsDisassembly: false, synonyms: ['מקלות גולף', 'ציוד גולף'] },
+            { key: 'punching_bag', label: 'שק אגרוף (בלי המתקן)', icon: '🥊', defaultQty: 1, heavy: true, fragile: false, needsDisassembly: false, synonyms: ['שק איגרוף', 'שק מכות'] },
+            { key: 'balance_board', label: 'באלנס בורד', icon: '🛹', defaultQty: 1, heavy: false, fragile: false, needsDisassembly: false, synonyms: ['לוח שיווי משקל'] },
+            { key: 'camping_gear', label: 'ציוד קמפינג (אוהל, כיסאות ושולחן מקופלים)', icon: '⛺', defaultQty: 1, heavy: false, fragile: false, needsDisassembly: false, synonyms: ['אוהל', 'ציוד שטח', 'כיסאות קמפינג'] },
+            { key: 'fishing_gear', label: 'ציוד דיג (חכות ותיבה)', icon: '🎣', defaultQty: 1, heavy: false, fragile: true, needsDisassembly: false, synonyms: ['חכות', 'חכה', 'ציוד דייג'] },
         ],
     },
     {
@@ -409,6 +423,7 @@ export function recommendedTruckSize(selectedItems) {
  * already owns (that's the separate "bring your own box" flow, see BOX_PRICES).
  */
 const PACKING_NONE_KEYS = new Set([
+    'surfboard_short', 'surfboard_long', 'sup_board', 'kayak', 'ski_snowboard', 'golf_bag', 'punching_bag', 'balance_board', 'camping_gear', 'fishing_gear', 'coat_rack_stand',
     'ac_unit_1hp', 'ac_unit_1_2hp', 'ac_unit_2_3hp', 'portable_ac', 'radiator', 'fan_ceiling', 'fan_floor',
     'fridge_freezer_small', 'fridge_freezer_medium', 'fridge_freezer_large', 'fridge_freezer_giant',
     'washer_dryer_small', 'washer_dryer_large', 'dishwasher_small', 'dishwasher_large',
@@ -432,6 +447,7 @@ const PACKING_NONE_KEYS = new Set([
 ]);
 /** Large furniture the packing crew wraps in protective blankets/shrink-wrap (never boxed). */
 const PACKING_WRAP_KEYS = new Set([
+    'shoe_rack_open', 'shoe_cabinet_medium', 'shoe_cabinet_tall',
     'single_bed', 'double_bed', 'king_bed', 'baby_bed', 'bed_one_half',
     'electric_bed_single', 'electric_bed_double', 'electric_bed_half', 'electric_bed_king',
     'bunk_bed', 'single_bed_kids',
