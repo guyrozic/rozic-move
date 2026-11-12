@@ -1,4 +1,6 @@
-import { ITEM_PRICES } from './pricing.js';
+import { ITEM_PRICES, SMALL_MOVE_ITEM_FACTOR } from './pricing.js';
+/** 12.11.2026: מחיר הקופסה בהובלה קטנה נשאר 12/18/25 (מחירי הקוד ÷1.8). זהה לאפליקציה. */
+const smallBoxPrice = (codePrice) => Math.round(codePrice * SMALL_MOVE_ITEM_FACTOR);
 import { findItemAnywhere } from './items.js';
 /**
  * "מובילים בקטנה" (smallMove) uses items.ts's ALL_ROOMS catalog directly — no separate
@@ -6,9 +8,9 @@ import { findItemAnywhere } from './items.js';
  * inventory (BOX_ITEMS) and van-capacity estimation (estimateVolume/MAX_VOLUME).
  */
 export const BOX_ITEMS = [
-    { key: 'box_s', label: 'קופסה S — 30×30×30 ס"מ', icon: '📦', price: ITEM_PRICES.misc.box_S, volume: 1 },
-    { key: 'box_m', label: 'קופסה M — 40×40×50 ס"מ', icon: '📦', price: ITEM_PRICES.misc.box_M, volume: 1 },
-    { key: 'box_l', label: 'קופסה L — 50×50×70 ס"מ', icon: '📦', price: ITEM_PRICES.misc.box_L, volume: 2 },
+    { key: 'box_s', label: 'קופסה S — 30×30×30 ס"מ', icon: '📦', price: smallBoxPrice(ITEM_PRICES.misc.box_S), volume: 1 },
+    { key: 'box_m', label: 'קופסה M — 40×40×50 ס"מ', icon: '📦', price: smallBoxPrice(ITEM_PRICES.misc.box_M), volume: 1 },
+    { key: 'box_l', label: 'קופסה L — 50×50×70 ס"מ', icon: '📦', price: smallBoxPrice(ITEM_PRICES.misc.box_L), volume: 2 },
 ];
 export const MAX_VOLUME = 10;
 /** Van-capacity units (1-4) for an items.ts RoomItem — no stored data, derived on the fly from its physical-handling flags. */
