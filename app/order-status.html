@@ -301,6 +301,7 @@
     import { getUserProfile, formatVehicle } from './users.js';
     import { toggleFavoriteDriver } from './account.js';
     import { PILOT_MODE } from './pilot-mode.js';
+    import { getSurgePricing } from './data/pricing.js';
     import { addDoc, collection, serverTimestamp as reportServerTimestamp } from 'https://www.gstatic.com/firebasejs/12.16.0/firebase-firestore.js';
     import { db } from './firebase.js';
 
@@ -1481,10 +1482,10 @@
 
       const RESCHEDULE_SLOTS = ['08:00-11:00', '11:00-14:00', '14:00-17:00', '17:00-20:00'];
 
-      /** אותן שלוש שורות של getSurgePricing — יום בשבוע בלבד. */
-      function surgeTierOfDate(d) {
-        const dow = d.getDay();
-        return dow === 6 ? 'שבת' : dow === 5 ? 'שישי' : null;
+      /** המדרגה = getSurgePricing עצמה (data/pricing.js), עם המשבצת. מכיול 1 (12.11.2026)
+       *  שישי ביום בלי תוספת וערב שישי עם, ולכן עותק של "יום בשבוע" כבר לא מספיק. */
+      function surgeTierOf(d, timeSlot) {
+        return getSurgePricing(d, timeSlot)?.label ?? null;
       }
       function parseDMY(str) {
         const p = String(str || '').split('/').map(Number);
@@ -1499,7 +1500,7 @@
          הבדיקה שלי בדקה את **השרת** ולא את **הדף**, ולכן לא תפסה. */
       function renderRescheduleBox(order, payErrBox) {
         const oldDate = parseDMY(order.scheduledDate);
-        const oldTier = oldDate ? surgeTierOfDate(oldDate) : null;
+        const oldTier = oldDate ? surgeTierOf(oldDate, order.timeSlot || '') : null;
         // מינימום מחר: היום עצמו כבר עבר או עומד לעבור, והזמנה לאותו
         // יום דרך המסך הזה היא בדיוק המקרה שיצר את המבוי הסתום.
         const min = new Date(); min.setDate(min.getDate() + 1);
@@ -1537,6 +1538,8 @@
               c.classList.toggle('active', on);
               c.setAttribute('aria-pressed', on ? 'true' : 'false');
             });
+            // המשבצת משנה את המדרגה בשישי (יום מול ערב) — בודקים שוב.
+            checkTier();
           };
           makeChipAccessible(chip, false);
           chip.addEventListener('click', pick);
@@ -1547,11 +1550,11 @@
         const dateEl = document.getElementById('rs-date');
         const warnEl = document.getElementById('rs-warn');
         const saveBtn = document.getElementById('rs-save');
-        dateEl.addEventListener('change', () => {
+        function checkTier() {
           const v = dateEl.value;
           if (!v) { saveBtn.disabled = true; warnEl.textContent = ''; return; }
           const picked = new Date(`${v}T00:00:00`);
-          const tier = surgeTierOfDate(picked);
+          const tier = surgeTierOf(picked, slot);
           if (tier !== oldTier) {
             // ⚠️ נחסם מראש ולא נשלח כדי ליפול בשרת: כך הלקוח מקבל את
             // הסיבה האמיתית במקום שגיאה גנרית.
@@ -1563,7 +1566,8 @@
           }
           warnEl.textContent = '';
           saveBtn.disabled = false;
-        });
+        }
+        dateEl.addEventListener('change', checkTier);
 
         saveBtn.addEventListener('click', async () => {
           const v = dateEl.value;

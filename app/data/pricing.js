@@ -333,7 +333,15 @@ export const VOLUME_DISCOUNT = [
     { upTo: 4000, discount: 0.19 },
     { upTo: Infinity, discount: 0.20 },
 ];
+/** כיול 1 (12.11.2026): מעל ₪4,000 ההנחה ממשיכה ברצף — 20% ועוד 1.5% לכל ₪100, עד 35%.
+ *  זהה ל-getVolumeDiscount ב-Hovalot/src/data/pricing.ts. */
+export const VOLUME_DISCOUNT_STEP_FROM = 4000;
+export const VOLUME_DISCOUNT_STEP_PER_100 = 0.015;
+export const VOLUME_DISCOUNT_MAX = 0.35;
 export function getVolumeDiscount(subtotal) {
+    if (subtotal > VOLUME_DISCOUNT_STEP_FROM) {
+        return Math.min(VOLUME_DISCOUNT_MAX, 0.20 + ((subtotal - VOLUME_DISCOUNT_STEP_FROM) / 100) * VOLUME_DISCOUNT_STEP_PER_100);
+    }
     for (const tier of VOLUME_DISCOUNT) {
         if (subtotal <= tier.upTo)
             return tier.discount;
@@ -343,7 +351,13 @@ export function getVolumeDiscount(subtotal) {
 export let BASE_PRICE = 150;
 /** מחיר בסיס "מובילים בקטנה" — אוחד לכאן מ-small-move.html (היה const BASE=100 מקומי),
  *  כדי שיתעדכן מ-config/pricing.smallMoveBasePrice כמו כל שאר הקצבים (60.5). */
-export let SMALL_MOVE_BASE_PRICE = 100;
+export let SMALL_MOVE_BASE_PRICE = 600;
+/** כיול 1: הבסיס בקטנה כולל 15 ק"מ, ואחריהם ₪4 לק"מ. פריטים בקטנה ממחירי הקוד × מקדם (לא config/itemPrices).
+ *  תוספת 10% כשהמוצא או היעד בשרון או במחוז ירושלים (data/pricing-regions.js). זהה לאפליקציה. */
+export let SMALL_MOVE_INCLUDED_KM = 15;
+export let SMALL_MOVE_PRICE_PER_KM = 4;
+export let SMALL_MOVE_ITEM_FACTOR = 1;
+export let REGION_SURCHARGE_RATE = 0.10;
 export let PRICE_PER_KM = 9;
 export let FLOOR_SURCHARGE_PER_FLOOR = 40;
 /**
@@ -547,12 +561,18 @@ export function calculatePackingFromItems(selections, opts = {}) {
     }
     return calculatePackingFromClassified(entries);
 }
-export function getSurgePricing(date) {
+/** כיול 1 (163.2): שישי ביום בלי תוספת; ערב שישי (משבצת מ-17:00) ושבת כמו קודם. זהה לאפליקציה. */
+export const FRIDAY_EVENING_FROM_HOUR = 17;
+export function timeSlotStartHour(timeSlot) {
+    const m = /^(\d{1,2}):\d{2}/.exec(String(timeSlot || '').trim());
+    return m ? Number(m[1]) : null;
+}
+export function getSurgePricing(date, timeSlot) {
     const day = date.getDay(); // 0=Sun … 5=Fri … 6=Sat
     if (day === 6)
         return { label: 'שבת', rate: 0.50 };
-    if (day === 5)
-        return { label: 'שישי', rate: 0.25 };
+    if (day === 5 && (timeSlotStartHour(timeSlot) ?? 0) >= FRIDAY_EVENING_FROM_HOUR)
+        return { label: 'ערב שישי', rate: 0.25 };
     return null;
 }
 
@@ -585,6 +605,7 @@ function acceptedValue(value, max) {
 }
 const MAX_RATE = 1;      // שיעורים (0-1) — חוסם הקלדת 12 במקום 0.12
 const MAX_FEE = 100000;  // תקרת שפיות לשדות ₪ מפני ערך משובש
+const MAX_ITEM_FACTOR = 10; // מקדם פריטים — מכפיל, לא אחוז
 
 /** מחיל את config/pricing מעל הקבועים. ערך לא-קביל נזרק. מקבילה ל-applyPricingRates ב-pricing.ts. */
 export function applyPricingRates(rates) {
@@ -598,6 +619,10 @@ export function applyPricingRates(rates) {
     packingPercentRate: acceptedValue(rates.packingPercentRate, MAX_RATE),
     insurancePriceApartment: acceptedValue(rates.insurancePriceApartment, MAX_FEE),
     insurancePriceSmallMove: acceptedValue(rates.insurancePriceSmallMove, MAX_FEE),
+    smallMoveIncludedKm: acceptedValue(rates.smallMoveIncludedKm, MAX_FEE),
+    smallMovePricePerKm: acceptedValue(rates.smallMovePricePerKm, MAX_FEE),
+    smallMoveItemFactor: acceptedValue(rates.smallMoveItemFactor, MAX_ITEM_FACTOR),
+    regionSurchargeRate: acceptedValue(rates.regionSurchargeRate, MAX_RATE),
   };
   if (applied.basePrice != null) BASE_PRICE = applied.basePrice;
   if (applied.smallMoveBasePrice != null) SMALL_MOVE_BASE_PRICE = applied.smallMoveBasePrice;
@@ -608,6 +633,30 @@ export function applyPricingRates(rates) {
   if (applied.packingPercentRate != null) PACKING_PERCENT_RATE = applied.packingPercentRate;
   if (applied.insurancePriceApartment != null) INSURANCE_PRICE_APARTMENT = applied.insurancePriceApartment;
   if (applied.insurancePriceSmallMove != null) INSURANCE_PRICE_SMALL_MOVE = applied.insurancePriceSmallMove;
+  if (applied.smallMoveIncludedKm != null) SMALL_MOVE_INCLUDED_KM = applied.smallMoveIncludedKm;
+  if (applied.smallMovePricePerKm != null) SMALL_MOVE_PRICE_PER_KM = applied.smallMovePricePerKm;
+  if (applied.smallMoveItemFactor != null) SMALL_MOVE_ITEM_FACTOR = applied.smallMoveItemFactor;
+  if (applied.regionSurchargeRate != null) REGION_SURCHARGE_RATE = applied.regionSurchargeRate;
+}
+
+/** כיול 1: מחירי הפריטים כפי שהם בקוד, לפני config/itemPrices. נלקח בטעינת המודול (לפני pricing-config.js). */
+const CODE_ITEM_PRICES = (() => {
+  const out = {};
+  for (const category of Object.keys(ITEM_PRICES)) {
+    for (const [key, price] of Object.entries(ITEM_PRICES[category])) {
+      if (!(key in out)) out[key] = price;
+    }
+  }
+  return out;
+})();
+/** מחיר יחידה של פריט קטלוג בהובלה קטנה, או null כשאינו בקטלוג. זהה ל-smallMoveCatalogUnitPrice באפליקציה. */
+export function smallMoveCatalogUnitPrice(itemKey) {
+  const price = CODE_ITEM_PRICES[itemKey];
+  return price === undefined ? null : Math.round(price * SMALL_MOVE_ITEM_FACTOR);
+}
+/** עלות נסיעה בקטנה: הק"מ הכלולים חינם. זהה ל-smallMoveTravelCost באפליקציה. */
+export function smallMoveTravelCost(distanceKm) {
+  return Math.round(Math.max(0, (distanceKm || 0) - SMALL_MOVE_INCLUDED_KM) * SMALL_MOVE_PRICE_PER_KM);
 }
 
 /** מחיל את config/itemPrices — override למחיר פריט בכל קטגוריה שהוא מופיע בה. זהה ל-applyItemPriceOverrides ב-pricing.ts. */
