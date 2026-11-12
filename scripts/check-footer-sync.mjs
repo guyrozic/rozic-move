@@ -111,8 +111,10 @@ function buildVariant(canonical, { legalPrefix, homePrefix }) {
   out = out.replace(/href="#(features|how-it-works|for-movers|faq|download)"/g,
     (_, anchor) => `href="${homePrefix}#${anchor}"`);
   // קישורי משפטי היחסיים (לא /delete-account.html — הוא כבר אבסולוטי במקור)
-  out = out.replace(/href="(privacy\.html|terms\.html|accessibility\.html)"/g,
-    (_, page) => `href="${legalPrefix}${page}"`);
+  // כולל עוגן (privacy.html#measurement-settings): בלי זה הקישור נשאר יחסי
+  // בדפי app/, נפתר ל-/app/privacy.html ומחזיר 404 (הריצה הלילית, 11.11).
+  out = out.replace(/href="(privacy\.html|terms\.html|accessibility\.html)(#[^"]*)?"/g,
+    (_, page, hash = '') => `href="${legalPrefix}${page}${hash}"`);
   return out;
 }
 
