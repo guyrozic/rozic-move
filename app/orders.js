@@ -6,6 +6,7 @@ import {
   collection, deleteDoc, doc, getDoc, getDocs, onSnapshot,
   query, serverTimestamp, setDoc, updateDoc, where, writeBatch, deleteField } from 'https://www.gstatic.com/firebasejs/12.16.0/firebase-firestore.js';
 import { db, auth } from './firebase.js';
+import { heardFromFieldsForOrder } from './heard-from.js';
 // מדרג הביטולים **אינו** מועתק לכאן ביד — הוא נגזר מהקובץ המקומפל מ-
 // `~/Hovalot/src/data/pricing.ts`, שעליו `check-web-pricing-sync.ts` אוכף
 // זהות. ראו `getCancellationPolicy` למטה.
@@ -137,6 +138,8 @@ function computeInitialOrderStatus(manualPricingItems) {
  */
 export async function createOrder(input) {
   const ref = doc(collection(db, 'orders'));
+  // "איך שמעת עלינו?" — הקוד וה-src בלבד (heard-from.js). לא זורק.
+  const heardFields = await heardFromFieldsForOrder();
   const contactRef = doc(db, 'orders', ref.id, 'private', 'contact');
   const batch = writeBatch(db);
   batch.set(ref, {
@@ -200,6 +203,7 @@ export async function createOrder(input) {
     termsVersion: input.termsVersion ?? null,
     termsAcceptedVia: input.termsAcceptedVia ?? null,
     orderSource: 'web',
+    ...heardFields,
     /**
      * ⚠️ (task 3, 21.9) — מצב האשף המלא ברגע התשלום, **לא** שדה כספי.
      * קיים כדי ש-`order-status.html` יוכל להציע "ערוך את ההזמנה" על
@@ -642,7 +646,9 @@ export function getCancellationPolicy(order, cancellerRole = 'customer') {
       fee,
       feePercent,
       warningMessage: `${tier?.description ?? ''}.\nדמי ביטול: ₪${formatPrice(fee)} (${feePercent}% מהמחיר).`,
-      confirmLabel: `כן, בטל ושלם ₪${formatPrice(fee)}`,
+      // 12.11 (ליאור), תאום לאפליקציה: "ושלם" רמז לחיוב נוסף, אבל הלקוח כבר
+      // שילם ודמי הביטול רק מנוכים מההחזר.
+      confirmLabel: `כן, בטל (דמי ביטול ₪${formatPrice(fee)})`,
     };
   }
 
@@ -863,6 +869,8 @@ export async function clearDraftOrder(orderId) {
  */
 export async function promoteDraftToOrder(orderId, finalFields) {
   const ref = doc(db, 'orders', orderId);
+  // "איך שמעת עלינו?" — ראו createOrder.
+  const heardFields = await heardFromFieldsForOrder();
   const contactRef = doc(db, 'orders', orderId, 'private', 'contact');
   const batch = writeBatch(db);
   batch.update(ref, {
@@ -912,6 +920,7 @@ export async function promoteDraftToOrder(orderId, finalFields) {
     termsAcceptedAt: finalFields.termsAcceptedAt ?? null,
     termsVersion: finalFields.termsVersion ?? null,
     termsAcceptedVia: finalFields.termsAcceptedVia ?? null,
+    ...heardFields,
     draftServiceType: null, draftPayload: null, draftStep: null,
     draftUpdatedAt: null, draftReminderSent: null,
   });

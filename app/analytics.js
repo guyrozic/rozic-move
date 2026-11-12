@@ -15,6 +15,10 @@
 //  4. פרסום מותאם נחסם (`ad_*` denied) — המדידה היא לניתוח פאנל בלבד.
 
 import { isMeasurementEnabled, clearMeasurementCookies, MEASUREMENT_EVENT, MEASUREMENT_KEY } from './measurement-state.js';
+import { captureAttribution } from './attribution.js';
+
+// ‏`?src=` מהביו ומהפוסטים — נשמר בביקור הראשון, ונקרא ב"איך שמעת עלינו?" (heard-from.js).
+captureAttribution();
 
 // ⚠️ הביטול (15.10) — "הגדרות מדידה" בפוטר. כשהמתג כבוי: לא טוענים את ה-SDK,
 // לא שולחים אירועים, ואם הוא כבר נטען — עוצרים אותו ומוחקים את עוגיות _ga.
