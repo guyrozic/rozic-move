@@ -734,7 +734,8 @@
     import { BED_ITEM_KEYS, buildMattressFollowUpQuestion, hasMattressOptions,
              buildBeddingBoxFollowUpQuestion, diningChairsFollowUpFor,
              buildDuplicateCheckQuestion, longestCommonPrefix } from './data/followups.js';
-    import { BASE_PRICE, PRICE_PER_KM, FLOOR_SURCHARGE_PER_FLOOR, getVolumeDiscount, getSurgePricing, calculatePackingFromItems, getBoxSizeFromKey, INSURANCE_PRICE_APARTMENT } from './data/pricing.js';
+    import { BASE_PRICE, PRICE_PER_KM, FLOOR_SURCHARGE_PER_FLOOR, getVolumeDiscount, getSurgePricing, calculatePackingFromItems, getBoxSizeFromKey, INSURANCE_PRICE_APARTMENT, REGION_SURCHARGE_RATE } from './data/pricing.js';
+    import { hasRegionSurcharge } from './data/pricing-regions.js';
     import { loadRemotePricingConfig } from './pricing-config.js';
     import { FLOORS, craneCostFor, distanceAndCoords, formatDateApp, parseDateApp } from './geo.js';
     import { insurancePriceInPilot, INSURANCE_ENABLED } from './pilot-mode.js';
@@ -1027,9 +1028,12 @@
       let floorSurcharge = 0;
       if (!state.fromElevator && fromFloorNum > 0) floorSurcharge += fromFloorNum * FLOOR_SURCHARGE_PER_FLOOR;
       if (!state.toElevator && toFloorNum > 0) floorSurcharge += toFloorNum * FLOOR_SURCHARGE_PER_FLOOR;
-      const surge = getSurgePricing(parseDateApp(state.date));
+      const surge = getSurgePricing(parseDateApp(state.date), state.timeSlot);
       const roundedBase = Math.round(BASE_PRICE + afterDiscount + travelCost + floorSurcharge);
       const surgeAmount = surge ? Math.round(roundedBase * surge.rate) : 0;
+      // כיול 1 (170.5ב): תוספת אזור על אותו בסיס כמו תוספת הסופ"ש, לפני ביטוח/אריזה/מנוף וקופון. זהה ל-regionOf באפליקציה.
+      const regionSurchargeRate = hasRegionSurcharge(state.fromCity, state.toCity) ? REGION_SURCHARGE_RATE : 0;
+      const regionAmount = Math.round((BASE_PRICE + afterDiscount + travelCost + floorSurcharge) * regionSurchargeRate);
       // 17.9 — כמה ארגזי קרטון (box_S/M/L/XL) הלקוח סימן, על פני כל
       // הפריטים שנבחרו. השאלה "כבר ארוזים?" בשלב 2 מוצגת רק אם יש כאלה,
       // בדיוק כמו ב-PackingOfferScreen באפליקציה. בלי countCustomerBoxes
@@ -1044,7 +1048,7 @@
       // מבטיח במפורש שלא ייגבו דמי כיסוי, והאתר גבה. ראו `pilot-mode.js`.
       const insuranceAmount = state.hasInsurance ? insurancePriceInPilot(INSURANCE_PRICE_APARTMENT) : 0;
       const packingAmount = state.hasPacking ? packingCalc.total : 0;
-      const baseTotal = roundedBase + surgeAmount + insuranceAmount + packingAmount + craneCost;
+      const baseTotal = roundedBase + surgeAmount + regionAmount + insuranceAmount + packingAmount + craneCost;
       // 11.9 — התוספת הצרכנית של 5% הוסרה. היא בוטלה באפליקציה ב-2.8,
       // הקבוע שם נמחק, וכל הזמנה חדשה נכתבת עם commissionAmount אפס —
       // באתר היא נשארה שישה שבועות והמחיר כאן היה גבוה ב-5%.
@@ -1074,7 +1078,7 @@
       // לחסום אותו עכשיו ולא אחרי ששינוי מחירון יפתח אותו.
       const couponDiscount = couponInEffect ? Math.max(0, getDiscountAmount(baseTotal, couponInEffect)) : 0;
       const totalPrice = baseTotal - couponDiscount;
-      return { selected, itemsSubtotal, volumeDiscountRate, volumeDiscount, travelCost, floorSurcharge, surge, surgeAmount, packingCalc, boxesQty, hasCustomerBoxes, insuranceAmount, packingAmount, craneCost, commissionAmount, baseTotal, couponDiscount, couponBelowMin, couponCode: couponInEffect ? couponInEffect.code : null, totalPrice };
+      return { selected, itemsSubtotal, volumeDiscountRate, volumeDiscount, travelCost, floorSurcharge, surge, surgeAmount, regionSurchargeRate, regionAmount, packingCalc, boxesQty, hasCustomerBoxes, insuranceAmount, packingAmount, craneCost, commissionAmount, baseTotal, couponDiscount, couponBelowMin, couponCode: couponInEffect ? couponInEffect.code : null, totalPrice };
     }
 
     function renderSidePrice() {
@@ -2427,6 +2431,7 @@
       if (p.travelCost > 0) lines.push([`נסיעה (${state.distance} ק"מ × ₪${PRICE_PER_KM})`, `+₪${formatPrice(p.travelCost)}`]);
       if (p.floorSurcharge > 0) lines.push(['תוספת קומות', `+₪${formatPrice(p.floorSurcharge)}`]);
       if (p.surge) lines.push([`תוספת ${p.surge.label} (+${p.surge.rate * 100}%)`, `+₪${formatPrice(p.surgeAmount)}`]);
+      if (p.regionAmount > 0) lines.push([`תוספת אזור (+${Math.round(p.regionSurchargeRate * 100)}%)`, `+₪${formatPrice(p.regionAmount)}`]);
       if (state.hasInsurance) lines.push(['ביטוח תכולה', `+₪${formatPrice(p.insuranceAmount)}`]);
       if (state.hasPacking) lines.push(['שירות אריזה', `+₪${formatPrice(p.packingAmount)}`]);
       if (p.volumeDiscount > 0) lines.push([`הנחת נפח (${Math.round(p.volumeDiscountRate * 100)}%)`, `−₪${formatPrice(p.volumeDiscount)}`, 'discount']);

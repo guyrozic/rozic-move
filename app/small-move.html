@@ -690,7 +690,8 @@
     import { BED_ITEM_KEYS, buildMattressFollowUpQuestion, hasMattressOptions,
              buildBeddingBoxFollowUpQuestion, diningChairsFollowUpFor,
              buildDuplicateCheckQuestion, longestCommonPrefix } from './data/followups.js';
-    import { PRICE_PER_KM, FLOOR_SURCHARGE_PER_FLOOR, getSurgePricing, calculatePackingFromItems, getBoxSizeFromKey, INSURANCE_PRICE_SMALL_MOVE, SMALL_MOVE_BASE_PRICE } from './data/pricing.js';
+    import { FLOOR_SURCHARGE_PER_FLOOR, getSurgePricing, calculatePackingFromItems, getBoxSizeFromKey, INSURANCE_PRICE_SMALL_MOVE, SMALL_MOVE_BASE_PRICE, SMALL_MOVE_INCLUDED_KM, SMALL_MOVE_PRICE_PER_KM, REGION_SURCHARGE_RATE, smallMoveCatalogUnitPrice, smallMoveTravelCost } from './data/pricing.js';
+    import { hasRegionSurcharge } from './data/pricing-regions.js';
     import { loadRemotePricingConfig } from './pricing-config.js';
     import { BOX_ITEMS, MAX_VOLUME, estimateVolume, applyWithinCapacity } from './data/smallMoveItems.js';
     import { FLOORS, craneCostFor, distanceAndCoords, formatDateApp, parseDateApp } from './geo.js';
@@ -909,7 +910,8 @@
     function itemUnitPrice(key) {
       const box = BOX_ITEMS.find(b => b.key === key);
       if (box) return box.price;
-      return getItemPriceAnyCategory(key);
+      // כיול 1: ממחירי הקוד × מקדם הקטנה, לא config/itemPrices. זהה ל-smallMoveItemInfo באפליקציה.
+      return findItemAnywhere(key) ? (smallMoveCatalogUnitPrice(key) ?? 0) : 0;
     }
     function itemLabel(key) {
       const box = BOX_ITEMS.find(b => b.key === key);
@@ -956,22 +958,26 @@
     function computePrice() {
       const selected = selectedItems();
       const itemsTotal = selected.reduce((s, i) => s + i.unitPrice * i.qty, 0);
-      const travelCost = Math.round((state.distance || 0) * PRICE_PER_KM);
+      // כיול 1: הבסיס כולל 15 ק"מ, ואחריהם ₪4 לק"מ.
+      const travelCost = smallMoveTravelCost(state.distance || 0);
       const fromFloorNum = state.fromFloor === 'קרקע' ? 0 : state.fromFloor === '6+' ? 6 : parseInt(state.fromFloor, 10) || 0;
       const toFloorNum = state.toFloor === 'קרקע' ? 0 : state.toFloor === '6+' ? 6 : parseInt(state.toFloor, 10) || 0;
       let floorSurcharge = 0;
       if (!state.fromElevator && fromFloorNum > 0) floorSurcharge += fromFloorNum * FLOOR_SURCHARGE_PER_FLOOR;
       if (!state.toElevator && toFloorNum > 0) floorSurcharge += toFloorNum * FLOOR_SURCHARGE_PER_FLOOR;
       const baseTotal = SMALL_MOVE_BASE_PRICE + itemsTotal + travelCost + floorSurcharge;
-      const surge = getSurgePricing(parseDateApp(state.date));
+      const surge = getSurgePricing(parseDateApp(state.date), state.timeSlot);
       const surgeAmount = surge ? Math.round(baseTotal * surge.rate) : 0;
+      // כיול 1 (170.5ב): תוספת אזור על אותו בסיס כמו תוספת הסופ"ש, לפני ביטוח/אריזה/מנוף וקופון. זהה ל-regionOf באפליקציה.
+      const regionSurchargeRate = hasRegionSurcharge(state.fromCity, state.toCity) ? REGION_SURCHARGE_RATE : 0;
+      const regionAmount = Math.round(baseTotal * regionSurchargeRate);
       const packingCalc = calculatePackingFromItems(selected.filter(i => findItemAnywhere(i.key)).map(i => ({ itemKey: i.key, qty: i.qty })));
       const craneCost = state.needsCrane ? craneCostFor(state.craneFloor) : 0;
       // ⚠️ 15.9 — עובר דרך `insurancePriceInPilot`: בשלב ההרצה התקנון
       // מבטיח במפורש שלא ייגבו דמי כיסוי, והאתר גבה. ראו `pilot-mode.js`.
       const insuranceAmount = state.hasInsurance ? insurancePriceInPilot(INSURANCE_PRICE_SMALL_MOVE) : 0;
       const packingAmount = state.hasPacking ? packingCalc.total : 0;
-      const preCouponTotal = baseTotal + surgeAmount + insuranceAmount + packingAmount + craneCost;
+      const preCouponTotal = baseTotal + surgeAmount + regionAmount + insuranceAmount + packingAmount + craneCost;
       // 11.9 — התוספת הצרכנית של 5% הוסרה. היא בוטלה באפליקציה ב-2.8,
       // הקבוע שם נמחק, וכל הזמנה חדשה נכתבת עם commissionAmount אפס —
       // באתר היא נשארה שישה שבועות והמחיר כאן היה גבוה ב-5%.
@@ -999,7 +1005,7 @@
       // בדיוק הסיבה לחסום אותו עכשיו ולא אחרי ששינוי מחירון יפתח אותו.
       const couponDiscount = couponInEffect ? Math.max(0, getDiscountAmount(preCouponTotal, couponInEffect)) : 0;
       const totalPrice = preCouponTotal - couponDiscount;
-      return { selected, itemsTotal, travelCost, floorSurcharge, surge, surgeAmount, packingCalc, insuranceAmount, packingAmount, craneCost, commissionAmount, preCouponTotal, couponDiscount, couponBelowMin, couponCode: couponInEffect ? couponInEffect.code : null, totalPrice };
+      return { selected, itemsTotal, travelCost, floorSurcharge, surge, surgeAmount, regionSurchargeRate, regionAmount, packingCalc, insuranceAmount, packingAmount, craneCost, commissionAmount, preCouponTotal, couponDiscount, couponBelowMin, couponCode: couponInEffect ? couponInEffect.code : null, totalPrice };
     }
 
     function renderSidePrice() {
@@ -1779,7 +1785,7 @@
         return;
       }
       const room = ALL_ROOMS.find(r => r.key === activeRoom);
-      room.items.forEach(item => itemListEl.appendChild(renderItemCard(item.key, item.label, item.icon, getItemPriceAnyCategory(item.key))));
+      room.items.forEach(item => itemListEl.appendChild(renderItemCard(item.key, item.label, item.icon, itemUnitPrice(item.key))));
       restoreItemFocus(keepFocus);
       renderSelectedItemsBar();
     }
@@ -2261,7 +2267,7 @@
       // ⚠️ גם עלות הנסיעה ולא רק המרחק — באפליקציה `distanceBox` מציג
       // שתי שורות (`מרחק` + `עלות נסיעה`), ובאתר הופיע רק המרחק. הלקוח
       // ראה "12 ק"מ" ולא ידע שזה ₪108 עד שלב 4.
-      noteEl.textContent = `מרחק משוער: ${state.distance} ק"מ · עלות נסיעה: ₪${formatPrice(state.distance * PRICE_PER_KM)}`;
+      noteEl.textContent = `מרחק משוער: ${state.distance} ק"מ · עלות נסיעה: ₪${formatPrice(smallMoveTravelCost(state.distance))}`;
       goToStep(4);
     });
 
@@ -2331,14 +2337,15 @@
        * מורידה — וזה כל מה שהעמודה הזאת אמורה לומר. (סדר השורות כאן כבר
        * תאם לאפליקציה, ואין ב"מובילים בקטנה" הנחת נפח כלל.)
        */
-      lines.push(['עלות בסיס', `₪${formatPrice(SMALL_MOVE_BASE_PRICE)}`]);
+      lines.push([`עלות בסיס (כולל ${SMALL_MOVE_INCLUDED_KM} ק"מ)`, `₪${formatPrice(SMALL_MOVE_BASE_PRICE)}`]);
       lines.push([`סכום פריטים (${p.selected.length})`, `₪${formatPrice(p.itemsTotal)}`]);
       // ⚠️ `× ₪9` בתוך התווית — באפליקציה השורה היא
       // `נסיעה (12 ק"מ × ₪9)`. בלי התעריף הלקוח רואה סכום שאי אפשר
       // לבדוק, וזו השורה היחידה בפירוט שנגזרת ממספר שהוא לא בחר.
-      if (p.travelCost > 0) lines.push([`נסיעה (${state.distance} ק"מ × ₪${PRICE_PER_KM})`, `+₪${formatPrice(p.travelCost)}`]);
+      if (p.travelCost > 0) lines.push([`נסיעה (${Math.max(0, (state.distance || 0) - SMALL_MOVE_INCLUDED_KM)} ק"מ נוספים × ₪${SMALL_MOVE_PRICE_PER_KM})`, `+₪${formatPrice(p.travelCost)}`]);
       if (p.floorSurcharge > 0) lines.push(['תוספת קומות', `+₪${formatPrice(p.floorSurcharge)}`]);
       if (p.surge) lines.push([`תוספת ${p.surge.label} (+${p.surge.rate * 100}%)`, `+₪${formatPrice(p.surgeAmount)}`]);
+      if (p.regionAmount > 0) lines.push([`תוספת אזור (+${Math.round(p.regionSurchargeRate * 100)}%)`, `+₪${formatPrice(p.regionAmount)}`]);
       if (state.hasInsurance) lines.push(['ביטוח תכולה', `+₪${formatPrice(p.insuranceAmount)}`]);
       if (state.hasPacking) lines.push(['שירות אריזה', `+₪${formatPrice(p.packingAmount)}`]);
       if (state.needsCrane) lines.push(['מנוף הרמה', `+₪${formatPrice(p.craneCost)}`]);
