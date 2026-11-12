@@ -1361,3 +1361,16 @@
 }
 .delete-warn strong { display: block; color: var(--danger); font-size: 0.95rem; margin-bottom: 6px; }
 .delete-warn p { margin: 0; font-size: 0.86rem; color: var(--text); line-height: 1.55; }
+
+/* "איך שמעת עלינו?" (heard-from.js) — תאום של HeardFromPicker באפליקציה.
+   צ'יפים שנשארים מסגרת, ולכן בירוק הבהיר (כלל שני הירוקים). */
+.heard-from { margin: 20px 0 16px; padding: 14px 16px; border: 1px solid var(--border); border-radius: 14px; background: #fff; }
+.heard-from-title { margin: 0; font-size: 1rem; color: var(--green); }
+.heard-from-hint { margin: 4px 0 12px; font-size: 0.875rem; color: var(--text-mid); }
+.heard-from-chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.heard-from-chip { padding: 8px 14px; border-radius: 20px; border: 1px solid #DDD; background: #fff; color: #555; font: inherit; font-size: 0.9rem; cursor: pointer; }
+.heard-from-chip:hover { border-color: var(--green-line); }
+.heard-from-chip[aria-checked="true"] { background: var(--green-tint); border-color: var(--green-line); color: var(--green-ink); font-weight: 700; }
+.heard-from-chip:focus-visible { outline: 2px solid var(--green); outline-offset: 2px; }
+.heard-from-other { display: block; width: 100%; margin-top: 10px; padding: 10px 12px; border: 1px solid #DDD; border-radius: 10px; font: inherit; box-sizing: border-box; }
+.heard-from-other[hidden] { display: none; }
