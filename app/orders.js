@@ -642,7 +642,9 @@ export function getCancellationPolicy(order, cancellerRole = 'customer') {
       fee,
       feePercent,
       warningMessage: `${tier?.description ?? ''}.\nדמי ביטול: ₪${formatPrice(fee)} (${feePercent}% מהמחיר).`,
-      confirmLabel: `כן, בטל ושלם ₪${formatPrice(fee)}`,
+      // 12.11 (ליאור), תאום לאפליקציה: "ושלם" רמז לחיוב נוסף, אבל הלקוח כבר
+      // שילם ודמי הביטול רק מנוכים מההחזר.
+      confirmLabel: `כן, בטל (דמי ביטול ₪${formatPrice(fee)})`,
     };
   }
 
