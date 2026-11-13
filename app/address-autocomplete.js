@@ -157,10 +157,17 @@ function parseCityStreet(comps) {
  * הזו כבר נעשית בשרת (`geocodeAddress`'s `tooCoarse`), ולכן `formattedAddress`
  * שמתקבל משם מועבר כמו שהוא.
  */
+// 13.11: החיפוש מוגבל ל-country:il, אבל הגיאוקודינג ההפוך לא — מיקום בחו"ל עבר כ"כתובת מאומתת". מראה AddressInput.tsx.
+const outsideIsrael = (components) => {
+  const c = (components ?? []).find((x) => x.types?.includes('country'))?.short_name;
+  return !!c && c !== 'IL';
+};
+
 export async function reverseGeocode(authUser, lat, lng) {
   if (!authUser) {
     const guest = await reverseGeocodeGuest(lat, lng);
     if (!guest) return null;
+    if (outsideIsrael(guest.components)) return { outsideIsrael: true };
     const { city, street } = parseCityStreet(guest.components ?? []);
     return { city, street, fullAddress: guest.formattedAddress };
   }
@@ -170,6 +177,7 @@ export async function reverseGeocode(authUser, lat, lng) {
     ?? results.find((r) => r.types?.includes('route'))
     ?? results.find((r) => r.types?.includes('locality'));
   if (!best) return null;
+  if (outsideIsrael(best.address_components)) return { outsideIsrael: true };
   const { city, street } = parseCityStreet(best.address_components ?? []);
   return { city, street, fullAddress: best.formatted_address ?? '' };
 }
@@ -528,6 +536,7 @@ export function mountAddressField({ prefix, authState }) {
       });
       const { latitude: lat, longitude: lng } = pos.coords;
       const result = await reverseGeocode(authUser, lat, lng);
+      if (result?.outsideIsrael) { setLocStatus('המיקום שלך מחוץ לישראל, והשירות פועל בישראל בלבד. אפשר להקליד את הכתובת.'); return; }
       if (!result || !result.fullAddress) { setLocStatus(LOCATE_MSG.noAddress); return; }
       // הנ"צ הן של המדידה עצמה, לא של תוצאת הגיאוקודינג — מראה useMyLocation
       // באפליקציה: הן מדויקות יותר, וזה מה שהמשתמש התכוון אליו בפועל.

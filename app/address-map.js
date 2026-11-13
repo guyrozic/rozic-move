@@ -160,6 +160,7 @@ function doReverseGeocode(authUser, lat, lng) {
     try {
       const r = await reverseGeocode(authUser, lat, lng);
       if (seq !== requestSeq) return; // המשתמש כבר הזיז שוב — תוצאה ישנה
+      if (r?.outsideIsrael) { setStatus('המיקום הזה מחוץ לישראל, והשירות פועל בישראל בלבד', 'warn'); return; }
       if (!r || !r.fullAddress) { setStatus('לא הצלחנו לזהות כתובת במיקום הזה — נסה להזיז מעט', 'warn'); return; }
       resolved = { lat, lng, fullAddress: r.fullAddress, city: r.city, street: r.street };
       setStatus(r.fullAddress);
