@@ -684,6 +684,7 @@
     import { createOrder, getOrder, cancelOrder, getCancellationPolicy } from './orders.js';
     import { smallMovePricingInputs } from './order-pricing-inputs.js';
     import { checkServiceArea } from './service-area.js';
+    import { checkTimeSlot } from './time-slot-required.js';
     import { track } from './analytics.js';
     // מדידה: תחילת הזמנה = האינטראקציה הראשונה בדף (לא עצם הטעינה). בלי PII — ראו analytics.js.
     ['pointerdown', 'keydown'].forEach(ev => document.addEventListener(ev, () => track('order_start', { order_type: 'small_move' }, 'order_start'), { once: true, capture: true }));
@@ -2319,7 +2320,7 @@
         ['כתובת מוצא', `${state.fromAddress} · ${floorText(state.fromFloor, state.fromElevator)}`],
         ['כתובת יעד', `${state.toAddress} · ${floorText(state.toFloor, state.toElevator)}`],
         ['תאריך', state.date],
-        ['חלון זמן מועדף', state.timeSlot || 'לא נבחר'],
+        ['חלון זמן', state.timeSlot || 'לא נבחר'],
       ];
       if (state.needsCrane) {
         rows.push(['מנוף הרמה', state.craneItems.length
@@ -2547,6 +2548,17 @@
       );
       if (areaProblem) {
         errBox.innerHTML = `<div class="alert alert-error"><strong>${areaProblem.title}</strong><br>${areaProblem.body}</div>`;
+        errBox.scrollIntoView({ block: 'center' });
+        return;
+      }
+      /**
+       * ⚠️ 13.11 — חלון זמן חובה (הכרעת עמוס). ההסבר המלא ב-
+       * `app/time-slot-required.js`, והשער יושב כאן ולא רק ליד הבורר
+       * כי טיוטה ישנה נושאת `timeSlot: ''` ונטענת ישר לשלב הזה.
+       */
+      const slotProblem = checkTimeSlot(state.timeSlot);
+      if (slotProblem) {
+        errBox.innerHTML = `<div class="alert alert-error"><strong>${slotProblem.title}</strong><br>${slotProblem.body}</div>`;
         errBox.scrollIntoView({ block: 'center' });
         return;
       }
