@@ -30,7 +30,7 @@ export function checkTimeSlot(timeSlot) {
   if (!value || !SLOT_SHAPE.test(value)) {
     return {
       title: 'לא נבחר חלון זמן',
-      body: 'כדי שהמוביל יוכל לתכנן את היום שלו צריך לבחור שעה להובלה. חזור שלב אחורה ובחר חלון זמן.',
+      body: 'כדי שהמוביל יוכל לתכנן את היום שלו צריך לבחור חלון זמן. חזור שלב אחורה ובחר אחד.',
     };
   }
   return null;

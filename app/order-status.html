@@ -302,6 +302,7 @@
     import { toggleFavoriteDriver } from './account.js';
     import { PILOT_MODE, INSURANCE_ENABLED } from './pilot-mode.js';
     import { getSurgePricing } from './data/pricing.js';
+    import { checkTimeSlot } from './time-slot-required.js';
     import { addDoc, collection, serverTimestamp as reportServerTimestamp } from 'https://www.gstatic.com/firebasejs/12.16.0/firebase-firestore.js';
     import { db } from './firebase.js';
 
@@ -1519,17 +1520,28 @@
               <div class="form-hint" id="rs-warn" role="alert"></div>
             </div>
             <div class="form-group">
-              <label id="rs-slot-label">שעה מועדפת (לא חובה)</label>
+              <label id="rs-slot-label">חלון זמן להובלה</label>
               <div class="room-tabs" id="rs-slots" role="group" aria-labelledby="rs-slot-label"></div>
             </div>
             <button tabindex="0" class="btn btn-primary" id="rs-save" disabled>עדכן מועד והמשך לתשלום</button>
           </div>`;
 
-        let slot = '';
+        /**
+         * ⚠️ 13.11 — **היה `let slot = ''`, כלומר שינוי מועד מחק תמיד את
+         * חלון הזמן הקיים.** הלקוח שינה רק את התאריך, לא נגע בבורר, ושלח
+         * `timeSlot: ''` — ההזמנה חזרה ללוח בלי שעה, והמוביל לא יכול היה
+         * לתכנן לפיה יום עבודה. זה לא "שדה רשות" אלא מחיקה שקטה של נתון
+         * שהלקוח כבר בחר פעם אחת.
+         *
+         * מאותחל עכשיו מההזמנה עצמה, והשמירה חסומה בלי חלון זמן —
+         * כמו בשני דפי ההזמנה. ההסבר המלא ב-`app/time-slot-required.js`.
+         */
+        let slot = order.timeSlot || '';
         const slotsEl = document.getElementById('rs-slots');
         RESCHEDULE_SLOTS.forEach((s) => {
           const chip = document.createElement('div');
-          chip.className = 'room-tab';
+          chip.className = 'room-tab' + (s === slot ? ' active' : '');
+          chip.setAttribute('aria-pressed', s === slot ? 'true' : 'false');
           chip.textContent = s;
           const pick = () => {
             slot = slot === s ? '' : s;
@@ -1561,6 +1573,13 @@
             warnEl.innerHTML = tier
               ? `<span style="color:var(--danger)">התאריך שבחרת הוא ${tier}, ולכן המחיר כולל תוספת שאינה בהזמנה הנוכחית. בחר יום אחר, או הזמן מחדש כדי לקבל את המחיר המעודכן.</span>`
               : '<span style="color:var(--danger)">ההזמנה הנוכחית מתומחרת ליום עם תוספת. מעבר ליום רגיל משנה את המחיר — צריך להזמין מחדש.</span>';
+            saveBtn.disabled = true;
+            return;
+          }
+          /** ⚠️ חלון זמן חובה — ראו ההערה על אתחול `slot` למעלה. */
+          const slotProblem = checkTimeSlot(slot);
+          if (slotProblem) {
+            warnEl.innerHTML = `<span style="color:var(--danger)">${slotProblem.title} — בחר חלון זמן כדי להמשיך.</span>`;
             saveBtn.disabled = true;
             return;
           }
