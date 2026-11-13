@@ -102,6 +102,9 @@ const files = [];
 
 const decorative = [];
 const wrongDirection = [];
+// 13.11 (גיא): מירכאות זוויתיות « » בטקסט גלוי הן סימן מזוהה של עיצוב AI. בעברית כותבים מירכאות רגילות.
+const GUILLEMET = /[«»]|&laquo;|&raquo;|&#171;|&#187;/;
+const guillemets = [];
 
 for (const p of files) {
   const rel = relative(ROOT, p);
@@ -112,6 +115,7 @@ for (const p of files) {
       if (back[1] !== RTL_BACK_ARROW) wrongDirection.push(at);
       return;                      // כפתור חזרה — החץ מותר, הכיוון נאכף
     }
+    if (GUILLEMET.test(line)) guillemets.push(at);
     if (TRAILING.test(line) || LEADING.test(line)) decorative.push(at);
   });
 }
@@ -122,6 +126,11 @@ if (decorative.length) {
   console.error('\n  הטקסט עצמו אומר לאן הוא מוביל — חץ שמרמז "יש המשך" מיותר.');
   console.error('  מפריד מסלול/מוצא-יעד צריך טקסט משני צידי החץ, לא רק באחד.');
 }
+if (guillemets.length) {
+  console.error('  ✗ מירכאות זוויתיות « » בטקסט גלוי:\n');
+  for (const f of guillemets) console.error('     · ' + f);
+  console.error('\n  סימן מזוהה של עיצוב AI (גיא, 13.11). להחליף במירכאות רגילות "...".');
+}
 if (wrongDirection.length) {
   console.error('\n  ✗ חץ בכפתור "חזרה" מצביע לכיוון ההפוך מהמילה שלצדו:\n');
   for (const f of wrongDirection) console.error('     · ' + f);
@@ -129,6 +138,6 @@ if (wrongDirection.length) {
   console.error('  כך ב-.step-back (app/flow.css) וב-62 כפתורי החזרה של האפליקציה.');
   console.error('  ועדיף chevron של SVG על תו טקסט — ראו .back-link בדפי המדיניות.');
 }
-if (decorative.length || wrongDirection.length) process.exit(1);
+if (decorative.length || wrongDirection.length || guillemets.length) process.exit(1);
 
 console.log(`  ✓ ${files.length} קבצים — אין חץ דקורטיבי, וכל חץ חזרה מצביע ימינה.`);
