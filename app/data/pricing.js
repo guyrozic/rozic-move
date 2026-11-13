@@ -623,10 +623,14 @@ export function calculatePackingFromItems(selections, opts = {}) {
      * ⚠️ מוחל על ה**הערכה מהרהיטים** בלבד: תכולת המטבח והארגזים המשותפים
      * מתחברים אליו, בדיוק כמו בנוסחה. אחרת תיקון ל-"10" היה מוחק גם את
      * המטבח שהלקוח בחר בעצמו באותו מסך.
+     *
+     * ⚠️ **והארגזים שהלקוח הצהיר עליהם נשארים גם הם** — הסינון הראשון הוריד
+     * אותם, ותיקון ל-10 בהזמנה עם 20 ארגזים מסומנים הוריד את הסך מ-31 ל-21.
+     * `max` בין ההערכה למוצהר ממשיך לחול. זהה לאפליקציה.
      */
     const override = opts.boxesOverride;
     if (override != null && override >= 0) {
-      const kept = entries.filter(e => e.packingType !== 'box' || e.boxSource === 'kitchen' || e.boxSource === 'shared');
+      const kept = entries.filter(e => e.packingType !== 'box' || e.boxSource !== 'estimate');
       kept.push({ packingType: 'box', boxCount: override, boxSource: 'estimate', fragile: false, qty: 1, itemPrice: 0 });
       return calculatePackingFromClassified(kept);
     }
