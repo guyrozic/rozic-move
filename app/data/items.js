@@ -1,4 +1,5 @@
 import { ITEM_PRICES } from './pricing.js';
+import { PACKING_BOX_ESTIMATE, PACKING_WRAP_TIER, PACKING_NO_PACKING_KEYS, SHARED_BOX_FRACTION } from './packingClassification.js';
 export const ALL_ROOMS = [
     {
         key: 'bedroom', label: 'חדר שינה', icon: '🛏',
@@ -480,10 +481,19 @@ const PACKING_WRAP_KEYS = new Set([
  * 'box', with boxCount estimated from the item's own heavy/fragile flags.
  */
 export function getPackingInfo(item) {
-    if (PACKING_NONE_KEYS.has(item.key))
+    // 13.11, שירות האריזה v2: הסיווג נגזר מהמיפוי ולא מדגלי fragile/heavy.
+    // קבוצה א נושאת הערכת ארגזים אמיתית, ב היא עטיפה עם מדרגה, ג מחוץ לחישוב.
+    // ⚠️ אריזה אינה רהיטים: ספה ומיטה נעטפות בכל הובלה ממילא (3.5).
+    // מקבילה מדויקת ל-getPackingInfo ב-Hovalot/src/data/items.ts.
+    if (PACKING_NO_PACKING_KEYS.has(item.key))
         return { packingType: 'none', boxCount: 0 };
-    if (PACKING_WRAP_KEYS.has(item.key))
-        return { packingType: 'wrap', boxCount: 0 };
-    const boxCount = item.fragile ? 0.34 : item.heavy ? 0.5 : 0.2;
-    return { packingType: 'box', boxCount };
+    const tier = PACKING_WRAP_TIER[item.key];
+    if (tier)
+        return { packingType: 'wrap', boxCount: 0, wrapTier: tier };
+    const estimate = PACKING_BOX_ESTIMATE[item.key];
+    if (estimate != null)
+        return { packingType: 'box', boxCount: estimate, boxSource: 'estimate' };
+    // פריט שאינו במיפוי — נופל לארגז משותף ולא ל"בלי אריזה", כדי שלא ייעלם
+    // מהחישוב בשקט. check-packing-classification חוסם את המצב הזה.
+    return { packingType: 'box', boxCount: SHARED_BOX_FRACTION, boxSource: 'shared' };
 }

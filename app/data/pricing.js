@@ -3,6 +3,7 @@
 //  כל שינוי מחיר נעשה כאן בלבד. הקוד כולו קורא מפה.
 // ============================================================
 import { findItemAnywhere, getPackingInfo, getItemPriceAnyCategory } from './items.js';
+import { SHARED_BOX_FRACTION, KITCHEN_CONTENTS_BOXES } from './packingClassification.js';
 /** 12.11.2026 (גיא): מחירי הקוד הם מחירי השוק אחרי כיול 1, זהים ל-config/itemPrices בייצור (×1.8 מהקודמים). זהה לאפליקציה. */
 export const ITEM_PRICES = {
     bedroom: {
@@ -489,6 +490,15 @@ export let PACKING_BASE_FEE = 149;
 /** Percentage of the packed items' own ₪ price subtotal (not the full order — excludes travel/floors/insurance/etc) added to PACKING_BASE_FEE. */
 export let PACKING_PERCENT_RATE = 0.15; // 12.11.2026: כמו בייצור. זהה לאפליקציה
 /**
+ * שירות האריזה v2 (תזכיר עמוס #3). ⚠️ אין יותר אחוז ממחיר ההובלה:
+ * PACKING_PERCENT_RATE נשאר בערוץ הקונפיג ואינו משתתף בחישוב.
+ * זהה לאפליקציה (Hovalot/src/data/pricing.ts).
+ */
+export let PACKING_BOX_PRICE = 30;
+export let PACKING_WRAP_PRICES = { small: 40, medium: 70, large: 120 };
+/** רצפה על הסכום הכולל, ורק כשיש מה לארוז. דמי הבסיס משולמים תמיד. */
+export let PACKING_MINIMUM = 299;
+/**
  * Single source of packing pricing math — catalog-agnostic on purpose, so both the
  * items.ts-backed flows (apartment/smallMove add-on) and the separately-maintained
  * smallMoveItems.ts catalog can share it after each classifies its own items into
@@ -497,27 +507,49 @@ export let PACKING_PERCENT_RATE = 0.15; // 12.11.2026: כמו בייצור. זה
  * doing (X boxes, Y wrapped pieces). The price itself is PACKING_BASE_FEE plus
  * PACKING_PERCENT_RATE of the packed items' own price subtotal.
  */
+/**
+ * מחיר שירות האריזה — v2 (3.1). מקבילה מדויקת ל-calculatePackingFromClassified
+ * ב-Hovalot/src/data/pricing.ts.
+ *
+ * ארגזים = ⌈ max(הערכה מרהיטים, ארגזים שהלקוח סימן) + תכולת מטבח + 0.2 × פריטים קטנים ⌉
+ * מחיר   = בסיס + ארגזים × מחיר לארגז + Σ עטיפות, ואז max(מינימום, מחיר)
+ *
+ * ⚠️ max ולא סכום: ארגז שהלקוח סימן הוא אותה תכולה של הארון שכבר נספר.
+ * תכולת מטבח כן נוספת תמיד — לארונות מטבח בנויים אין פריט בקטלוג.
+ * ⚠️ "אין מה לארוז" מחזיר 0, והמסך לא מציע את השירות — ולא מינימום.
+ */
 export function calculatePackingFromClassified(entries) {
-    let totalBoxes = 0;
-    let wrapCount = 0;
-    let itemsSubtotal = 0;
+    let boxesEstimated = 0, boxesDeclared = 0, boxesShared = 0, boxesKitchen = 0;
+    let wrapCount = 0, wrapCost = 0, itemsSubtotal = 0;
     for (const e of entries) {
         if (e.qty <= 0)
             continue;
         itemsSubtotal += e.itemPrice * e.qty;
-        if (e.packingType === 'box') {
-            totalBoxes += (e.boxCount ?? 0.2) * e.qty;
-        }
-        else {
+        if (e.packingType === 'wrap') {
             wrapCount += e.qty;
+            wrapCost += (PACKING_WRAP_PRICES[e.wrapTier ?? 'small'] ?? 0) * e.qty;
+            continue;
         }
+        const n = (e.boxCount ?? SHARED_BOX_FRACTION) * e.qty;
+        if (e.boxSource === 'declared') boxesDeclared += n;
+        else if (e.boxSource === 'kitchen') boxesKitchen += n;
+        else if (e.boxSource === 'shared') boxesShared += n;
+        else boxesEstimated += n;
     }
-    const hasAny = totalBoxes > 0 || wrapCount > 0;
-    const total = hasAny ? Math.round(PACKING_BASE_FEE + PACKING_PERCENT_RATE * itemsSubtotal) : 0;
+    const totalBoxes = Math.ceil(Math.max(boxesEstimated, boxesDeclared) + boxesKitchen + boxesShared);
+    const hasAnything = totalBoxes > 0 || wrapCount > 0;
+    const raw = PACKING_BASE_FEE + totalBoxes * PACKING_BOX_PRICE + wrapCost;
+    const total = hasAnything ? Math.max(PACKING_MINIMUM, Math.round(raw)) : 0;
     return {
-        totalBoxes: Math.round(totalBoxes * 10) / 10,
+        totalBoxes,
+        boxesEstimated: Math.round(boxesEstimated * 10) / 10,
+        boxesDeclared: Math.round(boxesDeclared * 10) / 10,
+        boxesShared: Math.round(boxesShared * 10) / 10,
+        boxesKitchen,
         wrapCount,
+        wrapCost: Math.round(wrapCost),
         itemsSubtotal: Math.round(itemsSubtotal),
+        minimumApplied: hasAnything && Math.round(raw) < PACKING_MINIMUM,
         total,
     };
 }
@@ -527,10 +559,10 @@ export function classifyRoomItemForPacking(item) {
         return null;
     const itemPrice = getItemPriceAnyCategory(item.key);
     if (info.packingType === 'wrap') {
-        const wrapTier = /_(giant|large)$/.test(item.key) || item.heavy ? 'large' : /_small$/.test(item.key) ? 'small' : 'medium';
-        return { packingType: 'wrap', wrapTier, fragile: item.fragile, qty: 0, itemPrice };
+        // 13.11: המדרגה מגיעה מהמיפוי ולא מניחוש לפי סיומת השם ודגל heavy.
+        return { packingType: 'wrap', wrapTier: info.wrapTier ?? 'medium', fragile: item.fragile, qty: 0, itemPrice };
     }
-    return { packingType: 'box', boxCount: info.boxCount, fragile: item.fragile, qty: 0, itemPrice };
+    return { packingType: 'box', boxCount: info.boxCount, boxSource: info.boxSource ?? 'shared', fragile: item.fragile, qty: 0, itemPrice };
 }
 /**
  * ארגז קרטון שהלקוח סימן בשאלת ה-AI, כשהוא הצהיר במסך תמחור האריזה שהתכולה
@@ -547,7 +579,7 @@ export function classifyRoomItemForPacking(item) {
 export function classifyCustomerBoxForPacking(itemKey) {
     const size = getBoxSizeFromKey(itemKey);
     if (!size) return null;
-    return { packingType: 'box', boxCount: 1, fragile: false, qty: 0, itemPrice: BOX_PRICES[size].move };
+    return { packingType: 'box', boxCount: 1, boxSource: 'declared', fragile: false, qty: 0, itemPrice: BOX_PRICES[size].move };
 }
 /**
  * Convenience wrapper over calculatePackingFromClassified() for items.js-backed selections (by item key).
@@ -564,6 +596,13 @@ export function calculatePackingFromItems(selections, opts = {}) {
     for (const { itemKey, qty } of selections) {
         if (qty <= 0)
             continue;
+        // תכולת מטבח (3.4) — פריט של מסך האריזה בלבד. תמיד נוסף, כי לארונות
+        // מטבח בנויים אין פריט בקטלוג והתכולה שלהם לא נספרה מעולם.
+        const kitchenBoxes = KITCHEN_CONTENTS_BOXES[itemKey];
+        if (kitchenBoxes != null) {
+            entries.push({ packingType: 'box', boxCount: kitchenBoxes, boxSource: 'kitchen', fragile: false, qty, itemPrice: 0 });
+            continue;
+        }
         if (opts.countCustomerBoxes) {
             const asBox = classifyCustomerBoxForPacking(itemKey);
             if (asBox) { entries.push({ ...asBox, qty }); continue; }
