@@ -1604,6 +1604,7 @@
             warnEl.innerHTML = `<span style="color:var(--danger)">${
               code === 'surge tier changed' ? 'התאריך שבחרת משנה את מחיר ההזמנה. בחר יום אחר או הזמן מחדש.'
               : code === 'driver assigned' ? 'כבר שובץ מוביל להזמנה — פנה לתמיכה כדי לשנות מועד.'
+              : code === 'time slot required' ? 'לא נבחר חלון זמן. בחר שעה להובלה ונסה שוב.'
               : code === 'already paid' ? 'ההזמנה כבר שולמה.'
               : code === 'order not payable' ? 'ההזמנה כבר אינה ממתינה לתשלום. רענן את הדף או פנה לתמיכה.'
               : code === 'price unverifiable' ? 'לא הצלחנו לאמת את מחיר ההזמנה. פנה לתמיכה או צור את ההזמנה מחדש.'
