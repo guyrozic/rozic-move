@@ -1386,3 +1386,7 @@
   line-height: 1.5;
   color: var(--text-muted, #5B6B63);
 }
+
+/* 13.11: הודעת "כל החלונות להיום כבר התחילו" תופסת שורה מלאה בתוך שורת החלונות. */
+.slots-none-left { flex-basis: 100%; }
+.slots-none-left .form-hint { margin: 4px 0 8px; }

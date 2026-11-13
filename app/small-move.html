@@ -48,7 +48,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="../style.css?v=01926b52">
-  <link rel="stylesheet" href="style-app.css?v=e798c07f">
+  <link rel="stylesheet" href="style-app.css?v=34b72364">
   <link rel="stylesheet" href="address-autocomplete.css?v=8020fd51">
   <link rel="stylesheet" href="address-map.css?v=8417010c">
   <!-- ⚠️ נטען אחרון בכוונה — `flow.css` דורס את `style-app.css` תחת
@@ -147,7 +147,7 @@
   </style>
 </head>
 <body class="app-body flow-b">
-<div data-build-stamp class="build-stamp" aria-hidden="true">עודכן 13.11 · 10:05</div>
+<div data-build-stamp class="build-stamp" aria-hidden="true">עודכן 13.11 · 12:01</div>
 <script src="/version-check.js?v=97bd6b2e" defer></script>
   <!-- ⚠️ 15.9 — "דלג לתוכן המרכזי" (WCAG 2.4.1, רמה A). זהו האלמנט הממוקד
        הראשון בדף: מוסתר מהעין, מופיע בפינה ברגע שמגיעים אליו ב-Tab, ומעביר
@@ -2012,20 +2012,20 @@
      * הלוגיקה להלן היא העתק בית-לבית של `src/utils/timeSlotAvailability.ts`
      * (הופרד שם מהרכיב כדי שיהיה ניתן לבדיקה), על שלוש ההכרעות שלו:
      *
-     * 1. **נמדד מול סוף החלון ולא מול תחילתו** — מי שמזמין ב-09:00 לחלון
-     *    08:00-11:00 עדיין יכול לקבל שירות; רק מי שמזמין ב-11:30 לא.
+     * 1. **13.11 (גיא): נמדד מול תחילת החלון** — ב-11:30 החלון 11:00-14:00
+     *    כבר סגור, כמו שאי אפשר להזמין לאתמול. (עד 13.11 נמדד מול הסוף.)
      * 2. **השוואת יום/חודש/שנה ולא `toISOString()`** — האחרון ממיר ל-UTC
      *    ומזיז את התאריך אחורה בישראל בכל שעה שאחרי 21:00, כלומר בדיוק
      *    בשעות שבהן כל החלונות אמורים להיסגר הם היו נשארים פתוחים.
      * 3. **בלי תאריך — שום דבר לא "עבר"** — אסור להשבית אפשרות על סמך
      *    ניחוש לפני שהלקוח בחר.
      */
-    const slotEndHour = (slot) => Number(slot.split('-')[1]?.split(':')[0] ?? 0);
+    const slotStartHour = (slot) => Number(slot.split('-')[0]?.split(':')[0] ?? 0);
     const isSameDayLocal = (a, b) =>
       a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate();
     function isSlotPast(slot, selectedDate, now = new Date()) {
       if (!selectedDate || !isSameDayLocal(selectedDate, now)) return false;
-      return slotEndHour(slot) <= now.getHours();
+      return now.getHours() * 60 + now.getMinutes() >= slotStartHour(slot) * 60;
     }
     /** התאריך שבשדה כאובייקט `Date` מקומי, או `null` כשהשדה ריק. */
     function selectedDateObj() {
@@ -2068,6 +2068,28 @@
         activateOnKey(chip, pickSlot);
         timeSlotsEl.appendChild(chip);
       });
+      /* 13.11: כשכל החלונות של היום כבר התחילו — הודעה וכפתור למחר, ולא מצב בלי אפשרות ובלי הסבר. */
+      if (when && TIME_SLOTS.every(sl => isSlotPast(sl, when))) {
+        const box = document.createElement('div');
+        box.className = 'slots-none-left';
+        box.setAttribute('role', 'status');
+        const msg = document.createElement('p');
+        msg.className = 'form-hint';
+        msg.textContent = 'כל החלונות להיום כבר התחילו — בחרו תאריך אחר.';
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'room-tab';
+        btn.textContent = 'לעבור למחר';
+        btn.addEventListener('click', () => {
+          const t = new Date(); t.setDate(t.getDate() + 1);
+          const pad = (n) => String(n).padStart(2, '0');
+          const input = document.getElementById('move-date');
+          input.value = `${t.getFullYear()}-${pad(t.getMonth() + 1)}-${pad(t.getDate())}`;
+          input.dispatchEvent(new Event('change', { bubbles: true }));
+        });
+        box.append(msg, btn);
+        timeSlotsEl.appendChild(box);
+      }
     }
     // ⚠️ שינוי תאריך חייב לרנדר מחדש: מי שעבר מ"היום" ל"מחר" צריך לראות
     // את כל ארבעת החלונות חוזרים, וההפך.
