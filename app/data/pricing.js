@@ -615,6 +615,21 @@ export function calculatePackingFromItems(selections, opts = {}) {
             continue;
         entries.push({ ...classified, qty });
     }
+    /**
+     * תיקון הלקוח למספר הארגזים (3.1) — **מחליף את ההערכה ולא מתווסף לה.**
+     * הלקוח עומד מול הארון שלו ואנחנו לא, ולכן המספר שלו גובר. העטיפות
+     * והמינימום ממשיכים לחול כרגיל.
+     *
+     * ⚠️ מוחל על ה**הערכה מהרהיטים** בלבד: תכולת המטבח והארגזים המשותפים
+     * מתחברים אליו, בדיוק כמו בנוסחה. אחרת תיקון ל-"10" היה מוחק גם את
+     * המטבח שהלקוח בחר בעצמו באותו מסך.
+     */
+    const override = opts.boxesOverride;
+    if (override != null && override >= 0) {
+      const kept = entries.filter(e => e.packingType !== 'box' || e.boxSource === 'kitchen' || e.boxSource === 'shared');
+      kept.push({ packingType: 'box', boxCount: override, boxSource: 'estimate', fragile: false, qty: 1, itemPrice: 0 });
+      return calculatePackingFromClassified(kept);
+    }
     return calculatePackingFromClassified(entries);
 }
 /** כיול 1 (163.2): שישי ביום בלי תוספת; ערב שישי (משבצת מ-17:00) ושבת כמו קודם. זהה לאפליקציה. */

@@ -23,6 +23,9 @@ export function buildPricingInputs(i) {
   };
   if (i.items) { out.items = i.items; out.boxesAlreadyPacked = !!i.boxesAlreadyPacked; }
   if (i.quantities) out.quantities = i.quantities;
+  // undefined אסור להגיע ל-Firestore — נכתבים רק כשנבחרו בפועל.
+  if (i.kitchenContents) out.kitchenContents = i.kitchenContents;
+  if (i.packingBoxesOverride != null) out.packingBoxesOverride = i.packingBoxesOverride;
   return out;
 }
 
@@ -45,6 +48,10 @@ export function apartmentPricingInputs(state, couponCode) {
     fromFloor: state.fromFloor, toFloor: state.toFloor,
     fromElevator: state.fromElevator, toElevator: state.toElevator,
     boxesAlreadyPacked: state.boxesAlreadyPacked,
+    // שירות האריזה v2 — שתי בחירות שנעשות רק במסך האריזה. בלעדיהן השרת
+    // יחשב מחיר אריזה אחר מזה שהלקוח ראה ואישר.
+    kitchenContents: state.kitchenContents,
+    packingBoxesOverride: state.packingBoxesOverride,
     couponCode,
   });
 }
