@@ -147,7 +147,7 @@
   </style>
 </head>
 <body class="app-body flow-b">
-<div data-build-stamp class="build-stamp" aria-hidden="true">עודכן 13.11 · 15:00</div>
+<div data-build-stamp class="build-stamp" aria-hidden="true">עודכן 13.11 · 15:09</div>
 <script src="/version-check.js?v=97bd6b2e" defer></script>
   <!-- ⚠️ 15.9 — "דלג לתוכן המרכזי" (WCAG 2.4.1, רמה A). זהו האלמנט הממוקד
        הראשון בדף: מוסתר מהעין, מופיע בפינה ברגע שמגיעים אליו ב-Tab, ומעביר
@@ -683,6 +683,7 @@
              showDraftDiscardedNotice } from './guest-checkout.js';
     import { createOrder, getOrder, cancelOrder, getCancellationPolicy } from './orders.js';
     import { smallMovePricingInputs } from './order-pricing-inputs.js';
+    import { checkServiceArea } from './service-area.js';
     import { track } from './analytics.js';
     // מדידה: תחילת הזמנה = האינטראקציה הראשונה בדף (לא עצם הטעינה). בלי PII — ראו analytics.js.
     ['pointerdown', 'keydown'].forEach(ev => document.addEventListener(ev, () => track('order_start', { order_type: 'small_move' }, 'order_start'), { once: true, capture: true }));
@@ -2533,6 +2534,20 @@
         termsErrBox.innerHTML = `<div class="alert alert-error">${TERMS_REQUIRED_MSG}</div>`;
         termsBox.setAttribute('aria-invalid', 'true');
         termsBox.focus();
+        return;
+      }
+      /**
+       * ⚠️ 13.11 — שער תחום השירות, לפני ההרשמה ולפני התשלום.
+       * ההסבר המלא ב-app/service-area.js.
+       */
+      const areaProblem = checkServiceArea(
+        { lat: state.fromLat, lng: state.fromLng },
+        { lat: state.toLat, lng: state.toLng },
+        state.distance || 0,
+      );
+      if (areaProblem) {
+        errBox.innerHTML = `<div class="alert alert-error"><strong>${areaProblem.title}</strong><br>${areaProblem.body}</div>`;
+        errBox.scrollIntoView({ block: 'center' });
         return;
       }
       // ⚠️ כאן, ורק כאן, ההרשמה נדרשת. goRegister שומרת את הטיוטה
