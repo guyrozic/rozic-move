@@ -164,7 +164,7 @@
   </style>
 </head>
 <body class="app-body flow-b">
-<div data-build-stamp class="build-stamp" aria-hidden="true">עודכן 13.11 · 12:01</div>
+<div data-build-stamp class="build-stamp" aria-hidden="true">עודכן 13.11 · 15:09</div>
 <script src="/version-check.js?v=97bd6b2e" defer></script>
   <!-- ⚠️ 15.9 — "דלג לתוכן המרכזי" (WCAG 2.4.1, רמה A). זהו האלמנט הממוקד
        הראשון בדף: מוסתר מהעין, מופיע בפינה ברגע שמגיעים אליו ב-Tab, ומעביר
@@ -737,6 +737,7 @@
              buildBeddingBoxFollowUpQuestion, diningChairsFollowUpFor,
              buildDuplicateCheckQuestion, longestCommonPrefix } from './data/followups.js';
     import { BASE_PRICE, PRICE_PER_KM, FLOOR_SURCHARGE_PER_FLOOR, getVolumeDiscount, getSurgePricing, calculatePackingFromItems, getBoxSizeFromKey, getBoxItemInfo, INSURANCE_PRICE_APARTMENT, REGION_SURCHARGE_RATE } from './data/pricing.js';
+    import { checkServiceArea } from './service-area.js';
     import { hasRegionSurcharge } from './data/pricing-regions.js';
     import { loadRemotePricingConfig } from './pricing-config.js';
     import { FLOORS, craneCostFor, distanceAndCoords, formatDateApp, parseDateApp } from './geo.js';
@@ -2626,6 +2627,21 @@
         termsErrBox.innerHTML = `<div class="alert alert-error">${TERMS_REQUIRED_MSG}</div>`;
         termsBox.setAttribute('aria-invalid', 'true');
         termsBox.focus();
+        return;
+      }
+      /**
+       * ⚠️ 13.11 — שער תחום השירות, לפני ההרשמה ולפני התשלום.
+       * טיוטה שנשמרה לפני חסימת הקלט נושאת נ"צ מחוץ לישראל ומשוחזרת
+       * כ"כתובת מאומתת". ההסבר המלא ב-app/service-area.js.
+       */
+      const areaProblem = checkServiceArea(
+        { lat: state.fromLat, lng: state.fromLng },
+        { lat: state.toLat, lng: state.toLng },
+        state.distance || 0,
+      );
+      if (areaProblem) {
+        errBox.innerHTML = `<div class="alert alert-error"><strong>${areaProblem.title}</strong><br>${areaProblem.body}</div>`;
+        errBox.scrollIntoView({ block: 'center' });
         return;
       }
       // ⚠️ כאן, ורק כאן, ההרשמה נדרשת. goRegister שומרת את הטיוטה
