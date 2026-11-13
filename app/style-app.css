@@ -1374,3 +1374,15 @@
 .heard-from-chip:focus-visible { outline: 2px solid var(--green); outline-offset: 2px; }
 .heard-from-other { display: block; width: 100%; margin-top: 10px; padding: 10px 12px; border: 1px solid #DDD; border-radius: 10px; font: inherit; box-sizing: border-box; }
 .heard-from-other[hidden] { display: none; }
+
+/* 13.11 (הכרעה 1.1): גילוי נאות מעל אישור התקנון. */
+.platform-disclosure {
+  margin: 0 0 12px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: var(--surface-muted, #F6F8F7);
+  border: 1px solid #E5ECE8;
+  font-size: 0.85rem;
+  line-height: 1.5;
+  color: var(--text-muted, #5B6B63);
+}

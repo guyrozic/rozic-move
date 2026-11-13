@@ -47,7 +47,8 @@ export const PILOT_BANNER_CUSTOMER_BODY =
 
 /** דמי ביטוח התכולה בשלב ההרצה — **אפס**. ראו ההערה למעלה. */
 export function insurancePriceInPilot(fullPrice) {
-  return PILOT_MODE ? 0 : fullPrice;
+  // 13.11 (הכרעה 1.1): אין ביטוח, ולכן לא גובים עליו גם אחרי סוף ההרצה. זהה לאפליקציה.
+  return PILOT_MODE || !INSURANCE_ENABLED ? 0 : fullPrice;
 }
 
 /**

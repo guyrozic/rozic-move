@@ -48,7 +48,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="../style.css?v=01926b52">
-  <link rel="stylesheet" href="style-app.css?v=88b2875f">
+  <link rel="stylesheet" href="style-app.css?v=e798c07f">
   <!-- ⚠️ נטען אחרון בכוונה — `flow.css` דורס את `style-app.css` תחת
        `.flow-b` בלבד, כך שדף שלא טוען אותו אינו מושפע. -->
   <link rel="stylesheet" href="flow.css?v=fd6d2d86">
@@ -191,7 +191,7 @@
   </style>
 </head>
 <body class="app-body flow-b">
-<div data-build-stamp class="build-stamp" aria-hidden="true">עודכן 12.11 · 19:28</div>
+<div data-build-stamp class="build-stamp" aria-hidden="true">עודכן 13.11 · 10:05</div>
 <script src="/version-check.js?v=97bd6b2e" defer></script>
   <!-- ⚠️ 15.9 — "דלג לתוכן המרכזי" (WCAG 2.4.1, רמה A). זהו האלמנט הממוקד
        הראשון בדף: מוסתר מהעין, מופיע בפינה ברגע שמגיעים אליו ב-Tab, ומעביר
@@ -300,7 +300,7 @@
     } from './orders.js';
     import { getUserProfile, formatVehicle } from './users.js';
     import { toggleFavoriteDriver } from './account.js';
-    import { PILOT_MODE } from './pilot-mode.js';
+    import { PILOT_MODE, INSURANCE_ENABLED } from './pilot-mode.js';
     import { getSurgePricing } from './data/pricing.js';
     import { addDoc, collection, serverTimestamp as reportServerTimestamp } from 'https://www.gstatic.com/firebasejs/12.16.0/firebase-firestore.js';
     import { db } from './firebase.js';
@@ -951,7 +951,7 @@
           ${order.scheduledDate ? `<button type="button" class="btn-text calendar-btn" id="calendar-btn" style="padding:0; margin-bottom:8px;">הוסף ליומן</button>
           <div id="calendar-links" style="display:none;"></div>` : ''}
           ${order.notes ? `<div class="note-line"><span class="note-label">הערות</span><span class="note-body">${esc(order.notes)}</span></div>` : ''}
-          ${order.hasInsurance && order.insuranceAmount > 0 ? `<div class="price-line discount"><span>כולל ביטוח תכולה</span><span>₪${esc(order.insuranceAmount)}</span></div>` : ''}
+          ${INSURANCE_ENABLED && order.hasInsurance && order.insuranceAmount > 0 ? `<div class="price-line discount"><span>כולל ביטוח תכולה</span><span>₪${esc(order.insuranceAmount)}</span></div>` : ''}
           ${order.packingService && order.packingServicePrice > 0 ? `<div class="price-line discount"><span>כולל שירות אריזה</span><span>₪${esc(order.packingServicePrice)}</span></div>` : ''}
           ${order.craneNeeded ? `<div class="price-line discount"><span>נדרש מנוף — קומה ${esc(order.craneFloor ?? '')}</span><span>${order.craneCost ? `₪${esc(order.craneCost)}` : ''}</span></div>` : ''}
           ${order.craneNeeded && order.craneItems?.length ? `<div class="price-line"><span>פריטים למנוף</span><span>${esc(order.craneItems.join(', '))}</span></div>` : ''}
@@ -987,10 +987,10 @@
           </a>` : ''}
           ${cancelledNoCharge ? `<p class="form-hint">ההזמנה בוטלה לפני שבוצע תשלום — לא נגבה ממך כסף, ואין מה להחזיר.</p>` : ''}
           ${order.paymentMethod && !cancelledNoCharge ? `<div class="price-line"><span>${wasCharged ? 'אמצעי תשלום' : 'אמצעי התשלום שנבחר'}</span><span>${esc(PAYMENT_LABELS[order.paymentMethod] ?? order.paymentMethod)}</span></div>` : ''}
-          ${order.hasInsurance && !PILOT_MODE && (order.insuranceAmount ?? 0) > 0 ? `
+          ${INSURANCE_ENABLED && order.hasInsurance && !PILOT_MODE && (order.insuranceAmount ?? 0) > 0 ? `
           <button type="button" class="btn btn-secondary btn-block" id="insurance-cert-btn" style="margin-top:10px;">הצג אישור ביטוח ROZIC GUARD</button>` : ''}
-          ${order.hasInsurance && (PILOT_MODE || (order.insuranceAmount ?? 0) === 0) ? `
-          <div class="price-line"><span>ביטוח תכולה</span><span>לא פעיל בשלב ההרצה — לא נגבו דמי כיסוי</span></div>` : ''}
+          ${order.hasInsurance && (!INSURANCE_ENABLED || PILOT_MODE || (order.insuranceAmount ?? 0) === 0) ? `
+          <div class="price-line"><span>ביטוח תכולה</span><span>לא פעיל, ואין כיסוי ביטוחי מטעם ROZIC MOVE</span></div>` : ''}
           ${order.tipAmount > 0 ? `<div class="price-line discount"><span>טיפ למוביל</span><span>₪${esc(order.tipAmount)}</span></div>` : ''}
           ${order.cancellationFee > 0 ? `<div class="price-line"><span>דמי ביטול</span><span>₪${esc(order.cancellationFee)}</span></div>` : ''}
           ${order.status === 'cancelled' && typeof order.refundDue === 'number' && order.refundDue > 0 ? `
