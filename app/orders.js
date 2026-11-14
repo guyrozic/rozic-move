@@ -387,21 +387,48 @@ export async function customerConfirmCompletion(orderId) {
 
 /**
  * הלקוח מדרג את המוביל אחרי השלמה — מראה submitRating(orderId,'customer',…)
- * ב-orders.ts. האתר הוא צד הלקוח בלבד, ולכן raterRole מקובע מראש.
+ * ב-orders.ts.
  *
- * firestore.rules (`customerRatesDriverOnly`) מתירות ללקוח לכתוב רק
- * `driverRating` (1–5) ו-`customerFeedback` — לא `customerRating`
- * ולא `driverFeedback`, ששייכים לצד המוביל.
+ * ⚠️ **14.11 — זה כבר לא `updateDoc`.** ארבעת שדות הדירוג עברו ל-
+ * `serverDecidedOrderFields()` ב-`firestore.rules`, וכתיבה ישירה מהלקוח
+ * נדחית. ההסבר המלא ב-`functions/src/submitOrderRating.ts` במאגר
+ * האפליקציה.
+ *
+ * ⚠️ **אין כאן `raterRole`, ולא בטעות:** השרת גוזר את התפקיד מה-uid מול
+ * `customerId`/`driverId`. האתר הוא צד הלקוח בלבד ממילא, אבל גם אילו
+ * שלח תפקיד — הוא לא היה נקרא.
+ *
+ * ⚠️ הפונקציה היא `onRequest` ולא `onCall`, כי באתר אין את ה-SDK של
+ * functions (אפס מופעי `httpsCallable` בכל `app/`). אותו דפוס בדיוק
+ * כמו `rescheduleOrder` ב-`payments.js`.
  */
+const RATING_URL = 'https://us-central1-hovalot-6cf65.cloudfunctions.net/submitOrderRating';
+/**
+ * ⚠️ חייב להיות זהה ל-`RATING_TEXT_MAX` ב-`src/constants/ratingLimits.ts`
+ * שבאפליקציה. `check-app-web-const-sync` משווה בין השניים — זה בדיוק סוג
+ * הקבוע שהועתק ביד ונסחף בעבר. הקיצוץ כאן הוא רשת בלבד; האכיפה בשרת.
+ */
+const RATING_TEXT_MAX = 1000;
+
 export async function submitCustomerRating(orderId, score, feedback = {}) {
-  const updates = { driverRating: score };
-  const feedbackData = {};
-  if (feedback.tags?.length) feedbackData.ratingTags = feedback.tags;
-  if (feedback.text?.trim()) feedbackData.ratingText = feedback.text.trim();
-  if (typeof feedback.appScore === 'number') feedbackData.appScore = feedback.appScore;
-  if (feedback.appText?.trim()) feedbackData.appText = feedback.appText.trim();
-  if (Object.keys(feedbackData).length > 0) updates.customerFeedback = feedbackData;
-  await updateDoc(doc(db, 'orders', orderId), updates);
+  if (!auth.currentUser) throw new Error('NOT_LOGGED_IN');
+  const token = await auth.currentUser.getIdToken();
+
+  const fb = {};
+  if (feedback.tags?.length) fb.ratingTags = feedback.tags;
+  if (feedback.text?.trim()) fb.ratingText = feedback.text.trim().slice(0, RATING_TEXT_MAX);
+  if (typeof feedback.appScore === 'number') fb.appScore = feedback.appScore;
+  if (feedback.appText?.trim()) fb.appText = feedback.appText.trim().slice(0, RATING_TEXT_MAX);
+
+  const res = await fetch(RATING_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+    body: JSON.stringify({ orderId, score, ...(Object.keys(fb).length > 0 ? { feedback: fb } : {}) }),
+  });
+  if (!res.ok) {
+    const data = await res.json().catch(() => null);
+    throw new Error(data?.error ?? 'לא הצלחנו לשמור את הדירוג');
+  }
 }
 
 /**
