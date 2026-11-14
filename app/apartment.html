@@ -2642,7 +2642,7 @@
         state.distance || 0,
       );
       if (areaProblem) {
-        errBox.innerHTML = `<div class="alert alert-error"><strong>${areaProblem.title}</strong><br>${areaProblem.body}</div>`;
+        errBox.innerHTML = `<div class="alert alert-error"><strong>${escHtml(areaProblem.title)}</strong><br>${escHtml(areaProblem.body)}</div>`;
         errBox.scrollIntoView({ block: 'center' });
         return;
       }
@@ -2653,7 +2653,7 @@
        */
       const slotProblem = checkTimeSlot(state.timeSlot);
       if (slotProblem) {
-        errBox.innerHTML = `<div class="alert alert-error"><strong>${slotProblem.title}</strong><br>${slotProblem.body}</div>`;
+        errBox.innerHTML = `<div class="alert alert-error"><strong>${escHtml(slotProblem.title)}</strong><br>${escHtml(slotProblem.body)}</div>`;
         errBox.scrollIntoView({ block: 'center' });
         return;
       }

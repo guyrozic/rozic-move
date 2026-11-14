@@ -1579,7 +1579,7 @@
           /** ⚠️ חלון זמן חובה — ראו ההערה על אתחול `slot` למעלה. */
           const slotProblem = checkTimeSlot(slot);
           if (slotProblem) {
-            warnEl.innerHTML = `<span style="color:var(--danger)">${slotProblem.title} — בחר חלון זמן כדי להמשיך.</span>`;
+            warnEl.innerHTML = `<span style="color:var(--danger)">${escHtml(slotProblem.title)} — בחר חלון זמן כדי להמשיך.</span>`;
             saveBtn.disabled = true;
             return;
           }
