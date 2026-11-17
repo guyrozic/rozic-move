@@ -371,8 +371,8 @@ export let BASE_PRICE = 175; // 12.11.2026: כמו בייצור. זהה לאפל
 export let SMALL_MOVE_BASE_PRICE = 600;
 /** כיול 1: הבסיס בקטנה כולל 15 ק"מ, ואחריהם ₪4 לק"מ. פריטים בקטנה ממחירי הקוד × מקדם (לא config/itemPrices).
  *  תוספת 10% כשהמוצא או היעד בשרון או במחוז ירושלים (data/pricing-regions.js). זהה לאפליקציה. */
-export let SMALL_MOVE_INCLUDED_KM = 15;
-export let SMALL_MOVE_PRICE_PER_KM = 4;
+export let SMALL_MOVE_INCLUDED_KM = 50; // כיול 2 (17.11): זהה לייצור ולאפליקציה
+export let SMALL_MOVE_PRICE_PER_KM = 3;
 export let SMALL_MOVE_ITEM_FACTOR = 1 / 1.8; // 12.11.2026: מחירי הקוד הם מחירי דירה, ולכן בקטנה ÷1.8 = המחיר הקודם. זהה לאפליקציה
 export let REGION_SURCHARGE_RATE = 0.10;
 export let PRICE_PER_KM = 9;
@@ -380,7 +380,7 @@ export let PRICE_PER_KM = 9;
  *  ⚠️ null = "כמו PRICE_PER_KM": ברירת מחדל ניטרלית, והמעבר קורה בכתיבה ל-config/pricing.
  *  זהה ל-src/data/pricing.ts באפליקציה. */
 export let PRICE_PER_KM_TIER_FROM = 10;
-export let PRICE_PER_KM_BEYOND = null;
+export let PRICE_PER_KM_BEYOND = 4.5; // כיול 2: זהה לייצור. null בקונפיג = בלי הנחת מרחק
 export let FLOOR_SURCHARGE_PER_FLOOR = 40;
 /**
  * העמלה שהפלטפורמה מנכה מתשלום הלקוח לפני העברת חלק המוביל.
