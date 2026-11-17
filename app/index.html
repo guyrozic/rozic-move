@@ -97,6 +97,24 @@
     @media (max-width: 480px) {
       #next-order-wrap:not(:empty) { margin-top: -74px; }
     }
+
+    /* 17.11 (גיא, בעיה 2) — שתי רמות הסבר, כמו בכרטיסי הבית של האפליקציה.
+       ⚠️ אותו נוסח בדיוק (ליאור, team/lior/home-cards-text.md): שני הסברים
+       שונים לאותו שירות הם משפחת הבאגים של הפרויקט. לפני כן האתר אמר
+       "הובלה מלאה + אריזה" והאפליקציה "הובלת דירה חכמה — מחיר מיידי".
+       הנקודה היא pseudo-element ולא תו: תו בשורה עברית נודד לקצה השני. */
+    .service-tile .tile-details {
+      list-style: none; margin: 12px 0 0; padding: 0;
+      display: flex; flex-direction: column; gap: 6px; position: relative;
+    }
+    .service-tile .tile-details li {
+      display: flex; align-items: baseline; gap: 8px;
+      font-size: .86rem; line-height: 1.45; color: var(--text-mid);
+    }
+    .service-tile .tile-details li::before {
+      content: ""; flex: none; width: 6px; height: 6px; border-radius: 50%;
+      background: var(--green-dark); transform: translateY(-2px);
+    }
   </style>
 </head>
 <body class="app-body flow-b">
@@ -164,7 +182,11 @@
             </svg>
           </div>
           <div class="tile-name">עוברים דירה</div>
-          <div class="tile-desc">הובלה מלאה + אריזה</div>
+          <div class="tile-desc">מעבירים דירה שלמה</div>
+          <ul class="tile-details">
+            <li>כשמעבירים את כל תכולת הבית</li>
+            <li>סורקים חדר שלם, לא פריט-פריט</li>
+          </ul>
         </a>
         <a tabindex="0" href="small-move.html" class="service-tile tile-navy">
           <div class="tile-icon-wrap">
@@ -177,7 +199,12 @@
             </svg>
           </div>
           <div class="tile-name">מובילים בקטנה</div>
-          <div class="tile-desc">פריטים בודדים</div>
+          <div class="tile-desc">כמה פריטים, לא דירה</div>
+          <ul class="tile-details">
+            <li>ספה, מקרר, מכונת כביסה, ארגזים</li>
+            <li>בוחרים פריטים, בלי שלב החדרים</li>
+            <li>גם לפריט אחד יש מחיר בסיס</li>
+          </ul>
         </a>
       </div>
     </div>
