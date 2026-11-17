@@ -376,6 +376,11 @@ export let SMALL_MOVE_PRICE_PER_KM = 4;
 export let SMALL_MOVE_ITEM_FACTOR = 1 / 1.8; // 12.11.2026: מחירי הקוד הם מחירי דירה, ולכן בקטנה ÷1.8 = המחיר הקודם. זהה לאפליקציה
 export let REGION_SURCHARGE_RATE = 0.10;
 export let PRICE_PER_KM = 9;
+/** כיול 2: הנחת מרחק בדירה — מעבר ל-PRICE_PER_KM_TIER_FROM ק"מ, כל ק"מ ב-PRICE_PER_KM_BEYOND.
+ *  ⚠️ null = "כמו PRICE_PER_KM": ברירת מחדל ניטרלית, והמעבר קורה בכתיבה ל-config/pricing.
+ *  זהה ל-src/data/pricing.ts באפליקציה. */
+export let PRICE_PER_KM_TIER_FROM = 10;
+export let PRICE_PER_KM_BEYOND = null;
 export let FLOOR_SURCHARGE_PER_FLOOR = 40;
 /**
  * העמלה שהפלטפורמה מנכה מתשלום הלקוח לפני העברת חלק המוביל.
@@ -630,6 +635,8 @@ export function applyPricingRates(rates) {
     basePrice: acceptedValue(rates.basePrice, MAX_FEE),
     smallMoveBasePrice: acceptedValue(rates.smallMoveBasePrice, MAX_FEE),
     pricePerKm: acceptedValue(rates.pricePerKm, MAX_FEE),
+    pricePerKmTierFrom: acceptedValue(rates.pricePerKmTierFrom, MAX_FEE),
+    pricePerKmBeyond: acceptedValue(rates.pricePerKmBeyond, MAX_FEE),
     floorSurchargePerFloor: acceptedValue(rates.floorSurchargePerFloor, MAX_FEE),
     platformFeeRate: acceptedValue(rates.platformFeeRate, MAX_RATE),
     packingBaseFee: acceptedValue(rates.packingBaseFee, MAX_FEE),
@@ -644,6 +651,13 @@ export function applyPricingRates(rates) {
   if (applied.basePrice != null) BASE_PRICE = applied.basePrice;
   if (applied.smallMoveBasePrice != null) SMALL_MOVE_BASE_PRICE = applied.smallMoveBasePrice;
   if (applied.pricePerKm != null) PRICE_PER_KM = applied.pricePerKm;
+  if (applied.pricePerKmTierFrom != null) PRICE_PER_KM_TIER_FROM = applied.pricePerKmTierFrom;
+  // ⚠️ `null` מפורש = "בלי הנחת מרחק", ולא "התעלם". בלי זה האיפוס בשרת (`resetToLiveConfig`,
+  // שמחיל את ברירות המחדל לפני כל חישוב) **לא מחזיר את הערך ל-null** — ושדה שאדמין הסיר
+  // מהקונפיג היה ממשיך לחול על instance שכבר רצה, בזמן שהאפליקציה מציגה תעריף אחיד.
+  // זהה ל-src/data/pricing.ts.
+  if (rates.pricePerKmBeyond === null) PRICE_PER_KM_BEYOND = null;
+  else if (applied.pricePerKmBeyond != null) PRICE_PER_KM_BEYOND = applied.pricePerKmBeyond;
   if (applied.floorSurchargePerFloor != null) FLOOR_SURCHARGE_PER_FLOOR = applied.floorSurchargePerFloor;
   if (applied.platformFeeRate != null) PLATFORM_FEE_RATE = applied.platformFeeRate;
   if (applied.packingBaseFee != null) PACKING_BASE_FEE = applied.packingBaseFee;
@@ -670,6 +684,16 @@ const CODE_ITEM_PRICES = (() => {
 export function smallMoveCatalogUnitPrice(itemKey) {
   const price = CODE_ITEM_PRICES[itemKey];
   return price === undefined ? null : Math.round(price * SMALL_MOVE_ITEM_FACTOR);
+}
+/** עלות נסיעה בדירה — זהה ל-apartmentTravelCost באפליקציה (כיול 2).
+ *  ⚠️ בלי הנחת מרחק — הנוסחה הישנה עצמה ולא שוות-ערך שלה, כדי שהעיגול יהיה זהה לחלוטין. */
+export function apartmentTravelCost(distanceKm) {
+  const km = Math.max(0, distanceKm || 0);
+  const beyond = PRICE_PER_KM_BEYOND;
+  if (beyond == null || beyond === PRICE_PER_KM) return Math.round(km * PRICE_PER_KM);
+  const near = Math.min(km, PRICE_PER_KM_TIER_FROM);
+  const far = Math.max(0, km - PRICE_PER_KM_TIER_FROM);
+  return Math.round(PRICE_PER_KM * near + beyond * far);
 }
 /** עלות נסיעה בקטנה: הק"מ הכלולים חינם. זהה ל-smallMoveTravelCost באפליקציה. */
 export function smallMoveTravelCost(distanceKm) {

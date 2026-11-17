@@ -736,7 +736,7 @@
     import { BED_ITEM_KEYS, buildMattressFollowUpQuestion, hasMattressOptions,
              buildBeddingBoxFollowUpQuestion, diningChairsFollowUpFor,
              buildDuplicateCheckQuestion, longestCommonPrefix } from './data/followups.js';
-    import { BASE_PRICE, PRICE_PER_KM, FLOOR_SURCHARGE_PER_FLOOR, getVolumeDiscount, getSurgePricing, calculatePackingFromItems, getBoxSizeFromKey, getBoxItemInfo, INSURANCE_PRICE_APARTMENT, REGION_SURCHARGE_RATE } from './data/pricing.js';
+    import { BASE_PRICE, apartmentTravelCost, FLOOR_SURCHARGE_PER_FLOOR, getVolumeDiscount, getSurgePricing, calculatePackingFromItems, getBoxSizeFromKey, getBoxItemInfo, INSURANCE_PRICE_APARTMENT, REGION_SURCHARGE_RATE } from './data/pricing.js';
     import { checkServiceArea } from './service-area.js';
     import { checkTimeSlot } from './time-slot-required.js';
     import { hasRegionSurcharge } from './data/pricing-regions.js';
@@ -1032,7 +1032,7 @@
       const volumeDiscountRate = getVolumeDiscount(itemsSubtotal);
       const volumeDiscount = Math.round(itemsSubtotal * volumeDiscountRate);
       const afterDiscount = itemsSubtotal - volumeDiscount;
-      const travelCost = Math.round((state.distance || 0) * PRICE_PER_KM);
+      const travelCost = apartmentTravelCost(state.distance || 0); // כיול 2: הנחת מרחק
       const fromFloorNum = state.fromFloor === 'קרקע' ? 0 : state.fromFloor === '6+' ? 6 : parseInt(state.fromFloor, 10) || 0;
       const toFloorNum = state.toFloor === 'קרקע' ? 0 : state.toFloor === '6+' ? 6 : parseInt(state.toFloor, 10) || 0;
       let floorSurcharge = 0;
@@ -2378,7 +2378,7 @@
       // ⚠️ גם עלות הנסיעה ולא רק המרחק — באפליקציה `distanceBox` מציג
       // שתי שורות (`מרחק משוער` + `עלות נסיעה`), ובאתר הופיע רק המרחק.
       // הלקוח ראה "12 ק"מ" ולא ידע שזה ₪108 עד שלב 4.
-      noteEl.textContent = `מרחק משוער: ${state.distance} ק"מ · עלות נסיעה: ₪${formatPrice(state.distance * PRICE_PER_KM)}`;
+      noteEl.textContent = `מרחק משוער: ${state.distance} ק"מ · עלות נסיעה: ₪${formatPrice(apartmentTravelCost(state.distance))}`;
       goToStep(4);
     });
 
@@ -2461,7 +2461,7 @@
       // ⚠️ `× ₪9` בתוך התווית — באפליקציה השורה היא
       // `נסיעה (12 ק"מ × ₪9)`. בלי התעריף הלקוח רואה סכום שאי אפשר
       // לבדוק, וזו השורה היחידה בפירוט שנגזרת ממספר שהוא לא בחר.
-      if (p.travelCost > 0) lines.push([`נסיעה (${state.distance} ק"מ × ₪${PRICE_PER_KM})`, `+₪${formatPrice(p.travelCost)}`]);
+      if (p.travelCost > 0) lines.push([`נסיעה (${state.distance} ק"מ)`, `+₪${formatPrice(p.travelCost)}`]);
       if (p.floorSurcharge > 0) lines.push(['תוספת קומות', `+₪${formatPrice(p.floorSurcharge)}`]);
       if (p.surge) lines.push([`תוספת ${p.surge.label} (+${p.surge.rate * 100}%)`, `+₪${formatPrice(p.surgeAmount)}`]);
       if (p.regionAmount > 0) lines.push([`תוספת אזור (+${Math.round(p.regionSurchargeRate * 100)}%)`, `+₪${formatPrice(p.regionAmount)}`]);
