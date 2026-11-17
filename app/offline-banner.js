@@ -63,10 +63,47 @@ function unmount() {
   host = null;
 }
 
-/** מקור אמת אחד לשני הכיוונים — `sync()` נקרא גם באירועים וגם בטעינה. */
-function sync() {
-  if (navigator.onLine === false) mount();
-  else unmount();
+/**
+ * ⚠️ 17.11 — `navigator.onLine === false` לבדו **אינו הוכחה שאין רשת.**
+ * גיא ראה את הבאנר באתר החי בזמן שכל לחיצה עבדה. דפדפנים מדווחים `false`
+ * גם כשיש חיבור: ממשק רשת וירטואלי (VPN, Docker), מעבר בין Wi-Fi לסלולר
+ * שבו אירוע `online` לא נורה, ודפדפנים מוטמעים (וואטסאפ, אינסטגרם).
+ *
+ * לכן `false` הוא רק **חשד**, והבאנר מוצג רק אם גם בקשה אמיתית לאתר נכשלת.
+ * זה לא ה-heartbeat שנפסל למעלה: הבדיקה רצה רק כשהדפדפן כבר אומר "אין",
+ * ויכולה רק **לבטל** באנר, לא להוסיף אחד. כלומר האתר לעולם לא מחמיר
+ * מהאפליקציה, רק מפסיק להאמין לדיווח שגוי.
+ * בזמן שהבאנר מוצג הבדיקה חוזרת כל 10 שניות, כי אירוע `online` הוא בדיוק
+ * מה שלא נורה במקרים האלה.
+ */
+async function reachable() {
+  try {
+    const ctrl = new AbortController();
+    const t = setTimeout(() => ctrl.abort(), 4000);
+    await fetch(location.pathname + '?online=' + Date.now(), { method: 'HEAD', cache: 'no-store', signal: ctrl.signal });
+    clearTimeout(t);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+let probeTimer = null;
+let checking = false;
+
+async function sync() {
+  if (navigator.onLine !== false) { stopProbe(); unmount(); return; }
+  if (checking) return;
+  checking = true;
+  const ok = await reachable();
+  checking = false;
+  if (ok) { stopProbe(); unmount(); return; }
+  mount();
+  if (!probeTimer) probeTimer = setInterval(sync, 10000);
+}
+
+function stopProbe() {
+  if (probeTimer) { clearInterval(probeTimer); probeTimer = null; }
 }
 
 window.addEventListener('offline', sync);
