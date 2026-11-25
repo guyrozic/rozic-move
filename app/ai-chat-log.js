@@ -66,7 +66,7 @@
  *  הקטלוג** — הפסקה הקיימת מדברת על שליחה ל-Google Gemini בלבד, וסעיף 7
  *  (שמירה ומחיקה) קשור לחשבון, בזמן שהלוג הזה חי בלי חשבון. דווח לגיא.
  */
-import { doc, setDoc, serverTimestamp, arrayUnion, increment }
+import { doc, setDoc, serverTimestamp, Timestamp, arrayUnion, increment }
   from 'https://www.gstatic.com/firebasejs/12.16.0/firebase-firestore.js';
 import { db, auth } from './firebase.js';
 import { observeItemPickerAI } from './ai-vision.js';
@@ -196,6 +196,8 @@ function ensureSession() {
      * ו-`firestore.rules` אינו מגביל שדות ב-`create`.
      */
     source: 'web',
+    // 90 יום, כמו AI_CHAT_LOG_RETENTION_DAYS באפליקציה וכמו בפרטיות. `cleanupAiChatLogs` מוחק לפי השדה.
+    expiresAt: Timestamp.fromMillis(Date.now() + 90 * 86_400_000),
     createdAt: serverTimestamp(),
     updatedAt: serverTimestamp(),
     turnCount: 0,
