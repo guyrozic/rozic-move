@@ -697,7 +697,7 @@
              loadResumeDraft, clearOrderDraftEverywhere, discardOrderDraftEverywhere,
              shapeOk,
              showDraftDiscardedNotice } from './guest-checkout.js';
-    import { createOrder, getOrder, cancelOrder, getCancellationPolicy } from './orders.js';
+    import { createOrder, getOrder, getOrderWithContact, editableStateOf, cancelOrder, getCancellationPolicy } from './orders.js';
     import { smallMovePricingInputs } from './order-pricing-inputs.js';
     import { checkServiceArea } from './service-area.js';
     import { checkTimeSlot } from './time-slot-required.js';
@@ -859,15 +859,15 @@
     async function loadEditableOrderPayload(orderId, uid) {
       if (!uid) return null;
       let order = null;
-      try { order = await getOrder(orderId); }
+      try { order = await getOrderWithContact(orderId); }
       catch (err) { console.warn('[edit-order] טעינת ההזמנה לעריכה נכשלה', orderId, err && err.message); return null; }
       const usable = !!order && order.customerId === uid && order.status === 'pending_payment'
-        && order.editablePayload && typeof order.editablePayload === 'object' && shapeOk(order.editablePayload);
+        && order.editablePayload && typeof order.editablePayload === 'object' && shapeOk(editableStateOf(order));
       if (!usable) {
         if (order) console.warn('[edit-order] קישור עריכה לא תקף', orderId, order.status);
         return null;
       }
-      return { state: { ...order.editablePayload }, step: 4 };
+      return { state: editableStateOf(order), step: 4 };
     }
 
     const editOrderId = new URLSearchParams(location.search).get('edit');
