@@ -48,7 +48,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="../style.css?v=ae0a0fe9">
-  <link rel="stylesheet" href="style-app.css?v=13979176">
+  <link rel="stylesheet" href="style-app.css?v=e41eaa4d">
   <link rel="stylesheet" href="address-autocomplete.css?v=8020fd51">
   <link rel="stylesheet" href="address-map.css?v=8417010c">
   <!-- ⚠️ נטען אחרון בכוונה — `flow.css` דורס את `style-app.css` תחת
@@ -149,7 +149,7 @@
   </style>
 </head>
 <body class="app-body flow-b">
-<div data-build-stamp class="build-stamp" aria-hidden="true">עודכן 25.11 · 23:44</div>
+<div data-build-stamp class="build-stamp" aria-hidden="true">עודכן 25.11 · 23:45</div>
 <script src="/version-check.js?v=97bd6b2e" defer></script>
   <!-- ⚠️ 15.9 — "דלג לתוכן המרכזי" (WCAG 2.4.1, רמה A). זהו האלמנט הממוקד
        הראשון בדף: מוסתר מהעין, מופיע בפינה ברגע שמגיעים אליו ב-Tab, ומעביר
@@ -724,6 +724,7 @@
              mountGuestQuotaPanel, saveScanPhotos, restoreScanPhotos, scanPhotosNotice,
              GUEST_QUOTA_TEXT } from './ai-guest-quota.js';
     import { resizeImageToBase64 } from './image-resize.js';
+    import { ensureAIPhotoConsent, ensureAITextConsent } from './ai-consent.js';
     import { isScanShareAvailable, mountScanConsent, publishScanPhotos } from './scan-photos.js';
     import { mountAddressField, getAddressCityStreet } from './address-autocomplete.js';
 
@@ -1218,6 +1219,11 @@
       const progressText = document.getElementById('ai-progress-text');
       errBox.innerHTML = '';
       scanResultBox.textContent = '';
+      // 25.11 (W2) — הסכמה חד-פעמית לפני שליחת תמונות ל-Gemini. סירוב = לא נשלח דבר. ראו ai-consent.js.
+      if (!(await ensureAIPhotoConsent(authState?.authUser?.uid))) {
+        errBox.innerHTML = '<div class="alert alert-info">בלי האישור לא נשלחות תמונות לבינה מלאכותית. אפשר להוסיף פריטים ידנית מהרשימה.</div>';
+        return;
+      }
       btn.disabled = true;
       progressWrap.style.display = 'block';
       progressText.style.display = 'block';
@@ -1612,6 +1618,11 @@
       const sendBtn = document.getElementById('ai-chat-send-btn');
       const message = input.value.trim();
       if (!message) return;
+      // 25.11 (W2) — הסכמה חד-פעמית לשליחת טקסט ל-Gemini. סירוב = ההודעה נשארת בשדה ולא נשלחת.
+      if (!(await ensureAITextConsent(authState?.authUser?.uid))) {
+        document.getElementById('ai-error').innerHTML = '<div class="alert alert-info">בלי האישור ההודעות לא נשלחות לבינה מלאכותית. אפשר להוסיף פריטים ידנית מהרשימה.</div>';
+        return;
+      }
       const historyForPrompt = chatHistory.slice();
       chatHistory.push({ role: 'user', text: message });
       input.value = '';

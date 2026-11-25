@@ -36,7 +36,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="../style.css?v=ae0a0fe9">
-  <link rel="stylesheet" href="style-app.css?v=13979176">
+  <link rel="stylesheet" href="style-app.css?v=e41eaa4d">
   <!-- ⚠️ נטען אחרון בכוונה — `flow.css` דורס את `style-app.css` תחת
        `.flow-b` בלבד, כך שדף שלא טוען אותו אינו מושפע. -->
   <link rel="stylesheet" href="flow.css?v=fd6d2d86">
@@ -54,7 +54,7 @@
   </style>
 </head>
 <body class="app-body flow-b">
-<div data-build-stamp class="build-stamp" aria-hidden="true">עודכן 25.11 · 23:44</div>
+<div data-build-stamp class="build-stamp" aria-hidden="true">עודכן 25.11 · 23:45</div>
 <script src="/version-check.js?v=97bd6b2e" defer></script>
   <a class="skip-link" href="#main-content">דלג לתוכן המרכזי</a>
   <script type="module" src="pilot-banner.js?v=40593444"></script>
@@ -205,6 +205,7 @@
       markUserRead, subscribeToTicketMessages, subscribeToTicket, SUPPORT_PAGE_SIZE,
     } from './support.js';
     import { chatSupportAgent, friendlyAIError } from './ai-vision.js';
+    import { ensureAITextConsent } from './ai-consent.js';
 
     const esc = (v) => String(v ?? '')
       .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
@@ -469,11 +470,17 @@
       if (textEl.value.trim() === msg) textEl.value = '';
       try {
         if (ticket?.status === 'bot') {
+          // 25.11 (W2) — הסכמה חד-פעמית לשליחת הודעות ל-Gemini. ההודעה כבר נשמרה בשרשור;
+          // סירוב = רוני לא עונה, ומפנים לנציג אנושי (כמו SupportChatScreen).
+          if (!(await ensureAITextConsent(authState.authUser?.uid))) {
+            await sendSupportMessage(ticketId, 'ai', 'כדי שרוני יענה צריך את אישורך לשליחת ההודעות לבינה מלאכותית. ההודעה שלך נשמרה — אפשר ללחוץ על "דבר עם נציג אנושי" למטה.');
+            return;
+          }
           const history = messages
             .filter(m => m.role === 'user' || m.role === 'ai')
             .map(m => ({ role: m.role, text: m.text }))
             .concat([{ role: 'user', text: msg }]);
-          const result = await chatSupportAgent(msg, history, authState.profile?.name || '');
+          const result = await chatSupportAgent(msg, history, '');
           // זהה ל-SupportChatScreen.tsx:309 — הדגל עולה מ-chatSupportAgent
           // (requestRating) ונשמר על ההודעה כדי שהכפתור "שתף אותנו במשוב
           // קצר" יופיע מתחתיה (ראו renderThread).
