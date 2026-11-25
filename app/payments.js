@@ -29,7 +29,13 @@ export async function startGrowCheckout(orderId, meta) {
     body: JSON.stringify({ orderId, fromWeb: true }),
   });
   const data = await res.json().catch(() => null);
-  if (!res.ok || !data?.url) throw new Error((data && data.error) || 'CHECKOUT_FAILED');
+  if (!res.ok || !data?.url) {
+    // 25.11 (W2): `payments_paused` (מתג עצירה, 503) נושא הודעה שנכתבה לגולש —
+    // היא מוצגת כמו שהיא ולא כ"פתיחת התשלום נכשלה". ראו app/kill-switch.js.
+    const e = new Error((data && data.error) || 'CHECKOUT_FAILED');
+    if (data?.code) e.code = data.code;
+    throw e;
+  }
   // מדידה: begin_checkout רק אחרי שהשרת החזיר כתובת תשלום (לא על ניסיון שנכשל).
   // meta = { serviceType, price } מההזמנה — בלי PII. ראו analytics.js.
   if (meta) {

@@ -1868,6 +1868,35 @@ body.menu-open .pilot-banner {
   color: var(--pilot-body);
 }
 
+/* --- 25.11 (W2) — באנר "ההזמנות מושהות" (ראו app/kill-switch.js) ---
+   אותם טוקנים של באנר ההרצה (ענבר, לא כחול ולא אדום): ההודעה אינה שגיאה של
+   המשתמש. בזרימה, לא `fixed`, כמו `.pilot-banner`. */
+.kill-switch-banner {
+  box-sizing: border-box;
+  width: calc(100% - 32px);
+  margin: 16px auto 0;
+  max-width: 520px;
+  padding: 12px 16px;
+  border-radius: var(--radius);
+  background: var(--pilot-bg);
+  border: 1px solid var(--pilot-border);
+  color: var(--pilot-title);
+  font-size: 0.95rem;
+  font-weight: 700;
+  line-height: 1.5;
+  min-height: 48px; /* אזור חי מוזרק ריק — בלי זה הגובה קופץ בפריים שאחרי */
+}
+.kill-switch-banner:empty { visibility: hidden; }
+body.menu-open .kill-switch-banner { visibility: hidden; }
+.kill-switch-back { text-align: center; margin: 16px 0; }
+/* אשף מושהה: סרגל "המשך" והמחיר יושבים מחוץ ל-<main> ומוצגים ע"י JS (inline display) — לכן !important. */
+body.kill-switch-paused .app-bottom-bar { display: none !important; }
+a.kill-switch-disabled {
+  opacity: 0.5;
+  pointer-events: none;
+  cursor: not-allowed;
+}
+
 /* ⚠️ 44×44 הוא יעד המגע המינימלי (WCAG 2.5.5), והוא נקבע על הכפתור
    עצמו ולא על הסמל — `✕` בגודל הזה הוא יעד של ~14px.
    ⚠️ והשוליים השליליים הם מה שמאפשר את שניהם יחד: הם מושכים את הריבוע

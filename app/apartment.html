@@ -47,8 +47,8 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="../style.css?v=01926b52">
-  <link rel="stylesheet" href="style-app.css?v=c93f1342">
+  <link rel="stylesheet" href="../style.css?v=ae0a0fe9">
+  <link rel="stylesheet" href="style-app.css?v=13979176">
   <link rel="stylesheet" href="address-autocomplete.css?v=8020fd51">
   <link rel="stylesheet" href="address-map.css?v=8417010c">
   <!-- ⚠️ נטען אחרון בכוונה — `flow.css` דורס את `style-app.css` תחת
@@ -166,7 +166,7 @@
   </style>
 </head>
 <body class="app-body flow-b">
-<div data-build-stamp class="build-stamp" aria-hidden="true">עודכן 25.11 · 23:09</div>
+<div data-build-stamp class="build-stamp" aria-hidden="true">עודכן 25.11 · 23:33</div>
 <script src="/version-check.js?v=97bd6b2e" defer></script>
   <!-- ⚠️ 15.9 — "דלג לתוכן המרכזי" (WCAG 2.4.1, רמה A). זהו האלמנט הממוקד
        הראשון בדף: מוסתר מהעין, מופיע בפינה ברגע שמגיעים אליו ב-Tab, ומעביר
@@ -175,6 +175,7 @@
        הבא חוזר לתחילת הניווט — כלומר הקישור לא עושה כלום. -->
   <a class="skip-link" href="#main-content">דלג לתוכן המרכזי</a>
   <script type="module" src="pilot-banner.js?v=40593444"></script>
+  <script type="module" src="kill-switch.js?v=dfc57a56"></script>
   <script type="module" src="offline-banner.js?v=6f42ca72"></script>
 
   <!-- ⚠️ 20.9 — הסרגל לא היה כאן. הדף נפתח ישר בכותרת השלב, בלי מותג
@@ -243,6 +244,7 @@
                    פותח את בורר הקבצים בלחיצה **ובמקלדת** בלי שורת JS אחת,
                    ובלי לשכפל את המלכודת שכבר תוקנה ב-15.9 (label שעוטף
                    input מוסתר אינו נגיש למקלדת בשום דפדפן). -->
+              <div class="scan-consent-slot" id="scan-consent-slot" hidden></div>
               <label class="rt-drop" for="ai-photo-input" id="ai-dropzone">
                 <!-- ⚠️ המוקאפ אמר "עד 8 תמונות". אין בקוד שום תקרה כזו —
                      `renderAIPhotos` מצייר כל מה שנבחר. מספר שהממשק מבטיח
@@ -765,6 +767,7 @@
              mountGuestQuotaPanel, saveScanPhotos, restoreScanPhotos, scanPhotosNotice,
              GUEST_QUOTA_TEXT } from './ai-guest-quota.js';
     import { resizeImageToBase64 } from './image-resize.js';
+    import { isScanShareAvailable, mountScanConsent, publishScanPhotos } from './scan-photos.js';
     import { mountAddressField, getAddressCityStreet } from './address-autocomplete.js';
 
     // 14.9 — אורח רשאי לבנות הזמנה ולראות מחיר בלי חשבון. ההרשמה
@@ -1140,6 +1143,24 @@
     // ---------- AI photo scan ----------
     let aiPhotos = [];
     let pendingQuestions = [];
+
+    /* ═══════════ הצגת תמונות הסריקה למובילים (25.11, הכרעה 8.7 ב) ═══════
+       תיבת הסכמה לא מסומנת מראש מעל בחירת התמונות. מופיעה **רק** אם הפונקציות
+       בשרת קיימות (`isScanShareAvailable`) — עד שהן נפרסות הדף נראה כמו קודם.
+       פרסום אחרי יצירת ההזמנה, לפני ההפניה לתשלום; כשל לא חוסם. ראו scan-photos.js. */
+    let scanConsentCtl = null;
+    isScanShareAvailable().then((ok) => {
+      const slot = document.getElementById('scan-consent-slot');
+      if (ok && slot) scanConsentCtl = mountScanConsent(slot);
+    }).catch((e) => console.warn('[scanPhotos] availability check failed', e));
+
+    /** עד 25 שניות; ממשיכים לתשלום בכל מקרה. order-status יציג תצוגה מקדימה כשהסטטוס יתעדכן. */
+    async function publishScanPhotosForOrder(orderId) {
+      const consent = scanConsentCtl?.getConsent();
+      if (!consent || aiPhotos.length === 0) return;
+      const timeout = new Promise((resolve) => setTimeout(() => resolve({ kind: 'failed' }), 25000));
+      await Promise.race([publishScanPhotos(orderId, aiPhotos, consent, resizeImageToBase64), timeout]);
+    }
 
     /**
      * תמונות שכבר נותחו. תאום ל-`p.analyzed` ב-`AIRoomScanScreen.tsx:254`.
@@ -2860,6 +2881,7 @@
             }
           }
         }
+        await publishScanPhotosForOrder(orderId);
         location.href = `order-status.html?id=${orderId}`
           + (staleOrderId ? `&stale=${encodeURIComponent(staleOrderId)}` : '');
       } catch (err) {
