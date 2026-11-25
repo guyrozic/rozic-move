@@ -246,6 +246,17 @@ export async function createOrder(input) {
   return ref.id;
 }
 
+/**
+ * 25.11 (8.6) — השרת סירב לבטל כי דמי הביטול גבוהים ממה שהלקוח אישר. תאום ל-
+ * `CancelFeeChangedError` ב-`src/services/cancellation.ts`.
+ */
+export class CancelFeeChangedError extends Error {
+  constructor(fee) {
+    super(`דמי הביטול השתנו ל-₪${formatPrice(fee)}, וההזמנה לא בוטלה. לחיצה נוספת על הכפתור תבטל אותה בסכום הזה.`);
+    this.fee = fee;
+  }
+}
+
 /** השדות שמותר להם לשבת רק ב-`orders/{id}/private/contact` (63.5). */
 export const PRIVATE_ADDRESS_KEYS = ['fromAddress', 'toAddress', 'fromLat', 'fromLng', 'toLat', 'toLng'];
 
@@ -779,6 +790,7 @@ export async function cancelOrder(orderId, shownFee) {
     body: JSON.stringify({ orderId, shownFee }),
   });
   const data = await res.json().catch(() => null);
+  if (res.status === 409 && data?.code === 'fee_changed' && typeof data.fee === 'number') throw new CancelFeeChangedError(data.fee);
   if (!res.ok) throw new Error(data?.error ?? 'לא הצלחנו לבטל את ההזמנה');
   return { fee: data?.fee ?? 0, refundDue: data?.refundDue ?? 0 };
 }

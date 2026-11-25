@@ -191,7 +191,7 @@
   </style>
 </head>
 <body class="app-body flow-b">
-<div data-build-stamp class="build-stamp" aria-hidden="true">עודכן 25.11 · 22:33</div>
+<div data-build-stamp class="build-stamp" aria-hidden="true">עודכן 25.11 · 22:42</div>
 <script src="/version-check.js?v=97bd6b2e" defer></script>
   <!-- ⚠️ 15.9 — "דלג לתוכן המרכזי" (WCAG 2.4.1, רמה A). זהו האלמנט הממוקד
        הראשון בדף: מוסתר מהעין, מופיע בפינה ברגע שמגיעים אליו ב-Tab, ומעביר
@@ -292,7 +292,7 @@
   <script type="module">
     import { requireAuth } from './auth.js';
     import {
-      subscribeToOrder, cancelOrder, submitCancellationReason, customerTotalOf, STATUS_LABELS,
+      subscribeToOrder, cancelOrder, CancelFeeChangedError, submitCancellationReason, customerTotalOf, STATUS_LABELS,
       ORDER_PROGRESS_STEPS, customerConfirmCompletion, parseItemsSummary,
       CUSTOMER_NO_SHOW_RESPONSES, respondToCustomerNoShow,
       canReportNoShow, reportDriverNoShow,
@@ -1647,6 +1647,8 @@
         closeDialog(reasonModal, cancelBtn);
       });
 
+      // 25.11 (8.6) — הסכום שהלקוח ראה ואישר. מתעדכן רק אחרי שסכום חדש הוצג לו.
+      let approvedFee = policy?.fee ?? 0;
       document.getElementById('cancel-reason-submit')?.addEventListener('click', async () => {
         const formErrBox = document.getElementById('cancel-reason-form-error');
         const selected = reasonModal.querySelector('input[name="cancel-reason"]:checked');
@@ -1669,7 +1671,7 @@
           // `cancelOrderAsCustomer(orderId, policy.fee)` באפליקציה. עד
           // 18.9 נשלח `0` קבוע, ולכן השוואת "מה הוצג מול מה נגבה" בשרת
           // הייתה מושבתת על כל ביטול מהאתר.
-          const { fee, refundDue } = await cancelOrder(order.id, policy.fee);
+          const { fee, refundDue } = await cancelOrder(order.id, approvedFee);
 
           /**
            * ⚠️ **הסיבה נכתבת בכתיבה שנייה, נפרדת מהביטול עצמו — ולא
@@ -1711,6 +1713,12 @@
            * באותה שנייה שהלקוח לחץ). "ההזמנה עדיין פעילה" כאן הייתה
            * לא סתם הודעת כשל אלא קביעת עובדה שגויה.
            */
+          if (err instanceof CancelFeeChangedError) {
+            approvedFee = err.fee;
+            formErrBox.innerHTML = `<div class="alert alert-error" role="alert">${err.message}</div>`;
+            submitBtn.disabled = false; submitBtn.textContent = 'שלח ובטל את ההזמנה';
+            return;
+          }
           const msg = err instanceof Error ? err.message : '';
           if (msg.includes('אינה ניתנת לביטול') || msg.includes('לא נמצאה')) {
             closeDialog(reasonModal, cancelBtn);
