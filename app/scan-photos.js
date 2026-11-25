@@ -9,7 +9,8 @@
  * אין באתר לוח מובילים, ולכן אין כאן "הצגה למוביל". כל מה שכאן הוא צד הלקוח:
  * הסכמה, פרסום, תצוגה מקדימה, "לא לשתף".
  *
- * ## ⚠️ הפונקציות עוד לא פרוסות (עד פריסת w2-photos) — הכל מאחורי בדיקת קיום
+ * ## ⚠️ דגל `config/scanPhotos.enabled` (fail-closed) ואחריו בדיקת קיום
+ * הדגל חייב להיות דלוק מפורשות. אחריו, כל עוד הפונקציות עוד לא פרוסות (עד פריסת w2-photos) — הכל מאחורי בדיקת קיום
  * `isScanShareAvailable()` שולחת בקשה מקדימה אחת. פונקציה שאינה קיימת עונה 404
  * בלי כותרות CORS, והדפדפן מדווח את זה כ-`TypeError`; פונקציה קיימת עונה
  * (400/401) **עם** כותרות CORS. כל כשל = לא זמין = תיבת ההסכמה **אינה מוצגת
@@ -35,11 +36,42 @@ export const SCAN_CONSENT_CHECKBOX = 'אני מאשר להציג את התמונ
 /** מגבלות השרת: 12 תמונות, 8MB מפוענחים. התקרה בממשק האתר היא 10. */
 export const SCAN_MAX_PHOTOS = 12;
 
+const FLAG_URL =
+  'https://firestore.googleapis.com/v1/projects/hovalot-6cf65/databases/(default)/documents/config/scanPhotos';
+let flagPromise = null;
+
+/**
+ * דגל ההפעלה `config/scanPhotos.enabled` (תואם ל-`scanPhotosEnabled()` ב-
+ * `functions/src/orderScanPhotos.ts`, ענף integrate-129). **fail-closed — הפוך
+ * ממתג העצירה:** מסמך חסר (404), חוק שלא נפרס (403), רשת, timeout, או כל ערך שאינו
+ * `booleanValue: true` מפורש = כבוי. "הפונקציה קיימת" אינו מספיק להצגת התיבה.
+ * ⚠️ דורש שהחוק יתיר קריאה ל-`config/scanPhotos` (ראו הערת הדוח).
+ */
+export function isScanPhotosFlagOn(fetchImpl = globalThis.fetch) {
+  if (flagPromise) return flagPromise;
+  flagPromise = (async () => {
+    const ctrl = typeof AbortController !== 'undefined' ? new AbortController() : null;
+    const timer = ctrl ? setTimeout(() => ctrl.abort(), 4000) : null;
+    try {
+      const res = await fetchImpl(FLAG_URL, { cache: 'no-store', signal: ctrl?.signal });
+      if (!res.ok) return false;
+      const doc = await res.json();
+      return doc?.fields?.enabled?.booleanValue === true;
+    } catch {
+      return false;
+    } finally {
+      if (timer) clearTimeout(timer);
+    }
+  })();
+  return flagPromise;
+}
+
 const PROBE_KEY = 'rozic:scanShareProbe';
 const PROBE_TTL_MS = 5 * 60 * 1000;
 
 /** בקשה מקדימה אחת, ממוטמנת 5 דקות ב-sessionStorage. ראו "בדיקת קיום" למעלה. */
 export async function isScanShareAvailable(fetchImpl = globalThis.fetch) {
+  if (!(await isScanPhotosFlagOn(fetchImpl))) return false;
   try {
     const cached = JSON.parse(sessionStorage.getItem(PROBE_KEY) || 'null');
     if (cached && Date.now() - cached.at < PROBE_TTL_MS) return cached.ok === true;

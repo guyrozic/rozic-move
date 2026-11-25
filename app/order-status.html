@@ -191,7 +191,7 @@
   </style>
 </head>
 <body class="app-body flow-b">
-<div data-build-stamp class="build-stamp" aria-hidden="true">עודכן 25.11 · 23:33</div>
+<div data-build-stamp class="build-stamp" aria-hidden="true">עודכן 25.11 · 23:37</div>
 <script src="/version-check.js?v=97bd6b2e" defer></script>
   <!-- ⚠️ 15.9 — "דלג לתוכן המרכזי" (WCAG 2.4.1, רמה A). זהו האלמנט הממוקד
        הראשון בדף: מוסתר מהעין, מופיע בפינה ברגע שמגיעים אליו ב-Tab, ומעביר
@@ -299,7 +299,7 @@
       getCancellationPolicy, formatPrice,
     } from './orders.js';
     import { getOrderDriver, formatVehicle } from './users.js';
-    import { fetchScanPhotoUrls, withdrawScanPhotos } from './scan-photos.js';
+    import { fetchScanPhotoUrls, withdrawScanPhotos, isScanPhotosFlagOn } from './scan-photos.js';
     import { toggleFavoriteDriver } from './account.js';
     import { PILOT_MODE, INSURANCE_ENABLED } from './pilot-mode.js';
     import { getSurgePricing } from './data/pricing.js';
@@ -664,6 +664,8 @@
     async function loadScanPhotosCard(order) {
       const strip = document.getElementById('scan-photos-strip');
       if (!strip) return;
+      // fail-closed: דגל כבוי/לא קריא = אין כרטיס ואין בקשות לשרת.
+      if (!(await isScanPhotosFlagOn())) { document.getElementById('scan-photos-card')?.remove(); return; }
       let pending = scanPreviewDone.get(order.id);
       if (!pending) {
         pending = (async () => {
