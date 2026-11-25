@@ -645,7 +645,7 @@ export function getCancellationPolicy(order, cancellerRole = 'customer') {
       allowed: true,
       fee: 0,
       feePercent: 0,
-      warningMessage: 'עדיין לא שובץ מוביל להזמנה — ביטול ללא עלות.',
+      warningMessage: 'כל עוד לא שובץ מוביל, אפשר לבטל בכל זמן ובחינם.',
       confirmLabel: 'כן, בטל את ההזמנה',
     };
   }

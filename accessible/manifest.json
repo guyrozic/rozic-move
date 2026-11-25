@@ -14,19 +14,19 @@
       "versionSource": "app/legal.js",
       "text": {
         "path": "accessible/terms.txt",
-        "bytes": 37294,
+        "bytes": 37301,
         "blocks": 120,
-        "sourceSha256": "3484781bb2d8bdcdf351728c0cd008a76ac0df3b93bcd6f6da73eced09a8d0bd",
+        "sourceSha256": "f1d71bf558d6e98d3483c3e2067533e7aefce2e346612b26a460da04ced7b094",
         "termsVersion": "2026-11-1",
-        "generatedAt": "2026-11-25T20:20:53.578Z"
+        "generatedAt": "2026-11-25T20:30:00.638Z"
       },
       "audio": {
         "path": "accessible/terms.mp3",
-        "bytes": 7344274,
-        "seconds": 1836.07,
-        "sourceSha256": "3484781bb2d8bdcdf351728c0cd008a76ac0df3b93bcd6f6da73eced09a8d0bd",
+        "bytes": 7344379,
+        "seconds": 1836.09,
+        "sourceSha256": "f1d71bf558d6e98d3483c3e2067533e7aefce2e346612b26a460da04ced7b094",
         "termsVersion": "2026-11-1",
-        "generatedAt": "2026-11-25T20:20:53.578Z"
+        "generatedAt": "2026-11-25T20:30:00.638Z"
       }
     },
     "privacy": {
