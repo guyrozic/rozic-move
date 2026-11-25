@@ -888,6 +888,7 @@
             ${order.unreadCustomer ? `<span class="chat-unread-badge">${order.unreadCustomer > 9 ? '9+' : esc(order.unreadCustomer)}</span>` : ''}
           </a>
           ${order.status === 'en_route' ? `<a class="btn btn-secondary btn-block quick-action-btn" href="order-track.html?id=${encodeURIComponent(order.id)}">מעקב חי</a>` : ''}
+          <a class="btn btn-secondary btn-block quick-action-btn" href="extras-prices.html?id=${encodeURIComponent(order.id)}&type=${encodeURIComponent(order.serviceType === 'smallMove' ? 'smallMove' : 'apartment')}">מחירון תוספות</a>
         </div>` : ''}
 
         ${order.status === 'pending_pricing' ? `

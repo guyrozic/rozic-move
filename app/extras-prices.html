@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <!-- ⚠️ 21.9 — מדיניות אבטחת תוכן. **נבנתה ממדידה, לא מניחוש:** כל
+       מקור חיצוני שהאתר פונה אליו נמדד בפועל על כל דפי האתר
+       (`Network.requestWillBeSent`), והושלם מהקוד למה שנצרך רק בסשן
+       מחובר — Firestore, Auth, Storage ופונקציות הענן.
+
+       ⚠️ **מה זה כן נותן ומה לא.** הדפים מלאים ב-`<script type="module">`
+       מוטבע, ולכן `script-src` **חייב** לכלול `'unsafe-inline'` — אין
+       nonce באתר סטטי. כלומר המדיניות אינה חוסמת הזרקת JS מוטבע.
+       מה שהיא כן חוסמת: טעינת סקריפט ממארח זר, הזרקת `<base>` שמחטפת
+       כל קישור יחסי, שליחת טופס החוצה, `<object>`/`<embed>`, ובעיקר
+       **`connect-src` — לאן קוד שכבר רץ יכול לשלוח נתונים.** זו השכבה
+       שמגבילה דליפה, והיא הערך העיקרי כאן.
+
+       ⚠️ `frame-ancestors` (הגנת clickjacking) **אינו נתמך ב-meta** לפי
+       התקן ודורש כותרת HTTP. GitHub Pages אינו מאפשר כותרות מותאמות,
+       ולכן הוא **אינו מכוסה** — פער מודע שדורש CDN לפניו.
+
+       ⚠️ תוספת מארח חדש (SDK, CDN, ספק) מחייבת עדכון כאן, אחרת הוא
+       ייחסם בשקט יחסי. נבדק על כל הדפים: אפס הפרות. -->
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://www.gstatic.com https://cdn.jsdelivr.net https://www.googletagmanager.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdn.jsdelivr.net; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob: https://*.tile.openstreetmap.org https://*.googleapis.com https://*.firebasestorage.app https://*.google-analytics.com https://*.googletagmanager.com; connect-src 'self' https://*.googleapis.com https://*.cloudfunctions.net https://*.firebasestorage.app https://*.google-analytics.com https://*.analytics.google.com https://*.googletagmanager.com; frame-src 'none'; object-src 'none'; base-uri 'self'; form-action 'self'">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>מחירון תוספות ביום ההובלה — ROZIC MOVE</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../style.css?v=01926b52">
+  <link rel="stylesheet" href="style-app.css?v=c93f1342">
+  <!-- ⚠️ נטען אחרון בכוונה — `flow.css` דורס את `style-app.css` תחת
+       `.flow-b` בלבד, כך שדף שלא טוען אותו אינו מושפע. -->
+  <link rel="stylesheet" href="flow.css?v=fd6d2d86">
+  <style>
+    /* מחירון תוספות (גיא, 25.11) — רשימה לקריאה בלבד. */
+    .extras-lines { margin: 0 0 14px; padding: 0; list-style: none; }
+    .extras-lines li { margin: 0 0 6px; line-height: 1.5; }
+    .extras-room { font-size: 0.9rem; font-weight: 700; color: #0A4433; background: #E7F3ED; padding: 8px 14px; margin: 14px -20px 0; }
+    .extras-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 11px 0; border-bottom: 1px solid #EEF1EF; }
+    .extras-row-name { flex: 1; }
+    .extras-row-note { display: block; font-size: 0.82rem; color: var(--text-muted); margin-top: 2px; }
+    .extras-row-price { font-weight: 800; white-space: nowrap; }
+    .extras-end { color: var(--text-muted); font-size: 0.88rem; line-height: 1.5; margin-top: 18px; }
+    #extras-search { width: 100%; }
+  </style>
+</head>
+<body class="app-body flow-b">
+<div data-build-stamp class="build-stamp" aria-hidden="true">עודכן 25.11 · 23:09</div>
+<script src="/version-check.js?v=97bd6b2e" defer></script>
+  <a class="skip-link" href="#main-content">דלג לתוכן המרכזי</a>
+  <script type="module" src="pilot-banner.js?v=40593444"></script>
+  <script type="module" src="offline-banner.js?v=6f42ca72"></script>
+  <script type="module" src="support-unread.js?v=3e4792c2"></script>
+  <!-- ⚠️ 20.9 — הסרגל נוסף כחלק מהחלת קו העיצוב. המבנה זהה בדיוק לזה
+       שב-`app/index.html`, כדי שהסרגל יישאר אחד בכל המסכים. -->
+  <div class="app-topbar">
+    <a tabindex="0" href="index.html" class="app-logo-link">
+      <svg aria-hidden="true" width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M3 9h12M9 3l6 6-6 6" stroke="#0E5C43" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      ROZIC MOVE
+    </a>
+    <div style="flex:1"></div>
+    <a tabindex="0" href="account.html" class="back-btn" title="החשבון שלי" aria-label="החשבון שלי"><svg aria-hidden="true" width="17" height="17" viewBox="0 0 18 18" fill="none"><circle cx="9" cy="5.6" r="3.1" stroke="currentColor" stroke-width="1.7"/><path d="M2.9 15.6c0-3.1 2.7-5 6.1-5s6.1 1.9 6.1 5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg></a>
+  </div>
+
+  <main id="main-content" tabindex="-1">
+
+  <div class="step-hero">
+    <div class="step-hero-inner">
+      <a tabindex="0" href="order-status.html" class="step-back" id="back-link"><svg viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M6 3.5 10.5 8 6 12.5" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/></svg>סטטוס ההזמנה</a>
+      <h1>מחירון תוספות ביום ההובלה</h1>
+    </div>
+  </div>
+
+  <div class="app-container">
+    <div id="loading" class="center-loading" role="status"><span class="spinner"></span><span class="sr-only">טוען...</span></div>
+
+    <div id="content" style="display:none;">
+      <div class="app-card">
+        <ul class="extras-lines" id="extras-lines"></ul>
+        <div class="form-group">
+          <label for="extras-search">חיפוש פריט</label>
+          <input id="extras-search" type="search" autocomplete="off" placeholder="חיפוש פריט">
+        </div>
+        <div id="extras-list"></div>
+        <p class="extras-end">הפריט לא ברשימה? המחיר הוא של הפריט הדומה לו ביותר. אם אין דומה, מסכמים עם המוביל לפני ההעמסה.</p>
+      </div>
+    </div>
+  </div>
+
+</main>
+
+  <!-- פוטר משותף — מקור האמת הוא index.html. אל תערוך כאן ביד:
+       node scripts/check-footer-sync.mjs מייצר את הבלוק הזה מחדש
+       מהמקור, וכל עריכה ידנית תידרס או תיתפס כפער בבדיקה. -->
+  <footer class="footer">
+    <div class="footer-inner container">
+      <div class="footer-brand">
+        <div class="footer-logo">
+          <svg width="16" height="16" viewBox="0 0 18 18" fill="none" aria-hidden="true">
+            <!-- ⚠️ 18.9 — היה `stroke="#0E5C43"` על רקע הפוטר `#1C4035`:
+                 **1.43:1**, כלומר החץ היה בלתי-נראה בפועל. הוא הועתק
+                 מהלוגו שבניווט, שם הרקע לבן. `currentColor` יורש את
+                 הלבן של `.footer-logo` — 11.45:1 — והוא גם מה שימנע
+                 את החזרה אם צבע הפוטר ישתנה שוב. -->
+            <path d="M3 9h12M9 3l6 6-6 6" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+          ROZIC MOVE
+        </div>
+        <p class="footer-tagline">מזיזים אותך קדימה</p>
+        <p class="footer-copy">ROZIC MOVE © 2026</p>
+      </div>
+      <div class="footer-links">
+        <div class="footer-col">
+          <div class="footer-col-title">שירותים</div>
+          <a tabindex="0" href="/index.html#features">מובילים בקטנה</a>
+          <a tabindex="0" href="/index.html#features">עוברים דירה</a>
+        </div>
+        <div class="footer-col">
+          <div class="footer-col-title">חברה</div>
+          <a tabindex="0" href="/index.html#how-it-works">איך זה עובד</a>
+          <a tabindex="0" href="/index.html#for-movers">למובילים</a>
+          <a tabindex="0" href="/index.html#faq">שאלות נפוצות</a>
+          <a tabindex="0" href="/index.html#download">הורד את האפליקציה</a>
+        </div>
+        <div class="footer-col">
+          <div class="footer-col-title">משפטי</div>
+          <a tabindex="0" href="/privacy.html">מדיניות פרטיות</a>
+          <a tabindex="0" href="/terms.html">תנאי שימוש</a>
+          <a tabindex="0" href="/accessibility.html">הצהרת נגישות</a>
+          <a tabindex="0" href="/delete-account.html">מחיקת חשבון</a>
+          <a tabindex="0" href="/privacy.html#measurement-settings" data-measurement-settings>הגדרות מדידה</a>
+        </div>
+        <!-- 15.9 — עמודת יצירת קשר. אינה קישוט: תקנה 34(א)(3) לתקנות שוויון
+             זכויות לאנשים עם מוגבלות (התאמות נגישות לשירות) מחייבת שאפשר יהיה
+             לפנות אלינו בטלפון, בדואר או בדואר אלקטרוני — ועד היום מספר הטלפון
+             הופיע באתר רק בתוך הצהרת הנגישות. -->
+        <div class="footer-col">
+          <div class="footer-col-title">יצירת קשר</div>
+          <a tabindex="0" href="tel:+972508811085">טלפון: 050-881-1085</a>
+          <a tabindex="0" href="mailto:support@rozicmove.com">support@rozicmove.com</a>
+          <a tabindex="0" href="https://www.instagram.com/rozicmove/" target="_blank" rel="noopener">אינסטגרם</a>
+        </div>
+      </div>
+    </div>
+    <div class="footer-divider"></div>
+    <div class="footer-bottom container">
+      <p class="footer-business">ROZIC MOVE, גיא רוזיק, עוסק מורשה 212942577, הגבעה 42 כפר האורנים, support@rozicmove.com</p>
+      <p>כל הזכויות שמורות · מדינת ישראל</p>
+    </div>
+  </footer>
+
+  <script type="module">
+    import { requireAuth } from './auth.js';
+    import { loadRemotePricingConfig } from './pricing-config.js';
+    import { getAllItemsFlat, getItemPriceAnyCategory } from './data/items.js';
+    import { smallMoveCatalogUnitPrice, getBoxSizeFromKey, getBoxItemInfo, BOX_PRICES } from './data/pricing.js';
+    import { BOX_ITEMS } from './data/smallMoveItems.js';
+    import { EXTRAS_RULES } from './extras-rules.js';
+
+    // ⚠️ קריאה בלבד (גיא, 25.11): אין כאן כתיבה, בחירה, כמות, סכום או שמירה.
+    // הרכיב האינטראקטיבי היחיד הוא שדה החיפוש. הכול נבנה ב-textContent, בלי innerHTML.
+    const params = new URLSearchParams(location.search);
+    const orderId = params.get('id') || '';
+    const serviceType = params.get('type') === 'smallMove' ? 'smallMove' : 'apartment';
+    if (orderId) document.getElementById('back-link').href = 'order-status.html?id=' + encodeURIComponent(orderId);
+
+    await requireAuth();
+    await loadRemotePricingConfig();
+    document.getElementById('loading').style.display = 'none';
+    document.getElementById('content').style.display = 'block';
+
+    // בידוד כיווני: מספר או טווח ("120–180") בתוך טקסט עברי, אחרת המקף מתהפך ב-RTL.
+    const isolateNumbers = (t) => t.replace(/\d+(?:[.,]\d+)?(?:\s?[–\-×x/]\s?\d+(?:[.,]\d+)?)*/g, (m) => '⁦' + m + '⁩');
+    const isolatedPrice = (p) => '⁦₪' + p + '⁩';
+
+    const lines = [
+      serviceType === 'smallMove'
+        ? 'פריט שלא היה בהזמנה עולה כמו במחירון ההובלה הקטנה, במחיר של יום ההזמנה.'
+        : 'פריט שלא היה בהזמנה עולה כמו במחירון הדירה, במחיר של יום ההזמנה.',
+      'התשלום על תוספת הוא ישירות למוביל.',
+      'אפשר לא להוסיף. ההובלה שהזמנתם מתבצעת במחיר המקורי בכל מקרה.',
+      'המוביל רשאי לסרב לתוספות שעוברות יחד 30% ממחיר ההזמנה, או שלא נכנסות לרכב.',
+    ];
+    const linesEl = document.getElementById('extras-lines');
+    for (const t of lines) { const li = document.createElement('li'); li.textContent = t; linesEl.appendChild(li); }
+
+    // מחיר יחידה: אותה נוסחה כמו `apartmentItemUnitPrice` / `smallMoveCatalogUnitPrice` באפליקציה.
+    const unitPrice = (key) => serviceType === 'smallMove'
+      ? smallMoveCatalogUnitPrice(key)
+      : (getBoxItemInfo(key)?.price ?? getItemPriceAnyCategory(key));
+
+    const sections = new Map();
+    for (const { item, nativeRoomKey, nativeRoomLabel } of getAllItemsFlat()) {
+      if (getBoxSizeFromKey(item.key)) continue; // ארגזי קרטון: בסעיף הארגזים
+      const rule = EXTRAS_RULES[item.key];
+      let row;
+      if (rule && rule.status === 'excluded') {
+        row = { label: item.label, excluded: true, note: rule.note };
+      } else {
+        const price = unitPrice(item.key);
+        if (price == null || price <= 0) continue;
+        row = { label: item.label, price, note: rule ? rule.note : '' };
+      }
+      if (!sections.has(nativeRoomKey)) sections.set(nativeRoomKey, { title: nativeRoomLabel, rows: [] });
+      sections.get(nativeRoomKey).rows.push(row);
+    }
+    const boxes = [];
+    for (const size of ['S', 'M', 'L', 'XL']) {
+      if (serviceType === 'smallMove') {
+        const b = BOX_ITEMS.find((x) => x.key === 'box_' + size.toLowerCase()); // בהובלה קטנה אין XL
+        if (b) boxes.push({ label: 'ארגז קרטון ' + size, price: b.price });
+      } else if (BOX_PRICES[size]) {
+        boxes.push({ label: 'ארגז קרטון ' + size, price: getBoxItemInfo('box_' + size).price });
+      }
+    }
+
+    const listEl = document.getElementById('extras-list');
+    function el(tag, cls, text) { const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }
+    function rowEl(r) {
+      const row = el('div', 'extras-row');
+      const name = el('div', 'extras-row-name', isolateNumbers(r.label));
+      if (r.excluded) name.appendChild(el('span', 'extras-row-note', 'לא נכנס כתוספת · ' + r.note));
+      else if (r.note) name.appendChild(el('span', 'extras-row-note', r.note));
+      row.appendChild(name);
+      if (!r.excluded) row.appendChild(el('div', 'extras-row-price', isolatedPrice(r.price)));
+      return row;
+    }
+    function render(query) {
+      const q = query.trim().toLowerCase();
+      listEl.replaceChildren();
+      for (const sec of sections.values()) {
+        const rows = q ? sec.rows.filter((r) => r.label.toLowerCase().includes(q)) : sec.rows;
+        if (!rows.length) continue;
+        listEl.appendChild(el('h2', 'extras-room', sec.title));
+        for (const r of rows) listEl.appendChild(rowEl(r));
+      }
+      if (boxes.length && (!q || 'ארגז ארגזים קרטון'.includes(q))) {
+        listEl.appendChild(el('h2', 'extras-room', 'ארגזים'));
+        listEl.appendChild(el('p', 'extras-row-note', 'חמישה ארגזים ראשונים ללא תשלום. מהשישי:'));
+        for (const b of boxes) listEl.appendChild(rowEl(b));
+      }
+    }
+    render('');
+    document.getElementById('extras-search').addEventListener('input', (e) => render(e.target.value));
+  </script>
+<script type="module" src="measurement.js?v=cd656c0c"></script>
+</body>
+</html>

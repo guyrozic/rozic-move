@@ -1,0 +1,28 @@
+// מחירון התוספות ביום ההובלה (גיא, 25.11) — החרגות והתניות בלבד, בלי מחירים.
+// מקביל ל-`~/Hovalot/src/data/extrasPricelistRules.ts` (המקור: team/ezra/calib3/extras-catalog.tsv,
+// עמודות status ו-note). פריט שאינו כאן הוא "allowed". לא לערוך בלי לערוך את הצד השני.
+export const EXTRAS_RULES = {
+  wardrobe_medium: { status: 'conditional', note: "רק אם לא צריך פירוק מלא" },
+  wardrobe_large: { status: 'conditional', note: "רק אם לא צריך פירוק מלא" },
+  wardrobe_giant: { status: 'conditional', note: "רק אם לא צריך פירוק מלא" },
+  wardrobe_small: { status: 'conditional', note: "רק אם לא צריך פירוק מלא" },
+  ac_unit_1_2hp: { status: 'excluded', note: "פירוק מזגן" },
+  ac_unit_2_3hp: { status: 'excluded', note: "פירוק מזגן" },
+  ac_unit_1hp: { status: 'excluded', note: "פירוק מזגן" },
+  aquarium_medium: { status: 'conditional', note: "רק ריק ממים" },
+  aquarium_large: { status: 'conditional', note: "רק ריק ממים" },
+  aquarium_small: { status: 'conditional', note: "רק ריק ממים" },
+  snooker_table: { status: 'excluded', note: "ציוד מיוחד" },
+  cooktop: { status: 'conditional', note: "רק אם מנותק" },
+  oven_builtin: { status: 'conditional', note: "רק אם מנותק" },
+  exercise_bike: { status: 'excluded', note: "מכשיר כושר גדול" },
+  elliptical: { status: 'excluded', note: "מכשיר כושר גדול" },
+  water_heater: { status: 'conditional', note: "רק אם מנותק" },
+  treadmill: { status: 'excluded', note: "מכשיר כושר גדול" },
+  multi_trainer: { status: 'excluded', note: "מכשיר כושר גדול" },
+  rowing_machine: { status: 'excluded', note: "מכשיר כושר גדול" },
+  pilates_reformer: { status: 'excluded', note: "מכשיר כושר גדול" },
+  weight_bench: { status: 'excluded', note: "מכשיר כושר גדול" },
+  safe_medium: { status: 'excluded', note: "ציוד מיוחד" },
+  piano_upright: { status: 'excluded', note: "ציוד מיוחד" },
+};
