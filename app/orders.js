@@ -217,7 +217,10 @@ export async function createOrder(input) {
      * חוקים — נבדק ואומת (ראו `orderShapeValid`/`allow create`). מטרתו
      * היא שחזור הטופס בלבד — לא לקרוא ממנו מחיר בשום נתיב.
      */
-    editablePayload: input.editablePayload ? stripUndefinedDeep(input.editablePayload) : null,
+    // ⚠️ 25.11 — בלי הכתובת והקואורדינטות. המסמך הזה נקרא על ידי כל מי שרואה את
+    // הלוח, והחוק `addressNotWritten` בודק רק מפתחות עליונים, כך שהעותק שבתוך
+    // ה-payload עקף אותו. העריכה משחזרת אותן מ-private/contact.
+    editablePayload: input.editablePayload ? withoutAddress(stripUndefinedDeep(input.editablePayload)) : null,
   });
   // אותם ארבעת השדות הרגישים בדיוק, בתת-מסמך שרק צד השרת/מוביל-משובץ
   // יכול לקרוא אחרי שהחוקים ייסגרו. ראו הערת הפונקציה למעלה.
@@ -241,6 +244,27 @@ export async function createOrder(input) {
   });
   await batch.commit();
   return ref.id;
+}
+
+/** השדות שמותר להם לשבת רק ב-`orders/{id}/private/contact` (63.5). */
+export const PRIVATE_ADDRESS_KEYS = ['fromAddress', 'toAddress', 'fromLat', 'fromLng', 'toLat', 'toLng'];
+
+/** עותק של מצב האשף בלי הכתובת המלאה והקואורדינטות. */
+export function withoutAddress(payload) {
+  const out = { ...payload };
+  for (const k of PRIVATE_ADDRESS_KEYS) delete out[k];
+  return out;
+}
+
+/** מצב האשף לעריכה, עם הכתובת מהמקום הפרטי. הזמנה ישנה שעוד נושאת אותה עובדת כרגיל. */
+export function editableStateOf(orderWithContact) {
+  const state = { ...orderWithContact.editablePayload };
+  for (const k of PRIVATE_ADDRESS_KEYS) {
+    if (state[k] === undefined || state[k] === null || state[k] === '') {
+      state[k] = orderWithContact[k] ?? (k.endsWith('Address') ? '' : null);
+    }
+  }
+  return state;
 }
 
 function sortByNewest(orders) {
