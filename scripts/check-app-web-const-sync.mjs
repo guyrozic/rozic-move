@@ -320,6 +320,39 @@ const ENTRIES = [
     web: () => Number(extract(WEB_ROOT, 'app/auth.js',
       /const RESET_MAX_PER_TARGET = (\d+)/, 'RESET_MAX_PER_TARGET')[1]),
   },
+  /* 25.11 (W2) — קבועי הצגת תמונות הסריקה ומתג העצירה. **נוסף אחרי מיזוג** ענפי w2-photos ו-w2-ops:
+     עד אז הקבצים באפליקציה לא קיימים והשורות נדלגות (SkipError), לא נכשלות. הנוסח משפטי (סעיף 2ד):
+     שינוי בו בצד אחד בלבד הוא הסכמה בנוסח שהמשתמש לא ראה. */
+  {
+    name: 'SCAN_CONSENT_VERSION',
+    kind: 'inline-literal',
+    app: () => extract(HOVALOT_ROOT, 'src/services/orderScanPhotos.ts', /export const SCAN_CONSENT_VERSION =\s*'([^']*)'/, 'SCAN_CONSENT_VERSION')[1],
+    web: () => extract(WEB_ROOT, 'app/scan-photos.js', /export const SCAN_CONSENT_VERSION =\s*'([^']*)'/, 'SCAN_CONSENT_VERSION (web copy)')[1],
+  },
+  {
+    name: 'SCAN_CONSENT_TITLE',
+    kind: 'inline-literal',
+    app: () => extract(HOVALOT_ROOT, 'src/services/orderScanPhotos.ts', /export const SCAN_CONSENT_TITLE =\s*'([^']*)'/, 'SCAN_CONSENT_TITLE')[1],
+    web: () => extract(WEB_ROOT, 'app/scan-photos.js', /export const SCAN_CONSENT_TITLE =\s*'([^']*)'/, 'SCAN_CONSENT_TITLE (web copy)')[1],
+  },
+  {
+    name: 'SCAN_CONSENT_BODY',
+    kind: 'inline-literal',
+    app: () => extract(HOVALOT_ROOT, 'src/services/orderScanPhotos.ts', /export const SCAN_CONSENT_BODY =\s*'([^']*)'/, 'SCAN_CONSENT_BODY')[1],
+    web: () => extract(WEB_ROOT, 'app/scan-photos.js', /export const SCAN_CONSENT_BODY =\s*'([^']*)'/, 'SCAN_CONSENT_BODY (web copy)')[1],
+  },
+  {
+    name: 'SCAN_CONSENT_CHECKBOX',
+    kind: 'inline-literal',
+    app: () => extract(HOVALOT_ROOT, 'src/services/orderScanPhotos.ts', /export const SCAN_CONSENT_CHECKBOX =\s*'([^']*)'/, 'SCAN_CONSENT_CHECKBOX')[1],
+    web: () => extract(WEB_ROOT, 'app/scan-photos.js', /export const SCAN_CONSENT_CHECKBOX =\s*'([^']*)'/, 'SCAN_CONSENT_CHECKBOX (web copy)')[1],
+  },
+  {
+    name: 'DEFAULT_KILL_SWITCH_MESSAGE',
+    kind: 'inline-literal',
+    app: () => extract(HOVALOT_ROOT, 'src/services/killSwitchPure.ts', /DEFAULT_KILL_SWITCH_MESSAGE =\s*'([^']*)'/, 'DEFAULT_KILL_SWITCH_MESSAGE')[1],
+    web: () => extract(WEB_ROOT, 'app/kill-switch.js', /DEFAULT_KILL_SWITCH_MESSAGE =\s*'([^']*)'/, 'DEFAULT_KILL_SWITCH_MESSAGE (web copy)')[1],
+  },
 ];
 
 function extractTimeSlots(src, label) {

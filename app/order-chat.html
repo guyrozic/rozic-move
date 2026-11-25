@@ -35,14 +35,14 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="../style.css?v=01926b52">
-  <link rel="stylesheet" href="style-app.css?v=c93f1342">
+  <link rel="stylesheet" href="../style.css?v=ae0a0fe9">
+  <link rel="stylesheet" href="style-app.css?v=e41eaa4d">
   <!-- ⚠️ נטען אחרון בכוונה — `flow.css` דורס את `style-app.css` תחת
        `.flow-b` בלבד, כך שדף שלא טוען אותו אינו מושפע. -->
   <link rel="stylesheet" href="flow.css?v=fd6d2d86">
 </head>
 <body class="app-body flow-b">
-<div data-build-stamp class="build-stamp" aria-hidden="true">עודכן 25.11 · 23:09</div>
+<div data-build-stamp class="build-stamp" aria-hidden="true">עודכן 25.11 · 23:45</div>
 <script src="/version-check.js?v=97bd6b2e" defer></script>
   <a class="skip-link" href="#main-content">דלג לתוכן המרכזי</a>
   <script type="module" src="pilot-banner.js?v=40593444"></script>
@@ -161,7 +161,7 @@
   <script type="module">
     import { requireAuth } from './auth.js';
     import { subscribeToOrder } from './orders.js';
-    import { getUserProfile } from './users.js';
+    import { getOrderDriver } from './users.js';
     // ⚠️ השאילתה **אינה** משוכפלת כאן. היא הייתה, לשעה אחת, כי `chat.js`
     // היה נעול לעריכה מקבילית — ואוחדה לשם ברגע שהתפנה. מקור אחד.
     import { subscribeToMessages, sendChatMessage, markChatRead, CHAT_PAGE_SIZE } from './chat.js';
@@ -205,7 +205,7 @@
 
         if (!driverLoaded) {
           driverLoaded = true;
-          const driver = await getUserProfile(order.driverId);
+          const driver = await getOrderDriver(order.id ?? orderId, order.driverId);
           const name = driver?.name || 'המוביל';
           document.getElementById('chat-name').textContent = name;
           document.getElementById('chat-avatar').textContent = name.trim().charAt(0).toUpperCase() || '?';

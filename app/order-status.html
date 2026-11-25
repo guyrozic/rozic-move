@@ -47,8 +47,8 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="../style.css?v=01926b52">
-  <link rel="stylesheet" href="style-app.css?v=c93f1342">
+  <link rel="stylesheet" href="../style.css?v=ae0a0fe9">
+  <link rel="stylesheet" href="style-app.css?v=e41eaa4d">
   <!-- ⚠️ נטען אחרון בכוונה — `flow.css` דורס את `style-app.css` תחת
        `.flow-b` בלבד, כך שדף שלא טוען אותו אינו מושפע. -->
   <link rel="stylesheet" href="flow.css?v=fd6d2d86">
@@ -191,7 +191,7 @@
   </style>
 </head>
 <body class="app-body flow-b">
-<div data-build-stamp class="build-stamp" aria-hidden="true">עודכן 25.11 · 23:09</div>
+<div data-build-stamp class="build-stamp" aria-hidden="true">עודכן 25.11 · 23:45</div>
 <script src="/version-check.js?v=97bd6b2e" defer></script>
   <!-- ⚠️ 15.9 — "דלג לתוכן המרכזי" (WCAG 2.4.1, רמה A). זהו האלמנט הממוקד
        הראשון בדף: מוסתר מהעין, מופיע בפינה ברגע שמגיעים אליו ב-Tab, ומעביר
@@ -298,7 +298,8 @@
       canReportNoShow, reportDriverNoShow,
       getCancellationPolicy, formatPrice,
     } from './orders.js';
-    import { getUserProfile, formatVehicle } from './users.js';
+    import { getOrderDriver, formatVehicle } from './users.js';
+    import { fetchScanPhotoUrls, withdrawScanPhotos, isScanPhotosFlagOn, getScanPhotosStatus } from './scan-photos.js';
     import { toggleFavoriteDriver } from './account.js';
     import { PILOT_MODE, INSURANCE_ENABLED } from './pilot-mode.js';
     import { getSurgePricing } from './data/pricing.js';
@@ -653,10 +654,62 @@
       `;
     }
 
+    /**
+     * 25.11 (W2) — מראה `useScanPhotosShare`. ⚠️ **fail-closed לחשיפה:** אם
+     * התמונות פורסמו ולא הצלחנו להציג ללקוח תצוגה מקדימה — מסירים אותן. לקוח
+     * שלא ראה מה יוצג אינו שיתף. ⚠️ ניסיון אחד לכל הזמנה בכל טעינת דף:
+     * `render()` רץ מחדש בכל עדכון, והקישורים החתומים תקפים 10 דקות בלבד.
+     */
+    const scanPreviewDone = new Map(); // orderId -> Promise<{ urls } | 'withdrawn'>
+    async function loadScanPhotosCard(order) {
+      const strip = document.getElementById('scan-photos-strip');
+      if (!strip) return;
+      // fail-closed: דגל כבוי/לא קריא = אין כרטיס ואין בקשות לשרת.
+      if (!(await isScanPhotosFlagOn())) { document.getElementById('scan-photos-card')?.remove(); return; }
+      let pending = scanPreviewDone.get(order.id);
+      if (!pending) {
+        pending = (async () => {
+          // המצב הקובע ב-private/scanPhotos. 'ready' = מציגים; כל סטטוס ידוע אחר (none/withdrawn/removed) = אין כרטיס.
+          // לא נקרא (null) = ממשיכים ל-getOrderScanPhotos, שהשרת הוא הסמכות בו (403/404 = אין תמונות).
+          const status = await getScanPhotosStatus(order.id);
+          if (status !== null && status !== 'ready') return 'withdrawn';
+          const urls = await fetchScanPhotoUrls(order.id);
+          if (urls.length === 0) {
+            console.warn('[scanPhotos] preview unavailable, withdrawing', order.id);
+            await withdrawScanPhotos(order.id);
+            return 'withdrawn';
+          }
+          return { urls };
+        })();
+        scanPreviewDone.set(order.id, pending);
+      }
+      const state = await pending;
+      const card = document.getElementById('scan-photos-card');
+      if (!card) return; // render() רץ מחדש בינתיים (או שהסטטוס התעדכן)
+      if (state === 'withdrawn') { card.remove(); return; }
+      const total = state.urls.length;
+      document.getElementById('scan-photos-strip').innerHTML = state.urls.map((u, i) =>
+        `<img src="${esc(u)}" alt="תמונה ${i + 1} מתוך ${total}, מטושטשת" loading="lazy">`).join('');
+      document.getElementById('scan-dont-share-btn')?.addEventListener('click', async (e) => {
+        const btn = e.currentTarget;
+        btn.disabled = true; btn.textContent = 'מסיר…';
+        const ok = await withdrawScanPhotos(order.id);
+        if (ok) {
+          scanPreviewDone.set(order.id, Promise.resolve('withdrawn'));
+          document.getElementById('scan-photos-card')?.remove();
+        } else {
+          // ⚠️ לא מסתירים כאילו הצליח: התמונות עדיין עשויות להיות מוצגות.
+          btn.disabled = false; btn.textContent = 'לא לשתף את התמונות';
+          document.getElementById('scan-photos-error').innerHTML =
+            '<div class="alert alert-error">לא הצלחנו להסיר את התמונות. נסה שוב, או פנה לתמיכה.</div>';
+        }
+      });
+    }
+
     async function loadDriverCard(order) {
       const el = document.getElementById('driver-card');
       if (!el) return;
-      const driver = await getUserProfile(order.driverId);
+      const driver = await getOrderDriver(order.id ?? orderId, order.driverId);
       // המשתמש עשוי לנווט משם/ההזמנה עשויה להתעדכן שוב לפני שהקריאה חוזרת —
       // ה-id עדיין קיים ב-DOM רק אם render() לא רץ מחדש בינתיים.
       const stillThere = document.getElementById('driver-card');
@@ -671,7 +724,7 @@
        * כרטיס מאשר להראות כרטיס שמשקר. `subscribeToOrder` ירנדר מחדש
        * בעדכון הבא וינסה שוב.
        */
-      if (!driver) { stillThere.remove(); return; }
+      if (!driver) { console.warn('[order-status] driver card unavailable (parties + users both empty)', order.id); stillThere.remove(); return; }
       stillThere.innerHTML = renderDriverCardInner(driver, order);
 
       document.getElementById('driver-photo')?.addEventListener('error', (e) => {
@@ -911,6 +964,15 @@
         </div>` : ''}
 
         ${/* ══ פער בין המוזמן למובל ══════════════════════════════════
+              ⚠️ 25.11 (W2, הכרעות 7.6/8.9) — **תוספות לא נגבות דרך האפליקציה
+              ולא דרך האתר**: "תוספות יהיו על בסיס מחירון אל מול המוביל
+              ישירות". לאתר אין מסלול *פתיחה* (אין בו ממשק מוביל), כלומר אין
+              מה להסתיר שם; ובאפליקציה (`EXTRAS_CHARGE_IN_APP = false`, ענף
+              w2-extras) הדגל סוגר רק את הפתיחה אצל המוביל. **הכרטיס הזה נשאר
+              כמענה לבקשה שכבר `pending`** — הסתרתו הייתה משאירה מוביל תקוע על
+              LOAD_GAP_PENDING (אותו נימוק כמו באפליקציה). אין בו קישור למחירון:
+              הדף עדיין לא קיים (הוא נבנה בנפרד). ⚠️ כשמוסרים את `pending`
+              מהאפליקציה לגמרי — להסיר גם את הכרטיס והקוד ב-`payments.js`.
               24.9 (98.2א). מראה של הבלוק `!isDriver && loadGapStatus ===
               'pending'` ב-`OrderDetailsScreen.tsx`, כולל אותו נוסח בדיוק.
 
@@ -932,6 +994,20 @@
           <button class="btn btn-primary btn-block" id="loadgap-pay-btn" style="margin-top:10px;">אשר ושלם ₪${esc(order.loadGapAmount)}</button>
           <button type="button" class="btn-text" id="loadgap-decline-btn" style="margin-top:8px;">דחה את התוספת</button>
           <div id="loadgap-error" role="alert"></div>
+        </div>` : ''}
+
+        ${/* 25.11 (W2, הכרעה 8.7 ב) — תצוגה מקדימה של תמונות הסריקה **לפני תשלום**,
+              מראה `ScanPhotosPreviewModal`. מופיעה רק כש-`scanPhotoCount > 0` על ההזמנה והדגל דלוק; המצב הקובע (`ready`) נקרא מ-`private/scanPhotos`, ו-`scanPhotosStatus` נכתב
+              `'ready'` בשרת (`publishOrderScanPhotos`), כלומר לעולם לא לפני
+              שהפונקציות פרוסות ושהלקוח הסכים. "המשך לתשלום" הוא כפתור התשלום
+              שמתחתיה; "לא לשתף" מוחק את התמונות וההזמנה ממשיכה בלעדיהן. */''}
+        ${order.status === 'pending_payment' && order.scanPhotoCount > 0 ? `
+        <div class="app-card" id="scan-photos-card">
+          <h2>כך המובילים יראו את התמונות</h2>
+          <p class="form-hint">פנים ואנשים מטושטשים אוטומטית. הטשטוש אוטומטי וייתכן שלא יתפוס הכול, אז אפשר לבחור לא לשתף.</p>
+          <div class="scan-preview-strip" id="scan-photos-strip" role="status" aria-live="polite">טוען תצוגה מקדימה…</div>
+          <button type="button" class="btn btn-secondary btn-block" id="scan-dont-share-btn" style="margin-top:10px;">לא לשתף את התמונות</button>
+          <div id="scan-photos-error" role="alert"></div>
         </div>` : ''}
 
         ${order.status === 'pending_payment' ? `
@@ -1161,6 +1237,10 @@
 
       if (order.driverId && order.status !== 'pending') {
         loadDriverCard(order);
+      }
+
+      if (order.status === 'pending_payment' && order.scanPhotoCount > 0) {
+        loadScanPhotosCard(order);
       }
 
       /**
@@ -1448,6 +1528,11 @@
             /* 134.2 — השרת לא הצליח לאמת את המחיר מהקלטים שבהזמנה (למשל הזמנה
                ישנה בלי כתובות מאומתות). שוב לא יעזור; ההזמנה החדשה כן. */
             payErrBox.innerHTML = '<div class="alert alert-error">לא הצלחנו לאמת את מחיר ההזמנה, ולכן לא נפתח תשלום. אפשר לפנות לתמיכה, או ליצור את ההזמנה מחדש.</div>';
+          } else if (err?.code === 'payments_paused') {
+            /* 25.11 (W2) — מתג עצירה (`config/killSwitch.paymentsPaused`), 503
+               מהשרת עם הודעה שנכתבה לגולש. מוצגת כמו שהיא; "נסה שוב" כאן שקר
+               עד שהמתג יורד. ההזמנה נשארת `pending_payment` ושום דבר לא נגבה. */
+            payErrBox.innerHTML = `<div class="alert alert-info">${esc(err.message)}</div>`;
           } else {
             payErrBox.innerHTML = '<div class="alert alert-error">פתיחת התשלום נכשלה. נסה שוב.</div>';
           }
