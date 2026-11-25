@@ -101,6 +101,13 @@
     .boxes-packed-title { font-weight: 700; color: var(--text); margin: 0 0 6px; font-size: 0.95rem; }
     .boxes-packed-subtitle { color: var(--text-muted); font-size: 0.82rem; line-height: 1.5; margin: 0 0 12px; }
     .boxes-packed-options { display: flex; flex-direction: column; gap: 8px; }
+    .boxes-packed-option[hidden] { display: none; }
+    .packing-adjust { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+    .packing-adjust strong { font-size: 1.3rem; color: var(--green-ink); }
+    .packing-adjust-btn {
+      width: 44px; height: 44px; border-radius: 22px; border: 1.5px solid var(--border);
+      background: var(--card-bg); color: var(--text); font-size: 1.2rem; cursor: pointer; font-family: inherit;
+    }
     .boxes-packed-option {
       display: block; width: 100%; text-align: right; font-family: inherit;
       padding: 11px 14px; border-radius: 12px; border: 1.5px solid var(--border);
@@ -361,6 +368,22 @@
                 <button type="button" tabindex="0" class="boxes-packed-option" id="boxes-packed-yes" role="radio" aria-checked="false">כן, הם סגורים ומוכנים להובלה</button>
                 <button type="button" tabindex="0" class="boxes-packed-option" id="boxes-packed-no" role="radio" aria-checked="false">לא, זו תכולה שעדיין בארונות</button>
               </div>
+            </div>
+            <!-- v3 בלבד (hidden במחירון של היום): תכולת מטבח, ותיקון מספר הארגזים -->
+            <div class="boxes-packed-card" id="kitchen-card" hidden>
+              <p class="boxes-packed-title">תכולת המטבח</p>
+              <p class="boxes-packed-subtitle">כלים, סירים, מזון יבש ומה שבארונות המטבח.</p>
+              <div class="boxes-packed-options" role="radiogroup" aria-label="תכולת המטבח" id="kitchen-options"></div>
+            </div>
+            <div class="boxes-packed-card" id="packing-boxes-card" hidden>
+              <p class="boxes-packed-title">מספר הארגזים</p>
+              <p class="boxes-packed-subtitle" id="packing-boxes-hint"></p>
+              <div class="packing-adjust">
+                <button type="button" tabindex="0" class="packing-adjust-btn" id="packing-boxes-minus" aria-label="פחות ארגז אחד">−</button>
+                <strong id="packing-boxes-value" aria-live="polite">0</strong>
+                <button type="button" tabindex="0" class="packing-adjust-btn" id="packing-boxes-plus" aria-label="עוד ארגז אחד">+</button>
+              </div>
+              <button type="button" tabindex="0" class="boxes-packed-option" id="packing-boxes-reset" style="margin-top:8px;" hidden>חזרה להערכה שלנו</button>
             </div>
             <div id="packing-preview" class="alert alert-info"></div>
             <button tabindex="0" class="btn btn-primary btn-block" id="packing-add-btn" style="margin-bottom:10px;">הוסף שירות אריזה</button>
@@ -752,10 +775,12 @@
     import { BED_ITEM_KEYS, buildMattressFollowUpQuestion, hasMattressOptions,
              buildBeddingBoxFollowUpQuestion, diningChairsFollowUpFor,
              buildDuplicateCheckQuestion, longestCommonPrefix } from './data/followups.js';
-    import { BASE_PRICE, apartmentTravelCost, FLOOR_SURCHARGE_PER_FLOOR, getVolumeDiscount, getSurgePricing, calculatePackingFromItems, getBoxSizeFromKey, getBoxItemInfo, INSURANCE_PRICE_APARTMENT, REGION_SURCHARGE_RATE } from './data/pricing.js';
+    import { BASE_PRICE, APARTMENT_MIN_CORE, packingV3Rates, apartmentTravelCost, FLOOR_SURCHARGE_PER_FLOOR, getVolumeDiscount, getSurgePricing, calculatePackingFromItems, getBoxSizeFromKey, getBoxItemInfo, INSURANCE_PRICE_APARTMENT, REGION_SURCHARGE_RATE, REGION_SURCHARGE_RATE_JERUSALEM } from './data/pricing.js';
     import { checkServiceArea } from './service-area.js';
     import { checkTimeSlot } from './time-slot-required.js';
-    import { hasRegionSurcharge } from './data/pricing-regions.js';
+    import { KITCHEN_CONTENTS } from './data/packingClassification.js';
+    import { PACKING_INCLUDED_NOTE } from './data/packingCopy.js';
+    import { regionSurchargeRateFor } from './data/pricing-regions.js';
     import { loadRemotePricingConfig } from './pricing-config.js';
     import { FLOORS, craneCostFor, distanceAndCoords, formatDateApp, parseDateApp } from './geo.js';
     import { insurancePriceInPilot, INSURANCE_ENABLED } from './pilot-mode.js';
@@ -779,6 +804,9 @@
     // 12.9 — נגזר מ-data/pricing.js, שם הוא מסונכרן מול האפליקציה.
 
     const state = {
+      // v3: שתי בחירות של מסך האריזה. null = עוד לא נבחר, '' = בלי אריזת מטבח.
+      kitchenContents: null,
+      packingBoxesOverride: null,
       items: {},           // itemKey -> qty
       freeItems: [],        // [{label, qty}] — no catalog match, priced manually by the team
       hasPacking: false,
@@ -1055,11 +1083,14 @@
       if (!state.fromElevator && fromFloorNum > 0) floorSurcharge += fromFloorNum * FLOOR_SURCHARGE_PER_FLOOR;
       if (!state.toElevator && toFloorNum > 0) floorSurcharge += toFloorNum * FLOOR_SURCHARGE_PER_FLOOR;
       const surge = getSurgePricing(parseDateApp(state.date), state.timeSlot);
-      const roundedBase = Math.round(BASE_PRICE + afterDiscount + travelCost + floorSurcharge);
+      // v3: מינימום לבסיס ולפריטים, לפני ק"מ, קומות, מועד ואזור. במחירון של היום 0.
+      const minCoreTopUp = Math.max(0, APARTMENT_MIN_CORE - (BASE_PRICE + afterDiscount));
+      const core = BASE_PRICE + afterDiscount + minCoreTopUp + travelCost + floorSurcharge;
+      const roundedBase = Math.round(core);
       const surgeAmount = surge ? Math.round(roundedBase * surge.rate) : 0;
       // כיול 1 (170.5ב): תוספת אזור על אותו בסיס כמו תוספת הסופ"ש, לפני ביטוח/אריזה/מנוף וקופון. זהה ל-regionOf באפליקציה.
-      const regionSurchargeRate = hasRegionSurcharge(state.fromCity, state.toCity) ? REGION_SURCHARGE_RATE : 0;
-      const regionAmount = Math.round((BASE_PRICE + afterDiscount + travelCost + floorSurcharge) * regionSurchargeRate);
+      const regionSurchargeRate = regionSurchargeRateFor(state.fromCity, state.toCity, { sharon: REGION_SURCHARGE_RATE, jerusalem: REGION_SURCHARGE_RATE_JERUSALEM });
+      const regionAmount = Math.round(core * regionSurchargeRate);
       // 17.9 — כמה ארגזי קרטון (box_S/M/L/XL) הלקוח סימן, על פני כל
       // הפריטים שנבחרו. השאלה "כבר ארוזים?" בשלב 2 מוצגת רק אם יש כאלה,
       // בדיוק כמו ב-PackingOfferScreen באפליקציה. בלי countCustomerBoxes
@@ -1068,7 +1099,8 @@
       const boxesQty = selected.reduce((s, i) => s + (getBoxSizeFromKey(i.key) ? i.qty : 0), 0);
       const hasCustomerBoxes = boxesQty > 0;
       const countCustomerBoxes = hasCustomerBoxes && !state.boxesAlreadyPacked;
-      const packingCalc = calculatePackingFromItems(selected.map(i => ({ itemKey: i.key, qty: i.qty })), { countCustomerBoxes });
+      const packingCalc = calculatePackingFromItems(selected.map(i => ({ itemKey: i.key, qty: i.qty })), { countCustomerBoxes, kitchenContents: state.kitchenContents, boxesOverride: state.packingBoxesOverride });
+      const boxesEstimated = calculatePackingFromItems(selected.map(i => ({ itemKey: i.key, qty: i.qty })), { countCustomerBoxes }).boxesEstimated;
       const craneCost = state.needsCrane ? craneCostFor(state.craneFloor) : 0;
       // ⚠️ 15.9 — עובר דרך `insurancePriceInPilot`: בשלב ההרצה התקנון
       // מבטיח במפורש שלא ייגבו דמי כיסוי, והאתר גבה. ראו `pilot-mode.js`.
@@ -1104,7 +1136,7 @@
       // לחסום אותו עכשיו ולא אחרי ששינוי מחירון יפתח אותו.
       const couponDiscount = couponInEffect ? Math.max(0, getDiscountAmount(baseTotal, couponInEffect)) : 0;
       const totalPrice = baseTotal - couponDiscount;
-      return { selected, itemsSubtotal, volumeDiscountRate, volumeDiscount, travelCost, floorSurcharge, surge, surgeAmount, regionSurchargeRate, regionAmount, packingCalc, boxesQty, hasCustomerBoxes, insuranceAmount, packingAmount, craneCost, commissionAmount, baseTotal, couponDiscount, couponBelowMin, couponCode: couponInEffect ? couponInEffect.code : null, totalPrice };
+      return { selected, itemsSubtotal, volumeDiscountRate, volumeDiscount, minCoreTopUp, travelCost, floorSurcharge, surge, surgeAmount, regionSurchargeRate, regionAmount, packingCalc, boxesEstimated, boxesQty, hasCustomerBoxes, insuranceAmount, packingAmount, craneCost, commissionAmount, baseTotal, couponDiscount, couponBelowMin, couponCode: couponInEffect ? couponInEffect.code : null, totalPrice };
     }
 
     function renderSidePrice() {
@@ -1980,7 +2012,43 @@
       const names = items.map(i => (i.qty > 1 ? `${i.label} ×${i.qty}` : i.label));
       return names.length <= max ? names.join(', ') : `${names.slice(0, max).join(', ')} ועוד ${names.length - max}`;
     }
+    /** v3: תכולת המטבח. ברירת המחדל בינוני כשיש מקרר בהזמנה. */
+    function renderKitchenOptions() {
+      const v3 = packingV3Rates();
+      document.getElementById('kitchen-card').hidden = !v3;
+      document.getElementById('packing-boxes-card').hidden = !v3;
+      if (!v3) return;
+      if (state.kitchenContents === null && Object.entries(state.items).some(([k, q]) => q > 0 && k.startsWith('fridge_freezer_'))) {
+        state.kitchenContents = 'kitchen_contents_medium';
+      }
+      const box = document.getElementById('kitchen-options');
+      box.textContent = '';
+      for (const o of [...KITCHEN_CONTENTS.map(k => ({ key: k.key, label: `${k.label}, כ-${Math.ceil(k.boxes * v3.packingEstimateFactor)} ארגזים` })), { key: '', label: 'בלי אריזת מטבח' }]) {
+        const sel = (state.kitchenContents ?? '') === o.key;
+        const b = document.createElement('button');
+        b.type = 'button'; b.tabIndex = 0; b.className = 'boxes-packed-option' + (sel ? ' selected' : '');
+        b.setAttribute('role', 'radio'); b.setAttribute('aria-checked', String(sel));
+        b.textContent = o.label;
+        b.addEventListener('click', () => { state.kitchenContents = o.key; renderPackingOffer(); renderSidePrice(); box.querySelector('[aria-checked="true"]')?.focus(); });
+        box.appendChild(b);
+      }
+      const { packingCalc, boxesEstimated } = computePrice();
+      document.getElementById('packing-boxes-value').textContent = String(packingCalc.totalBoxes);
+      document.getElementById('packing-boxes-hint').textContent = state.packingBoxesOverride == null
+        ? `הערכנו ${boxesEstimated} ארגזים מהרהיטים. אפשר לתקן.`
+        : `תיקנת ל-${state.packingBoxesOverride}. הערכנו ${boxesEstimated}.`;
+      document.getElementById('packing-boxes-reset').hidden = state.packingBoxesOverride == null;
+    }
+    function adjustPackingBoxes(d) {
+      state.packingBoxesOverride = Math.max(0, (state.packingBoxesOverride ?? computePrice().boxesEstimated) + d);
+      renderPackingOffer(); renderSidePrice();
+    }
+    document.getElementById('packing-boxes-minus').addEventListener('click', () => adjustPackingBoxes(-1));
+    document.getElementById('packing-boxes-plus').addEventListener('click', () => adjustPackingBoxes(1));
+    document.getElementById('packing-boxes-reset').addEventListener('click', () => { state.packingBoxesOverride = null; renderPackingOffer(); renderSidePrice(); });
+
     function renderPackingOffer() {
+      renderKitchenOptions();
       const { packingCalc, boxesQty, hasCustomerBoxes, selected } = computePrice();
       const boxesCard = document.getElementById('boxes-packed-card');
       boxesCard.style.display = hasCustomerBoxes ? '' : 'none';
@@ -2001,8 +2069,10 @@
       if (packingCalc.totalBoxes > 0) parts.push(`כ-${Math.ceil(packingCalc.totalBoxes)} ארגזים`);
       if (packingCalc.wrapCount > 0) parts.push(`${packingCalc.wrapCount} פריטי ריהוט עטופים`);
       const previewEl = document.getElementById('packing-preview');
-      if (!parts.length) {
-        previewEl.textContent = 'לא בחרת פריטים, ולכן אין מה לארוז. אפשר לחזור ולהוסיף פריטים, או להמשיך.';
+      if (!parts.length || packingCalc.total <= 0) {
+        previewEl.textContent = packingV3Rates() && selected.length
+          ? 'בפריטים שבחרת אין תכולה לארוז. הרהיטים נעטפים בכל הובלה.'
+          : 'לא בחרת פריטים, ולכן אין מה לארוז. אפשר לחזור ולהוסיף פריטים, או להמשיך.';
       } else {
         // 62.4 — "מה נארז ומה לא", מתחת לשורת המחיר. countCustomerBoxes
         // זהה לחישוב ב-computePrice (60.2) — לא ערך חדש, רק נגזר כאן שוב
@@ -2016,6 +2086,8 @@
         const lines = [`<p class="packing-preview-summary">המוביל יארוז: ${parts.join(' + ')} — <span class="signed-amount">+₪${formatPrice(packingCalc.total)}</span></p>`];
         if (packed.length) lines.push(`<p class="packing-preview-detail">כולל: ${escHtml(summarizePackingLabels(packed))}</p>`);
         if (excluded.length) lines.push(`<p class="packing-preview-detail">לא כלול בשירות האריזה: ${escHtml(summarizePackingLabels(excluded))} — אלה עוברים כמו שהם.</p>`);
+        if (packingCalc.minimumApplied) lines.push('<p class="packing-preview-detail">זה המינימום לשירות אריזה.</p>');
+        if (packingV3Rates()) lines.push(`<p class="packing-preview-detail">${escHtml(PACKING_INCLUDED_NOTE)}</p>`);
         previewEl.innerHTML = lines.join('');
       }
       /**
@@ -2453,6 +2525,7 @@
     function renderSummary() {
       document.getElementById('has-insurance').checked = state.hasInsurance;
       document.getElementById('has-packing').checked = state.hasPacking;
+      document.getElementById('has-packing').closest('label').hidden = packingV3Rates() !== null && computePrice().packingCalc.total <= 0;
       renderRecap();
       const p = computePrice();
       track('price_shown', { order_type: 'apartment', value: p.totalPrice, currency: 'ILS' }, 'price_shown');
@@ -2477,6 +2550,7 @@
       // ⚠️ `× ₪9` בתוך התווית — באפליקציה השורה היא
       // `נסיעה (12 ק"מ × ₪9)`. בלי התעריף הלקוח רואה סכום שאי אפשר
       // לבדוק, וזו השורה היחידה בפירוט שנגזרת ממספר שהוא לא בחר.
+      if (p.minCoreTopUp > 0) lines.push(['השלמה למחיר מינימום', `+₪${formatPrice(p.minCoreTopUp)}`]);
       if (p.travelCost > 0) lines.push([`נסיעה (${state.distance} ק"מ)`, `+₪${formatPrice(p.travelCost)}`]);
       if (p.floorSurcharge > 0) lines.push(['תוספת קומות', `+₪${formatPrice(p.floorSurcharge)}`]);
       if (p.surge) lines.push([`תוספת ${p.surge.label} (+${p.surge.rate * 100}%)`, `+₪${formatPrice(p.surgeAmount)}`]);
@@ -2790,7 +2864,7 @@
           commissionAmount: p.commissionAmount,
           hasInsurance: state.hasInsurance,
           insuranceAmount: p.insuranceAmount,
-          packingService: state.hasPacking,
+          packingService: state.hasPacking && p.packingCalc.total > 0, // אין מה לארוז → לא נרשם שירות שלא נגבה
           packingServicePrice: p.packingAmount,
           craneNeeded: state.needsCrane,
           craneFloor: state.needsCrane ? state.craneFloor : null,

@@ -26,9 +26,17 @@ export async function startGrowCheckout(orderId, meta) {
   const res = await fetch(CREATE_CHECKOUT_URL, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-    body: JSON.stringify({ orderId, fromWeb: true }),
+    // `shownPrice` — המחיר שהלקוח ראה. מחיר שרת גבוה ממנו חוזר לאישור ולא נגבה.
+    body: JSON.stringify({ orderId, fromWeb: true, ...(typeof meta?.price === 'number' ? { shownPrice: meta.price } : {}) }),
   });
   const data = await res.json().catch(() => null);
+  if (res.status === 409 && data?.code === 'price_changed' && typeof data.price === 'number' && typeof meta?.price === 'number') {
+    const f = (n) => Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+    if (!confirm(`המחיר עודכן\n\nהמחיר שהוצג היה ₪${f(meta.price)}, והמחיר המעודכן הוא ₪${f(data.price)}. עדיין לא חויבת.\n\nלהמשיך לתשלום של ₪${f(data.price)}?`)) {
+      throw new Error('price not approved');
+    }
+    return startGrowCheckout(orderId, { ...meta, price: data.price });
+  }
   if (!res.ok || !data?.url) throw new Error((data && data.error) || 'CHECKOUT_FAILED');
   // מדידה: begin_checkout רק אחרי שהשרת החזיר כתובת תשלום (לא על ניסיון שנכשל).
   // meta = { serviceType, price } מההזמנה — בלי PII. ראו analytics.js.

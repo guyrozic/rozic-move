@@ -710,8 +710,9 @@
     import { BED_ITEM_KEYS, buildMattressFollowUpQuestion, hasMattressOptions,
              buildBeddingBoxFollowUpQuestion, diningChairsFollowUpFor,
              buildDuplicateCheckQuestion, longestCommonPrefix } from './data/followups.js';
-    import { FLOOR_SURCHARGE_PER_FLOOR, getSurgePricing, calculatePackingFromItems, getBoxSizeFromKey, INSURANCE_PRICE_SMALL_MOVE, SMALL_MOVE_BASE_PRICE, SMALL_MOVE_INCLUDED_KM, SMALL_MOVE_PRICE_PER_KM, REGION_SURCHARGE_RATE, smallMoveCatalogUnitPrice, smallMoveTravelCost } from './data/pricing.js';
-    import { hasRegionSurcharge } from './data/pricing-regions.js';
+    import { packingV3Rates, FLOOR_SURCHARGE_PER_FLOOR, getSurgePricing, calculatePackingFromItems, getBoxSizeFromKey, INSURANCE_PRICE_SMALL_MOVE, SMALL_MOVE_BASE_PRICE, SMALL_MOVE_INCLUDED_KM, SMALL_MOVE_PRICE_PER_KM, REGION_SURCHARGE_RATE, REGION_SURCHARGE_RATE_JERUSALEM, smallMoveCatalogUnitPrice, smallMoveTravelCost } from './data/pricing.js';
+    import { PACKING_INCLUDED_NOTE } from './data/packingCopy.js';
+    import { regionSurchargeRateFor } from './data/pricing-regions.js';
     import { loadRemotePricingConfig } from './pricing-config.js';
     import { BOX_ITEMS, MAX_VOLUME, estimateVolume, applyWithinCapacity } from './data/smallMoveItems.js';
     import { FLOORS, craneCostFor, distanceAndCoords, formatDateApp, parseDateApp } from './geo.js';
@@ -989,7 +990,7 @@
       const surge = getSurgePricing(parseDateApp(state.date), state.timeSlot);
       const surgeAmount = surge ? Math.round(baseTotal * surge.rate) : 0;
       // כיול 1 (170.5ב): תוספת אזור על אותו בסיס כמו תוספת הסופ"ש, לפני ביטוח/אריזה/מנוף וקופון. זהה ל-regionOf באפליקציה.
-      const regionSurchargeRate = hasRegionSurcharge(state.fromCity, state.toCity) ? REGION_SURCHARGE_RATE : 0;
+      const regionSurchargeRate = regionSurchargeRateFor(state.fromCity, state.toCity, { sharon: REGION_SURCHARGE_RATE, jerusalem: REGION_SURCHARGE_RATE_JERUSALEM });
       const regionAmount = Math.round(baseTotal * regionSurchargeRate);
       const packingCalc = calculatePackingFromItems(selected.filter(i => findItemAnywhere(i.key)).map(i => ({ itemKey: i.key, qty: i.qty })));
       const craneCost = state.needsCrane ? craneCostFor(state.craneFloor) : 0;
@@ -1936,8 +1937,10 @@
       if (packingCalc.totalBoxes > 0) parts.push(`כ-${Math.ceil(packingCalc.totalBoxes)} ארגזים`);
       if (packingCalc.wrapCount > 0) parts.push(`${packingCalc.wrapCount} פריטי ריהוט עטופים`);
       const previewEl = document.getElementById('packing-preview');
-      if (!parts.length) {
-        previewEl.textContent = 'לא בחרת פריטים, ולכן אין מה לארוז. אפשר לחזור ולהוסיף פריטים, או להמשיך.';
+      if (!parts.length || packingCalc.total <= 0) {
+        previewEl.textContent = packingV3Rates() && selected.length
+          ? 'בפריטים שבחרת אין תכולה לארוז. הרהיטים נעטפים בכל הובלה.'
+          : 'לא בחרת פריטים, ולכן אין מה לארוז. אפשר לחזור ולהוסיף פריטים, או להמשיך.';
       } else {
         const packed = [];
         const excluded = [];
@@ -1947,6 +1950,8 @@
         const lines = [`<p class="packing-preview-summary">המוביל יארוז: ${parts.join(' + ')} — <span class="signed-amount">+₪${formatPrice(packingCalc.total)}</span></p>`];
         if (packed.length) lines.push(`<p class="packing-preview-detail">כולל: ${escHtml(summarizePackingLabels(packed))}</p>`);
         if (excluded.length) lines.push(`<p class="packing-preview-detail">לא כלול בשירות האריזה: ${escHtml(summarizePackingLabels(excluded))} — אלה עוברים כמו שהם.</p>`);
+        if (packingCalc.minimumApplied) lines.push('<p class="packing-preview-detail">זה המינימום לשירות אריזה.</p>');
+        if (packingV3Rates()) lines.push(`<p class="packing-preview-detail">${escHtml(PACKING_INCLUDED_NOTE)}</p>`);
         previewEl.innerHTML = lines.join('');
       }
       /**
@@ -2368,6 +2373,7 @@
     function renderSummary() {
       document.getElementById('has-insurance').checked = state.hasInsurance;
       document.getElementById('has-packing').checked = state.hasPacking;
+      document.getElementById('has-packing').closest('label').hidden = packingV3Rates() !== null && computePrice().packingCalc.total <= 0;
       renderRecap();
       const p = computePrice();
       track('price_shown', { order_type: 'small_move', value: p.totalPrice, currency: 'ILS' }, 'price_shown');
@@ -2696,7 +2702,7 @@
           commissionAmount: p.commissionAmount,
           hasInsurance: state.hasInsurance,
           insuranceAmount: p.insuranceAmount,
-          packingService: state.hasPacking,
+          packingService: state.hasPacking && p.packingCalc.total > 0, // אין מה לארוז → לא נרשם שירות שלא נגבה
           packingServicePrice: p.packingAmount,
           craneNeeded: state.needsCrane,
           craneFloor: state.needsCrane ? state.craneFloor : null,

@@ -23,6 +23,9 @@ export function buildPricingInputs(i) {
   };
   if (i.items) { out.items = i.items; out.boxesAlreadyPacked = !!i.boxesAlreadyPacked; }
   if (i.quantities) out.quantities = i.quantities;
+  // v3 בלבד, ורק כשנבחרו (undefined אסור ב-Firestore)
+  if (i.kitchenContents) out.kitchenContents = i.kitchenContents;
+  if (i.packingBoxesOverride != null) out.packingBoxesOverride = i.packingBoxesOverride;
   return out;
 }
 
@@ -45,6 +48,8 @@ export function apartmentPricingInputs(state, couponCode) {
     fromFloor: state.fromFloor, toFloor: state.toFloor,
     fromElevator: state.fromElevator, toElevator: state.toElevator,
     boxesAlreadyPacked: state.boxesAlreadyPacked,
+    kitchenContents: state.kitchenContents,
+    packingBoxesOverride: state.packingBoxesOverride,
     couponCode,
   });
 }

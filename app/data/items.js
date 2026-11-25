@@ -1,4 +1,5 @@
-import { ITEM_PRICES } from './pricing.js';
+import { ITEM_PRICES, getPricelistVersion, itemPriceV3 } from './pricing.js';
+import { PACKING_BOX_ESTIMATE, PACKING_NO_PACKING_KEYS, PACKING_WRAP_TIER, SHARED_BOX_FRACTION } from './packingClassification.js';
 export const ALL_ROOMS = [
     {
         key: 'bedroom', label: 'חדר שינה', icon: '🛏',
@@ -328,7 +329,7 @@ export function getItem(roomKey, itemKey) {
     return getRoomByKey(roomKey)?.items.find(i => i.key === itemKey);
 }
 export function getItemPrice(roomKey, itemKey) {
-    return ITEM_PRICES[roomKey]?.[itemKey] ?? 0;
+    return itemPriceV3(itemKey) ?? ITEM_PRICES[roomKey]?.[itemKey] ?? 0;
 }
 /** Finds an item's definition regardless of which room category it's filed under. */
 export function findItemAnywhere(itemKey) {
@@ -341,6 +342,8 @@ export function findItemAnywhere(itemKey) {
 }
 /** Price lookup that falls back across all categories — for items added to a room they don't natively belong to. */
 export function getItemPriceAnyCategory(itemKey) {
+    const v3 = itemPriceV3(itemKey);
+    if (v3 !== null) return v3;
     for (const categoryKey of Object.keys(ITEM_PRICES)) {
         const price = ITEM_PRICES[categoryKey]?.[itemKey];
         if (price !== undefined)
@@ -480,6 +483,15 @@ const PACKING_WRAP_KEYS = new Set([
  * 'box', with boxCount estimated from the item's own heavy/fragile flags.
  */
 export function getPackingInfo(item) {
+    // אריזה v2 (מחירון 3 בלבד). זהה ל-getPackingInfo באפליקציה.
+    if (getPricelistVersion() === 3) {
+        if (PACKING_NO_PACKING_KEYS.has(item.key)) return { packingType: 'none', boxCount: 0 };
+        const tier = PACKING_WRAP_TIER[item.key];
+        if (tier) return { packingType: 'wrap', boxCount: 0, wrapTier: tier };
+        const estimate = PACKING_BOX_ESTIMATE[item.key];
+        if (estimate != null) return { packingType: 'box', boxCount: estimate, boxSource: 'estimate' };
+        return { packingType: 'box', boxCount: SHARED_BOX_FRACTION, boxSource: 'shared' };
+    }
     if (PACKING_NONE_KEYS.has(item.key))
         return { packingType: 'none', boxCount: 0 };
     if (PACKING_WRAP_KEYS.has(item.key))

@@ -15,7 +15,7 @@
 // ══════════════════════════════════════════════════════════════════
 import { doc, getDoc } from 'https://www.gstatic.com/firebasejs/12.16.0/firebase-firestore.js';
 import { db } from './firebase.js';
-import { applyPricingRates, applyItemPriceOverrides } from './data/pricing.js';
+import { applyPricingRates, applyItemPriceOverrides, applyPricelistV3Overrides } from './data/pricing.js';
 
 let loadPromise = null;
 
@@ -34,12 +34,21 @@ export function loadRemotePricingConfig() {
   // ברקע וה-override עדיין יחול כשיגיע (המחיר מחושב מחדש בכל אינטראקציה).
   const fetchAndApply = (async () => {
     try {
-      const [ratesSnap, itemsSnap] = await Promise.all([
+      // מסמכי v3 אופציונליים: כשל בקריאתם לא מפיל את המחירון של היום.
+      const optional = (id) => getDoc(doc(db, 'config', id)).then(s => (s.exists() ? s.data() : null)).catch(() => null);
+      const [ratesSnap, itemsSnap, ratesV3, itemsV3] = await Promise.all([
         getDoc(doc(db, 'config', 'pricing')),
         getDoc(doc(db, 'config', 'itemPrices')),
+        optional('pricingV3'),
+        optional('itemPricesV3'),
       ]);
-      if (ratesSnap.exists()) applyPricingRates(ratesSnap.data() || {});
       if (itemsSnap.exists()) applyItemPriceOverrides(itemsSnap.data() || {});
+      applyPricelistV3Overrides(ratesV3, itemsV3);
+      // `pricelistVersion` מפורש גם כשהוא חסר: חסר = המחירון של היום.
+      if (ratesSnap.exists()) {
+        const rates = ratesSnap.data() || {};
+        applyPricingRates({ ...rates, pricelistVersion: rates.pricelistVersion });
+      }
     } catch (err) {
       // נשארים על ברירות המחדל — לא מפילים את הדף על כשל רשת/הרשאה.
       console.warn('loadRemotePricingConfig: נשארתי על מחירי ברירת המחדל', err);

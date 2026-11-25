@@ -55,6 +55,7 @@ export function normalizeCityName(city) {
     .replace(/וו/g, 'ו');
 }
 
+const JERUSALEM_SET = new Set(REGION_JERUSALEM.map(normalizeCityName));
 const REGION_SET = new Set([...REGION_JERUSALEM, ...REGION_SHARON].map(normalizeCityName));
 
 /** האם היישוב בשרון או במחוז ירושלים. ריק או לא מוכר → `false`. */
@@ -66,4 +67,13 @@ export function isSurchargeRegionCity(city) {
 /** האם ההובלה מקבלת תוספת אזור: המוצא **או** היעד באזור. */
 export function hasRegionSurcharge(fromCity, toCity) {
   return isSurchargeRegionCity(fromCity) || isSurchargeRegionCity(toCity);
+}
+
+/**
+ * שיעור תוספת האזור (v3: תעריף נפרד למחוז ירושלים). מוצא ויעד בשני אזורים → הגבוה מביניהם,
+ * בלי צבירה. כששני התעריפים זהים, כמו במחירון של היום, התוצאה זהה ל-`hasRegionSurcharge`.
+ */
+export function regionSurchargeRateFor(fromCity, toCity, rates) {
+    return Math.max(0, ...[fromCity, toCity].filter(isSurchargeRegionCity)
+        .map(c => (JERUSALEM_SET.has(normalizeCityName(c)) ? rates.jerusalem : rates.sharon)));
 }

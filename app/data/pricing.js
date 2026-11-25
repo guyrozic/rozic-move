@@ -3,6 +3,8 @@
 //  כל שינוי מחיר נעשה כאן בלבד. הקוד כולו קורא מפה.
 // ============================================================
 import { findItemAnywhere, getPackingInfo, getItemPriceAnyCategory } from './items.js';
+import { ITEM_PRICES_V3, PRICELIST_V3, SMALL_MOVE_V3_FACTOR, SMALL_MOVE_V3_KEYS } from './pricelistV3.js';
+import { KITCHEN_CONTENTS_BOXES, SHARED_BOX_FRACTION } from './packingClassification.js';
 /** 12.11.2026 (גיא): מחירי הקוד הם מחירי השוק אחרי כיול 1, זהים ל-config/itemPrices בייצור (×1.8 מהקודמים). זהה לאפליקציה. */
 export const ITEM_PRICES = {
     bedroom: {
@@ -375,6 +377,9 @@ export let SMALL_MOVE_INCLUDED_KM = 50; // כיול 2 (17.11): זהה לייצו
 export let SMALL_MOVE_PRICE_PER_KM = 3;
 export let SMALL_MOVE_ITEM_FACTOR = 1 / 1.8; // 12.11.2026: מחירי הקוד הם מחירי דירה, ולכן בקטנה ÷1.8 = המחיר הקודם. זהה לאפליקציה
 export let REGION_SURCHARGE_RATE = 0.10;
+/** v3: תעריף נפרד למחוז ירושלים, ומינימום לדירה. במחירון של היום: זהה לשרון, ו-0. */
+export let REGION_SURCHARGE_RATE_JERUSALEM = 0.10;
+export let APARTMENT_MIN_CORE = 0;
 export let PRICE_PER_KM = 9;
 /** כיול 2: הנחת מרחק בדירה — מעבר ל-PRICE_PER_KM_TIER_FROM ק"מ, כל ק"מ ב-PRICE_PER_KM_BEYOND.
  *  ⚠️ null = "כמו PRICE_PER_KM": ברירת מחדל ניטרלית, והמעבר קורה בכתיבה ל-config/pricing.
@@ -502,7 +507,10 @@ export let PACKING_PERCENT_RATE = 0.15; // 12.11.2026: כמו בייצור. זה
  * doing (X boxes, Y wrapped pieces). The price itself is PACKING_BASE_FEE plus
  * PACKING_PERCENT_RATE of the packed items' own price subtotal.
  */
+// (אריזה v2 — ראו calculatePackingV3 למטה)
 export function calculatePackingFromClassified(entries) {
+    const v3 = packingV3Rates();
+    if (v3) return calculatePackingV3(entries, v3);
     let totalBoxes = 0;
     let wrapCount = 0;
     let itemsSubtotal = 0;
@@ -524,6 +532,52 @@ export function calculatePackingFromClassified(entries) {
         wrapCount,
         itemsSubtotal: Math.round(itemsSubtotal),
         total,
+        boxesEstimated: 0,
+        minimumApplied: false,
+    };
+}
+/**
+ * אריזה v2 — פעילה רק כשהמחירון הוא 3 (עזרא, תזכיר #6 הכרעה 6.2):
+ *
+ * ```
+ * ארגזים = ⌈ max(הערכה מרהיטים × מקדם, ארגזים שהלקוח סימן) + מטבח × מקדם + 0.2 × פריט קטן ⌉
+ * מחיר   = בסיס + ארגזים × מחיר לארגז, ולא פחות מהמינימום · אין ארגזים → 0, והשירות לא מוצע
+ * ```
+ * `max` ולא סכום: ארגז שהלקוח סימן הוא בדרך כלל אותה תכולה של הארון. המטבח נוסף תמיד, כי
+ * לארונות מטבח אין פריט בקטלוג. עטיפה ללא תוספת מחיר. העיגול ל-6 ספרות מנטרל שאריות של
+ * נקודה צפה לפני העיגול למעלה (5 × 0.2 לא יהפוך לארגז שני).
+ */
+function calculatePackingV3(entries, r) {
+    let estimate = 0, override = null, declared = 0, shared = 0, kitchen = 0, wrapCount = 0, itemsSubtotal = 0;
+    for (const e of entries) {
+        if (e.qty <= 0)
+            continue;
+        itemsSubtotal += e.itemPrice * e.qty;
+        if (e.packingType === 'wrap') {
+            wrapCount += e.qty;
+            continue;
+        }
+        const n = (e.boxCount ?? SHARED_BOX_FRACTION) * e.qty;
+        if (e.boxSource === 'declared')
+            declared += n;
+        else if (e.boxSource === 'kitchen')
+            kitchen += n;
+        else if (e.boxSource === 'estimate')
+            estimate += n;
+        else if (e.boxSource === 'override')
+            override = n;
+        else
+            shared += n;
+    }
+    const f = r.packingEstimateFactor;
+    const fromFurniture = override ?? estimate * f;
+    const totalBoxes = Math.ceil(Math.round((Math.max(fromFurniture, declared) + kitchen * f + shared) * 1e6) / 1e6);
+    const raw = Math.round(r.packingBaseFee + totalBoxes * r.packingBoxPrice);
+    return {
+        totalBoxes, wrapCount, itemsSubtotal: Math.round(itemsSubtotal),
+        total: totalBoxes > 0 ? Math.max(r.packingMinimum, raw) : 0,
+        boxesEstimated: Math.ceil(Math.round(estimate * f * 1e6) / 1e6),
+        minimumApplied: totalBoxes > 0 && raw < r.packingMinimum,
     };
 }
 export function classifyRoomItemForPacking(item) {
@@ -532,10 +586,10 @@ export function classifyRoomItemForPacking(item) {
         return null;
     const itemPrice = getItemPriceAnyCategory(item.key);
     if (info.packingType === 'wrap') {
-        const wrapTier = /_(giant|large)$/.test(item.key) || item.heavy ? 'large' : /_small$/.test(item.key) ? 'small' : 'medium';
+        const wrapTier = info.wrapTier ?? (/_(giant|large)$/.test(item.key) || item.heavy ? 'large' : /_small$/.test(item.key) ? 'small' : 'medium');
         return { packingType: 'wrap', wrapTier, fragile: item.fragile, qty: 0, itemPrice };
     }
-    return { packingType: 'box', boxCount: info.boxCount, fragile: item.fragile, qty: 0, itemPrice };
+    return { packingType: 'box', boxCount: info.boxCount, boxSource: info.boxSource, fragile: item.fragile, qty: 0, itemPrice };
 }
 /**
  * ארגז קרטון שהלקוח סימן בשאלת ה-AI, כשהוא הצהיר במסך תמחור האריזה שהתכולה
@@ -552,7 +606,7 @@ export function classifyRoomItemForPacking(item) {
 export function classifyCustomerBoxForPacking(itemKey) {
     const size = getBoxSizeFromKey(itemKey);
     if (!size) return null;
-    return { packingType: 'box', boxCount: 1, fragile: false, qty: 0, itemPrice: BOX_PRICES[size].move };
+    return { packingType: 'box', boxCount: 1, boxSource: 'declared', fragile: false, qty: 0, itemPrice: BOX_PRICES[size].move };
 }
 /**
  * Convenience wrapper over calculatePackingFromClassified() for items.js-backed selections (by item key).
@@ -566,12 +620,25 @@ export function classifyCustomerBoxForPacking(itemKey) {
  */
 export function calculatePackingFromItems(selections, opts = {}) {
     const entries = [];
+    // ⚠️ במחירון של היום שתי הבחירות לא קיימות, ולכן גם ערך שנשאר בטיוטה לא משנה מחיר.
+    if (activeVersion === 3) {
+        const kitchenBoxes = opts.kitchenContents ? KITCHEN_CONTENTS_BOXES[opts.kitchenContents] : undefined;
+        if (kitchenBoxes)
+            entries.push({ packingType: 'box', boxCount: kitchenBoxes, boxSource: 'kitchen', fragile: false, qty: 1, itemPrice: 0 });
+        const o = opts.boxesOverride;
+        if (typeof o === 'number' && Number.isInteger(o) && o >= 0 && o <= 500) {
+            entries.push({ packingType: 'box', boxCount: o, boxSource: 'override', fragile: false, qty: 1, itemPrice: 0 });
+        }
+    }
     for (const { itemKey, qty } of selections) {
         if (qty <= 0)
             continue;
         if (opts.countCustomerBoxes) {
             const asBox = classifyCustomerBoxForPacking(itemKey);
-            if (asBox) { entries.push({ ...asBox, qty }); continue; }
+            if (asBox) {
+                entries.push({ ...asBox, qty });
+                continue;
+            }
         }
         const item = findItemAnywhere(itemKey);
         if (!item)
@@ -629,6 +696,121 @@ const MAX_RATE = 1;      // שיעורים (0-1) — חוסם הקלדת 12 במ
 const MAX_FEE = 100000;  // תקרת שפיות לשדות ₪ מפני ערך משובש
 const MAX_ITEM_FACTOR = 10; // מקדם פריטים — מכפיל, לא אחוז
 
+/**
+ * ## דגל המחירון (כיול 3, 25.11.2026) — `config/pricing.pricelistVersion`
+ *
+ * `BASE_RATES` הוא המחירון של היום, כולל מה שהגיע מ-`config/pricing`. הקבועים המיוצאים
+ * (`BASE_PRICE` וחבריו) הם **המחירון הפעיל**, ונגזרים ממנו ומ-v3 ב-`activatePricelist`.
+ *
+ * - חסר, 1, 2 או ערך לא קביל → 2, כלומר בדיוק המחיר של היום.
+ * - 3 → `PRICELIST_V3` ו-`ITEM_PRICES_V3`, עם דריסה אופציונלית **רק** מ-`config/pricingV3`
+ *   ומ-`config/itemPricesV3`.
+ *
+ * ⚠️ ערכי v3 לא עוברים דרך `config/pricing` ו-`config/itemPrices` בכוונה: הקונפיג של היום
+ * מכיל את כל המפתחות, ולכן הוא היה דורס את v3 בשקט ברגע ההפעלה. כך הדגל לבדו עושה את
+ * המעבר, והחזרה ל-2 מחזירה הכול.
+ */
+const BASE_RATES = {
+    basePrice: BASE_PRICE,
+    smallMoveBasePrice: SMALL_MOVE_BASE_PRICE,
+    pricePerKm: PRICE_PER_KM,
+    pricePerKmTierFrom: PRICE_PER_KM_TIER_FROM,
+    pricePerKmBeyond: PRICE_PER_KM_BEYOND,
+    floorSurchargePerFloor: FLOOR_SURCHARGE_PER_FLOOR,
+    platformFeeRate: PLATFORM_FEE_RATE,
+    packingBaseFee: PACKING_BASE_FEE,
+    insurancePriceApartment: INSURANCE_PRICE_APARTMENT,
+    insurancePriceSmallMove: INSURANCE_PRICE_SMALL_MOVE,
+    packingPercentRate: PACKING_PERCENT_RATE,
+    smallMoveIncludedKm: SMALL_MOVE_INCLUDED_KM,
+    smallMovePricePerKm: SMALL_MOVE_PRICE_PER_KM,
+    smallMoveItemFactor: SMALL_MOVE_ITEM_FACTOR,
+    regionSurchargeRate: REGION_SURCHARGE_RATE,
+};
+let configVersion = 2;
+let activeVersion = 2;
+let v3Rates = { ...PRICELIST_V3 };
+let v3ItemOverrides = {};
+/** רק 3 (מספר) מפעיל את v3. כל דבר אחר הוא המחירון של היום. */
+export function parsePricelistVersion(value) {
+    return value === 3 ? 3 : 2;
+}
+/** הגרסה שלפיה מחושב מחיר עכשיו. */
+export function getPricelistVersion() {
+    return activeVersion;
+}
+function activatePricelist(version) {
+    activeVersion = version;
+    const v3 = version === 3;
+    BASE_PRICE = v3 ? v3Rates.basePrice : BASE_RATES.basePrice;
+    FLOOR_SURCHARGE_PER_FLOOR = v3 ? v3Rates.floorSurchargePerFloor : BASE_RATES.floorSurchargePerFloor;
+    REGION_SURCHARGE_RATE = v3 ? v3Rates.regionSurchargeRate : BASE_RATES.regionSurchargeRate;
+    REGION_SURCHARGE_RATE_JERUSALEM = v3 ? v3Rates.regionSurchargeRateJerusalem : BASE_RATES.regionSurchargeRate;
+    APARTMENT_MIN_CORE = v3 ? v3Rates.apartmentMinCore : 0;
+    PACKING_BASE_FEE = v3 ? v3Rates.packingBaseFee : BASE_RATES.packingBaseFee;
+    PACKING_PERCENT_RATE = BASE_RATES.packingPercentRate;
+    SMALL_MOVE_BASE_PRICE = BASE_RATES.smallMoveBasePrice;
+    PRICE_PER_KM = BASE_RATES.pricePerKm;
+    PRICE_PER_KM_TIER_FROM = BASE_RATES.pricePerKmTierFrom;
+    PRICE_PER_KM_BEYOND = BASE_RATES.pricePerKmBeyond;
+    PLATFORM_FEE_RATE = BASE_RATES.platformFeeRate;
+    INSURANCE_PRICE_APARTMENT = BASE_RATES.insurancePriceApartment;
+    INSURANCE_PRICE_SMALL_MOVE = BASE_RATES.insurancePriceSmallMove;
+    SMALL_MOVE_INCLUDED_KM = BASE_RATES.smallMoveIncludedKm;
+    SMALL_MOVE_PRICE_PER_KM = BASE_RATES.smallMovePricePerKm;
+    SMALL_MOVE_ITEM_FACTOR = BASE_RATES.smallMoveItemFactor;
+}
+/** הגרסה שבקונפיג. חסר = 2. */
+export function applyPricelistVersion(value) {
+    configVersion = parsePricelistVersion(value);
+    activatePricelist(configVersion);
+}
+/**
+ * מחשב לפי גרסה של הזמנה מסוימת, ולא לפי הקונפיג של עכשיו: הזמנה ששולמה במחירון הישן
+ * ממשיכה להציג את המחירים שלו (מחירון התוספות). סינכרוני בלבד, ומחזיר את המצב תמיד.
+ */
+export function withPricelistVersion(version, fn) {
+    const prev = activeVersion;
+    activatePricelist(parsePricelistVersion(version));
+    try {
+        return fn();
+    }
+    finally {
+        activatePricelist(prev);
+    }
+}
+/**
+ * דריסות ל-v3 בלבד (`config/pricingV3`, `config/itemPricesV3`). כל קריאה **מחליפה** את
+ * הקודמות, כך שמסמך שנמחק או שדה שהוסר חוזרים לערכי הקוד. ערך לא קביל נזרק.
+ */
+export function applyPricelistV3Overrides(rates, items) {
+    const next = { ...PRICELIST_V3 };
+    for (const key of Object.keys(PRICELIST_V3)) {
+        const isRate = key === 'regionSurchargeRate' || key === 'regionSurchargeRateJerusalem';
+        const ok = acceptedValue(rates?.[key], isRate ? MAX_RATE : key === 'packingEstimateFactor' ? MAX_ITEM_FACTOR : MAX_FEE);
+        if (ok != null)
+            next[key] = ok;
+    }
+    v3Rates = next;
+    v3ItemOverrides = {};
+    for (const key of Object.keys(ITEM_PRICES_V3)) {
+        const ok = acceptedValue(items?.[key], MAX_FEE);
+        if (ok != null)
+            v3ItemOverrides[key] = ok;
+    }
+    activatePricelist(activeVersion);
+}
+/** מחיר דירה של פריט ב-v3, או `null` כשהמחירון הפעיל אינו v3 או שהפריט אינו בו. */
+export function itemPriceV3(itemKey) {
+    if (activeVersion !== 3)
+        return null;
+    return v3ItemOverrides[itemKey] ?? ITEM_PRICES_V3[itemKey] ?? null;
+}
+/** תעריפי האריזה של v3, או `null` כשפעילה הנוסחה של היום. */
+export function packingV3Rates() {
+    return activeVersion === 3 ? v3Rates : null;
+}
+
 /** מחיל את config/pricing מעל הקבועים. ערך לא-קביל נזרק. מקבילה ל-applyPricingRates ב-pricing.ts. */
 export function applyPricingRates(rates) {
   const applied = {
@@ -648,26 +830,16 @@ export function applyPricingRates(rates) {
     smallMoveItemFactor: acceptedValue(rates.smallMoveItemFactor, MAX_ITEM_FACTOR),
     regionSurchargeRate: acceptedValue(rates.regionSurchargeRate, MAX_RATE),
   };
-  if (applied.basePrice != null) BASE_PRICE = applied.basePrice;
-  if (applied.smallMoveBasePrice != null) SMALL_MOVE_BASE_PRICE = applied.smallMoveBasePrice;
-  if (applied.pricePerKm != null) PRICE_PER_KM = applied.pricePerKm;
-  if (applied.pricePerKmTierFrom != null) PRICE_PER_KM_TIER_FROM = applied.pricePerKmTierFrom;
+  for (const key of Object.keys(applied)) {
+    if (applied[key] != null) BASE_RATES[key] = applied[key];
+  }
   // ⚠️ `null` מפורש = "בלי הנחת מרחק", ולא "התעלם". בלי זה האיפוס בשרת (`resetToLiveConfig`,
   // שמחיל את ברירות המחדל לפני כל חישוב) **לא מחזיר את הערך ל-null** — ושדה שאדמין הסיר
   // מהקונפיג היה ממשיך לחול על instance שכבר רצה, בזמן שהאפליקציה מציגה תעריף אחיד.
   // זהה ל-src/data/pricing.ts.
-  if (rates.pricePerKmBeyond === null) PRICE_PER_KM_BEYOND = null;
-  else if (applied.pricePerKmBeyond != null) PRICE_PER_KM_BEYOND = applied.pricePerKmBeyond;
-  if (applied.floorSurchargePerFloor != null) FLOOR_SURCHARGE_PER_FLOOR = applied.floorSurchargePerFloor;
-  if (applied.platformFeeRate != null) PLATFORM_FEE_RATE = applied.platformFeeRate;
-  if (applied.packingBaseFee != null) PACKING_BASE_FEE = applied.packingBaseFee;
-  if (applied.packingPercentRate != null) PACKING_PERCENT_RATE = applied.packingPercentRate;
-  if (applied.insurancePriceApartment != null) INSURANCE_PRICE_APARTMENT = applied.insurancePriceApartment;
-  if (applied.insurancePriceSmallMove != null) INSURANCE_PRICE_SMALL_MOVE = applied.insurancePriceSmallMove;
-  if (applied.smallMoveIncludedKm != null) SMALL_MOVE_INCLUDED_KM = applied.smallMoveIncludedKm;
-  if (applied.smallMovePricePerKm != null) SMALL_MOVE_PRICE_PER_KM = applied.smallMovePricePerKm;
-  if (applied.smallMoveItemFactor != null) SMALL_MOVE_ITEM_FACTOR = applied.smallMoveItemFactor;
-  if (applied.regionSurchargeRate != null) REGION_SURCHARGE_RATE = applied.regionSurchargeRate;
+  if (rates.pricePerKmBeyond === null) BASE_RATES.pricePerKmBeyond = null;
+  if ('pricelistVersion' in rates) configVersion = parsePricelistVersion(rates.pricelistVersion);
+  activatePricelist(configVersion);
 }
 
 /** כיול 1: מחירי הפריטים כפי שהם בקוד, לפני config/itemPrices. נלקח בטעינת המודול (לפני pricing-config.js). */
@@ -683,7 +855,9 @@ const CODE_ITEM_PRICES = (() => {
 /** מחיר יחידה של פריט קטלוג בהובלה קטנה, או null כשאינו בקטלוג. זהה ל-smallMoveCatalogUnitPrice באפליקציה. */
 export function smallMoveCatalogUnitPrice(itemKey) {
   const price = CODE_ITEM_PRICES[itemKey];
-  return price === undefined ? null : Math.round(price * SMALL_MOVE_ITEM_FACTOR);
+  if (price === undefined) return null;
+  if (activeVersion === 3 && SMALL_MOVE_V3_KEYS.has(itemKey)) return Math.round(ITEM_PRICES_V3[itemKey] * SMALL_MOVE_V3_FACTOR);
+  return Math.round(price * SMALL_MOVE_ITEM_FACTOR);
 }
 /** עלות נסיעה בדירה — זהה ל-apartmentTravelCost באפליקציה (כיול 2).
  *  ⚠️ בלי הנחת מרחק — הנוסחה הישנה עצמה ולא שוות-ערך שלה, כדי שהעיגול יהיה זהה לחלוטין. */
