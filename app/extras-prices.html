@@ -154,7 +154,9 @@
     import { requireAuth } from './auth.js';
     import { loadRemotePricingConfig } from './pricing-config.js';
     import { getAllItemsFlat, getItemPriceAnyCategory } from './data/items.js';
-    import { smallMoveCatalogUnitPrice, getBoxSizeFromKey, getBoxItemInfo, BOX_PRICES } from './data/pricing.js';
+    import { smallMoveCatalogUnitPrice, getBoxSizeFromKey, getBoxItemInfo, BOX_PRICES, withPricelistVersion } from './data/pricing.js';
+    import { db } from './firebase.js';
+    import { doc, getDoc } from 'https://www.gstatic.com/firebasejs/12.16.0/firebase-firestore.js';
     import { BOX_ITEMS } from './data/smallMoveItems.js';
     import { EXTRAS_RULES } from './extras-rules.js';
 
@@ -175,11 +177,9 @@
     const isolatedPrice = (p) => '⁦₪' + p + '⁩';
 
     const lines = [
-      serviceType === 'smallMove'
-        ? 'פריט שלא היה בהזמנה עולה כמו במחירון ההובלה הקטנה, במחיר של יום ההזמנה.'
-        : 'פריט שלא היה בהזמנה עולה כמו במחירון הדירה, במחיר של יום ההזמנה.',
-      'התשלום על תוספת הוא ישירות למוביל.',
-      'אפשר לא להוסיף. ההובלה שהזמנתם מתבצעת במחיר המקורי בכל מקרה.',
+      'המחיר של כל פריט זהה למחירו בהזמנה מהסוג הזה, במחיר של יום ההזמנה.',
+      'את התוספת משלמים ישירות למוביל.',
+      'אפשר לא להוסיף. ההובלה מתבצעת במחיר המקורי בכל מקרה.',
       'המוביל רשאי לסרב לתוספות שעוברות יחד 30% ממחיר ההזמנה, או שלא נכנסות לרכב.',
     ];
     const linesEl = document.getElementById('extras-lines');
@@ -190,7 +190,22 @@
       ? smallMoveCatalogUnitPrice(key)
       : (getBoxItemInfo(key)?.price ?? getItemPriceAnyCategory(key));
 
+    // המחירון של ההזמנה (נכתב רק בשרת). הזמנה מלפני כיול 3 היא בלי מסמך = המחירון הישן.
+    // כשל קריאה לא מנחש מחיר.
+    let version;
+    try {
+      const snap = await getDoc(doc(db, 'orders', orderId, 'pricing', 'version'));
+      version = snap.exists() ? snap.data().pricelistVersion : 2;
+    } catch (err) {
+      console.warn('extras-prices: קריאת המחירון של ההזמנה נכשלה', err);
+      document.getElementById('extras-search').disabled = true;
+      document.getElementById('extras-list').textContent = 'לא הצלחנו לטעון את המחירון. בדקו את החיבור לרשת ורעננו את הדף.';
+      throw err;
+    }
+
     const sections = new Map();
+    const boxes = [];
+    withPricelistVersion(version, () => {
     for (const { item, nativeRoomKey, nativeRoomLabel } of getAllItemsFlat()) {
       if (getBoxSizeFromKey(item.key)) continue; // ארגזי קרטון: בסעיף הארגזים
       const rule = EXTRAS_RULES[item.key];
@@ -205,7 +220,6 @@
       if (!sections.has(nativeRoomKey)) sections.set(nativeRoomKey, { title: nativeRoomLabel, rows: [] });
       sections.get(nativeRoomKey).rows.push(row);
     }
-    const boxes = [];
     for (const size of ['S', 'M', 'L', 'XL']) {
       if (serviceType === 'smallMove') {
         const b = BOX_ITEMS.find((x) => x.key === 'box_' + size.toLowerCase()); // בהובלה קטנה אין XL
@@ -215,12 +229,14 @@
       }
     }
 
+    });
+
     const listEl = document.getElementById('extras-list');
     function el(tag, cls, text) { const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }
     function rowEl(r) {
       const row = el('div', 'extras-row');
       const name = el('div', 'extras-row-name', isolateNumbers(r.label));
-      if (r.excluded) name.appendChild(el('span', 'extras-row-note', 'לא נכנס כתוספת · ' + r.note));
+      if (r.excluded) name.appendChild(el('span', 'extras-row-note', 'לא נוסף ביום ההובלה. ' + r.note));
       else if (r.note) name.appendChild(el('span', 'extras-row-note', r.note));
       row.appendChild(name);
       if (!r.excluded) row.appendChild(el('div', 'extras-row-price', isolatedPrice(r.price)));
