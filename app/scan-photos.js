@@ -21,7 +21,8 @@
  * ההסכמה אינה נשמרת בין עמודים (גם לא בהפניה להתחברות): מי שחזר מההתחברות
  * מסמן שוב. זה הכיוון הבטוח — הסכמה שלא נתנו עכשיו אינה נחשבת.
  */
-import { auth } from './firebase.js';
+import { doc, getDoc } from 'https://www.gstatic.com/firebasejs/12.16.0/firebase-firestore.js';
+import { auth, db } from './firebase.js';
 
 const BASE = 'https://us-central1-hovalot-6cf65.cloudfunctions.net';
 const PUBLISH_URL = `${BASE}/publishOrderScanPhotos`;
@@ -151,6 +152,21 @@ export async function publishScanPhotos(orderId, files, consent, base64Fn) {
   } catch (e) {
     console.warn('[scanPhotos] publish error', e);
     return { kind: 'failed' };
+  }
+}
+
+/**
+ * סטטוס הפרסום: `orders/{id}/private/scanPhotos.scanPhotosStatus` (נכתב ב-Admin SDK בלבד, קריא ללקוח הבעלים).
+ * ⚠️ המצב הקובע יושב שם ולא על מסמך ההזמנה (שם נשאר רק `scanPhotoCount` כמונה תצוגה).
+ * מחזיר `null` כשלא נקרא (שגיאה/חסר) — המתקשר מחליט; הגלריה עצמה נפתחת רק דרך `getOrderScanPhotos`.
+ */
+export async function getScanPhotosStatus(orderId) {
+  try {
+    const snap = await getDoc(doc(db, 'orders', orderId, 'private', 'scanPhotos'));
+    return snap.exists() ? (snap.data().scanPhotosStatus ?? null) : null;
+  } catch (e) {
+    if (e?.code !== 'permission-denied') console.warn('[scanPhotos] status read failed', e?.code || e);
+    return null;
   }
 }
 

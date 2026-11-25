@@ -191,7 +191,7 @@
   </style>
 </head>
 <body class="app-body flow-b">
-<div data-build-stamp class="build-stamp" aria-hidden="true">עודכן 25.11 · 23:37</div>
+<div data-build-stamp class="build-stamp" aria-hidden="true">עודכן 25.11 · 23:44</div>
 <script src="/version-check.js?v=97bd6b2e" defer></script>
   <!-- ⚠️ 15.9 — "דלג לתוכן המרכזי" (WCAG 2.4.1, רמה A). זהו האלמנט הממוקד
        הראשון בדף: מוסתר מהעין, מופיע בפינה ברגע שמגיעים אליו ב-Tab, ומעביר
@@ -299,7 +299,7 @@
       getCancellationPolicy, formatPrice,
     } from './orders.js';
     import { getOrderDriver, formatVehicle } from './users.js';
-    import { fetchScanPhotoUrls, withdrawScanPhotos, isScanPhotosFlagOn } from './scan-photos.js';
+    import { fetchScanPhotoUrls, withdrawScanPhotos, isScanPhotosFlagOn, getScanPhotosStatus } from './scan-photos.js';
     import { toggleFavoriteDriver } from './account.js';
     import { PILOT_MODE, INSURANCE_ENABLED } from './pilot-mode.js';
     import { getSurgePricing } from './data/pricing.js';
@@ -669,6 +669,10 @@
       let pending = scanPreviewDone.get(order.id);
       if (!pending) {
         pending = (async () => {
+          // המצב הקובע ב-private/scanPhotos. 'ready' = מציגים; כל סטטוס ידוע אחר (none/withdrawn/removed) = אין כרטיס.
+          // לא נקרא (null) = ממשיכים ל-getOrderScanPhotos, שהשרת הוא הסמכות בו (403/404 = אין תמונות).
+          const status = await getScanPhotosStatus(order.id);
+          if (status !== null && status !== 'ready') return 'withdrawn';
           const urls = await fetchScanPhotoUrls(order.id);
           if (urls.length === 0) {
             console.warn('[scanPhotos] preview unavailable, withdrawing', order.id);
@@ -992,11 +996,11 @@
         </div>` : ''}
 
         ${/* 25.11 (W2, הכרעה 8.7 ב) — תצוגה מקדימה של תמונות הסריקה **לפני תשלום**,
-              מראה `ScanPhotosPreviewModal`. מופיעה רק כש-`scanPhotosStatus` נכתב
+              מראה `ScanPhotosPreviewModal`. מופיעה רק כש-`scanPhotoCount > 0` על ההזמנה והדגל דלוק; המצב הקובע (`ready`) נקרא מ-`private/scanPhotos`, ו-`scanPhotosStatus` נכתב
               `'ready'` בשרת (`publishOrderScanPhotos`), כלומר לעולם לא לפני
               שהפונקציות פרוסות ושהלקוח הסכים. "המשך לתשלום" הוא כפתור התשלום
               שמתחתיה; "לא לשתף" מוחק את התמונות וההזמנה ממשיכה בלעדיהן. */''}
-        ${order.status === 'pending_payment' && order.scanPhotosStatus === 'ready' && order.scanPhotoCount > 0 ? `
+        ${order.status === 'pending_payment' && order.scanPhotoCount > 0 ? `
         <div class="app-card" id="scan-photos-card">
           <h2>כך המובילים יראו את התמונות</h2>
           <p class="form-hint">פנים ואנשים מטושטשים אוטומטית. הטשטוש אוטומטי וייתכן שלא יתפוס הכול, אז אפשר לבחור לא לשתף.</p>
@@ -1234,7 +1238,7 @@
         loadDriverCard(order);
       }
 
-      if (order.status === 'pending_payment' && order.scanPhotosStatus === 'ready' && order.scanPhotoCount > 0) {
+      if (order.status === 'pending_payment' && order.scanPhotoCount > 0) {
         loadScanPhotosCard(order);
       }
 
