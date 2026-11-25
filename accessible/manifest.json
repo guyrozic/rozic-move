@@ -14,19 +14,19 @@
       "versionSource": "app/legal.js",
       "text": {
         "path": "accessible/terms.txt",
-        "bytes": 37241,
-        "blocks": 121,
-        "sourceSha256": "a17507b2ebed78c1440863322303d568d61c0346935e445ef220bc156f955cc3",
-        "termsVersion": "2026-11-1",
-        "generatedAt": "2026-11-25T20:32:24.900Z"
+        "bytes": 37892,
+        "blocks": 122,
+        "sourceSha256": "f3c6261c68590ae4fc6298406f78655792dc4fb8f82d90af8a6ae71cfd7d4ce2",
+        "termsVersion": "2026-11-2",
+        "generatedAt": "2026-11-25T22:00:19.079Z"
       },
       "audio": {
         "path": "accessible/terms.mp3",
-        "bytes": 7322331,
-        "seconds": 1830.58,
-        "sourceSha256": "a17507b2ebed78c1440863322303d568d61c0346935e445ef220bc156f955cc3",
-        "termsVersion": "2026-11-1",
-        "generatedAt": "2026-11-25T20:32:24.900Z"
+        "bytes": 7447719,
+        "seconds": 1861.93,
+        "sourceSha256": "f3c6261c68590ae4fc6298406f78655792dc4fb8f82d90af8a6ae71cfd7d4ce2",
+        "termsVersion": "2026-11-2",
+        "generatedAt": "2026-11-25T22:00:19.079Z"
       }
     },
     "privacy": {
@@ -35,19 +35,19 @@
       "versionSource": "app/legal.js",
       "text": {
         "path": "accessible/privacy.txt",
-        "bytes": 17618,
-        "blocks": 57,
-        "sourceSha256": "a720740629cd0728ce9b5b7ef4a5ef0e457ad8ae372a177c54d977e399ebcdf1",
-        "termsVersion": "2026-11-1",
-        "generatedAt": "2026-11-25T20:20:53.578Z"
+        "bytes": 21747,
+        "blocks": 61,
+        "sourceSha256": "7b184840b8d91ba738781e50174a564dd20c2f37fe79a921041583fdbaa882c7",
+        "termsVersion": "2026-11-2",
+        "generatedAt": "2026-11-25T22:00:19.079Z"
       },
       "audio": {
         "path": "accessible/privacy.mp3",
-        "bytes": 3631229,
-        "seconds": 907.81,
-        "sourceSha256": "a720740629cd0728ce9b5b7ef4a5ef0e457ad8ae372a177c54d977e399ebcdf1",
-        "termsVersion": "2026-11-1",
-        "generatedAt": "2026-11-25T20:20:53.578Z"
+        "bytes": 4437264,
+        "seconds": 1109.32,
+        "sourceSha256": "7b184840b8d91ba738781e50174a564dd20c2f37fe79a921041583fdbaa882c7",
+        "termsVersion": "2026-11-2",
+        "generatedAt": "2026-11-25T22:00:19.079Z"
       }
     }
   }
