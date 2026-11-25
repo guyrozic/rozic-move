@@ -2734,7 +2734,7 @@
           commissionAmount: p.commissionAmount,
           hasInsurance: state.hasInsurance,
           insuranceAmount: p.insuranceAmount,
-          packingService: state.hasPacking && p.packingCalc.total > 0, // אין מה לארוז → לא נרשם שירות שלא נגבה
+          packingService: state.hasPacking && (p.packingCalc.total > 0 || packingV3Rates() === null), // אין מה לארוז → לא נרשם שירות שלא נגבה
           packingServicePrice: p.packingAmount,
           craneNeeded: state.needsCrane,
           craneFloor: state.needsCrane ? state.craneFloor : null,

@@ -2068,7 +2068,7 @@
       document.getElementById('packing-boxes-value').textContent = String(packingCalc.totalBoxes);
       document.getElementById('packing-boxes-hint').textContent = state.packingBoxesOverride == null
         ? `הערכנו ${boxesEstimated} ארגזים מהרהיטים. אפשר לתקן.`
-        : `תיקנת ל-${state.packingBoxesOverride}. הערכנו ${boxesEstimated}.`;
+        : `תיקנת ל-${state.packingBoxesOverride} מהרהיטים. הערכנו ${boxesEstimated}.`;
       document.getElementById('packing-boxes-reset').hidden = state.packingBoxesOverride == null;
     }
     function adjustPackingBoxes(d) {
@@ -2896,7 +2896,7 @@
           commissionAmount: p.commissionAmount,
           hasInsurance: state.hasInsurance,
           insuranceAmount: p.insuranceAmount,
-          packingService: state.hasPacking && p.packingCalc.total > 0, // אין מה לארוז → לא נרשם שירות שלא נגבה
+          packingService: state.hasPacking && (p.packingCalc.total > 0 || packingV3Rates() === null), // אין מה לארוז → לא נרשם שירות שלא נגבה
           packingServicePrice: p.packingAmount,
           craneNeeded: state.needsCrane,
           craneFloor: state.needsCrane ? state.craneFloor : null,
