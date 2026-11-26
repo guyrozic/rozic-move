@@ -21,7 +21,7 @@
 
        ⚠️ תוספת מארח חדש (SDK, CDN, ספק) מחייבת עדכון כאן, אחרת הוא
        ייחסם בשקט יחסי. נבדק על כל הדפים: אפס הפרות. -->
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://www.gstatic.com https://cdn.jsdelivr.net https://www.googletagmanager.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdn.jsdelivr.net; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob: https://*.tile.openstreetmap.org https://*.googleapis.com https://*.firebasestorage.app https://*.google-analytics.com https://*.googletagmanager.com; connect-src 'self' https://*.googleapis.com https://*.cloudfunctions.net https://*.firebasestorage.app https://*.google-analytics.com https://*.analytics.google.com https://*.googletagmanager.com; frame-src 'none'; object-src 'none'; base-uri 'self'; form-action 'self'">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://www.gstatic.com https://www.google.com https://cdn.jsdelivr.net https://www.googletagmanager.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdn.jsdelivr.net; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob: https://*.tile.openstreetmap.org https://*.googleapis.com https://*.firebasestorage.app https://*.google-analytics.com https://*.googletagmanager.com; connect-src 'self' https://*.googleapis.com https://*.cloudfunctions.net https://*.firebasestorage.app https://*.google-analytics.com https://*.analytics.google.com https://*.googletagmanager.com https://www.google.com; frame-src https://www.google.com https://recaptcha.google.com; object-src 'none'; base-uri 'self'; form-action 'self'">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>ROZIC MOVE — התחברות</title>
 
@@ -96,6 +96,13 @@
       box-shadow: var(--shadow-3) !important;
       animation: fadeUp 0.5s var(--ease) both;
     }
+    .auth-heading { text-align: center; font-size: 1.35rem; font-weight: 800; color: var(--text); margin-bottom: 6px; }
+    .auth-sub { text-align: center; color: var(--text-muted); font-size: 0.95rem; margin-bottom: 18px; }
+    .code-actions { display: flex; justify-content: space-between; gap: 12px; margin-top: 10px; }
+    .email-toggle { display: block; margin: 8px auto 0; font-weight: 700; }
+    #code-input { text-align: center; letter-spacing: 6px; font-size: 1.3rem; }
+    #phone-input { text-align: right; }
+    #primary-auth[hidden], #email-auth[hidden], #phone-form[hidden], #code-form[hidden], #profile-form[hidden], #oauth-section[hidden] { display: none; }
     .auth-logo { text-align: center; margin-bottom: 26px; font-size: 1.35rem; font-weight: 900; letter-spacing: -0.3px; color: var(--text); }
     .auth-logo a { text-decoration: none; color: inherit; display: inline-flex; align-items: center; gap: 8px; }
     .oauth-row { display: flex; flex-direction: column; gap: 10px; margin-bottom: 18px; }
@@ -164,7 +171,7 @@
   </style>
 </head>
 <body class="app-body">
-<div data-build-stamp class="build-stamp" aria-hidden="true">עודכן 26.11 · 13:18</div>
+<div data-build-stamp class="build-stamp" aria-hidden="true">עודכן 26.11 · 14:05</div>
 <script src="/version-check.js?v=97bd6b2e" defer></script>
   <!-- ⚠️ 15.9 — "דלג לתוכן המרכזי" (WCAG 2.4.1, רמה A). זהו האלמנט הממוקד
        הראשון בדף: מוסתר מהעין, מופיע בפינה ברגע שמגיעים אליו ב-Tab, ומעביר
@@ -197,6 +204,68 @@
            `reason` מגיע משורת הכתובת כמו `next`, וכתיבתו כלשונו למסך
            הייתה הזרקת תוכן לדף ההתחברות שלנו. -->
       <div id="reason-note" class="alert alert-info" role="status" hidden></div>
+
+      <!-- 26.11.2026 — טלפון קודם, כמו Gett, Uber ו-Wolt (גיא: "שההרשמה תהיה זהה
+           לאפליקציות הגדולות"). תאום ל-LoginScreen.tsx: מספר → קוד SMS → כניסה,
+           ומספר חדש עובר להשלמת פרטים. מייל וסיסמה עברו לאפשרות משנית. -->
+      <div id="error-box" role="alert"></div>
+
+      <div id="primary-auth">
+      <form id="phone-form" novalidate>
+        <h2 class="auth-heading">ברוכים הבאים</h2>
+        <p class="auth-sub" id="phone-lead">מה מספר הטלפון שלך? נשלח אליו קוד ב-SMS.</p>
+        <div class="form-group">
+          <label for="phone-input">מספר טלפון</label>
+          <input id="phone-input" type="tel" inputmode="tel" dir="ltr" placeholder="050-1234567" autocomplete="tel" aria-required="true" maxlength="14">
+        </div>
+        <button tabindex="0" type="submit" class="btn btn-primary btn-block" id="phone-submit">המשך</button>
+      </form>
+
+      <form id="code-form" novalidate hidden>
+        <h2 class="auth-heading" id="code-heading" tabindex="-1">הקוד שקיבלת</h2>
+        <p class="auth-sub" id="code-lead" aria-live="polite">שלחנו קוד ב-SMS ל-<bdi dir="ltr" id="code-phone"></bdi></p>
+        <div class="form-group">
+          <label for="code-input">קוד אימות</label>
+          <input id="code-input" type="text" inputmode="numeric" dir="ltr" pattern="[0-9]*" maxlength="6" autocomplete="one-time-code" placeholder="000000" aria-required="true">
+        </div>
+        <button tabindex="0" type="submit" class="btn btn-primary btn-block" id="code-submit">כניסה</button>
+        <div class="code-actions">
+          <button tabindex="0" type="button" class="btn-text" id="resend-code">שליחת קוד מחדש</button>
+          <button tabindex="0" type="button" class="btn-text" id="change-phone">החלפת מספר</button>
+        </div>
+      </form>
+
+      <!-- השלמת פרטים למספר חדש. זהה לטופס ההשלמה של OAuth באפליקציה (CompleteProfileScreen,
+           viaPhone): שם מלא חובה, מייל לא חובה, תקנון חובה, AI לא מסומן מראש. -->
+      <form id="profile-form" novalidate hidden>
+        <h2 class="auth-heading" id="profile-heading" tabindex="-1">עוד רגע מתחילים</h2>
+        <p class="auth-sub" dir="ltr" id="profile-phone" style="text-align:center"></p>
+        <div class="form-group">
+          <label for="pc-name">שם מלא</label>
+          <input id="pc-name" type="text" autocomplete="name" placeholder="ישראל ישראלי" aria-required="true">
+        </div>
+        <div class="form-group">
+          <label for="pc-email">מייל (לא חובה)</label>
+          <input id="pc-email" type="email" dir="ltr" autocomplete="email" placeholder="example@mail.com">
+        </div>
+        <div class="form-group">
+          <label class="terms-label" for="pc-terms">
+            <input tabindex="0" type="checkbox" id="pc-terms" aria-required="true">
+            <span>אני בן/בת 18 ומעלה, קראתי ואני מסכים/ה ל<a tabindex="0" href="/terms.html" target="_blank" rel="noopener">תנאי השימוש</a> ול<a tabindex="0" href="/privacy.html" target="_blank" rel="noopener">מדיניות הפרטיות</a></span>
+          </label>
+        </div>
+        <div class="form-group">
+          <label class="terms-label ai-consent-signup" for="pc-ai">
+            <input tabindex="0" type="checkbox" id="pc-ai">
+            <span><b>תמונות וטקסט שאשלח יישלחו לבינה המלאכותית של Google לניתוח בלבד</b> — לזיהוי פריטים, לצ'אט ולבדיקת מסמכים.</span>
+          </label>
+        </div>
+        <button tabindex="0" type="submit" class="btn btn-primary btn-block" id="profile-submit">סיום הרשמה</button>
+      </form>
+      <div id="recaptcha-login"></div>
+
+      <div id="oauth-section">
+      <div class="oauth-divider"><span>או</span></div>
 
       <!-- 15.9 — כניסה בלחיצה אחת, מעל הטפסים ולא מתחתם. גיא: "לקוחות
            לא אוהבים למלא פרטים - זה מבריח אותם". מי שבכל זאת מעדיף
@@ -239,7 +308,23 @@
         </div>
       </div>
 
-      <div class="oauth-divider"><span>או בעזרת אימייל</span></div>
+      </div>
+      <button tabindex="0" type="button" class="btn-text email-toggle" id="show-email" aria-expanded="false" aria-controls="email-auth">כניסה עם מייל וסיסמה</button>
+      </div>
+
+      <!-- נפתח רק אחרי התחברות עם ספק שלא מסר טלפון. מוביל חייב דרך
+           ליצור קשר, ולכן זה חוסם את ההמשך ולא מוצע כאופציה. -->
+      <div id="phone-step" hidden>
+        <div class="form-group">
+          <label for="oauth-phone">מספר טלפון</label>
+          <input id="oauth-phone" type="tel" inputmode="tel" aria-required="true" placeholder="050-0000000" autocomplete="tel">
+        </div>
+        <button tabindex="0" type="button" class="btn btn-primary btn-block" id="phone-save">שמור והמשך</button>
+      </div>
+
+      <!-- מייל וסיסמה: התחברות והרשמה קיימות, כאפשרות משנית (26.11). -->
+      <div id="email-auth" hidden>
+      <button tabindex="0" type="button" class="btn-text email-toggle" id="show-phone">כניסה עם מספר טלפון</button>
 
       <!-- הכרטיסיות הן `div` עם מאזין `click` בלבד: לא היה שום אופן להגיע
            אליהן מהמקלדת, בשום דפדפן, ולכן מסך ההרשמה היה בלתי-נגיש למקלדת
@@ -255,19 +340,8 @@
         <div class="auth-tab" data-tab="register" role="button" tabindex="0" aria-pressed="false">הרשמה</div>
       </div>
 
-      <!-- נפתח רק אחרי התחברות עם ספק שלא מסר טלפון. מוביל חייב דרך
-           ליצור קשר, ולכן זה חוסם את ההמשך ולא מוצע כאופציה. -->
-      <div id="phone-step" hidden>
-        <div class="form-group">
-          <label for="oauth-phone">מספר טלפון</label>
-          <input id="oauth-phone" type="tel" inputmode="tel" aria-required="true" placeholder="050-0000000" autocomplete="tel">
-        </div>
-        <button tabindex="0" type="button" class="btn btn-primary btn-block" id="phone-save">שמור והמשך</button>
-      </div>
 
-      <!-- role=alert: הודעת שגיאת ההתחברות נכתבה ל-innerHTML בלי אזור חי, ולכן
-           קורא מסך לא הכריז עליה כלל (WCAG 2.1 AA, 4.1.3). -->
-      <div id="error-box" role="alert"></div>
+      <!-- אזור ההודעות (role=alert) עבר לראש הכרטיס, מעל שני המצבים. -->
 
       <form id="login-form" class="auth-form active">
         <div class="form-group">
@@ -342,6 +416,7 @@
         </div>
         <button tabindex="0" type="submit" class="btn btn-primary btn-block" id="register-submit">הירשם</button>
       </form>
+      </div>
     </div>
   </div>
 
@@ -410,7 +485,8 @@
   <script type="module">
     import { login, registerCustomer, subscribeToAuth,
              signInWithProvider, setProfilePhone, normalizePhone,
-             isValidFullName, FULL_NAME_ERROR, sendPasswordReset, getPasswordResetCooldown } from './auth.js';
+             isValidFullName, FULL_NAME_ERROR, sendPasswordReset, getPasswordResetCooldown,
+             startPhoneSignIn, confirmPhoneSignIn, completePhoneProfile, getSmsCooldown, noteSmsSent } from './auth.js';
     // ⚠️ ייבוא סטטי ולא `await import(…)` בתוך נתיב ההרשמה: הקובץ כבר
     // נטען ממילא (auth.js מייבא אותו), וייבוא דינמי בנקודה שבה החשבון
     // כבר נוצר מוסיף נקודת כשל שלמה — רשת שנופלת שם נראית כמו כשל
@@ -880,7 +956,8 @@
      */
     let holdRedirect = false;
 
-    const oauthRow = document.getElementById('oauth-row');
+    const primaryAuth = document.getElementById('primary-auth');
+    const emailAuth = document.getElementById('email-auth');
     const phoneStep = document.getElementById('phone-step');
     const appleBtn = document.getElementById('btn-apple');
     if (appleEnabled) appleBtn.hidden = false;
@@ -911,10 +988,8 @@
         const { profile, needsPhone } = await signInWithProvider(kind, { aiConsent: document.getElementById('oauth-ai').checked });
         if (needsPhone) {
           // מסתירים את הכפתורים ואת הטפסים — נשאר שדה אחד בלבד.
-          oauthRow.hidden = true;
-          document.querySelector('.oauth-divider').hidden = true;
-          document.querySelector('.auth-tabs').hidden = true;
-          Object.values(forms).forEach(f => f.classList.remove('active'));
+          primaryAuth.hidden = true;
+          emailAuth.hidden = true;
           phoneStep.hidden = false;
           document.getElementById('oauth-phone').focus();
           document.getElementById('phone-save').onclick = async () => {
@@ -945,6 +1020,205 @@
         btn.disabled = false; btn.querySelector('span').textContent = label;
       }
     }
+
+    /* ================================================================ *
+     * כניסה והרשמה במספר טלפון וקוד SMS (26.11.2026)
+     * ================================================================ *
+     * תאום ל-LoginScreen.tsx + CompleteProfileScreen.tsx (viaPhone) באפליקציה.
+     * מספר שיש לו חשבון נכנס; מספר חדש עובר להשלמת פרטים. מייל וסיסמה
+     * נשארים מאחורי הקישור "כניסה עם מייל וסיסמה". */
+    const RESEND_COOLDOWN_SEC = 60;
+    const phoneForm = document.getElementById('phone-form');
+    const codeForm = document.getElementById('code-form');
+    const profileForm = document.getElementById('profile-form');
+    const phoneInput = document.getElementById('phone-input');
+    const codeInput = document.getElementById('code-input');
+    const resendBtn = document.getElementById('resend-code');
+    const oauthSection = document.getElementById('oauth-section');
+    let confirmation = null;       // תוצאת signInWithPhoneNumber
+    let phoneLocal = '';           // 05XXXXXXXX
+    let pendingUser = null;        // משתמש Auth חדש שעוד אין לו מסמך
+    let resendTimer = null;
+
+    function phoneErrorMessage(err) {
+      const code = err && err.code;
+      if (code === 'auth/invalid-verification-code') return 'הקוד שהזנת שגוי';
+      if (code === 'auth/code-expired') return 'הקוד פג תוקף. אפשר לבקש קוד חדש.';
+      if (code === 'auth/invalid-phone-number') return 'מספר הטלפון אינו תקין. לדוגמה: 050-1234567';
+      if (code === 'auth/too-many-requests') return 'יותר מדי ניסיונות. נסו שוב מאוחר יותר.';
+      if (code === 'auth/quota-exceeded') return 'לא ניתן לשלוח קודים כרגע. נסו שוב מאוחר יותר.';
+      if (code === 'auth/network-request-failed') return 'בעיית רשת. בדקו את החיבור לאינטרנט ונסו שוב.';
+      if (code === 'auth/captcha-check-failed' || code === 'auth/missing-app-credential' || code === 'auth/invalid-app-credential')
+        return 'לא הצלחנו לוודא שהבקשה אמיתית. רעננו את הדף ונסו שוב.';
+      if (code === 'auth/account-suspended') return 'החשבון הזה הושעה. פנו לתמיכה.';
+      if (code === 'auth/terms-not-accepted') return TERMS_REQUIRED_MSG;
+      if (code === 'auth/operation-not-allowed') return 'הכניסה במספר טלפון עדיין לא פעילה. נסו עם מייל.';
+      return 'משהו השתבש. נסו שוב.';
+    }
+
+    function showPhoneStage(stage) {
+      phoneForm.hidden = stage !== 'phone';
+      codeForm.hidden = stage !== 'code';
+      profileForm.hidden = stage !== 'profile';
+      // Google/Apple והקישור למייל רלוונטיים רק בבחירת הכניסה, לא באמצע קוד או השלמת פרטים.
+      oauthSection.hidden = stage !== 'phone';
+      document.getElementById('show-email').hidden = stage !== 'phone';
+      showError(null);
+      const target = { phone: phoneInput, code: codeInput, profile: document.getElementById('pc-name') }[stage];
+      target.focus();
+    }
+
+    function stopResendTimer() { if (resendTimer) { clearInterval(resendTimer); resendTimer = null; } }
+    function renderResend() {
+      const cd = getSmsCooldown(phoneLocal);
+      const left = Math.max(cd.secondsLeft, resendLeft);
+      if (cd.exhausted) {
+        resendBtn.disabled = true;
+        resendBtn.textContent = 'שליחת קוד מחדש';
+        stopResendTimer();
+      } else if (left > 0) {
+        resendBtn.disabled = true;
+        resendBtn.textContent = `שליחה מחדש בעוד ${resetSecondsLabel(left)}`;
+      } else {
+        resendBtn.disabled = false;
+        resendBtn.textContent = 'שליחת קוד מחדש';
+        stopResendTimer();
+      }
+    }
+    let resendLeft = 0;
+    function startResendTimer() {
+      stopResendTimer();
+      resendLeft = RESEND_COOLDOWN_SEC;
+      renderResend();
+      resendTimer = setInterval(() => { resendLeft = Math.max(0, resendLeft - 1); renderResend(); }, 1000);
+    }
+
+    /** שולח קוד. מחזיר true בהצלחה. */
+    async function sendCode(button, busyLabel, idleLabel) {
+      const cd = getSmsCooldown(phoneLocal);
+      if (cd.exhausted) { showError('נשלחו כבר כמה קודים למספר הזה. נסו שוב מאוחר יותר.'); return false; }
+      if (cd.secondsLeft > 0) { showError(`אפשר לשלוח שוב בעוד ${resetSecondsLabel(cd.secondsLeft)}.`); return false; }
+      button.disabled = true; button.textContent = busyLabel;
+      try {
+        confirmation = await startPhoneSignIn(phoneLocal, 'recaptcha-login');
+        noteSmsSent(phoneLocal);
+        return true;
+      } catch (err) {
+        if (err && err.code) console.warn('[phone-signin]', err.code);
+        showError(phoneErrorMessage(err), err && err.code);
+        return false;
+      } finally {
+        button.disabled = false; button.textContent = idleLabel;
+      }
+    }
+
+    phoneForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      showError(null);
+      const local = normalizePhone(phoneInput.value);
+      if (!/^05\d{8}$/.test(local)) {
+        showError('מספר טלפון לא תקין. לדוגמה: 050-1234567');
+        phoneInput.focus();
+        return;
+      }
+      phoneLocal = local;
+      if (await sendCode(document.getElementById('phone-submit'), 'שולח קוד...', 'המשך')) {
+        document.getElementById('code-phone').textContent = phoneLocal;
+        codeInput.value = '';
+        showPhoneStage('code');
+        startResendTimer();
+      }
+    });
+
+    resendBtn.addEventListener('click', async () => {
+      if (await sendCode(resendBtn, 'שולח קוד...', 'שליחת קוד מחדש')) {
+        codeInput.value = '';
+        codeInput.focus();
+        startResendTimer();
+      } else { renderResend(); }
+    });
+
+    document.getElementById('change-phone').addEventListener('click', () => {
+      stopResendTimer();
+      confirmation = null;
+      showPhoneStage('phone');
+    });
+
+    codeInput.addEventListener('input', () => {
+      codeInput.value = codeInput.value.replace(/\D/g, '').slice(0, 6);
+    });
+
+    codeForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      showError(null);
+      const code = codeInput.value.trim();
+      if (!/^\d{6}$/.test(code)) {
+        showError('הקוד כולל 6 ספרות');
+        codeInput.focus();
+        return;
+      }
+      if (!confirmation) { showError('הקוד פג תוקף. אפשר לבקש קוד חדש.'); return; }
+      const btn = document.getElementById('code-submit');
+      btn.disabled = true; btn.textContent = 'מאמת...';
+      holdRedirect = true;
+      try {
+        const { user, profile } = await confirmPhoneSignIn(confirmation, code);
+        if (profile) {                       // חשבון קיים: ממשיכים כמו התחברות רגילה
+          holdRedirect = false;
+          location.href = nextUrl();
+          return;
+        }
+        pendingUser = user;                  // מספר חדש: השלמת פרטים
+        document.getElementById('profile-phone').textContent = phoneLocal;
+        stopResendTimer();
+        showPhoneStage('profile');
+      } catch (err) {
+        holdRedirect = false;
+        if (err && err.code) console.warn('[phone-confirm]', err.code);
+        showError(phoneErrorMessage(err), err && err.code);
+        codeInput.focus();
+      } finally {
+        btn.disabled = false; btn.textContent = 'כניסה';
+      }
+    });
+
+    profileForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      showError(null);
+      const nameEl = document.getElementById('pc-name');
+      const name = nameEl.value.trim();
+      if (!name) { showError('יש למלא שם מלא'); nameEl.focus(); return; }
+      if (!isValidFullName(name)) { showError(FULL_NAME_ERROR); nameEl.focus(); return; }
+      const emailEl = document.getElementById('pc-email');
+      const email = emailEl.value.trim();
+      if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { showError('כתובת אימייל לא תקינה'); emailEl.focus(); return; }
+      const terms = document.getElementById('pc-terms');
+      if (!terms.checked) { showError(TERMS_REQUIRED_MSG); terms.focus(); return; }
+      if (!pendingUser) { showError('החיבור פג. הזינו את המספר שוב.'); showPhoneStage('phone'); return; }
+      const btn = document.getElementById('profile-submit');
+      btn.disabled = true; btn.textContent = 'מסיים הרשמה...';
+      try {
+        await completePhoneProfile(pendingUser, { name, email, termsAccepted: terms.checked, aiConsent: document.getElementById('pc-ai').checked });
+        holdRedirect = false;
+        location.href = nextUrl();
+      } catch (err) {
+        if (err && err.code) console.warn('[phone-profile]', err.code);
+        showError(phoneErrorMessage(err), err && err.code);
+        btn.disabled = false; btn.textContent = 'סיום הרשמה';
+      }
+    });
+
+    // מעבר בין כניסה בטלפון לבין מייל וסיסמה.
+    const showEmailBtn = document.getElementById('show-email');
+    function showEmailAuth(on) {
+      emailAuth.hidden = !on;
+      primaryAuth.hidden = on;
+      showEmailBtn.setAttribute('aria-expanded', String(on));
+      showError(null);
+      (on ? document.getElementById('login-email') : phoneInput).focus();
+    }
+    showEmailBtn.addEventListener('click', () => showEmailAuth(true));
+    document.getElementById('show-phone').addEventListener('click', () => showEmailAuth(false));
 
     document.getElementById('btn-google').addEventListener('click', (e) => runProvider('google', e.currentTarget));
     appleBtn.addEventListener('click', (e) => runProvider('apple', e.currentTarget));

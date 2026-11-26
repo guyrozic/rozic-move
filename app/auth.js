@@ -5,7 +5,7 @@
 import {
   createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut,
   onAuthStateChanged, updateProfile as fbUpdateProfile, sendEmailVerification,
-  RecaptchaVerifier, PhoneAuthProvider, updatePhoneNumber,
+  RecaptchaVerifier, PhoneAuthProvider, updatePhoneNumber, signInWithPhoneNumber,
   GoogleAuthProvider, OAuthProvider, signInWithPopup,
   EmailAuthProvider, reauthenticateWithCredential, reauthenticateWithPopup,
   updatePassword as fbUpdatePassword, deleteUser,
@@ -406,6 +406,86 @@ export async function signInWithProvider(kind, { aiConsent = false } = {}) {
  */
 export async function setProfilePhone(uid, localPhone) {
   await updateDoc(doc(db, 'users', uid), { phone: normalizePhone(localPhone) });
+}
+
+
+/* ══════════════════════════════════════════════════════════════════
+   כניסה והרשמה במספר טלפון וקוד SMS (26.11.2026)
+   ══════════════════════════════════════════════════════════════════
+   גיא: "שההרשמה תהיה זהה לאפליקציות הגדולות — Gett, Uber, Wolt".
+   תאום ל-`startPhoneSignIn` / `confirmPhoneSignIn` / `completeOAuthProfile`
+   (viaPhone) ב-AuthContext.tsx. אותה פעולה לכניסה ולהרשמה: מספר שיש לו
+   חשבון נכנס; מספר חדש עובר להשלמת פרטים.
+
+   ⚠️ זה **לא** `sendPhoneVerificationCode` שלמעלה: שם הטלפון הוא שלב משני
+   על משתמש מחובר (`updatePhoneNumber`), וכאן הוא הכניסה עצמה
+   (`signInWithPhoneNumber`). */
+
+let loginRecaptcha = null;
+function clearLoginRecaptcha(containerId) {
+  if (loginRecaptcha) { try { loginRecaptcha.clear(); } catch { /* כבר נוקה */ } loginRecaptcha = null; }
+  // reCAPTCHA שנוצל אינו ניתן לשימוש חוזר; מנקים את המכל כדי שהניסיון הבא יצלח.
+  const el = containerId && document.getElementById(containerId);
+  if (el) el.innerHTML = '';
+}
+
+/** שולח קוד SMS למספר מקומי (05…). מחזיר confirmationResult. השגיאה של Firebase נזרקת כמות שהיא. */
+export async function startPhoneSignIn(localPhone, recaptchaContainerId) {
+  clearLoginRecaptcha(recaptchaContainerId);
+  try {
+    loginRecaptcha = new RecaptchaVerifier(auth, recaptchaContainerId, { size: 'invisible' });
+    return await signInWithPhoneNumber(auth, toE164(localPhone), loginRecaptcha);
+  } catch (err) {
+    clearLoginRecaptcha(recaptchaContainerId);
+    throw err;
+  }
+}
+
+/**
+ * מאשרת את הקוד. אם יש `users/{uid}` — מחזירה את הפרופיל (כניסה רגילה, כולל
+ * בדיקת השעיה כמו `login`). אם אין — `profile: null`, והקורא מציג השלמת פרטים
+ * וקורא ל-`completePhoneProfile`.
+ */
+export async function confirmPhoneSignIn(confirmation, code) {
+  const { user } = await confirmation.confirm(code);
+  const snap = await getDoc(doc(db, 'users', user.uid));
+  if (!snap.exists()) return { user, profile: null, isNew: true };
+  const profile = { uid: snap.id, ...snap.data() };
+  if (profile.suspended) {
+    await signOut(auth);
+    throw { code: 'auth/account-suspended' };
+  }
+  return { user, profile, isNew: false };
+}
+
+/**
+ * יוצרת את מסמך המשתמש אחרי כניסה בטלפון של מספר חדש. הטלפון הוא המספר המאומת
+ * (`user.phoneNumber`), בצורה מקומית — לא מה שהוקלד.
+ *
+ * ⚠️ `phoneVerified` **לא** נכתב ביצירה: `firestore.rules` מחייבות false בחשבון
+ * חדש. הדגל נכתב בעדכון נפרד אחרי רענון טוקן, ו-`phoneVerifiedNotSelfGranted`
+ * מתיר אותו רק כשה-claim `phone_number` בטוקן תואם — כמו `completeOAuthProfile`.
+ * @returns {Promise<object>} הפרופיל שנוצר
+ */
+export async function completePhoneProfile(user, { name, email = '', termsAccepted, aiConsent = false }) {
+  if (!termsAccepted) throw { code: 'auth/terms-not-accepted' };
+  const cleanedName = cleanName(name);
+  const phone = toLocalPhone(user.phoneNumber ?? '');
+  await fbUpdateProfile(user, { displayName: cleanedName });
+  const profile = {
+    uid: user.uid, name: cleanedName, email: String(email ?? '').trim(), phone, userType: 'customer',
+    referralCode: generateReferralCode(user.uid),
+  };
+  await setDoc(doc(db, 'users', user.uid), { ...profile, termsAcceptedAt: serverTimestamp(), termsVersion: TERMS_VERSION, ...signupAIConsentField(aiConsent) });
+  try {
+    await user.getIdToken(true);
+    await updateDoc(doc(db, 'users', user.uid), { phoneVerified: true });
+    profile.phoneVerified = true;
+  } catch (err) {
+    // החשבון נוצר והמשתמש מחובר; הדגל חסר רק עד אימות טלפון ידני (account.html).
+    console.warn('[phone-signup] סימון phoneVerified נכשל', err && err.code);
+  }
+  return profile;
 }
 
 
