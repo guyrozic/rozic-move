@@ -171,7 +171,7 @@
   </style>
 </head>
 <body class="app-body">
-<div data-build-stamp class="build-stamp" aria-hidden="true">עודכן 26.11 · 21:14</div>
+<div data-build-stamp class="build-stamp" aria-hidden="true">עודכן 26.11 · 21:15</div>
 <script src="/version-check.js?v=97bd6b2e" defer></script>
   <!-- ⚠️ 15.9 — "דלג לתוכן המרכזי" (WCAG 2.4.1, רמה A). זהו האלמנט הממוקד
        הראשון בדף: מוסתר מהעין, מופיע בפינה ברגע שמגיעים אליו ב-Tab, ומעביר
@@ -322,24 +322,9 @@
         <button tabindex="0" type="button" class="btn btn-primary btn-block" id="phone-save">שמור והמשך</button>
       </div>
 
-      <!-- מייל וסיסמה: התחברות והרשמה קיימות, כאפשרות משנית (26.11). -->
+      <!-- מייל וסיסמה: התחברות בלבד, לחשבונות קיימים (26.11). אין הרשמה במייל — הרשמה רק בטלפון / Google / Apple. -->
       <div id="email-auth" hidden>
       <button tabindex="0" type="button" class="btn-text email-toggle" id="show-phone">כניסה עם מספר טלפון</button>
-
-      <!-- הכרטיסיות הן `div` עם מאזין `click` בלבד: לא היה שום אופן להגיע
-           אליהן מהמקלדת, בשום דפדפן, ולכן מסך ההרשמה היה בלתי-נגיש למקלדת
-           לחלוטין. `role=button` + `tabindex` + מאזין Enter/Space מתקנים את
-           זה בלי לשנות פיקסל אחד ובלי לגעת בהתנהגות העכבר. -->
-      <!-- ⚠️ 15.9 — היה כאן role="tablist". ל-tablist יש ילדים מחויבים
-           (role="tab"), ושני הילדים כאן הם role="button" — כלומר עץ
-           ARIA לא חוקי, שקורא מסך מפרש בלי הבטחה. הכפתורים עצמם
-           תקינים (aria-pressed מתעדכן), ולכן התפקיד השגוי של המכל ירד
-           במקום להמציא מבנה טאבים שלם. -->
-      <div class="auth-tabs">
-        <div class="auth-tab active" data-tab="login" role="button" tabindex="0" aria-pressed="true">התחברות</div>
-        <div class="auth-tab" data-tab="register" role="button" tabindex="0" aria-pressed="false">הרשמה</div>
-      </div>
-
 
       <!-- אזור ההודעות (role=alert) עבר לראש הכרטיס, מעל שני המצבים. -->
 
@@ -360,62 +345,6 @@
         <p class="terms-note">בלחיצה על הכפתור אתה מאשר את <a tabindex="0" href="/terms.html" target="_blank" rel="noopener">תנאי השימוש</a> ו<a tabindex="0" href="/privacy.html" target="_blank" rel="noopener">מדיניות הפרטיות</a></p>
       </form>
 
-      <form id="register-form" class="auth-form">
-        <div class="form-group">
-          <label for="reg-name">שם מלא</label>
-          <input id="reg-name" type="text" required autocomplete="name">
-        </div>
-        <div class="form-group">
-          <label for="reg-phone">טלפון</label>
-          <input id="reg-phone" type="tel" placeholder="050-1234567" required autocomplete="tel">
-        </div>
-        <div class="form-group">
-          <label for="reg-email">אימייל</label>
-          <input id="reg-email" type="email" required autocomplete="email">
-        </div>
-        <div class="form-group">
-          <!-- 8+ תווים, אותיות באנגלית וגם ספרות — זהה ל-RegisterScreen.tsx
-               (validate ב-handleRegister). Firebase עצמו דורש רק 6, ולכן
-               ה-minlength כאן חייב להיות מחמיר יותר משם, לא סתם עותק. -->
-          <label for="reg-password">סיסמה</label>
-          <input id="reg-password" type="password" required minlength="8" autocomplete="new-password"
-                 aria-describedby="reg-password-hint">
-          <div class="form-hint" id="reg-password-hint">לפחות 8 תווים, אותיות באנגלית וגם ספרות</div>
-        </div>
-        <div class="form-group">
-          <label for="reg-password-confirm">אימות סיסמה</label>
-          <input id="reg-password-confirm" type="password" required autocomplete="new-password" placeholder="הקלד שוב את הסיסמה">
-        </div>
-        <!-- ⚠️ 18.9 — קוד הפניה. **מוסתר עד ש-`REFERRAL_PROGRAM_ENABLED`
-             נדלק** (ראו את ההערה הארוכה ליד הקבוע בסקריפט למטה) — לא
-             מחיקה, כדי שההדלקה תהיה שורה אחת ולא בנייה מחדש.
-             אופציונלי לחלוטין: בלי `required`, והתווית אומרת את זה
-             במילים ולא רק בהיעדר כוכבית. -->
-        <div class="form-group" id="reg-referral-group" hidden>
-          <label for="reg-referral">קוד הפניה מחבר (לא חובה)</label>
-          <input id="reg-referral" type="text" autocomplete="off" maxlength="40"
-                 placeholder="ROZIC-ABC123" aria-describedby="reg-referral-hint reg-referral-note">
-          <div class="form-hint" id="reg-referral-hint">הגעת דרך קישור של חבר? הקוד כבר מולא. אפשר גם להשאיר ריק.</div>
-          <!-- role=status ולא role=alert: זו הערה על שדה לא-חובה, ולא כשל
-               שמונע מהטופס להישלח. `alert` היה קוטע את קורא המסך באמצע
-               הקלדה בכל תו. -->
-          <div class="form-hint" id="reg-referral-note" role="status"></div>
-        </div>
-        <div class="form-group">
-          <label class="terms-label">
-            <input tabindex="0" type="checkbox" id="reg-terms" required>
-            <span>אני בן/בת 18 ומעלה, קראתי ואני מסכים/ה ל<a tabindex="0" href="/terms.html" target="_blank" rel="noopener">תנאי השימוש</a> ול<a tabindex="0" href="/privacy.html" target="_blank" rel="noopener">מדיניות הפרטיות</a></span>
-          </label>
-        </div>
-        <!-- 26.11: תיבה נפרדת, לא מסומנת מראש, לא חוסמת הרשמה (אפל 5.1.2(i)). נוסח ליאור, זהה לאפליקציה. -->
-        <div class="form-group">
-          <label class="terms-label ai-consent-signup" for="reg-ai">
-            <input tabindex="0" type="checkbox" id="reg-ai">
-            <span><b>תמונות וטקסט שאשלח יישלחו לבינה המלאכותית של Google לניתוח בלבד</b> — לזיהוי פריטים, לצ'אט ולבדיקת מסמכים.</span>
-          </label>
-        </div>
-        <button tabindex="0" type="submit" class="btn btn-primary btn-block" id="register-submit">הירשם</button>
-      </form>
       </div>
     </div>
   </div>
@@ -483,7 +412,7 @@
   </footer>
 
   <script type="module">
-    import { login, registerCustomer, subscribeToAuth,
+    import { login, subscribeToAuth,
              signInWithProvider, setProfilePhone, normalizePhone,
              isValidFullName, FULL_NAME_ERROR, sendPasswordReset, getPasswordResetCooldown,
              startPhoneSignIn, confirmPhoneSignIn, completePhoneProfile, getSmsCooldown, noteSmsSent } from './auth.js';
@@ -527,27 +456,6 @@
      */
     const appleEnabled = APPLE_WEB_ENABLED ||
       new URLSearchParams(location.search).get('apple') === '1';
-
-    const tabs = document.querySelectorAll('.auth-tab');
-    const forms = { login: document.getElementById('login-form'), register: document.getElementById('register-form') };
-    tabs.forEach(tab => {
-      tab.addEventListener('click', () => {
-        tabs.forEach(t => { t.classList.remove('active'); t.setAttribute('aria-pressed', 'false'); });
-        tab.classList.add('active');
-        tab.setAttribute('aria-pressed', 'true');
-        Object.values(forms).forEach(f => f.classList.remove('active'));
-        forms[tab.dataset.tab].classList.add('active');
-        showError(null);
-      });
-      // `div` אינו מפעיל click מ-Enter/Space כמו `button`, ולכן בלי זה
-      // הכרטיסייה הייתה מקבלת מיקוד אך לא נפתחת.
-      tab.addEventListener('keydown', (e) => {
-        if (e.key === 'Enter' || e.key === ' ' || e.key === 'Spacebar') {
-          e.preventDefault();
-          tab.click();
-        }
-      });
-    });
 
     const errorBox = document.getElementById('error-box');
     // `code` אופציונלי — זהה ל-LoginScreen.tsx: חשבון מושעה מקבל כפתור
@@ -741,40 +649,7 @@
       }
     }
 
-    const referralGroup = document.getElementById('reg-referral-group');
-    const referralInput = document.getElementById('reg-referral');
-    const referralNote  = document.getElementById('reg-referral-note');
-
-    if (REFERRAL_PROGRAM_ENABLED) {
-      referralGroup.hidden = false;
-      const urlCode = referralCodeFromUrl();
-      if (urlCode) {
-        referralInput.value = urlCode;
-        // ⚠️ קישור הפניה מכוון להרשמה, לא להתחברות. בלי המעבר הזה
-        // הקוד ממולא בטופס **שאינו מוצג**, והמוזמן נוחת על מסך
-        // התחברות ומניח שהקישור לא עבד.
-        document.querySelector('.auth-tab[data-tab="register"]').click();
-      }
-    }
-
-    /**
-     * ⚠️ **מודיע, לא חוסם.** קוד בפורמט שגוי אינו מכשיל את ההרשמה —
-     * הוא פשוט לא נשלח (בדיוק כמו בשרת, ששם `!startsWith` מחזיר
-     * `registered:false` ולא שגיאה). זה הרגע היחיד שבו יש טעם להודיע:
-     * אחרי ההרשמה הלקוח כבר בדף אחר, ואין לו מה לעשות עם ההודעה.
-     */
-    referralInput.addEventListener('input', () => {
-      const pos = referralInput.selectionStart;
-      const upper = referralInput.value.toUpperCase();
-      if (upper !== referralInput.value) {
-        referralInput.value = upper;
-        referralInput.setSelectionRange(pos, pos);
-      }
-      const code = normalizeReferralCode(referralInput.value);
-      referralNote.textContent = (!code || code.startsWith(REFERRAL_CODE_PREFIX))
-        ? ''
-        : `קוד הפניה נראה כך: ${REFERRAL_CODE_PREFIX}ABC123. נמשיך בלי הקוד אם הוא לא בפורמט הזה.`;
-    });
+    // 26.11: אין הרשמה במייל, ולכן אין שדה קוד הפניה בדף. הקבועים והפונקציות למעלה נשארו לא בשימוש עד שתוכנית ההפניות תחזור (REFERRAL_PROGRAM_ENABLED=false).
 
     function friendlyError(err) {
       const code = err && err.code;
@@ -841,109 +716,6 @@
         showResetNote('success', `שלחנו לך הוראות לאיפוס הסיסמה לכתובת:\n${email}`);
       } catch {
         showResetNote('error', 'לא הצלחנו לשלוח אימייל. בדוק שהכתובת נכונה');
-      }
-    });
-
-    // 8+ תווים, אותיות באנגלית וגם ספרות — זהה ל-handleRegister ב-RegisterScreen.tsx.
-    function registerPasswordError(pw) {
-      if (pw.length < 8) return 'סיסמה חייבת להכיל לפחות 8 תווים';
-      if (!/[a-zA-Z]/.test(pw) || !/[0-9]/.test(pw)) return 'הסיסמה חייבת לכלול אותיות באנגלית וגם ספרות';
-      return null;
-    }
-
-    document.getElementById('register-form').addEventListener('submit', async (e) => {
-      e.preventDefault();
-      showError(null);
-      const termsBox = document.getElementById('reg-terms');
-      // ⚠️ בדיקת שם מלא **לפני** יצירת החשבון — זהה ל-RegisterScreen.tsx.
-      // בלי זה, שם של מילה אחת (למשל דרך OAuth) נכשל רק בהמשך אצל Grow
-      // עם "יצירת קישור התשלום נכשלה", הודעה אטומה לגמרי (ראו ההערה
-      // ב-CompleteProfileScreen.tsx). כאן יש הזדמנות לתפוס את זה מיד.
-      const regName = document.getElementById('reg-name').value.trim();
-      if (!regName) {
-        showError('יש למלא שם מלא');
-        document.getElementById('reg-name').focus();
-        return;
-      }
-      if (!isValidFullName(regName)) {
-        showError(FULL_NAME_ERROR);
-        document.getElementById('reg-name').focus();
-        return;
-      }
-      // ⚠️ השדה הוא type="tel" בלי pattern, והדפדפן לא חוסם כלום.
-      // בבדיקה נרשם בפועל חשבון עם הטלפון "abcdefg". normalizePhone
-      // הופך קלט כזה למחרוזת ריקה — ומי שחוסם על ריק הוא הקוד הזה.
-      // ראו ההערה ב-normalizePhone לנזק במורד הזרם.
-      // הבדיקה רצה **לפני** נעילת הכפתור, כדי שלא יישאר נעול על כשל.
-      const regPhone = normalizePhone(document.getElementById('reg-phone').value);
-      if (!/^05\d{8}$/.test(regPhone)) {
-        showError('מספר טלפון לא תקין. לדוגמה: 050-1234567');
-        document.getElementById('reg-phone').focus();
-        return;
-      }
-      // `type="email"` בלבד סומך על ולידציית הדפדפן, ששונה בין דפדפנים ומקלה
-      // יותר מדי (Chrome למשל מקבל "a@b" בלי סיומת דומיין). אותה regex בדיוק
-      // כמו handleRegister ב-RegisterScreen.tsx.
-      const regEmail = document.getElementById('reg-email').value.trim();
-      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(regEmail)) {
-        showError('כתובת אימייל לא תקינה');
-        document.getElementById('reg-email').focus();
-        return;
-      }
-      const regPassword = document.getElementById('reg-password').value;
-      const passwordErr = registerPasswordError(regPassword);
-      if (passwordErr) {
-        showError(passwordErr);
-        document.getElementById('reg-password').focus();
-        return;
-      }
-      // שדה אימות סיסמה — זהה ל-RegisterScreen.tsx (confirmPassword), חסר
-      // עד היום באתר: אפשר היה להקליד סיסמה שגויה בטעות בלי שום התרעה.
-      if (document.getElementById('reg-password-confirm').value !== regPassword) {
-        showError('הסיסמאות אינן תואמות');
-        document.getElementById('reg-password-confirm').focus();
-        return;
-      }
-      if (!termsBox.checked) {
-        showError(TERMS_REQUIRED_MSG);
-        termsBox.focus();
-        return;
-      }
-      // ⚠️ בלי זה ההרשמה מייצרת חשבון יתום. subscribeToAuth מאזין ל-onSnapshot
-      // על users/{uid}, ו-setDoc מחיל את הכתיבה **מקומית** מיד — כך שהמאזין
-      // בתחתית הקובץ קיבל פרופיל וניווט החוצה ~540ms לפני שהשרת אישר את
-      // הכתיבה, הדף נפרק והכתיבה אבדה. התוצאה: משתמש ב-Auth בלי מסמך
-      // ב-Firestore, ש-subscribeToAuth מחזיר עליו null לנצח — כלומר לקוח
-      // שנרשם בסוף זרימת ההזמנה חוזר ל-login שוב ושוב ולא יכול לשלם.
-      // (שוחזר 3/3 ב-15.9; עם השורה הזאת 2/2 תקין.) ראו holdRedirect ב-OAuth.
-      holdRedirect = true;
-      const btn = document.getElementById('register-submit');
-      btn.disabled = true; btn.textContent = 'נרשם...';
-      try {
-        await registerCustomer({
-          name: document.getElementById('reg-name').value.trim(),
-          phone: regPhone,
-          email: document.getElementById('reg-email').value.trim(),
-          password: document.getElementById('reg-password').value,
-          termsAccepted: termsBox.checked,
-          aiConsent: document.getElementById('reg-ai').checked,
-        });
-        /**
-         * ⚠️ **אחרי** יצירת החשבון ולא לפניה: השרת גוזר את `newUserId`
-         * מהטוקן (זה מה שמונע רישום הפניה על שם משתמש אחר), ולכן לפני
-         * ההרשמה אין בכלל למי לרשום.
-         *
-         * ⚠️ ו**מחוץ** ל-`catch` של ההרשמה במכוון — `registerReferralWeb`
-         * בולעת הכול בעצמה, כך שאין מסלול שבו קוד הפניה שגוי מפיל
-         * הרשמה שכבר הצליחה. זו הדרישה המפורשת, והיא נאכפת בצורת
-         * הפונקציה ולא בזכירה של הקורא.
-         */
-        const referralCode = REFERRAL_PROGRAM_ENABLED ? normalizeReferralCode(referralInput.value) : '';
-        if (referralCode.startsWith(REFERRAL_CODE_PREFIX)) await registerReferralWeb(referralCode);
-        location.href = nextUrl();
-      } catch (err) {
-        showError(friendlyError(err), err && err.code);
-        btn.disabled = false; btn.textContent = 'הירשם';
       }
     });
 

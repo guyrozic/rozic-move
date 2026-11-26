@@ -73,6 +73,7 @@ export function normalizePhone(raw) {
 }
 
 /** Registers a new customer account — web ordering is customer-only, no driver signup here. */
+// 26.11: לא בשימוש — אין עוד הרשמה במייל וסיסמה (הכרעת גיא: כמו Uber/Gett/Yango/Bolt). נשארה כי ההערות סביבה מתעדות את החוזה מול חוקי ה-Firestore.
 export async function registerCustomer({ name, email, phone, password, termsAccepted, aiConsent = false }) {
   // הסכמה לתנאי השימוש ולמדיניות הפרטיות היא תנאי להרשמה (כמו באפליקציה).
   // הטופס ב-login.html כבר חוסם, אבל termsAcceptedAt נכתב למסמך המשתמש למטה,
