@@ -48,7 +48,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="../style.css?v=ae0a0fe9">
-  <link rel="stylesheet" href="style-app.css?v=d20dee8a">
+  <link rel="stylesheet" href="style-app.css?v=86eed599">
   <link rel="stylesheet" href="address-autocomplete.css?v=8020fd51">
   <link rel="stylesheet" href="address-map.css?v=8417010c">
   <!-- ⚠️ נטען אחרון בכוונה — `flow.css` דורס את `style-app.css` תחת
@@ -149,7 +149,7 @@
   </style>
 </head>
 <body class="app-body flow-b">
-<div data-build-stamp class="build-stamp" aria-hidden="true">עודכן 26.11 · 12:19</div>
+<div data-build-stamp class="build-stamp" aria-hidden="true">עודכן 26.11 · 12:40</div>
 <script src="/version-check.js?v=97bd6b2e" defer></script>
   <!-- ⚠️ 15.9 — "דלג לתוכן המרכזי" (WCAG 2.4.1, רמה A). זהו האלמנט הממוקד
        הראשון בדף: מוסתר מהעין, מופיע בפינה ברגע שמגיעים אליו ב-Tab, ומעביר
@@ -215,7 +215,6 @@
             <div class="ai-upload-body">
               <h2>צלמו את הפריטים</h2>
               <p>תמונה לכל פריט או פינה. נזהה אותם, ואתם רק מאשרים.</p>
-              <div class="scan-consent-slot" id="scan-consent-slot" hidden></div>
               <label class="rt-drop" for="ai-photo-input" id="ai-dropzone">
                 <b>גררו תמונות לכאן</b><span>או לחצו לבחירה</span>
               </label>
@@ -726,7 +725,7 @@
              GUEST_QUOTA_TEXT } from './ai-guest-quota.js';
     import { resizeImageToBase64 } from './image-resize.js';
     import { ensureAIPhotoConsent, ensureAITextConsent, maybePromptAIConsent } from './ai-consent.js';
-    import { isScanShareAvailable, mountScanConsent, publishScanPhotos } from './scan-photos.js';
+    import { getScanConsent, publishScanPhotos } from './scan-photos.js';
     import { mountAddressField, getAddressCityStreet } from './address-autocomplete.js';
 
     // 14.9 — אורח רשאי לבנות הזמנה ולראות מחיר בלי חשבון. ההרשמה
@@ -1064,19 +1063,13 @@
     let aiPhotos = [];
     let pendingQuestions = [];
 
-    /* ═══════════ הצגת תמונות הסריקה למובילים (25.11, הכרעה 8.7 ב) ═══════
-       תיבת הסכמה לא מסומנת מראש מעל בחירת התמונות. מופיעה **רק** אם הפונקציות
-       בשרת קיימות (`isScanShareAvailable`) — עד שהן נפרסות הדף נראה כמו קודם.
-       פרסום אחרי יצירת ההזמנה, לפני ההפניה לתשלום; כשל לא חוסם. ראו scan-photos.js. */
-    let scanConsentCtl = null;
-    isScanShareAvailable().then((ok) => {
-      const slot = document.getElementById('scan-consent-slot');
-      if (ok && slot) scanConsentCtl = mountScanConsent(slot);
-    }).catch((e) => console.warn('[scanPhotos] availability check failed', e));
-
+    /* ═══════════ הצגת תמונות הסריקה למובילים (26.11) ═══════
+       אין כאן שום שלב או מתג: ההצגה לפי התקנון והפרטיות, והכיבוי ב"פרופיל והגדרות"
+       (`users/{uid}.scanPhotosShare`, ראו scan-photos.js). פרסום אחרי יצירת ההזמנה, לפני
+       ההפניה לתשלום; כשל לא חוסם. */
     /** עד 25 שניות; ממשיכים לתשלום בכל מקרה. order-status יציג תצוגה מקדימה כשהסטטוס יתעדכן. */
     async function publishScanPhotosForOrder(orderId) {
-      const consent = scanConsentCtl?.getConsent();
+      const consent = await getScanConsent();
       if (!consent || aiPhotos.length === 0) return;
       const timeout = new Promise((resolve) => setTimeout(() => resolve({ kind: 'failed' }), 25000));
       await Promise.race([publishScanPhotos(orderId, aiPhotos, consent, resizeImageToBase64), timeout]);

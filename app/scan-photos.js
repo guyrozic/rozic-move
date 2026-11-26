@@ -1,5 +1,5 @@
 /**
- * הצגת תמונות הסריקה למובילים — צד האתר (הכרעה 8.7 ב, 25.11.2026).
+ * הצגת תמונות הסריקה למובילים — צד האתר (הכרעה 8.7 ב, 25.11.2026; 26.11: לפי התקנון, כיבוי בהגדרות).
  * **תאום ל-`src/services/orderScanPhotos.ts` + `ScanShareConsentBox` +
  * `useScanPhotosShare` באפליקציה (ענף w2-photos).** נוסח ההסכמה הוא סעיף 2ד
  * ב-`legal-drafts.md`, מילה במילה, וגרסתו חייבת להיות ב-`KNOWN_CONSENT_VERSIONS`
@@ -13,15 +13,13 @@
  * הדגל חייב להיות דלוק מפורשות. אחריו, כל עוד הפונקציות עוד לא פרוסות (עד פריסת w2-photos) — הכל מאחורי בדיקת קיום
  * `isScanShareAvailable()` שולחת בקשה מקדימה אחת. פונקציה שאינה קיימת עונה 404
  * בלי כותרות CORS, והדפדפן מדווח את זה כ-`TypeError`; פונקציה קיימת עונה
- * (400/401) **עם** כותרות CORS. כל כשל = לא זמין = תיבת ההסכמה **אינה מוצגת
- * בכלל**: לא מבקשים הסכמה לשיתוף שאי אפשר לבצע. האתר אינו נשבר בשום מצב.
+ * (400/401) **עם** כותרות CORS. כל כשל = לא זמין = הפרסום **אינו מתבצע**. האתר אינו נשבר בשום מצב.
  *
  * ## ⚠️ שיתוף תמונות הוא תוספת ולעולם לא חוסם
  * כשל בפרסום = ההזמנה ממשיכה לתשלום בלי תמונות. **לא מתנים שירות בהסכמה.**
- * המתג דלוק כברירת מחדל בכל טעינת עמוד (גם אחרי הפניה להתחברות), ובחירת
- * כיבוי אינה נשמרת בין עמודים — כיבוי הוא הכיוון הבטוח, והוא נשמר בעמוד עצמו.
+ * אין מתג בזרימת ההזמנה. הכיבוי נשמר בפרופיל (`scanPhotosShare`) ונקרא בעת הפרסום.
  */
-import { doc, getDoc } from 'https://www.gstatic.com/firebasejs/12.16.0/firebase-firestore.js';
+import { doc, getDoc, updateDoc } from 'https://www.gstatic.com/firebasejs/12.16.0/firebase-firestore.js';
 import { auth, db } from './firebase.js';
 
 const BASE = 'https://us-central1-hovalot-6cf65.cloudfunctions.net';
@@ -29,8 +27,8 @@ const PUBLISH_URL = `${BASE}/publishOrderScanPhotos`;
 const GET_URL = `${BASE}/getOrderScanPhotos`;
 const WITHDRAW_URL = `${BASE}/withdrawOrderScanPhotos`;
 
-export const SCAN_CONSENT_VERSION = '2026-11-26';
-export const SCAN_CONSENT_TITLE = 'מציג את התמונות למובילים';
+export const SCAN_CONSENT_VERSION = '2026-11-26t';
+export const SCAN_CONSENT_TITLE = 'הצגת תמונות הסריקה למובילים';
 export const SCAN_CONSENT_BODY =
   'התמונות שצילמתם יוצגו מטושטשות למובילים שרואים את ההזמנה בלוח, כדי שידעו מה מחכה להם. אפשר לכבות — אז הן משמשות רק לזיהוי הפריטים.';
 /** מגבלות השרת: 12 תמונות, 8MB מפוענחים. התקרה בממשק האתר היא 10. */
@@ -94,31 +92,30 @@ export async function isScanShareAvailable(fetchImpl = globalThis.fetch) {
 }
 
 /**
- * מצייר את שורת השיתוף לתוך `slot` ומחזיר `{ getConsent }`. (26.11.2026, נוסח ליאור; מראה
- * `ScanShareConsentBox` באפליקציה.) גיא: "אין באנרים מעצבנים" — שורה שקטה עם **מתג חיובי,
- * דלוק כברירת מחדל**, במקום תיבה לא מסומנת. הבסיס המשפטי הוא סעיף בתקנון ובפרטיות; השורה היא
- * חובת היידוע במקום ההעלאה. דלוק = `{version, acceptedAt: <רגע הפרסום>}`, כבוי = `null`.
- * ⚠️ כיבוי לא חוסם את ההזמנה — התמונות משמשות אז רק לזיהוי (מינימיזציה, אפל 5.1.1(iii)).
+ * 26.11, אחר הצהריים (גיא: "שיהיה בתקנון וזהו"): **אין שום שלב בזרימת ההזמנה.** ההצגה בלוח היא
+ * לפי התקנון והפרטיות (גרסה 2026-11-3), והכיבוי ב"פרופיל והגדרות" (`settings.html`) —
+ * `users/{uid}.scanPhotosShare`, חסר = דלוק. מראה `scanPhotosShareOn` ב-`orderScanPhotos.ts`.
  */
-export function mountScanConsent(slot) {
-  slot.innerHTML = `
-    <div class="scan-consent">
-      <div class="scan-consent-row">
-        <span class="scan-consent-title" id="scan-consent-title">${SCAN_CONSENT_TITLE}</span>
-        <label class="switch">
-          <input type="checkbox" role="switch" id="scan-consent-check" checked
-                 aria-checked="true" aria-labelledby="scan-consent-title" aria-describedby="scan-consent-body">
-          <span class="switch-track" aria-hidden="true"></span>
-        </label>
-      </div>
-      <p class="scan-consent-body" id="scan-consent-body">${SCAN_CONSENT_BODY}</p>
-    </div>`;
-  slot.hidden = false;
-  const box = slot.querySelector('#scan-consent-check');
-  box.addEventListener('change', () => { box.setAttribute('aria-checked', String(box.checked)); });
-  return {
-    getConsent: () => (box.checked ? { version: SCAN_CONSENT_VERSION, acceptedAt: Date.now() } : null),
-  };
+export function scanPhotosShareOn(profile) {
+  return profile?.scanPhotosShare !== false;
+}
+
+/**
+ * ההסכמה שנשלחת לשרת בפרסום: `{version, acceptedAt}` כשההצגה דלוקה, `null` כשכובתה בהגדרות.
+ * ⚠️ אין משתמש מחובר, או שקריאת הפרופיל נכשלה = `null` (לא מפרסמים): מי שכיבה בהגדרות
+ * לא יפורסם עקב כשל רשת רגעי. (פרסום ממילא דורש משתמש מחובר.)
+ */
+export async function getScanConsent() {
+  const uid = auth.currentUser?.uid;
+  if (!uid) return null;
+  try {
+    const snap = await getDoc(doc(db, 'users', uid));
+    if (!scanPhotosShareOn(snap.exists() ? snap.data() : null)) return null;
+    return { version: SCAN_CONSENT_VERSION, acceptedAt: Date.now() };
+  } catch (e) {
+    console.warn('[scanPhotos] share setting read failed', e?.code || e);
+    return null;
+  }
 }
 
 async function authedPost(url, body) {
@@ -197,4 +194,15 @@ export async function withdrawScanPhotos(orderId) {
   }
   console.warn('[scanPhotos] withdraw failed twice', orderId);
   return false;
+}
+
+/** כתיבת המתג ב"פרופיל והגדרות". `true` בהצלחה; כשל = `false` והמתקשר מחזיר את המתג ומודיע. */
+export async function setScanPhotosShare(uid, value) {
+  try {
+    await updateDoc(doc(db, 'users', uid), { scanPhotosShare: value });
+    return true;
+  } catch (e) {
+    console.warn('[scanPhotos] share setting write failed', e?.code || e);
+    return false;
+  }
 }

@@ -14,19 +14,19 @@
       "versionSource": "app/legal.js",
       "text": {
         "path": "accessible/terms.txt",
-        "bytes": 37892,
+        "bytes": 38809,
         "blocks": 122,
-        "sourceSha256": "f3c6261c68590ae4fc6298406f78655792dc4fb8f82d90af8a6ae71cfd7d4ce2",
-        "termsVersion": "2026-11-2",
-        "generatedAt": "2026-11-25T22:00:19.079Z"
+        "sourceSha256": "4c7ea2237ed0d0f0896341b6cdf9b0eb3b357e988050f8fafa6950f41ee50da3",
+        "termsVersion": "2026-11-3",
+        "generatedAt": "2026-11-26T10:39:23.648Z"
       },
       "audio": {
         "path": "accessible/terms.mp3",
-        "bytes": 7447719,
-        "seconds": 1861.93,
-        "sourceSha256": "f3c6261c68590ae4fc6298406f78655792dc4fb8f82d90af8a6ae71cfd7d4ce2",
-        "termsVersion": "2026-11-2",
-        "generatedAt": "2026-11-25T22:00:19.079Z"
+        "bytes": 7618456,
+        "seconds": 1904.61,
+        "sourceSha256": "4c7ea2237ed0d0f0896341b6cdf9b0eb3b357e988050f8fafa6950f41ee50da3",
+        "termsVersion": "2026-11-3",
+        "generatedAt": "2026-11-26T10:39:23.648Z"
       }
     },
     "privacy": {
@@ -35,19 +35,19 @@
       "versionSource": "app/legal.js",
       "text": {
         "path": "accessible/privacy.txt",
-        "bytes": 21747,
+        "bytes": 22025,
         "blocks": 61,
-        "sourceSha256": "7b184840b8d91ba738781e50174a564dd20c2f37fe79a921041583fdbaa882c7",
-        "termsVersion": "2026-11-2",
-        "generatedAt": "2026-11-25T22:00:19.079Z"
+        "sourceSha256": "986ae02cec20301b942c6d0ba0371490689c300be05743a5d068abbfa1849f48",
+        "termsVersion": "2026-11-3",
+        "generatedAt": "2026-11-26T10:39:23.648Z"
       },
       "audio": {
         "path": "accessible/privacy.mp3",
-        "bytes": 4437264,
-        "seconds": 1109.32,
-        "sourceSha256": "7b184840b8d91ba738781e50174a564dd20c2f37fe79a921041583fdbaa882c7",
-        "termsVersion": "2026-11-2",
-        "generatedAt": "2026-11-25T22:00:19.079Z"
+        "bytes": 4489404,
+        "seconds": 1122.35,
+        "sourceSha256": "986ae02cec20301b942c6d0ba0371490689c300be05743a5d068abbfa1849f48",
+        "termsVersion": "2026-11-3",
+        "generatedAt": "2026-11-26T10:39:23.648Z"
       }
     }
   }
