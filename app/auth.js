@@ -4,7 +4,7 @@
 // screens read web-created accounts with no changes on their side.
 import {
   createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut,
-  onAuthStateChanged, updateProfile as fbUpdateProfile, sendEmailVerification,
+  onAuthStateChanged, updateProfile as fbUpdateProfile,
   RecaptchaVerifier, PhoneAuthProvider, updatePhoneNumber, signInWithPhoneNumber,
   GoogleAuthProvider, OAuthProvider, signInWithPopup,
   EmailAuthProvider, reauthenticateWithCredential, reauthenticateWithPopup,
@@ -15,17 +15,6 @@ import { doc, setDoc, getDoc, updateDoc, deleteDoc, onSnapshot, serverTimestamp 
 import { auth, db } from './firebase.js';
 import { TERMS_VERSION } from './legal.js';
 import { signupAIConsentField } from './ai-consent.js';
-
-// NOTE on how this reaches verify-redirect.html: the Firebase Console has a custom
-// email-action URL configured to that page (confirmed by the app's own code — it reads
-// mode/oobCode/apiKey directly off its own query string, which only happens when a
-// project has a custom action URL, not Firebase's default hosted confirmation page).
-// That means `url` here does NOT become verify-redirect.html's own query string —
-// it arrives there as a `continueUrl` param instead. The app's identical flow sets
-// `url` to verify-redirect.html itself (self-referential, not a useful signal), so
-// pointing this at app/account.html is what lets verify-redirect.html tell "came from
-// the website" apart from "came from the app" and redirect accordingly after success.
-const EMAIL_VERIFICATION_SETTINGS = { url: 'https://rozicmove.com/app/account.html' };
 
 export function generateReferralCode(uid) {
   return `ROZIC-${uid.slice(0, 6).toUpperCase()}`;
@@ -104,7 +93,6 @@ export async function registerCustomer({ name, email, phone, password, termsAcce
   // בלי הגרסה, "אישר ב-3.2" לא אומר למה בדיוק הוא הסכים. אותם שני שדות
   // בדיוק נכתבים ע"י AuthContext.register באפליקציה. ראו legal.js.
   await setDoc(doc(db, 'users', credential.user.uid), { ...profile, termsAcceptedAt: serverTimestamp(), termsVersion: TERMS_VERSION, ...signupAIConsentField(aiConsent) });
-  sendEmailVerification(credential.user, EMAIL_VERIFICATION_SETTINGS).catch(() => {});
   return profile;
 }
 
@@ -194,17 +182,6 @@ export function noteSmsSent(phone) {
 
 export function logout() {
   return signOut(auth);
-}
-
-export async function resendVerificationEmail() {
-  if (!auth.currentUser) throw new Error('NOT_LOGGED_IN');
-  await sendEmailVerification(auth.currentUser, EMAIL_VERIFICATION_SETTINGS);
-}
-
-export async function refreshEmailVerified() {
-  if (!auth.currentUser) return false;
-  await auth.currentUser.reload();
-  return auth.currentUser.emailVerified;
 }
 
 /**

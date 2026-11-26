@@ -61,7 +61,7 @@
   </style>
 </head>
 <body class="app-body flow-b">
-<div data-build-stamp class="build-stamp" aria-hidden="true">עודכן 26.11 · 14:07</div>
+<div data-build-stamp class="build-stamp" aria-hidden="true">עודכן 26.11 · 21:12</div>
 <script src="/version-check.js?v=97bd6b2e" defer></script>
   <!-- ⚠️ 15.9 — "דלג לתוכן המרכזי" (WCAG 2.4.1, רמה A). זהו האלמנט הממוקד
        הראשון בדף: מוסתר מהעין, מופיע בפינה ברגע שמגיעים אליו ב-Tab, ומעביר
@@ -302,7 +302,7 @@
   </footer>
 
   <script type="module">
-    import { requireAuth, resendVerificationEmail, refreshEmailVerified, sendPhoneVerificationCode, confirmPhoneVerificationCode, logout, generateReferralCode, getSmsCooldown, noteSmsSent, currentProviderId } from './auth.js';
+    import { requireAuth, sendPhoneVerificationCode, confirmPhoneVerificationCode, logout, generateReferralCode, getSmsCooldown, noteSmsSent, currentProviderId } from './auth.js';
     import { subscribeToUserOrders, customerTotalOf, STATUS_LABELS, OPEN_CUSTOMER_STATUSES, HISTORY_STATUSES } from './orders.js';
     import { clearAllOrderDrafts, loadOrderDraft, clearOrderDraft } from './guest-checkout.js';
     import { doc, updateDoc, onSnapshot } from 'https://www.gstatic.com/firebasejs/12.16.0/firebase-firestore.js';
@@ -350,33 +350,9 @@
       document.getElementById('profile-name').textContent = profile.name || 'ללא שם';
       document.getElementById('profile-email').textContent = profile.email || '';
 
-      const emailBox = document.getElementById('email-status');
-      // 26.11: בחשבון שנפתח בטלפון הטלפון המאומת הוא הזהות (כמו באפליקציה), ולכן אין באנר "האימייל טרם אומת".
-      if (currentProviderId() === 'phone' && !state.authUser.email) {
-        emailBox.innerHTML = '';
-      } else if (state.authUser.emailVerified) {
-        emailBox.innerHTML = '<div class="alert alert-success">✓ האימייל מאומת</div>';
-      } else {
-        emailBox.innerHTML = '<div class="alert alert-info">האימייל טרם אומת. <button tabindex="0" class="btn-text" id="resend-email-btn">שלח שוב קישור אימות</button></div>';
-        document.getElementById('resend-email-btn')?.addEventListener('click', async (e) => {
-          // ⚠️ 15.9 — היה כאן `await` בלי `try`. בכשל
-          // (`auth/too-many-requests` — Firebase זורק אותו כבר אחרי
-          // שתי שליחות) הכפתור **נתקע על "נשלח..."** והלקוח מאמין
-          // שהמייל יצא. זה גרוע מתקיעה שקטה: זו הודעת הצלחה על כשל.
-          const btn = e.target;
-          btn.disabled = true; btn.textContent = 'נשלח...';
-          try {
-            await resendVerificationEmail();
-            btn.textContent = 'נשלח! בדוק את תיבת המייל';
-          } catch (err) {
-            btn.disabled = false; btn.textContent = 'שלח שוב קישור אימות';
-            emailBox.insertAdjacentHTML('beforeend',
-              err?.code === 'auth/too-many-requests'
-                ? '<div class="alert alert-error">נשלחו יותר מדי בקשות. נסה שוב בעוד כמה דקות.</div>'
-                : '<div class="alert alert-error">השליחה נכשלה. נסה שוב.</div>');
-          }
-        });
-      }
+      // 26.11: אין אימות מייל — הטלפון הוא האימות, המייל משמש להודעות בלבד (כמו Uber/Gett/Yango/Bolt).
+      // אין באנר, תג ✓ או כפתור שליחה חוזרת; המייל מוצג כנתון רגיל ב-#profile-email.
+      document.getElementById('email-status').innerHTML = '';
 
       const phoneBox = document.getElementById('phone-status');
       const phoneCard = document.getElementById('phone-verify-card');
@@ -510,11 +486,6 @@
         });
       });
     }
-
-    // Refresh emailVerified once on load (Firebase doesn't push this live).
-    refreshEmailVerified().then((verified) => {
-      if (verified !== state.authUser.emailVerified) { state.authUser.emailVerified = verified; render(state.profile); }
-    });
 
     let verificationId = null;
     const phoneError = document.getElementById('phone-error');
