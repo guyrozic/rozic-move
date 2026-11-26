@@ -191,7 +191,7 @@
   </style>
 </head>
 <body class="app-body flow-b">
-<div data-build-stamp class="build-stamp" aria-hidden="true">עודכן 26.11 · 13:15</div>
+<div data-build-stamp class="build-stamp" aria-hidden="true">עודכן 26.11 · 13:18</div>
 <script src="/version-check.js?v=97bd6b2e" defer></script>
   <!-- ⚠️ 15.9 — "דלג לתוכן המרכזי" (WCAG 2.4.1, רמה A). זהו האלמנט הממוקד
        הראשון בדף: מוסתר מהעין, מופיע בפינה ברגע שמגיעים אליו ב-Tab, ומעביר
@@ -1147,8 +1147,8 @@
 
         <div class="modal-overlay" id="cancel-reason-modal" hidden>
           <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="cancel-reason-title" tabindex="-1">
-            <h2 id="cancel-reason-title">למה אתה מבטל?</h2>
-            <p class="cancel-reason-intro">המשוב עוזר לנו לשפר את השירות — זה לוקח רק כמה שניות.</p>
+            <h2 id="cancel-reason-title">מה הסיבה לביטול?</h2>
+            <p class="cancel-reason-intro">אם תספרו לנו, נדע מה לשפר.</p>
             <fieldset class="cancel-reason-fieldset">
               <legend class="sr-only">סיבת הביטול</legend>
               ${CANCELLATION_REASON_OPTIONS.map((r) => `
@@ -1671,7 +1671,7 @@
         const formErrBox = document.getElementById('cancel-reason-form-error');
         const selected = reasonModal.querySelector('input[name="cancel-reason"]:checked');
         if (!selected) {
-          formErrBox.innerHTML = '<div class="alert alert-error" role="alert">בחר סיבה מהרשימה כדי להמשיך.</div>';
+          formErrBox.innerHTML = '<div class="alert alert-error" role="alert">צריך לבחור סיבה מהרשימה כדי להמשיך.</div>';
           reasonModal.querySelector('input[name="cancel-reason"]').focus();
           return;
         }
