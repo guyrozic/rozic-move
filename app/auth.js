@@ -572,7 +572,13 @@ export async function deleteAccount(currentPassword) {
   if (!user) throw new Error('NOT_LOGGED_IN');
   const providerId = currentProviderId();
 
-  if (providerId === 'google.com' || providerId === 'apple.com') {
+  if (providerId === 'phone') {
+    // 26.11, תאום ל-43d36e8 באפליקציה: אין סיסמה, ואימות מחדש דורש קוד SMS חדש.
+    // לכן מוודאים כניסה טרייה (עד 4 דקות) **לפני** שנמחק משהו — מחיקת המסמך
+    // ואז כשל ב-`deleteUser` משאירה חשבון Auth בלי פרופיל.
+    const last = Date.parse(user.metadata?.lastSignInTime ?? '');
+    if (!Number.isFinite(last) || Date.now() - last > 4 * 60 * 1000) throw { code: 'auth/requires-recent-login' };
+  } else if (providerId === 'google.com' || providerId === 'apple.com') {
     let provider;
     if (providerId === 'google.com') {
       provider = new GoogleAuthProvider();

@@ -34,7 +34,7 @@
   <link rel="stylesheet" href="flow.css?v=fd6d2d86">
 </head>
 <body class="app-body flow-b">
-<div data-build-stamp class="build-stamp" aria-hidden="true">עודכן 26.11 · 14:05</div>
+<div data-build-stamp class="build-stamp" aria-hidden="true">עודכן 26.11 · 14:07</div>
 <script src="/version-check.js?v=97bd6b2e" defer></script>
   <a class="skip-link" href="#main-content">דלג לתוכן המרכזי</a>
   <script type="module" src="pilot-banner.js?v=40593444"></script>
@@ -125,7 +125,7 @@
 
       <div class="app-card" id="oauth-password-note" style="display:none;">
         <h2>שינוי סיסמה</h2>
-        <p class="app-card-desc">החשבון שלך מחובר דרך Google/Apple — אין סיסמה נפרדת לשינוי באתר.</p>
+        <p class="app-card-desc" id="oauth-password-desc">החשבון שלך מחובר דרך Google/Apple — אין סיסמה נפרדת לשינוי באתר.</p>
       </div>
 
       <!-- ⚠️ 20.9 — עד כה היה כאן **קישור להסבר בלבד**, ו-delete-account.html
@@ -301,6 +301,11 @@
        עם EmailAuthProvider ייכשל) — ראו changePassword ב-auth.js. */
     const isPasswordAccount = auth.currentUser?.providerData?.[0]?.providerId === 'password';
     document.getElementById(isPasswordAccount ? 'password-card' : 'oauth-password-note').style.display = 'block';
+    // 26.11: חשבון שנפתח בטלפון — אין סיסמה, והשורה אומרת איך מתחברים.
+    if (currentProviderId() === 'phone') {
+      document.querySelector('#oauth-password-note h2').textContent = 'התחברות';
+      document.getElementById('oauth-password-desc').textContent = 'התחברות: דרך מספר טלפון';
+    }
 
     /* ═══════════ מחיקת חשבון לצמיתות ═══════════════════════════════
        מראה של `DeleteAccountScreen.tsx`. שלושה שלבים בסדר הזה בדיוק,
@@ -319,6 +324,9 @@
 
       if (needsPassword) {
         passwordGroup.style.display = 'block';
+      } else if (providerId === 'phone') {
+        oauthNote.style.display = 'block';
+        oauthNote.textContent = 'מטעמי אבטחה, המחיקה אפשרית בדקות הראשונות אחרי כניסה עם קוד ב-SMS. אם עבר יותר זמן, נבקש להתנתק ולהיכנס שוב.';
       } else {
         oauthNote.style.display = 'block';
         oauthNote.textContent = `החשבון שלך מחובר דרך ${providerId === 'apple.com' ? 'Apple' : 'Google'} — ייפתח חלון אימות של הספק לפני המחיקה.`;
@@ -356,7 +364,7 @@
         // לגרום למישהו לאשר פעולה סופית ואז לומר לו שהיא חסומה.
         const confirmText = needsPassword
           ? 'פעולה זו תמחק את החשבון שלך ואת כל הנתונים שלו לצמיתות. לא ניתן לשחזר את הפעולה. האם אתה בטוח שברצונך להמשיך?'
-          : `פעולה זו תמחק את החשבון שלך ואת כל הנתונים שלו לצמיתות. לא ניתן לשחזר את הפעולה. תתבקש/י לאמת שוב את הזהות מול ${providerId === 'apple.com' ? 'Apple' : 'Google'}. האם אתה בטוח שברצונך להמשיך?`;
+          : `פעולה זו תמחק את החשבון שלך ואת כל הנתונים שלו לצמיתות. לא ניתן לשחזר את הפעולה. ${providerId === 'phone' ? '' : `תתבקש/י לאמת שוב את הזהות מול ${providerId === 'apple.com' ? 'Apple' : 'Google'}. `}האם אתה בטוח שברצונך להמשיך?`;
         if (!confirm(confirmText)) { restore('מחק את החשבון לצמיתות'); return; }
 
         deleteBtn.textContent = 'מוחק...';
@@ -369,7 +377,9 @@
         } catch (err) {
           const code = err?.code || '';
           fail(
-            code === 'auth/wrong-password' || code === 'auth/invalid-credential'
+            code === 'auth/requires-recent-login'
+              ? 'מטעמי אבטחה צריך להתנתק ולהיכנס שוב עם קוד ב-SMS, ואז למחוק.'
+            : code === 'auth/wrong-password' || code === 'auth/invalid-credential'
               ? 'הסיסמה שהוזנה שגויה.'
               : code === 'auth/popup-closed-by-user' || code === 'auth/cancelled-popup-request'
                 ? 'חלון האימות נסגר לפני שהושלם. החשבון לא נמחק.'
