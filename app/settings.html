@@ -28,13 +28,13 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="../style.css?v=ae0a0fe9">
-  <link rel="stylesheet" href="style-app.css?v=86eed599">
+  <link rel="stylesheet" href="style-app.css?v=059d7a46">
   <!-- ⚠️ נטען אחרון בכוונה — `flow.css` דורס את `style-app.css` תחת
        `.flow-b` בלבד, כך שדף שלא טוען אותו אינו מושפע. -->
   <link rel="stylesheet" href="flow.css?v=fd6d2d86">
 </head>
 <body class="app-body flow-b">
-<div data-build-stamp class="build-stamp" aria-hidden="true">עודכן 26.11 · 12:40</div>
+<div data-build-stamp class="build-stamp" aria-hidden="true">עודכן 26.11 · 12:47</div>
 <script src="/version-check.js?v=97bd6b2e" defer></script>
   <a class="skip-link" href="#main-content">דלג לתוכן המרכזי</a>
   <script type="module" src="pilot-banner.js?v=40593444"></script>
@@ -99,19 +99,6 @@
           </label>
         </div>
         <div class="form-hint" id="ai-consent-error" role="alert"></div>
-        <!-- 26.11: מראה את מתג "הצגת תמונות הסריקה למובילים" ב-ProfileScreen. דלוק כש-scanPhotosShare !== false. האתר ללקוחות בלבד. -->
-        <div class="switch-row">
-          <div class="switch-row-text">
-            <span class="switch-row-label" id="scan-share-label">הצגת תמונות הסריקה למובילים</span>
-            <span class="switch-row-hint" id="scan-share-hint">התמונות שצילמתם יוצגו מטושטשות למובילים שרואים את ההזמנה בלוח, כדי שידעו מה מחכה להם. אפשר לכבות — אז הן משמשות רק לזיהוי הפריטים.</span>
-          </div>
-          <label class="switch">
-            <input type="checkbox" role="switch" id="scan-share-toggle" aria-checked="false"
-                   aria-labelledby="scan-share-label" aria-describedby="scan-share-hint">
-            <span class="switch-track" aria-hidden="true"></span>
-          </label>
-        </div>
-        <div class="form-hint" id="scan-share-error" role="alert"></div>
       </div>
 
       <div class="app-card" id="password-card" style="display:none;">
@@ -243,7 +230,6 @@
     import { subscribeToUserOrders, ACTIVE_CUSTOMER_STATUSES, hasActiveOrders } from './orders.js';
     import { auth } from './firebase.js';
     import { isAIConsentValid, recordServerAIConsent, revokeServerAIConsent } from './ai-consent.js';
-    import { scanPhotosShareOn, setScanPhotosShare } from './scan-photos.js';
 
     const state = await requireAuth();
     document.getElementById('loading').style.display = 'none';
@@ -307,25 +293,6 @@
       }
       aiToggle.setAttribute('aria-checked', String(aiToggle.checked));
       aiToggle.disabled = false;
-    });
-
-    /* ---------- הצגת תמונות הסריקה למובילים ----------
-       מראה `ProfileScreen.toggleScanShare`: `users/{uid}.scanPhotosShare`, חסר = דלוק. כשל = מחזירים ומודיעים. */
-    const scanToggle = document.getElementById('scan-share-toggle');
-    const scanError = document.getElementById('scan-share-error');
-    scanToggle.checked = scanPhotosShareOn(state.profile);
-    scanToggle.setAttribute('aria-checked', String(scanToggle.checked));
-    scanToggle.addEventListener('change', async () => {
-      const wanted = scanToggle.checked;
-      scanToggle.disabled = true;
-      scanError.textContent = '';
-      const ok = await setScanPhotosShare(state.authUser.uid, wanted);
-      if (!ok) {
-        scanToggle.checked = !wanted;
-        scanError.textContent = 'לא הצלחנו לשמור את השינוי. נסו שוב.';
-      }
-      scanToggle.setAttribute('aria-checked', String(scanToggle.checked));
-      scanToggle.disabled = false;
     });
 
     /* ---------- שינוי סיסמה ----------

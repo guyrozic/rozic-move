@@ -1,5 +1,5 @@
 /**
- * הצגת תמונות הסריקה למובילים — צד האתר (הכרעה 8.7 ב, 25.11.2026; 26.11: לפי התקנון, כיבוי בהגדרות).
+ * הצגת תמונות הסריקה למובילים — צד האתר (הכרעה 8.7 ב, 25.11.2026; 26.11: לפי התקנון בלבד, בלי מתג ובלי שלב).
  * **תאום ל-`src/services/orderScanPhotos.ts` + `ScanShareConsentBox` +
  * `useScanPhotosShare` באפליקציה (ענף w2-photos).** נוסח ההסכמה הוא סעיף 2ד
  * ב-`legal-drafts.md`, מילה במילה, וגרסתו חייבת להיות ב-`KNOWN_CONSENT_VERSIONS`
@@ -7,7 +7,7 @@
  *
  * ## ⚠️ האתר הוא ממשק לקוח בלבד
  * אין באתר לוח מובילים, ולכן אין כאן "הצגה למוביל". כל מה שכאן הוא צד הלקוח:
- * הסכמה, פרסום, תצוגה מקדימה, "לא לשתף".
+ * פרסום ברקע בלבד.
  *
  * ## ⚠️ דגל `config/scanPhotos.enabled` (fail-closed) ואחריו בדיקת קיום
  * הדגל חייב להיות דלוק מפורשות. אחריו, כל עוד הפונקציות עוד לא פרוסות (עד פריסת w2-photos) — הכל מאחורי בדיקת קיום
@@ -17,15 +17,12 @@
  *
  * ## ⚠️ שיתוף תמונות הוא תוספת ולעולם לא חוסם
  * כשל בפרסום = ההזמנה ממשיכה לתשלום בלי תמונות. **לא מתנים שירות בהסכמה.**
- * אין מתג בזרימת ההזמנה. הכיבוי נשמר בפרופיל (`scanPhotosShare`) ונקרא בעת הפרסום.
+ * אין מתג ואין שלב: ההצגה לפי התקנון והפרטיות (גרסה 2026-11-3). הסרה: דרך התמיכה או מהאדמין.
  */
-import { doc, getDoc, updateDoc } from 'https://www.gstatic.com/firebasejs/12.16.0/firebase-firestore.js';
-import { auth, db } from './firebase.js';
+import { auth } from './firebase.js';
 
 const BASE = 'https://us-central1-hovalot-6cf65.cloudfunctions.net';
 const PUBLISH_URL = `${BASE}/publishOrderScanPhotos`;
-const GET_URL = `${BASE}/getOrderScanPhotos`;
-const WITHDRAW_URL = `${BASE}/withdrawOrderScanPhotos`;
 
 export const SCAN_CONSENT_VERSION = '2026-11-26t';
 export const SCAN_CONSENT_TITLE = 'הצגת תמונות הסריקה למובילים';
@@ -92,30 +89,13 @@ export async function isScanShareAvailable(fetchImpl = globalThis.fetch) {
 }
 
 /**
- * 26.11, אחר הצהריים (גיא: "שיהיה בתקנון וזהו"): **אין שום שלב בזרימת ההזמנה.** ההצגה בלוח היא
- * לפי התקנון והפרטיות (גרסה 2026-11-3), והכיבוי ב"פרופיל והגדרות" (`settings.html`) —
- * `users/{uid}.scanPhotosShare`, חסר = דלוק. מראה `scanPhotosShareOn` ב-`orderScanPhotos.ts`.
- */
-export function scanPhotosShareOn(profile) {
-  return profile?.scanPhotosShare !== false;
-}
-
-/**
- * ההסכמה שנשלחת לשרת בפרסום: `{version, acceptedAt}` כשההצגה דלוקה, `null` כשכובתה בהגדרות.
- * ⚠️ אין משתמש מחובר, או שקריאת הפרופיל נכשלה = `null` (לא מפרסמים): מי שכיבה בהגדרות
- * לא יפורסם עקב כשל רשת רגעי. (פרסום ממילא דורש משתמש מחובר.)
+ * 26.11 (גיא: "שיהיה בתקנון וזהו"; "אני לא רוצה מתג כזה"): הבסיס הוא אישור התקנון.
+ * משתמש מחובר = `{version, acceptedAt}` תמיד; אורח = `null` (פרסום ממילא דורש משתמש מחובר).
+ * מראה `newScanPhotoConsent` ב-`orderScanPhotos.ts`.
  */
 export async function getScanConsent() {
-  const uid = auth.currentUser?.uid;
-  if (!uid) return null;
-  try {
-    const snap = await getDoc(doc(db, 'users', uid));
-    if (!scanPhotosShareOn(snap.exists() ? snap.data() : null)) return null;
-    return { version: SCAN_CONSENT_VERSION, acceptedAt: Date.now() };
-  } catch (e) {
-    console.warn('[scanPhotos] share setting read failed', e?.code || e);
-    return null;
-  }
+  if (!auth.currentUser?.uid) return null;
+  return { version: SCAN_CONSENT_VERSION, acceptedAt: Date.now() };
 }
 
 async function authedPost(url, body) {
@@ -151,58 +131,5 @@ export async function publishScanPhotos(orderId, files, consent, base64Fn) {
   } catch (e) {
     console.warn('[scanPhotos] publish error', e);
     return { kind: 'failed' };
-  }
-}
-
-/**
- * סטטוס הפרסום: `orders/{id}/private/scanPhotos.scanPhotosStatus` (נכתב ב-Admin SDK בלבד, קריא ללקוח הבעלים).
- * ⚠️ המצב הקובע יושב שם ולא על מסמך ההזמנה (שם נשאר רק `scanPhotoCount` כמונה תצוגה).
- * מחזיר `null` כשלא נקרא (שגיאה/חסר) — המתקשר מחליט; הגלריה עצמה נפתחת רק דרך `getOrderScanPhotos`.
- */
-export async function getScanPhotosStatus(orderId) {
-  try {
-    const snap = await getDoc(doc(db, 'orders', orderId, 'private', 'scanPhotos'));
-    return snap.exists() ? (snap.data().scanPhotosStatus ?? null) : null;
-  } catch (e) {
-    if (e?.code !== 'permission-denied') console.warn('[scanPhotos] status read failed', e?.code || e);
-    return null;
-  }
-}
-
-/** קישורים חתומים ל-10 דקות. `[]` כשאין הרשאה/תמונות/כשל. לא נשמרים. */
-export async function fetchScanPhotoUrls(orderId) {
-  try {
-    const res = await authedPost(GET_URL, { orderId });
-    if (!res || !res.ok) return [];
-    const json = await res.json();
-    return Array.isArray(json?.photos) ? json.photos.map(p => p?.url).filter(u => typeof u === 'string') : [];
-  } catch (e) {
-    console.warn('[scanPhotos] fetch error', e);
-    return [];
-  }
-}
-
-/** "לא לשתף": מסירה מהלוח ומחיקה. שני ניסיונות — כשל מחיקה אחרי סירוב פוגע באמון. */
-export async function withdrawScanPhotos(orderId) {
-  for (let i = 0; i < 2; i++) {
-    try {
-      const res = await authedPost(WITHDRAW_URL, { orderId });
-      if (res && res.ok) return true;
-    } catch (e) {
-      console.warn('[scanPhotos] withdraw error', e);
-    }
-  }
-  console.warn('[scanPhotos] withdraw failed twice', orderId);
-  return false;
-}
-
-/** כתיבת המתג ב"פרופיל והגדרות". `true` בהצלחה; כשל = `false` והמתקשר מחזיר את המתג ומודיע. */
-export async function setScanPhotosShare(uid, value) {
-  try {
-    await updateDoc(doc(db, 'users', uid), { scanPhotosShare: value });
-    return true;
-  } catch (e) {
-    console.warn('[scanPhotos] share setting write failed', e?.code || e);
-    return false;
   }
 }

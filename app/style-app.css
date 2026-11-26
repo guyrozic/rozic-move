@@ -1402,10 +1402,6 @@
 .slots-none-left { flex-basis: 100%; }
 .slots-none-left .form-hint { margin: 4px 0 8px; }
 
-/* ===== 25.11 (W2) — הצגת תמונות הסריקה למובילים (ראו app/scan-photos.js) ===== */
-.scan-preview-strip { display: flex; gap: 10px; overflow-x: auto; padding: 6px 0; color: var(--text-muted); font-size: 0.85rem; }
-.scan-preview-strip img { width: 160px; height: 120px; object-fit: cover; border-radius: 10px; flex-shrink: 0; background: var(--green-tint); }
-
 /* ===== 25.11 (W2) — דיאלוג הסכמת AI (ראו app/ai-consent.js) ===== */
 .ai-consent-overlay {
   position: fixed; inset: 0; z-index: 20000;
