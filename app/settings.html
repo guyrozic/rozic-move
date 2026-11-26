@@ -28,13 +28,13 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="../style.css?v=ae0a0fe9">
-  <link rel="stylesheet" href="style-app.css?v=e41eaa4d">
+  <link rel="stylesheet" href="style-app.css?v=d20dee8a">
   <!-- ⚠️ נטען אחרון בכוונה — `flow.css` דורס את `style-app.css` תחת
        `.flow-b` בלבד, כך שדף שלא טוען אותו אינו מושפע. -->
   <link rel="stylesheet" href="flow.css?v=fd6d2d86">
 </head>
 <body class="app-body flow-b">
-<div data-build-stamp class="build-stamp" aria-hidden="true">עודכן 26.11 · 10:59</div>
+<div data-build-stamp class="build-stamp" aria-hidden="true">עודכן 26.11 · 12:19</div>
 <script src="/version-check.js?v=97bd6b2e" defer></script>
   <a class="skip-link" href="#main-content">דלג לתוכן המרכזי</a>
   <script type="module" src="pilot-banner.js?v=40593444"></script>
@@ -82,6 +82,23 @@
           ⚠️ ההגדרה הזו משותפת לכל המכשירים שמחוברים לחשבון הזה — כיבוי כאן
           מכבה גם התראות באפליקציה הנייטיבית, לא רק באתר.
         </p>
+      </div>
+
+      <!-- 26.11: מראה את מתג ה-AI ב"פרופיל והגדרות" באפליקציה (aiConsent.ts). אותו שדה בשרת. -->
+      <div class="app-card">
+        <h2>בינה מלאכותית</h2>
+        <div class="switch-row">
+          <div class="switch-row-text">
+            <span class="switch-row-label" id="ai-consent-label">ניתוח בבינה המלאכותית של Google</span>
+            <span class="switch-row-hint" id="ai-consent-hint">זיהוי פריטים מתמונות, הצ'אט ובדיקת מסמכים. כבוי = בוחרים פריטים מהרשימה, ומסמכים נבדקים ידנית.</span>
+          </div>
+          <label class="switch">
+            <input type="checkbox" role="switch" id="ai-consent-toggle" aria-checked="false"
+                   aria-labelledby="ai-consent-label" aria-describedby="ai-consent-hint">
+            <span class="switch-track" aria-hidden="true"></span>
+          </label>
+        </div>
+        <div class="form-hint" id="ai-consent-error" role="alert"></div>
       </div>
 
       <div class="app-card" id="password-card" style="display:none;">
@@ -212,6 +229,7 @@
     import { setNotificationPreference } from './account.js';
     import { subscribeToUserOrders, ACTIVE_CUSTOMER_STATUSES, hasActiveOrders } from './orders.js';
     import { auth } from './firebase.js';
+    import { isAIConsentValid, recordServerAIConsent, revokeServerAIConsent } from './ai-consent.js';
 
     const state = await requireAuth();
     document.getElementById('loading').style.display = 'none';
@@ -254,6 +272,27 @@
       } finally {
         renderNotifHint();
       }
+    });
+
+    /* ---------- בינה מלאכותית ----------
+       מראה `ProfileScreen` באפליקציה: מתג שכותב/מבטל `users/{uid}.aiConsent`. */
+    const aiToggle = document.getElementById('ai-consent-toggle');
+    const aiError = document.getElementById('ai-consent-error');
+    aiToggle.checked = isAIConsentValid(state.profile.aiConsent);
+    aiToggle.setAttribute('aria-checked', String(aiToggle.checked));
+    aiToggle.addEventListener('change', async () => {
+      const wanted = aiToggle.checked;
+      aiToggle.disabled = true;
+      aiError.textContent = '';
+      const ok = wanted
+        ? await recordServerAIConsent(state.authUser.uid, 'settings')
+        : await revokeServerAIConsent(state.authUser.uid);
+      if (!ok) {
+        aiToggle.checked = !wanted;
+        aiError.textContent = 'לא הצלחנו לשמור את השינוי. נסו שוב.';
+      }
+      aiToggle.setAttribute('aria-checked', String(aiToggle.checked));
+      aiToggle.disabled = false;
     });
 
     /* ---------- שינוי סיסמה ----------

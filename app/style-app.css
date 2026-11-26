@@ -1404,22 +1404,10 @@
 
 /* ===== 25.11 (W2) — הצגת תמונות הסריקה למובילים (ראו app/scan-photos.js) ===== */
 .scan-consent-slot { margin: 12px 0; }
-.scan-consent {
-  border: 1px solid var(--green-line);
-  background: var(--green-tint);
-  border-radius: var(--radius-sm);
-  padding: 12px 14px;
-}
-.scan-consent-title { font-weight: 800; color: var(--green-ink); margin: 0 0 4px; font-size: 0.95rem; }
-.scan-consent-body { font-size: 0.85rem; line-height: 1.6; color: var(--text-mid); margin: 0 0 10px; }
-.scan-consent-row {
-  display: flex; align-items: center; gap: 10px;
-  font-weight: 700; font-size: 0.92rem; color: var(--text); cursor: pointer; min-height: 44px;
-}
-.scan-consent-row input[type="checkbox"] {
-  width: 22px; height: 22px; flex-shrink: 0; margin: 0; accent-color: var(--green); cursor: pointer;
-}
-.scan-consent-link { display: inline-block; margin-top: 4px; font-size: 0.82rem; font-weight: 700; color: var(--green-ink); }
+.scan-consent { padding: 4px 0; }
+.scan-consent-row { display: flex; align-items: center; justify-content: space-between; gap: 16px; min-height: 44px; }
+.scan-consent-title { font-weight: 700; font-size: 0.95rem; color: var(--text); }
+.scan-consent-body { font-size: 0.85rem; line-height: 1.6; color: var(--text-mid); margin: 2px 0 0; }
 .scan-preview-strip { display: flex; gap: 10px; overflow-x: auto; padding: 6px 0; color: var(--text-muted); font-size: 0.85rem; }
 .scan-preview-strip img { width: 160px; height: 120px; object-fit: cover; border-radius: 10px; flex-shrink: 0; background: var(--green-tint); }
 
@@ -1435,5 +1423,6 @@
 }
 .ai-consent-title { font-size: 1.1rem; font-weight: 800; color: var(--green); margin: 0 0 8px; }
 .ai-consent-body { font-size: 0.92rem; line-height: 1.7; color: var(--text); margin: 0 0 8px; }
+.ai-consent-note { color: var(--text-mid); }
 .ai-consent-link { display: inline-block; font-size: 0.85rem; font-weight: 700; color: var(--green-ink); margin-bottom: 14px; }
 .ai-consent-actions { display: flex; flex-direction: column; gap: 8px; }

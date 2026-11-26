@@ -14,6 +14,7 @@ import {
 import { doc, setDoc, getDoc, updateDoc, deleteDoc, onSnapshot, serverTimestamp } from 'https://www.gstatic.com/firebasejs/12.16.0/firebase-firestore.js';
 import { auth, db } from './firebase.js';
 import { TERMS_VERSION } from './legal.js';
+import { signupAIConsentField } from './ai-consent.js';
 
 // NOTE on how this reaches verify-redirect.html: the Firebase Console has a custom
 // email-action URL configured to that page (confirmed by the app's own code — it reads
@@ -83,7 +84,7 @@ export function normalizePhone(raw) {
 }
 
 /** Registers a new customer account — web ordering is customer-only, no driver signup here. */
-export async function registerCustomer({ name, email, phone, password, termsAccepted }) {
+export async function registerCustomer({ name, email, phone, password, termsAccepted, aiConsent = false }) {
   // הסכמה לתנאי השימוש ולמדיניות הפרטיות היא תנאי להרשמה (כמו באפליקציה).
   // הטופס ב-login.html כבר חוסם, אבל termsAcceptedAt נכתב למסמך המשתמש למטה,
   // ולא נכתוב אותו בלי הסכמה אמיתית — לכן גם כאן.
@@ -102,7 +103,7 @@ export async function registerCustomer({ name, email, phone, password, termsAcce
   // ראיית ההסכמה לתקנון: המועד (היה קיים) **וגם** הגרסה שאושרה (11.9) —
   // בלי הגרסה, "אישר ב-3.2" לא אומר למה בדיוק הוא הסכים. אותם שני שדות
   // בדיוק נכתבים ע"י AuthContext.register באפליקציה. ראו legal.js.
-  await setDoc(doc(db, 'users', credential.user.uid), { ...profile, termsAcceptedAt: serverTimestamp(), termsVersion: TERMS_VERSION });
+  await setDoc(doc(db, 'users', credential.user.uid), { ...profile, termsAcceptedAt: serverTimestamp(), termsVersion: TERMS_VERSION, ...signupAIConsentField(aiConsent) });
   sendEmailVerification(credential.user, EMAIL_VERIFICATION_SETTINGS).catch(() => {});
   return profile;
 }
@@ -302,7 +303,7 @@ export async function confirmPhoneVerificationCode(verificationId, code, localPh
 */
 
 /** ההסכמה נלכדת בלחיצה עצמה — ראו `terms-note` מתחת לכפתורים ב-login.html. */
-async function upsertOAuthProfile(user) {
+async function upsertOAuthProfile(user, aiConsent = false) {
   const ref = doc(db, 'users', user.uid);
   const snap = await getDoc(ref);
   if (snap.exists()) return { profile: { uid: snap.id, ...snap.data() }, isNew: false };
@@ -331,7 +332,7 @@ async function upsertOAuthProfile(user) {
     // walletBalance ואחיו אסורים במסמך חדש לפי firestore.rules — ראו
     // registerCustomer, אותה מגבלה בדיוק.
   };
-  await setDoc(ref, { ...profile, termsAcceptedAt: serverTimestamp(), termsVersion: TERMS_VERSION });
+  await setDoc(ref, { ...profile, termsAcceptedAt: serverTimestamp(), termsVersion: TERMS_VERSION, ...signupAIConsentField(aiConsent) });
   return { profile, isNew: true };
 }
 
@@ -339,7 +340,7 @@ async function upsertOAuthProfile(user) {
  * @param {'google'|'apple'} kind
  * @returns {Promise<{profile: object, isNew: boolean, needsPhone: boolean}>}
  */
-export async function signInWithProvider(kind) {
+export async function signInWithProvider(kind, { aiConsent = false } = {}) {
   let provider;
   if (kind === 'google') {
     provider = new GoogleAuthProvider();
@@ -365,7 +366,7 @@ export async function signInWithProvider(kind) {
     provider.setCustomParameters({ locale: 'he_IL' });
   }
   const { user } = await signInWithPopup(auth, provider);
-  const { profile, isNew } = await upsertOAuthProfile(user);
+  const { profile, isNew } = await upsertOAuthProfile(user, aiConsent);
   /**
    * ⚠️ 16.9 — **הבדיקה הזאת הייתה כאן חסרה, והיא קיימת ב-`login()`
    * שורות ספורות מעל.**

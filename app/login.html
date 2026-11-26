@@ -48,7 +48,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="../style.css?v=ae0a0fe9">
-  <link rel="stylesheet" href="style-app.css?v=e41eaa4d">
+  <link rel="stylesheet" href="style-app.css?v=d20dee8a">
   <style>
     .auth-shell {
       position: relative;
@@ -164,7 +164,7 @@
   </style>
 </head>
 <body class="app-body">
-<div data-build-stamp class="build-stamp" aria-hidden="true">עודכן 26.11 · 10:59</div>
+<div data-build-stamp class="build-stamp" aria-hidden="true">עודכן 26.11 · 12:19</div>
 <script src="/version-check.js?v=97bd6b2e" defer></script>
   <!-- ⚠️ 15.9 — "דלג לתוכן המרכזי" (WCAG 2.4.1, רמה A). זהו האלמנט הממוקד
        הראשון בדף: מוסתר מהעין, מופיע בפינה ברגע שמגיעים אליו ב-Tab, ומעביר
@@ -230,6 +230,13 @@
           <a tabindex="0" href="/terms.html" target="_blank" rel="noopener">תנאי השימוש</a>
           ו<a tabindex="0" href="/privacy.html" target="_blank" rel="noopener">מדיניות הפרטיות</a>
         </p>
+        <!-- 26.11: חל על חשבון חדש בלבד; לא מסומן מראש ולא חוסם. -->
+        <div class="form-group" style="margin-top:10px">
+          <label class="terms-label ai-consent-signup" for="oauth-ai">
+            <input tabindex="0" type="checkbox" id="oauth-ai">
+            <span><b>תמונות וטקסט שאשלח יישלחו לבינה המלאכותית של Google לניתוח בלבד</b> — לזיהוי פריטים, לצ'אט ולבדיקת מסמכים.</span>
+          </label>
+        </div>
       </div>
 
       <div class="oauth-divider"><span>או בעזרת אימייל</span></div>
@@ -324,6 +331,13 @@
           <label class="terms-label">
             <input tabindex="0" type="checkbox" id="reg-terms" required>
             <span>אני בן/בת 18 ומעלה, קראתי ואני מסכים/ה ל<a tabindex="0" href="/terms.html" target="_blank" rel="noopener">תנאי השימוש</a> ול<a tabindex="0" href="/privacy.html" target="_blank" rel="noopener">מדיניות הפרטיות</a></span>
+          </label>
+        </div>
+        <!-- 26.11: תיבה נפרדת, לא מסומנת מראש, לא חוסמת הרשמה (אפל 5.1.2(i)). נוסח ליאור, זהה לאפליקציה. -->
+        <div class="form-group">
+          <label class="terms-label ai-consent-signup" for="reg-ai">
+            <input tabindex="0" type="checkbox" id="reg-ai">
+            <span><b>תמונות וטקסט שאשלח יישלחו לבינה המלאכותית של Google לניתוח בלבד</b> — לזיהוי פריטים, לצ'אט ולבדיקת מסמכים.</span>
           </label>
         </div>
         <button tabindex="0" type="submit" class="btn btn-primary btn-block" id="register-submit">הירשם</button>
@@ -836,6 +850,7 @@
           email: document.getElementById('reg-email').value.trim(),
           password: document.getElementById('reg-password').value,
           termsAccepted: termsBox.checked,
+          aiConsent: document.getElementById('reg-ai').checked,
         });
         /**
          * ⚠️ **אחרי** יצירת החשבון ולא לפניה: השרת גוזר את `newUserId`
@@ -893,7 +908,7 @@
       btn.disabled = true; btn.querySelector('span').textContent = 'מתחבר...';
       holdRedirect = true;
       try {
-        const { profile, needsPhone } = await signInWithProvider(kind);
+        const { profile, needsPhone } = await signInWithProvider(kind, { aiConsent: document.getElementById('oauth-ai').checked });
         if (needsPhone) {
           // מסתירים את הכפתורים ואת הטפסים — נשאר שדה אחד בלבד.
           oauthRow.hidden = true;

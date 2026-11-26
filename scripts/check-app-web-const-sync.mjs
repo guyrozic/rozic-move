@@ -341,11 +341,24 @@ const ENTRIES = [
     app: () => extract(HOVALOT_ROOT, 'src/services/orderScanPhotos.ts', /export const SCAN_CONSENT_BODY =\s*'([^']*)'/, 'SCAN_CONSENT_BODY')[1],
     web: () => extract(WEB_ROOT, 'app/scan-photos.js', /export const SCAN_CONSENT_BODY =\s*'([^']*)'/, 'SCAN_CONSENT_BODY (web copy)')[1],
   },
+  /* 26.11 — SCAN_CONSENT_CHECKBOX הוסר: באפליקציה הוא כינוי ל-TITLE (מתג במקום תיבה). הסכמת AI אחת בשרת: */
   {
-    name: 'SCAN_CONSENT_CHECKBOX',
+    name: 'AI_CONSENT_VERSION',
     kind: 'inline-literal',
-    app: () => extract(HOVALOT_ROOT, 'src/services/orderScanPhotos.ts', /export const SCAN_CONSENT_CHECKBOX =\s*'([^']*)'/, 'SCAN_CONSENT_CHECKBOX')[1],
-    web: () => extract(WEB_ROOT, 'app/scan-photos.js', /export const SCAN_CONSENT_CHECKBOX =\s*'([^']*)'/, 'SCAN_CONSENT_CHECKBOX (web copy)')[1],
+    app: () => extract(HOVALOT_ROOT, 'src/services/aiConsent.ts', /export const AI_CONSENT_VERSION =\s*'([^']*)'/, 'AI_CONSENT_VERSION')[1],
+    web: () => extract(WEB_ROOT, 'app/ai-consent.js', /export const AI_CONSENT_VERSION =\s*'([^']*)'/, 'AI_CONSENT_VERSION (web copy)')[1],
+  },
+  {
+    name: 'AI_CONSENT_PROMPT_TITLE',
+    kind: 'inline-literal',
+    app: () => extract(HOVALOT_ROOT, 'src/services/aiConsent.ts', /export const AI_CONSENT_PROMPT_TITLE =\s*'([^']*)'/, 'AI_CONSENT_PROMPT_TITLE')[1],
+    web: () => extract(WEB_ROOT, 'app/ai-consent.js', /export const AI_CONSENT_PROMPT_TITLE =\s*'([^']*)'/, 'AI_CONSENT_PROMPT_TITLE (web copy)')[1],
+  },
+  {
+    name: 'AI_CONSENT_PROMPT_BODY',
+    kind: 'inline-literal',
+    app: () => extract(HOVALOT_ROOT, 'src/services/aiConsent.ts', /export const AI_CONSENT_PROMPT_BODY =\s*'([^']*)'/, 'AI_CONSENT_PROMPT_BODY')[1],
+    web: () => extract(WEB_ROOT, 'app/ai-consent.js', /export const AI_CONSENT_PROMPT_BODY =\s*'([^']*)'/, 'AI_CONSENT_PROMPT_BODY (web copy)')[1],
   },
   {
     name: 'DEFAULT_KILL_SWITCH_MESSAGE',

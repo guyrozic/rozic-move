@@ -18,8 +18,8 @@
  *
  * ## ⚠️ שיתוף תמונות הוא תוספת ולעולם לא חוסם
  * כשל בפרסום = ההזמנה ממשיכה לתשלום בלי תמונות. **לא מתנים שירות בהסכמה.**
- * ההסכמה אינה נשמרת בין עמודים (גם לא בהפניה להתחברות): מי שחזר מההתחברות
- * מסמן שוב. זה הכיוון הבטוח — הסכמה שלא נתנו עכשיו אינה נחשבת.
+ * המתג דלוק כברירת מחדל בכל טעינת עמוד (גם אחרי הפניה להתחברות), ובחירת
+ * כיבוי אינה נשמרת בין עמודים — כיבוי הוא הכיוון הבטוח, והוא נשמר בעמוד עצמו.
  */
 import { doc, getDoc } from 'https://www.gstatic.com/firebasejs/12.16.0/firebase-firestore.js';
 import { auth, db } from './firebase.js';
@@ -29,11 +29,10 @@ const PUBLISH_URL = `${BASE}/publishOrderScanPhotos`;
 const GET_URL = `${BASE}/getOrderScanPhotos`;
 const WITHDRAW_URL = `${BASE}/withdrawOrderScanPhotos`;
 
-export const SCAN_CONSENT_VERSION = '2026-11-25';
-export const SCAN_CONSENT_TITLE = 'התמונות יוצגו למובילים';
+export const SCAN_CONSENT_VERSION = '2026-11-26';
+export const SCAN_CONSENT_TITLE = 'מציג את התמונות למובילים';
 export const SCAN_CONSENT_BODY =
-  'כדי שמובילים יוכלו לראות מה מחכה להם, התמונות שמצלמים יוצגו למובילים מאומתים שבוחנים את ההזמנה, כשפנים ואנשים מטושטשים. תמונות נבדקות גם בבינה מלאכותית כדי לזהות פריטים. לא לצלם אנשים, מסמכים או מסכים.';
-export const SCAN_CONSENT_CHECKBOX = 'מאשרים להציג את התמונות למובילים';
+  'התמונות שצילמתם יוצגו מטושטשות למובילים שרואים את ההזמנה בלוח, כדי שידעו מה מחכה להם. אפשר לכבות — אז הן משמשות רק לזיהוי הפריטים.';
 /** מגבלות השרת: 12 תמונות, 8MB מפוענחים. התקרה בממשק האתר היא 10. */
 export const SCAN_MAX_PHOTOS = 12;
 
@@ -95,27 +94,30 @@ export async function isScanShareAvailable(fetchImpl = globalThis.fetch) {
 }
 
 /**
- * מצייר את תיבת ההסכמה לתוך `slot` ומחזיר `{ getConsent }`.
- * ⚠️ לא מסומנת מראש, לעולם. סימון = `{version, acceptedAt}` (זמן הסימון).
- * ⚠️ אין תלות בסימון כדי להמשיך (מינימיזציה, אפל 5.1.1(iii)).
+ * מצייר את שורת השיתוף לתוך `slot` ומחזיר `{ getConsent }`. (26.11.2026, נוסח ליאור; מראה
+ * `ScanShareConsentBox` באפליקציה.) גיא: "אין באנרים מעצבנים" — שורה שקטה עם **מתג חיובי,
+ * דלוק כברירת מחדל**, במקום תיבה לא מסומנת. הבסיס המשפטי הוא סעיף בתקנון ובפרטיות; השורה היא
+ * חובת היידוע במקום ההעלאה. דלוק = `{version, acceptedAt: <רגע הפרסום>}`, כבוי = `null`.
+ * ⚠️ כיבוי לא חוסם את ההזמנה — התמונות משמשות אז רק לזיהוי (מינימיזציה, אפל 5.1.1(iii)).
  */
 export function mountScanConsent(slot) {
   slot.innerHTML = `
     <div class="scan-consent">
-      <p class="scan-consent-title">${SCAN_CONSENT_TITLE}</p>
-      <p class="scan-consent-body">${SCAN_CONSENT_BODY}</p>
-      <label class="scan-consent-row" for="scan-consent-check">
-        <input type="checkbox" id="scan-consent-check">
-        <span>${SCAN_CONSENT_CHECKBOX}</span>
-      </label>
-      <a class="scan-consent-link" href="../privacy.html" target="_blank" rel="noopener">מדיניות הפרטיות</a>
+      <div class="scan-consent-row">
+        <span class="scan-consent-title" id="scan-consent-title">${SCAN_CONSENT_TITLE}</span>
+        <label class="switch">
+          <input type="checkbox" role="switch" id="scan-consent-check" checked
+                 aria-checked="true" aria-labelledby="scan-consent-title" aria-describedby="scan-consent-body">
+          <span class="switch-track" aria-hidden="true"></span>
+        </label>
+      </div>
+      <p class="scan-consent-body" id="scan-consent-body">${SCAN_CONSENT_BODY}</p>
     </div>`;
   slot.hidden = false;
   const box = slot.querySelector('#scan-consent-check');
-  let acceptedAt = null;
-  box.addEventListener('change', () => { acceptedAt = box.checked ? Date.now() : null; });
+  box.addEventListener('change', () => { box.setAttribute('aria-checked', String(box.checked)); });
   return {
-    getConsent: () => (box.checked && acceptedAt ? { version: SCAN_CONSENT_VERSION, acceptedAt } : null),
+    getConsent: () => (box.checked ? { version: SCAN_CONSENT_VERSION, acceptedAt: Date.now() } : null),
   };
 }
 
