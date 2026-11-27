@@ -199,6 +199,13 @@ export function subscribeToAuth(callback) {
     unsubProfile = onSnapshot(doc(db, 'users', authUser.uid), (snap) => {
       if (!snap.exists()) { callback(null); return; }
       callback({ authUser, profile: { uid: snap.id, ...snap.data() } });
+    }, (err) => {
+      // ⚠️ מרוץ בהחלפת משתמש (יציאה, מחיקה, כניסה בטלפון): Firestore מחליף את הטוקן ומבטל את
+      // המאזין הישן *לפני* ש-onAuthStateChanged מנתק אותו, והקריאה נופלת על permission-denied.
+      // החוק עצמו (`get: if isAuth()`) תקין; המאזין החדש ייפתח מיד. בלי הטיפול הזה השגיאה
+      // יוצאת לקונסולה כ-"Uncaught" ונראית כמו תקלה בהרשמה.
+      if (err?.code === 'permission-denied' && auth.currentUser?.uid !== authUser.uid) return;
+      console.warn('[auth] profile listener failed', err?.code || err);
     });
   });
   return () => { unsubAuth(); if (unsubProfile) unsubProfile(); };
