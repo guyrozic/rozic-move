@@ -310,7 +310,7 @@ async function upsertOAuthProfile(user, aiConsent = false) {
     // walletBalance ואחיו אסורים במסמך חדש לפי firestore.rules — ראו
     // registerCustomer, אותה מגבלה בדיוק.
   };
-  await setDoc(ref, { ...profile, termsAcceptedAt: serverTimestamp(), termsVersion: TERMS_VERSION, ...signupAIConsentField(aiConsent) });
+  await setDoc(ref, { ...profile, termsAcceptedAt: serverTimestamp(), termsVersion: TERMS_VERSION, ...signupAIConsentField(aiConsent), createdAt: serverTimestamp() });
   return { profile, isNew: true };
 }
 
@@ -454,7 +454,7 @@ export async function completePhoneProfile(user, { name, email = '', termsAccept
     uid: user.uid, name: cleanedName, email: String(email ?? '').trim(), phone, userType: 'customer',
     referralCode: generateReferralCode(user.uid),
   };
-  await setDoc(doc(db, 'users', user.uid), { ...profile, termsAcceptedAt: serverTimestamp(), termsVersion: TERMS_VERSION, ...signupAIConsentField(aiConsent) });
+  await setDoc(doc(db, 'users', user.uid), { ...profile, termsAcceptedAt: serverTimestamp(), termsVersion: TERMS_VERSION, ...signupAIConsentField(aiConsent), createdAt: serverTimestamp() });
   try {
     await user.getIdToken(true);
     await updateDoc(doc(db, 'users', user.uid), { phoneVerified: true });
